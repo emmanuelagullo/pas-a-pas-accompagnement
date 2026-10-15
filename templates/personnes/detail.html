@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block titre %}Fiche personne — Pas à Pas{% endblock %}
+{% block contenu %}<p><a href="{% url 'personnes:liste' %}">Retour aux personnes</a></p>
+<section class="carte"><h1>{{ personne }}</h1>
+<dl><dt>Nom d’usage ou identifiant provisoire</dt><dd>{{ personne.designation }}</dd>
+<dt>Prénom</dt><dd>{{ personne.prenom|default:"Non renseigné" }}</dd>
+<dt>Fiche créée le</dt><dd>{{ personne.cree_le|date:"j F Y à H:i" }}</dd></dl>
+<p>Cette fiche peut commencer avec une identité incomplète.</p></section>{% endblock %}

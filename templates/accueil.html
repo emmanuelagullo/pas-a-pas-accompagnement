@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block contenu %}<h1>Bienvenue</h1><p>Un premier espace pour préparer l’accompagnement social.</p>
+<section class="carte"><h2>Les personnes</h2>
+{% if perms.personnes.view_personne %}<p>Consultez une fiche ou préparez une première identité, même incomplète.</p>
+<a class="bouton" href="{% url 'personnes:liste' %}">Consulter les personnes</a>
+{% else %}<p>Votre compte n’a pas encore de droit de consultation dans cet espace d’essai.</p>{% endif %}
+</section><p>Les ménages, accompagnements, hébergements et repas seront ajoutés lors des prochaines étapes.</p>{% endblock %}

@@ -1,0 +1,28 @@
+:root { color-scheme: light; font-family: system-ui, sans-serif; color: #243b3b; background: #f4f7f5; }
+* { box-sizing: border-box; }
+body { margin: 0; line-height: 1.6; }
+a { color: #175c50; text-underline-offset: .2em; }
+header { padding: 1rem max(1rem, calc((100vw - 64rem) / 2)); background: white; display: flex; gap: 1rem; justify-content: space-between; align-items: center; flex-wrap: wrap; border-bottom: 1px solid #cadbd3; }
+.marque { text-decoration: none; font-size: 1.4rem; font-weight: 750; }
+.marque span { display: block; font-size: .85rem; font-weight: 450; }
+nav { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+nav form { margin: 0; }
+main, footer, .prototype { max-width: 64rem; margin: 1.5rem auto; padding: 0 1rem; }
+main { min-height: 55vh; }
+.prototype { background: #fff4d9; padding: .65rem 1rem; border-left: .25rem solid #936622; }
+.carte { background: white; border: 1px solid #cadbd3; border-radius: .65rem; padding: 1.5rem; margin: 1.5rem 0; max-width: 44rem; }
+.etroite { max-width: 32rem; }
+h1 { font-size: 1.9rem; line-height: 1.25; } h2 { font-size: 1.3rem; }
+button, .bouton { display: inline-block; border: 1px solid #175c50; border-radius: .35rem; background: #175c50; color: white; padding: .65rem 1rem; text-decoration: none; font: inherit; cursor: pointer; }
+.secondaire { background: white; color: #175c50; }
+label { display: block; font-weight: 650; }
+input { display: block; width: 100%; max-width: 28rem; padding: .65rem; border: 1px solid #617d73; border-radius: .3rem; font: inherit; }
+.helptext { display: block; font-size: .9rem; margin-top: .3rem; }
+.errorlist { color: #922b21; font-weight: 600; }
+.fiches { list-style: none; padding: 0; max-width: 44rem; }
+.fiches li { background: white; border-bottom: 1px solid #cadbd3; }
+.fiches a { display: block; padding: 1rem; overflow-wrap: anywhere; }
+dt { font-weight: 650; } dd { margin: .2rem 0 1rem; overflow-wrap: anywhere; }
+footer { color: #4e665f; font-size: .9rem; }
+:focus-visible { outline: 3px solid #995e10; outline-offset: 3px; }
+.evitement { position: absolute; left: -10000px; } .evitement:focus { left: 1rem; top: 1rem; background: white; padding: .75rem; }

@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block titre %}Connexion — Pas à Pas{% endblock %}
+{% block contenu %}<section class="carte etroite"><h1>Connexion</h1>
+<p>Retrouvez les personnes fictives de votre espace d’essai.</p>
+<form method="post">{% csrf_token %}{{ form.as_p }}
+{% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+<button type="submit">Se connecter</button></form></section>{% endblock %}

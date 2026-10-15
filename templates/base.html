@@ -1,0 +1,17 @@
+{% load static %}<!doctype html>
+<html lang="fr">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block titre %}Pas à Pas — Accompagnement{% endblock %}</title>
+<link rel="stylesheet" href="{% static 'application.css' %}"></head>
+<body>
+<a class="evitement" href="#contenu">Aller au contenu</a>
+<header><a class="marque" href="{% url 'accueil' %}">Pas à Pas <span>Accompagnement</span></a>
+{% if user.is_authenticated %}<nav aria-label="Navigation principale">
+<a href="{% url 'accueil' %}">Accueil</a>
+{% if perms.personnes.view_personne %}<a href="{% url 'personnes:liste' %}">Personnes</a>{% endif %}
+<form method="post" action="{% url 'deconnexion' %}">{% csrf_token %}<button class="secondaire" type="submit">Se déconnecter</button></form>
+</nav>{% endif %}</header>
+<p class="prototype">Prototype #SOC1 — Données fictives uniquement.</p>
+<main id="contenu">{% block contenu %}{% endblock %}</main>
+<footer>Pas à Pas — Accompagnement · Premier espace d’essai</footer>
+</body></html>

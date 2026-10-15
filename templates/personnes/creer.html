@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block titre %}Créer une personne — Pas à Pas{% endblock %}
+{% block contenu %}<p><a href="{% url 'personnes:liste' %}">Retour aux personnes</a></p>
+<section class="carte"><h1>Créer une personne</h1>
+<form method="post">{% csrf_token %}{{ form.as_p }}
+<button type="submit">Enregistrer la personne</button>
+<a href="{% url 'personnes:liste' %}">Annuler</a></form></section>{% endblock %}

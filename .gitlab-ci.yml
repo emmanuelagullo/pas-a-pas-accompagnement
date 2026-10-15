@@ -1,0 +1,17 @@
+image: python:3.12-slim
+
+stages: [test]
+
+test:
+  parallel:
+    matrix:
+      - VERSION_PYTHON: ["3.12", "3.13"]
+  image: python:${VERSION_PYTHON}-slim
+  before_script:
+    - python -m pip install -r requirements.lock
+    - python -m pip check
+  script:
+    - python manage.py check
+    - python manage.py migrate --noinput
+    - python manage.py test
+    - python manage.py makemigrations --check --dry-run
