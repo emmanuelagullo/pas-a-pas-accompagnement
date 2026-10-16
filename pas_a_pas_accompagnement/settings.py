@@ -1,9 +1,10 @@
 """Profil #SOC1 : développement local, exclusivement sur données fictives."""
 from pathlib import Path
 import secrets
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-LOCAL_DIR = BASE_DIR / ".local"
+LOCAL_DIR = Path(os.environ.get("ACCOMPAGNEMENT_DONNEES", BASE_DIR / ".local")).expanduser().resolve()
 LOCAL_DIR.mkdir(mode=0o700, exist_ok=True)
 _cle = LOCAL_DIR / "secret-key"
 try:
@@ -62,3 +63,5 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
 EMAIL_BACKEND = "django.core.mail.backends.dummy.EmailBackend"
+
+MEDIA_ROOT = LOCAL_DIR / "media"

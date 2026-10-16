@@ -17,10 +17,11 @@ d'une égalité de nom. Les personnes suivies n'ont pas de compte de connexion.
 ## État de la factorisation
 
 Les trois dépôts restent distincts : Petits Pas, pas-communs et cette
-application. #SOC1 établit le second consommateur et les frontières. Le socle
-contient le cadrage ; aucun code Petits Pas n'est copié, déplacé ou modifié.
-La connexion utilise provisoirement les vues Django standard. Elle sera adaptée
-lors de #SOC4 ; les politiques sociales resteront propres à cette application.
+application. #SOC2 adopte `pas_communs.paquets` : enveloppe ZIP, copie SQLite,
+empreintes et préparation de restauration. Les commandes de gestion sélectionnent
+le profil CHRS ; elles n'importent aucun modèle scolaire. Les sessions sont
+supprimées uniquement dans la copie restaurée. Le compte existant permet ensuite
+une nouvelle connexion. La connexion reste provisoirement celle de Django.
 
 Ne pas imposer des organisations ou habilitations génériques avant d'avoir
 confronté les deux métiers. Préserver l'identité des modèles et des migrations

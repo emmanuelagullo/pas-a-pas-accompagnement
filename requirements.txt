@@ -1,2 +1,3 @@
+-r requirements-communs.txt
 Django>=5.2,<5.3
 tzdata>=2025.1

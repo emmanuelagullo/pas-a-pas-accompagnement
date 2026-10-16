@@ -13,3 +13,8 @@ Vérifier `python manage.py check`, `python manage.py test`,
 Commits français avec #SOC. Utiliser l’identité de commit explicitement
 indiquée ; si elle n’est pas précisée, la demander avant de créer les commits.
 Livraison par patch git am, sans Signed-off-by.
+
+#SOC2 : les sauvegardes passent par `pas_communs.paquets`. Conserver le profil
+CHRS distinct, l'exclusion des sessions dans les copies et le refus d'écrasement.
+La dépendance épinglée requiert la publication préalable du wheel ; les tests
+de copie utilisent des données fictives et un dossier indépendant.

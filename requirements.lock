@@ -1,3 +1,4 @@
+-r requirements-communs.txt
 # Environnement validé pour #SOC1 ; mettre à jour explicitement avec les tests.
 asgiref==3.12.1
 Django==5.2.18

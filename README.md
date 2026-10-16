@@ -8,7 +8,7 @@ incomplète et consultation de sa fiche. Pas de modification ni suppression de
 fiche à ce stade. Les comptes professionnels sont distincts des personnes suivies.
 
 Non disponible : ménages, accompagnements, prestations, séjour, situation sociale,
-historique des modifications, documents, invitations, TOTP, sauvegardes,
+historique des modifications, documents, invitations, TOTP,
 programme autonome et PWA. La date et l'auteur de création ne sont pas un journal
 d'audit. Ce prototype n'est pas une installation de production.
 
@@ -41,8 +41,8 @@ commande `runserver` : la fiche est toujours présente. Deux personnes peuvent
 avoir la même désignation ; leurs UUID sont distincts et stables.
 
 Les données SQLite et la clé de session sont dans `.local/`, ignoré par Git.
-Ne pas supprimer ce dossier pour mettre à jour le code. Ce jalon ne comporte
-pas encore de procédure de sauvegarde/restauration. Ne pas exposer le serveur
+Ne pas supprimer ce dossier pour mettre à jour le code. Les commandes de
+sauvegarde et copie indépendante sont décrites ci-dessous. Ne pas exposer le serveur
 de développement sur un réseau ou y saisir des informations réelles.
 
 Le contrôle <http://127.0.0.1:8000/health/> vérifie le processus et une requête
@@ -80,12 +80,47 @@ l'environnement de ce jalon. Les mises à jour de dépendances sont explicites.
 
 ## Socle commun avec Petits Pas
 
-Voir [ARCHITECTURE.md](ARCHITECTURE.md). Pour #SOC1, ce projet est indépendant et
-n'importe encore aucun paquet du futur socle. La première extraction sera le
-moteur des paquets/sauvegardes (#SOC2), avec adoption par les deux applications.
+Voir [ARCHITECTURE.md](ARCHITECTURE.md). Depuis #SOC2, ce projet
+utilise `pas-communs` pour les sauvegardes ZIP/SQLite (#SOC2).
+La version et l’empreinte sont fixées dans `requirements-communs.txt`.
+Publier d’abord le wheel du socle avant de déployer cette dépendance.
 
 Nom public : **Pas à Pas — Accompagnement**. Dépôt : `pas-a-pas-accompagnement`.
-Configuration Django : `pas_a_pas_accompagnement`. Aucune URL distante n'est
-supposée ; les dépôts de forge ne sont pas encore créés.
+Configuration Django : `pas_a_pas_accompagnement`.
+Référence : <https://gitlab.inria.fr/pas-a-pas-accompagnement/pas-a-pas-accompagnement>.
+Miroir : <https://github.com/emmanuelagullo/pas-a-pas-accompagnement>.
 
 Code et documentation de ce nouveau projet : AGPL-3.0-or-later, voir LICENSE.
+
+## Sauvegarder et vérifier une copie (#SOC2)
+
+Ces commandes s'adressent à la personne qui exploite l'espace fictif local,
+avec accès aux fichiers ; ce ne sont pas des permissions web supplémentaires.
+Le ZIP contient toute la base, les comptes, la clé et les médias non chiffrés.
+Choisir une destination privée hors du dossier de données. Pour le moment,
+arrêter le serveur pendant ces opérations afin de garder les fichiers stables.
+
+```sh
+python manage.py sauvegarder_paquet /chemin/prive/copie.zip
+python manage.py verifier_sauvegarde /chemin/prive/copie.zip
+python manage.py restaurer_copie /chemin/prive/copie.zip /chemin/prive/copie-restauree
+```
+
+Les parents doivent exister. Aucun ZIP ni dossier existant n'est remplacé.
+La restauration crée une copie indépendante ; l'espace courant reste intact.
+Pour l'essayer après arrêt du serveur (Linux/bash) :
+
+```sh
+ACCOMPAGNEMENT_DONNEES=/chemin/prive/copie-restauree python manage.py migrate
+ACCOMPAGNEMENT_DONNEES=/chemin/prive/copie-restauree python manage.py runserver 127.0.0.1:8001
+```
+
+Sous PowerShell, définir d'abord `$env:ACCOMPAGNEMENT_DONNEES` vers ce dossier,
+puis lancer les commandes `migrate` et `runserver` ; retirer la variable avec
+`Remove-Item Env:ACCOMPAGNEMENT_DONNEES` pour revenir à l'espace habituel.
+La copie conserve les comptes et mots de passe ; les sessions ont été retirées
+pour imposer une reconnexion. La compatibilité des migrations est vérifiée
+avant installation de la copie. Une archive Petits Pas est refusée.
+
+Ces procédures ne constituent pas une validation du produit pour des données
+réelles ni un remplacement du futur lanceur et des habilitations métier.
