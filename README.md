@@ -1,6 +1,6 @@
 # Pas à Pas — Accompagnement
 
-Prototype **#SOC1–#SOC4b** pour préparer une application d'accueil et d'accompagnement
+Prototype **#SOC1–#SOC5a** pour préparer une application d'accueil et d'accompagnement
 social, notamment en CHRS. **Données fictives uniquement ; développement local.**
 
 Disponible : connexion, accueil, liste des personnes, création d'une identité
@@ -9,7 +9,7 @@ fiche à ce stade. Les comptes professionnels sont distincts des personnes suivi
 
 Non disponible : ménages, accompagnements, prestations, séjour, situation sociale,
 historique des modifications, documents, invitations,
-PWA et installateur graphique Windows. La date et l'auteur de création ne sont pas un journal
+installateur graphique Windows. Une PWA fictive est disponible sous #SOC5a ; voir ci-dessous. La date et l'auteur de création ne sont pas un journal
 d'audit. Ce prototype n'est pas une installation de production.
 
 ## Essayer depuis les sources
@@ -243,3 +243,12 @@ les consommations concurrentes et la migration depuis #SOC4a. Le banc
 sur une base temporaire et une clé éphémère. Les CI n’y publient aucun service.
 Le profil de déploiement réseau, HTTPS et l’exploitation restent #SOC6.
 Le prototype reste réservé aux données fictives.
+
+## Premier essai navigateur (#SOC5a)
+
+Voir [pwa/README.md](pwa/README.md) pour construire et essayer le parcours
+local hors connexion. Les mêmes vues Django utilisent les primitives PWA de
+Pas communs 0.4.0. Identité et stockage sont propres au CHRS. Aucun compte ni
+modèle scolaire n'est importé. Pas encore de sauvegarde/restauration dans
+l'interface navigateur : uniquement des données fictives sans valeur à conserver.
+#SOC5b reste nécessaire avant de clore la qualification du moteur PWA.

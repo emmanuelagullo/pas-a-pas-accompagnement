@@ -34,3 +34,8 @@ facteur ; la récupération technique est explicite et ne modifie pas les droits
 Préserver les UPDATE conditionnels et tester la concurrence réelle sur SQLite,
 la migration depuis 0001, les preuves périmées et la copie restaurée.
 Masquer clés et formulaires sensibles dans les diagnostics, même en DEBUG.
+
+#SOC5a : lire pwa/README.md. Ne jamais distribuer une base ou un secret de test.
+Tester le vrai Pyodide et le navigateur, à la racine et sous un préfixe.
+Conserver le stockage propre au produit et l'arrêt sur persistance incertaine.
+Ne pas annoncer de sauvegarde ou récupération PWA CHRS encore absente.

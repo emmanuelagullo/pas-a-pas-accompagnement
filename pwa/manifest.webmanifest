@@ -1,0 +1,1 @@
+{"id": "./", "name": "Pas à Pas — Accompagnement", "short_name": "Pas à Pas", "start_url": "./", "scope": "./", "display": "standalone", "lang": "fr", "background_color": "#edf5f3", "theme_color": "#246b5b", "icons": [{"src": "icon-192.png", "sizes": "192x192", "type": "image/png"}, {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"}]}

@@ -98,3 +98,12 @@ Les journaux techniques et diagnostics masquent les secrets, y compris en DEBUG.
 Ils ne constituent ni une preuve d’identité de l’opérateur terminal, ni un audit
 métier durable. Le déploiement réseau, la rétention et le périmètre des rôles
 restent à traiter dans leurs chantiers respectifs.
+
+## Première PWA (#SOC5a)
+
+Lire pwa/README.md. Le wheel 0.4.0 fournit stockage immuable, vérification des
+capacités, transport et primitives WSGI/crypto. Le bridge définit les fichiers
+CHRS et vérifie les migrations ; les vues, permissions et modèles ne changent pas.
+La coque, le Worker et le Service Worker CHRS demeurent des adaptateurs du
+produit. Les écrans de copie et restauration ne sont pas implémentés à ce stade.
+Ce profil n'ouvre pas un déploiement CHRS de production. #SOC5b reste à réaliser.
