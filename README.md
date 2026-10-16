@@ -198,3 +198,28 @@ Ubuntu 24.04 et Windows ; il fournit des artefacts temporaires, sans créer
 une release. Le programme lui-même ne nécessite pas Python sur le poste cible.
 La version Linux dépend encore de GTK/WebKit du système ; elle n'est pas un
 AppImage universel. Les limites fictives du prototype restent inchangées.
+
+## Première adoption de l’authentification commune (#SOC4a)
+
+Pas communs 0.3.0 fournit le plafond des mots de passe (1 024 caractères),
+contrôlé avant le hachage à la connexion et par les validateurs de création.
+Le backend Django standard et les sessions existantes sont conservés.
+Les cookies de session et CSRF portent des noms propres au produit, y compris
+avec runserver. Une session source utilisant l’ancien nom de cookie doit se
+reconnecter une fois ; les comptes et mots de passe ne changent pas.
+Les sessions du programme #SOC3 conservent leurs noms de cookie.
+
+Pour fermer les sessions Django en base d’un compte fictif depuis le terminal :
+
+```sh
+python manage.py fermer_sessions_compte nom-utilisateur
+```
+
+Cette commande technique ne modifie aucun droit et ne réinitialise pas le mot
+de passe. Elle ferme les sessions authentifiées existantes du seul compte choisi.
+Les deux produits ne partagent ni compte, ni clé, ni cookie, ni base de sessions.
+Les durées restent propres aux profils et aucun SSO n’est ajouté.
+
+**Le parcours TOTP CHRS n’est pas encore disponible.** #SOC4b doit intégrer
+l’inscription, le second facteur, les secours, la récupération et la limitation
+des tentatives. #SOC4a ne rend pas ce prototype utilisable avec des dossiers réels.

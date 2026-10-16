@@ -39,6 +39,6 @@ def installer(request):
             if len(permissions) != 2:
                 raise RuntimeError("Les permissions du premier compte sont absentes.")
             compte.user_permissions.set(permissions)
-        login(request, compte)
+        login(request, compte, backend="django.contrib.auth.backends.ModelBackend")
         return redirect("personnes:liste")
     return render(request, "installation_locale.html", {"form": formulaire})

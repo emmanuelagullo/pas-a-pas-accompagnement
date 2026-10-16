@@ -10,5 +10,3 @@ STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
 }
-SESSION_COOKIE_NAME = "pas_accompagnement_sessionid"
-CSRF_COOKIE_NAME = "pas_accompagnement_csrftoken"

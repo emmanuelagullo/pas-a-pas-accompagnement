@@ -42,7 +42,12 @@ TEMPLATES = [{
 WSGI_APPLICATION = "pas_a_pas_accompagnement.wsgi.application"
 DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": LOCAL_DIR / "accompagnement.sqlite3"}}
 AUTH_USER_MODEL = "identites.Utilisateur"
+AUTHENTICATION_BACKENDS = [
+    "pas_communs.authentification.mots_de_passe.PlafondMotDePasse",
+    "django.contrib.auth.backends.ModelBackend",
+]
 AUTH_PASSWORD_VALIDATORS = [
+    {"NAME": "pas_communs.authentification.mots_de_passe.MaximumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", "OPTIONS": {"min_length": 12}},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
@@ -67,3 +72,7 @@ EMAIL_BACKEND = "django.core.mail.backends.dummy.EmailBackend"
 MEDIA_ROOT = LOCAL_DIR / "media"
 
 MODE_LOCAL = False
+
+# Identités de cookies propres au produit, y compris avec runserver.
+SESSION_COOKIE_NAME = "pas_accompagnement_sessionid"
+CSRF_COOKIE_NAME = "pas_accompagnement_csrftoken"

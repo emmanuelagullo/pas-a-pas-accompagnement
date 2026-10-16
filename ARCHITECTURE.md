@@ -62,3 +62,13 @@ La sérialisation des requêtes du lanceur et le verrou interprocessus protègen
 ce premier compte ; l'opération reste transactionnelle et n'accorde que les
 droits de consultation et création. Ce n'est pas encore une politique d'équipe
 ou de plusieurs établissements. Les fichiers de #SOC1 restent utilisables.
+
+## Frontière d’authentification (#SOC4a)
+
+Le modèle identites.Utilisateur et ses migrations restent propres au CHRS.
+Seuls le plafond et la fermeture des sessions DB emploient les mécanismes du
+socle. Le premier compte local utilise explicitement le backend standard après
+création validée ; le backend de plafond n’authentifie jamais personne.
+Aucun modèle ou rôle TOTP scolaire n’est copié. Avant #SOC4b, fixer les règles
+CHRS d’obligation, de récupération et de révocation, et tester les limites de
+tentatives ; ne pas assimiler administration technique et fonction sociale.

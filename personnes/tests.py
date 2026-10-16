@@ -3,6 +3,7 @@ from unittest.mock import patch
 from uuid import uuid4
 
 from django.apps import apps
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.core.management import call_command
@@ -84,7 +85,7 @@ class ParcoursTests(TestCase):
         url = reverse("personnes:creer")
         self.assertEqual(client.post(url, {"designation": "Fictive"}).status_code, 403)
         client.get(url)
-        jeton = client.cookies["csrftoken"].value
+        jeton = client.cookies[settings.CSRF_COOKIE_NAME].value
         self.assertEqual(client.post(url, {"designation": "Fictive", "csrfmiddlewaretoken": jeton}).status_code, 302)
 
     def test_pagination_et_fiche_absente(self):

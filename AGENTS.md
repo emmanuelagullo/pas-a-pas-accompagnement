@@ -22,3 +22,7 @@ de copie utilisent des données fictives et un dossier indépendant.
 #SOC3 : tester aussi l’installation locale et les programmes Windows/Linux.
 Le serveur de développement et la fenêtre locale sont deux profils distincts.
 Ne pas déplacer .local automatiquement ni créer d’identifiants prédéfinis.
+
+#SOC4a : le backend de plafond ne connecte personne ; conserver le backend
+standard et les droits explicites. Le CHRS ne propose pas encore le TOTP.
+Tester la révocation ciblée et le premier compte avec les deux backends.
