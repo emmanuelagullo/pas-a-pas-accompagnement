@@ -1,0 +1,4 @@
+{% extends "base.html" %}
+{% block contenu %}<section class="carte etroite"><h1>Changer mon mot de passe</h1>
+<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Changer le mot de passe</button></form>
+<p><a href="{% url 'securite_compte' %}">Annuler</a></p></section>{% endblock %}

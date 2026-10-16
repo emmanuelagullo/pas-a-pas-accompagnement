@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block titre %}Conserver les codes de secours — Pas à Pas{% endblock %}
+{% block contenu %}<section class="carte etroite"><h1>Conserver les codes de secours</h1>
+<p>Conservez ces codes dans un endroit sûr, séparé du téléphone. Ils ne seront plus affichés et chacun ne sert qu’une fois.
+Les anciens codes ont été remplacés.</p><ul>{% for code in codes %}<li><code>{{ code }}</code></li>{% endfor %}</ul>
+<p>Les autres sessions ont été fermées.</p><p><a href="{% url 'securite_compte' %}">Revenir à la sécurité du compte</a></p>
+</section>{% endblock %}

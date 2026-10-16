@@ -62,6 +62,10 @@ with tempfile.TemporaryDirectory() as t:
         client.open(base+'personnes/creer/').read()
         with post(base,'personnes/creer/',{'designation':'Identité fictive SOC3'}) as response:
             assert 'Identité fictive SOC3' in response.read().decode()
+        with client.open(base+'mon-compte/securite/',timeout=5) as r:
+            assert 'Le second facteur n’est pas activé' in r.read().decode()
+        with client.open(base+'mon-compte/mot-de-passe/',timeout=5) as r:
+            assert 'Changer mon mot de passe' in r.read().decode()
         second=subprocess.run([*prefixe,'--paquet',str(paquet),'--sans-fenetre'],cwd=source,env=env,capture_output=True,text=True,timeout=5)
         assert second.returncode!=0 and 'déjà ouvert' in second.stderr
         cle=(paquet/'secret-key').read_text()

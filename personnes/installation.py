@@ -8,6 +8,7 @@ from django.db import transaction
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
 from .models import Personne
 
 
@@ -23,6 +24,8 @@ def disponible():
         and not get_user_model().objects.exists() and not Personne.objects.exists())
 
 
+@sensitive_post_parameters()
+@sensitive_variables()
 @require_http_methods(["GET", "POST"])
 def installer(request):
     if not disponible():

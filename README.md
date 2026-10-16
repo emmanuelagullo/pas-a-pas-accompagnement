@@ -1,6 +1,6 @@
 # Pas à Pas — Accompagnement
 
-Prototype **#SOC1–#SOC3** pour préparer une application d'accueil et d'accompagnement
+Prototype **#SOC1–#SOC4b** pour préparer une application d'accueil et d'accompagnement
 social, notamment en CHRS. **Données fictives uniquement ; développement local.**
 
 Disponible : connexion, accueil, liste des personnes, création d'une identité
@@ -8,7 +8,7 @@ incomplète et consultation de sa fiche. Pas de modification ni suppression de
 fiche à ce stade. Les comptes professionnels sont distincts des personnes suivies.
 
 Non disponible : ménages, accompagnements, prestations, séjour, situation sociale,
-historique des modifications, documents, invitations, TOTP,
+historique des modifications, documents, invitations,
 PWA et installateur graphique Windows. La date et l'auteur de création ne sont pas un journal
 d'audit. Ce prototype n'est pas une installation de production.
 
@@ -58,8 +58,8 @@ Les écritures utilisent POST et CSRF ; la déconnexion utilise POST.
 Un espace fictif unique, sans organisations ni équipes : tous les comptes ayant
 le droit de consultation y voient toutes les fiches. Les rôles CHRS et l'isolation
 entre structures sont à décider avant leur implémentation. Aucun mécanisme de
-synchronisation n'est présent. La protection contre les tentatives répétées et
-le second facteur de Petits Pas ne sont pas encore portés dans ce prototype.
+synchronisation n'est présent. Les tentatives répétées sont limitées en base.
+Le profil serveur peut proposer ou imposer le TOTP ; voir [AUTHENTIFICATION.md](AUTHENTIFICATION.md).
 
 ## Vérifications
 
@@ -70,7 +70,8 @@ python manage.py makemigrations --check --dry-run
 git diff --check
 ```
 
-La CI GitLab exécute ces contrôles sous Python 3.12 et 3.13. Elle nécessite un
+La CI GitLab exécute ces contrôles sous Python 3.12 et 3.13, avec Django 5.2 et 6.1
+et les dépendances TOTP. GitHub teste aussi le parcours serveur et les programmes. Elle nécessite un
 runner Docker autorisé pour le futur projet. Le fichier CI ne publie rien.
 Les tests n'emploient que des identités fictives et une base de test temporaire.
 La persistance réelle après redémarrage peut être exercée par le parcours ci-dessus.
@@ -220,6 +221,25 @@ de passe. Elle ferme les sessions authentifiées existantes du seul compte chois
 Les deux produits ne partagent ni compte, ni clé, ni cookie, ni base de sessions.
 Les durées restent propres aux profils et aucun SSO n’est ajouté.
 
-**Le parcours TOTP CHRS n’est pas encore disponible.** #SOC4b doit intégrer
-l’inscription, le second facteur, les secours, la récupération et la limitation
-des tentatives. #SOC4a ne rend pas ce prototype utilisable avec des dossiers réels.
+## Parcours renforcé CHRS (#SOC4b)
+
+Le profil serveur d’essai propose l’activation TOTP depuis **Sécurité du compte**,
+la connexion en deux étapes, les codes de secours, le remplacement du téléphone
+et le changement de mot de passe. Le déployeur peut imposer le 2FA à tous les
+comptes de cet espace fictif ; aucun rôle CHRS n’est déduit des fonctions scolaires.
+
+Lire [AUTHENTIFICATION.md](AUTHENTIFICATION.md) avant d’activer le profil :
+dépendances facultatives, clé dédiée, récupération technique et révocation.
+Le programme autonome reste sans activation TOTP. Un compte déjà protégé n’y
+est jamais déprotégé silencieusement ; sa reprise exige la procédure explicite.
+
+Cette étape ajoute une migration identites/0002, sans changer AUTH_USER_MODEL
+ni les comptes ou fiches existants. Le lanceur protège la base avant migration.
+Fermer le programme avant une maintenance ou une copie manuelle.
+
+Les tests serveur installent requirements-2fa.txt et exercent les parcours,
+les consommations concurrentes et la migration depuis #SOC4a. Le banc
+`python scripts/verifier-authentification.py` teste aussi un serveur HTTP réel
+sur une base temporaire et une clé éphémère. Les CI n’y publient aucun service.
+Le profil de déploiement réseau, HTTPS et l’exploitation restent #SOC6.
+Le prototype reste réservé aux données fictives.

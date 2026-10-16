@@ -26,3 +26,5 @@ dt { font-weight: 650; } dd { margin: .2rem 0 1rem; overflow-wrap: anywhere; }
 footer { color: #4e665f; font-size: .9rem; }
 :focus-visible { outline: 3px solid #995e10; outline-offset: 3px; }
 .evitement { position: absolute; left: -10000px; } .evitement:focus { left: 1rem; top: 1rem; background: white; padding: .75rem; }
+
+.carte svg { max-width: 100%; height: auto; }

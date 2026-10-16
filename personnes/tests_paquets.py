@@ -32,6 +32,8 @@ class PaquetsTests(TestCase):
             db.execute("INSERT INTO donnees_fictives VALUES ('identite-incomplete')")
             db.execute("CREATE TABLE django_session (session_key TEXT)")
             db.execute("INSERT INTO django_session VALUES ('session-fictive')")
+            db.execute("CREATE TABLE identites_limiteauthentification (cle TEXT)")
+            db.execute("INSERT INTO identites_limiteauthentification VALUES ('compteur-fictif')")
 
     def test_sauvegarde_verification_et_copie_independante(self):
         with override_settings(LOCAL_DIR=self.source):
@@ -42,9 +44,11 @@ class PaquetsTests(TestCase):
         with closing(sqlite3.connect(destination / PROFIL.base)) as db:
             self.assertEqual(db.execute("SELECT valeur FROM donnees_fictives").fetchone(), ("identite-incomplete",))
             self.assertEqual(db.execute("SELECT count(*) FROM django_session").fetchone(), (0,))
+            self.assertEqual(db.execute("SELECT count(*) FROM identites_limiteauthentification").fetchone(), (0,))
         self.assertEqual((destination / "secret-key").read_text(), "cle-fictive")
         with closing(sqlite3.connect(self.source / PROFIL.base)) as db:
             self.assertEqual(db.execute("SELECT count(*) FROM django_session").fetchone(), (1,))
+            self.assertEqual(db.execute("SELECT count(*) FROM identites_limiteauthentification").fetchone(), (1,))
         self.assertFalse(list(self.racine.glob(".restauration-*")))
 
     def test_refus_ecrasement_zip_et_dossier(self):

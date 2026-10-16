@@ -18,6 +18,6 @@ collation = assembler(racine, globals(), nom="PasAPasAccompagnement",
     imports=["pas_a_pas_accompagnement.settings_local", "pas_a_pas_accompagnement.urls",
              "whitenoise.middleware", "whitenoise.storage"],
     exclusions=["gunicorn", "psycopg", "storages", "boto3", "botocore", "weasyprint", "suivi", "referentiel", "comptes",
-                "pas_communs.authentification.totp", "django_otp", "cryptography", "qrcode"])
+                "django_otp", "cryptography", "qrcode"])
 
 donnees_construction.cleanup()

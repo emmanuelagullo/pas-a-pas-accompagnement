@@ -7,11 +7,13 @@
 <a class="evitement" href="#contenu">Aller au contenu</a>
 <header><a class="marque" href="{% url 'accueil' %}">Pas à Pas <span>Accompagnement</span></a>
 {% if user.is_authenticated %}<nav aria-label="Navigation principale">
+<span>Compte : {{ user.get_username }}</span>
 <a href="{% url 'accueil' %}">Accueil</a>
-{% if perms.personnes.view_personne %}<a href="{% url 'personnes:liste' %}">Personnes</a>{% endif %}
+<a href="{% url 'securite_compte' %}">Sécurité du compte</a>
+{% if perms.personnes.view_personne and not request.inscription_2fa_requise %}<a href="{% url 'personnes:liste' %}">Personnes</a>{% endif %}
 <form method="post" action="{% url 'deconnexion' %}">{% csrf_token %}<button class="secondaire" type="submit">Se déconnecter</button></form>
 </nav>{% endif %}</header>
-<p class="prototype">Prototype #SOC1 — Données fictives uniquement.</p>
-<main id="contenu">{% block contenu %}{% endblock %}</main>
+<p class="prototype">Prototype d’essai — Données fictives uniquement.</p>
+<main id="contenu">{% for message in messages %}<p role="status">{{ message }}</p>{% endfor %}{% block contenu %}{% endblock %}</main>
 <footer>Pas à Pas — Accompagnement · Premier espace d’essai</footer>
 </body></html>

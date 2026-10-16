@@ -20,8 +20,9 @@ def installer_copie(preparation, destination):
     destination.mkdir(mode=0o700)  # réservation exclusive, refuse aussi un lien
     try:
         with closing(sqlite3.connect(preparation.etape / PROFIL.base)) as db, db:
-            if db.execute("SELECT 1 FROM sqlite_master WHERE name='django_session'").fetchone():
-                db.execute("DELETE FROM django_session")
+            for table in ("django_session", "identites_limiteauthentification"):
+                if db.execute("SELECT 1 FROM sqlite_master WHERE name=?", (table,)).fetchone():
+                    db.execute(f'DELETE FROM "{table}"')
         for fichier in preparation.etape.iterdir():
             fichier.rename(destination / fichier.name)
     except BaseException:

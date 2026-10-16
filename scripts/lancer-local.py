@@ -34,6 +34,8 @@ def verifier_distribution():
     get_wsgi_application()
     get_template("installation_locale.html")
     get_template("personnes/liste.html")
+    get_template("identites/securite.html")
+    get_template("identites/mot_de_passe.html")
     if not finders.find("application.css"):
         raise RuntimeError("La feuille de style est absente de la distribution.")
     if os.name == "nt":

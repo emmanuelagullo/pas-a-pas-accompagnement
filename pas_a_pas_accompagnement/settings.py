@@ -26,6 +26,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "identites.middleware.DoubleFacteurMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -76,3 +77,21 @@ MODE_LOCAL = False
 # Identités de cookies propres au produit, y compris avec runserver.
 SESSION_COOKIE_NAME = "pas_accompagnement_sessionid"
 CSRF_COOKIE_NAME = "pas_accompagnement_csrftoken"
+
+# #SOC4b : politique technique d’un seul espace fictif, sans rôle social.
+from identites.configuration import lire as _lire_double_facteur
+DOUBLE_FACTEUR_POLITIQUE, DOUBLE_FACTEUR_CLES = _lire_double_facteur(os.environ)
+DOUBLE_FACTEUR_EMETTEUR = "Pas à Pas — Accompagnement"
+AUTH_FENETRE_SECONDES = 15 * 60
+AUTH_TENTATIVES_COMPTE = 5
+AUTH_TENTATIVES_IP = 30
+
+LOGGING = {
+    "version": 1, "disable_existing_loggers": False,
+    "handlers": {"securite_console": {"class": "logging.StreamHandler"}},
+    "loggers": {"identites.securite": {
+        "handlers": ["securite_console"], "level": "INFO", "propagate": False,
+    }},
+}
+
+DEFAULT_EXCEPTION_REPORTER_FILTER = "identites.diagnostics.FiltreSecurite"

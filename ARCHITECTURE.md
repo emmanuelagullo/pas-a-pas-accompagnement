@@ -21,7 +21,7 @@ application. #SOC2 adopte `pas_communs.paquets` : enveloppe ZIP, copie SQLite,
 empreintes et préparation de restauration. Les commandes de gestion sélectionnent
 le profil CHRS ; elles n'importent aucun modèle scolaire. Les sessions sont
 supprimées uniquement dans la copie restaurée. Le compte existant permet ensuite
-une nouvelle connexion. La connexion reste provisoirement celle de Django.
+une nouvelle connexion. La connexion de base reste celle de Django, complétée par le parcours #SOC4b.
 
 Ne pas imposer des organisations ou habilitations génériques avant d'avoir
 confronté les deux métiers. Préserver l'identité des modèles et des migrations
@@ -72,3 +72,29 @@ création validée ; le backend de plafond n’authentifie jamais personne.
 Aucun modèle ou rôle TOTP scolaire n’est copié. Avant #SOC4b, fixer les règles
 CHRS d’obligation, de récupération et de révocation, et tester les limites de
 tentatives ; ne pas assimiler administration technique et fonction sociale.
+
+## Parcours CHRS (#SOC4b)
+
+Lire AUTHENTIFICATION.md. Les nouveaux modèles DoubleFacteur, CodeSecours et
+LimiteAuthentification sont propres à identites ; le socle n’importe aucun modèle.
+Le stockage chiffre le secret et utilise les primitives du wheel 0.3.0. Les mises
+à jour conditionnelles consomment un pas ou un secours une seule fois même sur
+SQLite, sans se reposer sur select_for_update. Une erreur de stockage refuse
+l’authentification. La révision du facteur relie attentes et preuves aux données
+courantes ; une réinitialisation ou un remplacement invalide les anciennes preuves.
+
+Les compteurs de tentatives sont persistés et atomiques, par compte et adresse,
+dans des fenêtres fixes. Aucune confiance aux en-têtes de proxy dans ce profil.
+La récupération d’un autre compte est une commande de maintenance au terminal,
+sans droit métier web associé. Le changement des droits n’est pas couplé au 2FA.
+
+Les clés de chiffrement et la politique viennent de la configuration CHRS.
+Le bureau garde son profil sans activation TOTP, mais une base déjà inscrite ou
+à réinscrire est bloquée jusqu’à récupération explicite. La copie restaurée
+supprime sessions et compteurs ; elle conserve facteurs et secours consommés.
+La migration conserve comptes et personnes existants et ne les inscrit pas au 2FA.
+
+Les journaux techniques et diagnostics masquent les secrets, y compris en DEBUG.
+Ils ne constituent ni une preuve d’identité de l’opérateur terminal, ni un audit
+métier durable. Le déploiement réseau, la rétention et le périmètre des rôles
+restent à traiter dans leurs chantiers respectifs.

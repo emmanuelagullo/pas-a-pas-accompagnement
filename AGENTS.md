@@ -24,5 +24,13 @@ Le serveur de développement et la fenêtre locale sont deux profils distincts.
 Ne pas déplacer .local automatiquement ni créer d’identifiants prédéfinis.
 
 #SOC4a : le backend de plafond ne connecte personne ; conserver le backend
-standard et les droits explicites. Le CHRS ne propose pas encore le TOTP.
+standard et les droits explicites. Le parcours TOTP est ajouté ensuite sous #SOC4b.
 Tester la révocation ciblée et le premier compte avec les deux backends.
+
+#SOC4b : lire AUTHENTIFICATION.md. Tester serveur avec requirements-2fa.txt et
+bureau sans ces dépendances. Ne pas activer le TOTP dans le programme local par
+simple présence des clés. Ne jamais rendre une base inscrite accessible sans son
+facteur ; la récupération technique est explicite et ne modifie pas les droits.
+Préserver les UPDATE conditionnels et tester la concurrence réelle sur SQLite,
+la migration depuis 0001, les preuves périmées et la copie restaurée.
+Masquer clés et formulaires sensibles dans les diagnostics, même en DEBUG.

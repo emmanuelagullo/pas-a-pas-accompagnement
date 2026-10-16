@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block titre %}Vérifier la connexion — Pas à Pas{% endblock %}
+{% block contenu %}<section class="carte etroite"><h1>Vérifier la connexion</h1>
+<p>Saisissez le code de votre téléphone ou un code de secours à usage unique.</p>
+<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Vérifier et se connecter</button></form>
+<p><a href="{% url 'connexion' %}">Recommencer la connexion</a></p></section>{% endblock %}

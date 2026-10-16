@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block titre %}Sécurité du compte — Pas à Pas{% endblock %}
+{% block contenu %}<section class="carte etroite"><h1>Sécurité du compte</h1>
+{% if disponible %}
+{% if obligatoire and not inscrit %}<p role="alert">Vous devez activer le second facteur avant d’accéder aux personnes fictives.</p>{% endif %}
+{% if inscrit %}<p>Votre second facteur est activé.</p>
+<p>Confirmez votre mot de passe et un code du téléphone ou un code de secours pour changer cette configuration.</p>
+<form method="post">{% csrf_token %}{{ form.non_field_errors }}{{ form.action.errors }}{{ form.mot_de_passe.as_field_group }}{{ form.code.as_field_group }}
+<p><button name="action" value="regenerer">Renouveler les codes de secours</button></p>
+<p><button name="action" value="remplacer">Remplacer mon téléphone</button></p>
+{% if peut_retirer %}<p><button name="action" value="retirer">Retirer le second facteur</button></p>{% endif %}</form>
+{% else %}
+<p>Utilisez une application de codes TOTP sur votre téléphone. Une première confirmation activera la protection.</p>
+{% if qr %}<div>{{ qr|safe }}</div><p>Ou saisissez cette clé dans l’application : <code>{{ cle }}</code>.</p>
+<p>Confirmez ensuite un premier code du téléphone. Cette clé n’est pas un code de secours.</p>{% endif %}
+<form method="post">{% csrf_token %}{{ form.as_p }}
+<button type="submit">{% if qr %}Confirmer l’activation{% else %}Préparer l’activation{% endif %}</button></form>
+{% endif %}
+{% else %}<p>Le second facteur n’est pas activé dans ce profil d’essai.</p>{% endif %}
+{% if not obligatoire or inscrit %}<p><a href="{% url 'changer_mot_de_passe' %}">Changer mon mot de passe</a></p>{% endif %}
+</section>{% endblock %}

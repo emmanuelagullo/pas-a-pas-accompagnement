@@ -1,0 +1,4 @@
+# Profil serveur TOTP facultatif ; installer explicitement avant de l’activer.
+django-otp==1.7.4
+cryptography==50.0.2
+qrcode==8.2
