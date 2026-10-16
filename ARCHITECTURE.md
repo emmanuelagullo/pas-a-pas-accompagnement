@@ -46,3 +46,19 @@ prévues ; pas d'interconnexion ou de gestion des appels du 115.
 À décider avant ces ajouts : périmètre d'isolation des structures, habilitations,
 bénéficiaires des prestations, unités et bornes de dates. Ces choix ne sont pas
 tranchés par la fiche personne fictive de #SOC1.
+
+
+## #SOC3 : programme local
+
+`settings_local` active WhiteNoise et l'installation du premier compte, avec
+des noms de cookies propres au CHRS. `scripts/lancer-local.py` choisit le paquet,
+configure Django et délègue verrou, serveur et fenêtre à `pas_communs.local`.
+Le `.spec` énumère les seuls modules et ressources CHRS ; il utilise le même
+assembleur que Petits Pas. Les données du développeur sont isolées des hooks
+Django de construction dans un dossier temporaire, jamais embarqué.
+
+L'installation n'existe que dans le profil local, sans compte ni personne.
+La sérialisation des requêtes du lanceur et le verrou interprocessus protègent
+ce premier compte ; l'opération reste transactionnelle et n'accorde que les
+droits de consultation et création. Ce n'est pas encore une politique d'équipe
+ou de plusieurs établissements. Les fichiers de #SOC1 restent utilisables.

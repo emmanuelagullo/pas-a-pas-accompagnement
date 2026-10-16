@@ -1,6 +1,6 @@
 # Pas à Pas — Accompagnement
 
-Prototype **#SOC1** pour préparer une application d'accueil et d'accompagnement
+Prototype **#SOC1–#SOC3** pour préparer une application d'accueil et d'accompagnement
 social, notamment en CHRS. **Données fictives uniquement ; développement local.**
 
 Disponible : connexion, accueil, liste des personnes, création d'une identité
@@ -9,7 +9,7 @@ fiche à ce stade. Les comptes professionnels sont distincts des personnes suivi
 
 Non disponible : ménages, accompagnements, prestations, séjour, situation sociale,
 historique des modifications, documents, invitations, TOTP,
-programme autonome et PWA. La date et l'auteur de création ne sont pas un journal
+PWA et installateur graphique Windows. La date et l'auteur de création ne sont pas un journal
 d'audit. Ce prototype n'est pas une installation de production.
 
 ## Essayer depuis les sources
@@ -124,3 +124,77 @@ avant installation de la copie. Une archive Petits Pas est refusée.
 
 Ces procédures ne constituent pas une validation du produit pour des données
 réelles ni un remplacement du futur lanceur et des habilitations métier.
+
+
+## Programme local (#SOC3)
+
+Installer les dépendances de `requirements-bureau.txt` dans un environnement
+Python qui dispose du moteur graphique. Sous Windows : WebView2 doit être
+présent. Sous Linux : PyGObject, GTK et WebKitGTK 4.1 ; un venv créé avec
+`--system-site-packages` peut voir les paquets du système ou du shell Guix.
+
+```sh
+python -m pip install -r requirements-bureau.txt
+python scripts/lancer-local.py
+```
+
+Le premier démarrage propose **Préparer mon espace d’essai** : choisir son nom
+d'utilisateur et un mot de passe, sans compte prédéfini. Le compte créé est
+ordinaire et peut lire/créer les personnes fictives. Les ouvertures suivantes
+retrouvent les comptes existants et ne proposent plus cette installation.
+
+Le programme utilise un dossier séparé du code et de Petits Pas :
+
+- Linux : `${XDG_DATA_HOME:-~/.local/share}/pas-a-pas-accompagnement/paquet-autonome` ;
+- Windows : `%LOCALAPPDATA%\pas-a-pas-accompagnement\paquet-autonome`.
+
+`--paquet CHEMIN` ou `ACCOMPAGNEMENT_DONNEES` sélectionne un autre dossier.
+Si l'ancien espace `.local` de #SOC1 est détecté et que le nouvel emplacement
+est vide, le lanceur refuse de créer silencieusement un espace neuf. Fermer
+le serveur de développement puis choisir explicitement cet ancien espace :
+
+```sh
+python scripts/lancer-local.py --paquet .local
+# Ou copier vers un nouveau dossier extérieur au dépôt et à .local :
+python scripts/lancer-local.py --paquet .local --copier-paquet /chemin/prive/paquet-autonome
+```
+
+La copie conserve la source ; elle n'est pas une synchronisation. Pour ouvrir
+la copie, passer son chemin à `--paquet`. Ne pas travailler alternativement sur
+deux copies en pensant qu'elles se mettent à jour ensemble.
+
+Un verrou interdit deux programmes sur le même dossier. La commande de
+sauvegarde CLI prend le même verrou : fermer le programme avant de la lancer,
+puis définir `ACCOMPAGNEMENT_DONNEES` vers son dossier. Le serveur de développement
+`manage.py runserver` n'utilise pas ce lanceur : ne pas l'ouvrir simultanément
+sur le même dossier. Les copies avant migration sont techniques et ne remplacent
+pas les ZIP complets conservés hors appareil.
+
+Depuis les sources (ou l’exécutable Linux), `--sans-fenetre` affiche une adresse locale dans
+le terminal ; l'ouvrir dans son navigateur, puis Ctrl+C pour fermer. Le port
+est choisi automatiquement, sans collision avec le serveur Petits Pas sur 8000.
+Ce mode vérifie le parcours HTTP, pas le moteur graphique.
+
+## Construire Linux/Windows
+
+Construire sur le système visé, avec les dépendances graphiques disponibles :
+
+```sh
+# Linux, dans le venv lié à GTK/WebKit :
+bash scripts/construire-paquet-linux.sh
+# Windows PowerShell :
+powershell -ExecutionPolicy Bypass -File scripts/construire-paquet-windows.ps1
+```
+
+Les scripts emploient l'assembleur de Pas communs, puis l'exécutable construit
+avec `--verifier-distribution`, avant d'archiver `dist/PasAPasAccompagnement/`.
+Les données du premier compte et les bases d'essai ne sont pas embarquées.
+Les artefacts `PasAPasAccompagnement-linux.tar.gz` ou `PasAPasAccompagnement-windows.zip`
+contiennent le programme à extraire entièrement. Il n'y a pas encore de setup
+Windows ni d'installation automatique dans le menu Démarrer.
+
+Le workflow GitHub **Programmes locaux Pas à Pas** teste et construit sur
+Ubuntu 24.04 et Windows ; il fournit des artefacts temporaires, sans créer
+une release. Le programme lui-même ne nécessite pas Python sur le poste cible.
+La version Linux dépend encore de GTK/WebKit du système ; elle n'est pas un
+AppImage universel. Les limites fictives du prototype restent inchangées.

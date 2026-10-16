@@ -18,3 +18,7 @@ Livraison par patch git am, sans Signed-off-by.
 CHRS distinct, l'exclusion des sessions dans les copies et le refus d'écrasement.
 La dépendance épinglée requiert la publication préalable du wheel ; les tests
 de copie utilisent des données fictives et un dossier indépendant.
+
+#SOC3 : tester aussi l’installation locale et les programmes Windows/Linux.
+Le serveur de développement et la fenêtre locale sont deux profils distincts.
+Ne pas déplacer .local automatiquement ni créer d’identifiants prédéfinis.

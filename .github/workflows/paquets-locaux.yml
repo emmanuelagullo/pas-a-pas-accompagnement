@@ -1,0 +1,52 @@
+name: Programmes locaux Pas à Pas
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  programme:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        if: runner.os == 'Windows'
+        with:
+          python-version: '3.12'
+      - name: Préparer GTK et le Python système
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends python3-venv python3-gi gir1.2-gtk-3.0 gir1.2-webkit2-4.1
+          /usr/bin/python3 -m venv --system-site-packages .venv-bureau
+          echo "$PWD/.venv-bureau/bin" >> "$GITHUB_PATH"
+      - name: Installer les dépendances, tester et construire
+        run: |
+          python -m pip install -r requirements-bureau.txt
+          python manage.py check
+          python manage.py test
+          python scripts/verifier-lanceur-local.py
+          python -m pas_communs.construire_bureau --spec scripts/PasAPasAccompagnement.spec --nom PasAPasAccompagnement
+      - name: Vérifier le parcours de l'exécutable Linux
+        if: runner.os == 'Linux'
+        run: python scripts/verifier-lanceur-local.py --programme dist/PasAPasAccompagnement/PasAPasAccompagnement
+      - uses: actions/upload-artifact@v6
+        with:
+          name: PasAPasAccompagnement-${{ runner.os }}
+          path: |
+            dist/PasAPasAccompagnement-linux.tar.gz
+            dist/PasAPasAccompagnement-windows.zip
+          if-no-files-found: error
+          retention-days: 30

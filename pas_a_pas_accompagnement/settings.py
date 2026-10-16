@@ -65,3 +65,5 @@ SESSION_COOKIE_SAMESITE = "Lax"
 EMAIL_BACKEND = "django.core.mail.backends.dummy.EmailBackend"
 
 MEDIA_ROOT = LOCAL_DIR / "media"
+
+MODE_LOCAL = False

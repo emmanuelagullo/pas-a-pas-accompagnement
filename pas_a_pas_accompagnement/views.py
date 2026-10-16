@@ -1,14 +1,18 @@
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import redirect_to_login
 from django.db import connection
 from django.db.utils import DatabaseError
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
+from personnes.installation import disponible
 from django.views.decorators.http import require_safe
 
 
 @require_safe
-@login_required
 def accueil(request):
+    if disponible():
+        return redirect("installation_locale")
+    if not request.user.is_authenticated:
+        return redirect_to_login(request.get_full_path())
     return render(request, "accueil.html")
 
 
