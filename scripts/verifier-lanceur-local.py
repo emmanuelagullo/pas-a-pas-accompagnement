@@ -66,8 +66,10 @@ with tempfile.TemporaryDirectory() as t:
             assert 'Le second facteur n’est pas activé' in r.read().decode()
         with client.open(base+'mon-compte/mot-de-passe/',timeout=5) as r:
             assert 'Changer mon mot de passe' in r.read().decode()
-        second=subprocess.run([*prefixe,'--paquet',str(paquet),'--sans-fenetre'],cwd=source,env=env,capture_output=True,text=True,timeout=5)
-        assert second.returncode!=0 and 'déjà ouvert' in second.stderr
+        second=subprocess.run([*prefixe,'--paquet',str(paquet),'--sans-fenetre'],cwd=source,env=env,capture_output=True,text=True,encoding='utf-8',timeout=5)
+        assert second.returncode!=0 and 'déjà ouvert' in second.stderr, (
+            second.returncode, second.stdout, second.stderr
+        )
         cle=(paquet/'secret-key').read_text()
     finally:
         stop(p,sortie)
