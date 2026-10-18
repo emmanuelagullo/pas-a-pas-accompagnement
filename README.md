@@ -1,6 +1,6 @@
 # Pas à Pas — Accompagnement
 
-Prototype **#SOC1–#SOC5a** pour préparer une application d'accueil et d'accompagnement
+Prototype **#SOC1–#SOC5b** pour préparer une application d'accueil et d'accompagnement
 social, notamment en CHRS. **Données fictives uniquement ; développement local.**
 
 Disponible : connexion, accueil, liste des personnes, création d'une identité
@@ -249,6 +249,23 @@ Le prototype reste réservé aux données fictives.
 Voir [pwa/README.md](pwa/README.md) pour construire et essayer le parcours
 local hors connexion. Les mêmes vues Django utilisent les primitives PWA de
 Pas communs 0.4.0. Identité et stockage sont propres au CHRS. Aucun compte ni
-modèle scolaire n'est importé. Pas encore de sauvegarde/restauration dans
-l'interface navigateur : uniquement des données fictives sans valeur à conserver.
-#SOC5b reste nécessaire avant de clore la qualification du moteur PWA.
+modèle scolaire n'est importé. #SOC5b ajoute sauvegarde, vérification, annulation,
+restauration confirmée et export de l'état précédent ; le prototype reste
+exclusivement fictif. La qualification du moteur PWA est automatisée sous
+Chromium/Linux ; les autres navigateurs et appareils restent à qualifier.
+
+### Développement Guix sans pip
+
+Les dépendances peuvent venir de l'environnement Guix habituel. Fournir le
+chemin des sources du socle dans le terminal courant, par exemple avec les
+dépôts imbriqués :
+
+```sh
+export PYTHONPATH="$(realpath ../../pas-communs/pas-communs/src)${PYTHONPATH:+:$PYTHONPATH}"
+python3 -c 'import pas_communs; print(pas_communs.__file__)'
+```
+
+Cela ne remplace pas le wheel épinglé pour une distribution. Pour les commandes
+SOC2, choisir des chemins réels dont le dossier parent existe, hors données :
+`mkdir -p "$HOME/sauvegardes-pas-a-pas"`. Le dossier de restauration doit être
+nouveau ; ne pas le désigner comme espace courant avant `restaurer_copie`.

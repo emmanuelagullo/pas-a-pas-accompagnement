@@ -25,15 +25,22 @@ jobs:
       - run: python -m pip install -r requirements.lock
       - run: npm ci --prefix pwa
       - run: npx --prefix pwa playwright install --with-deps chromium
-      - run: python scripts/construire-pwa.py
+      - run: python scripts/construire-pwa.py --test
       - run: node scripts/verifier-pwa-pyodide.mjs
       - run: node scripts/verifier-pwa.cjs
+        env:
+          PWA_TEST_HTTPS: oui
       - run: node scripts/verifier-pwa.cjs
         env:
           PWA_BASE_PATH: /
+      - run: python scripts/construire-pwa.py --sortie dist/pwa-production --runtime dist/pwa/runtime --wheels dist/pwa/wheels
+      - run: node scripts/verifier-pwa.cjs
+        env:
+          PWA_BUNDLE: dist/pwa-production
+          PWA_PRODUCTION: oui
       - uses: actions/upload-artifact@v6
         with:
-          name: pwa-fictive-sans-publication
+          name: pwa-fictive-test-ne-pas-publier
           path: dist/pwa/
           if-no-files-found: error
           retention-days: 7

@@ -99,3 +99,56 @@ def response_bytes():
     global REPONSE
     corps,REPONSE=REPONSE,b""
     return corps
+
+
+# Opérations techniques du propriétaire de cet appareil, hors habilitations web.
+# Toujours dans un Worker neuf : aucun remplacement de connexion Django vivante.
+MAX_ZIP = 64 * 1024**2
+
+
+def export_zip():
+    from pas_communs.paquets import creer_sauvegarde
+    from pas_a_pas_accompagnement.paquets import PROFIL
+    sortie = io.BytesIO()
+    creer_sauvegarde(DATA, sortie, profil=PROFIL)
+    if sortie.tell() > MAX_ZIP:
+        raise ValueError("Copie supérieure à 64 Mio : export navigateur refusé.")
+    return sortie.getvalue()
+
+
+def prepare_zip(contenu, origine, base):
+    from zipfile import ZipFile
+    import shutil
+    import tempfile
+    from pas_communs.paquets import preparer_restauration, ProfilPaquet
+    # Sans importer les settings : la clé du paquet doit précéder Django.
+    profil = ProfilPaquet("pas-a-pas-accompagnement", "pas-a-pas-accompagnement-paquet", BASE)
+    contenu = bytes(contenu)
+    if not contenu or len(contenu) > MAX_ZIP:
+        raise ValueError("Choisissez un ZIP de 64 Mio maximum.")
+    source = io.BytesIO(contenu)
+    with ZipFile(source) as archive:
+        if set(archive.namelist()) != {BASE, "secret-key", "manifest.json"}:
+            raise ValueError("Ce prototype accepte uniquement la base CHRS et sa clé, sans médias.")
+    source.seek(0)
+    with tempfile.TemporaryDirectory(prefix="pwa-copie-") as temp:
+        preparation = preparer_restauration(source, Path(temp), profil=profil,
+            taille_max=MAX_ZIP + 65536, fichiers_max=3)
+        try:
+            if (preparation.etape/BASE).stat().st_size > MAX_ZIP or (preparation.etape/"secret-key").stat().st_size > 65536:
+                raise ValueError("Fichier trop volumineux.")
+            if DATA.exists():
+                raise ValueError("La vérification exige un moteur neuf.")
+            shutil.copytree(preparation.etape, DATA)
+            date = preparation.date_sauvegarde
+        finally:
+            shutil.rmtree(preparation.etape, ignore_errors=True)
+    initialize(origine, base)  # contrôle migrations, puis migration dans la copie seulement
+    from django.db import connection
+    with connection.cursor() as curseur:
+        for table in ("django_session", "identites_limiteauthentification"):
+            curseur.execute(f'DELETE FROM "{table}"')
+    from personnes.models import Personne
+    from django.contrib.auth import get_user_model
+    return json.dumps({"date":date, "personnes":Personne.objects.count(),
+        "comptes":get_user_model().objects.count()})

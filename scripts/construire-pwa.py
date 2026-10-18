@@ -17,7 +17,7 @@ from pas_communs.navigateur import copier_ressources
 ROOT=Path(__file__).resolve().parent.parent
 
 
-def construire(sortie,runtime_cache=None,wheels_cache=None):
+def construire(sortie,runtime_cache=None,wheels_cache=None,test=False):
     sortie=Path(sortie).resolve()
     if sortie==ROOT or ROOT.is_relative_to(sortie) or sortie==Path(sortie.anchor):
         raise ValueError("Choisir un dossier de sortie distinct")
@@ -67,6 +67,8 @@ def construire(sortie,runtime_cache=None,wheels_cache=None):
     shutil.copytree(ROOT/"static",sortie/"static")
     for nom in ["index.html","shell.js","worker.js","sw.js","manifest.webmanifest","icon.svg","icon-192.png","icon-512.png"]:
         shutil.copyfile(ROOT/"pwa"/nom,sortie/nom)
+    for nom in ["shell.js", "worker.js"]:
+        p=sortie/nom;p.write_text(p.read_text().replace("__TEST__", "true" if test else "false"))
     copier_ressources(sortie/"socle")
     h=hashlib.sha256()
     for p in sorted(sortie.rglob("*")):
@@ -84,4 +86,5 @@ if __name__=="__main__":
     p.add_argument("--sortie",type=Path,default=ROOT/"dist/pwa")
     p.add_argument("--runtime",type=Path)
     p.add_argument("--wheels",type=Path)
-    a=p.parse_args();construire(a.sortie,a.runtime,a.wheels)
+    p.add_argument("--test",action="store_true",help="Activer uniquement les injections des bancs fictifs ; ne jamais publier ce bundle")
+    a=p.parse_args();construire(a.sortie,a.runtime,a.wheels,a.test)

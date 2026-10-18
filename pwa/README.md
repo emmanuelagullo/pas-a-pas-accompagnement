@@ -3,9 +3,9 @@
 Premier parcours : préparer son compte, créer une personne, fermer puis rouvrir
 hors connexion et se reconnecter pour retrouver la fiche. Le mot de passe est
 choisi à l'installation, aucun compte ni fichier de données n'est embarqué.
-Aucun dossier réel : cette tranche ne propose **pas encore de sauvegarde ZIP
-ni de restauration dans l'interface navigateur**. Ne rien y saisir à conserver.
-Le stockage n'est pas chiffré et le navigateur peut l'effacer.
+Aucun dossier réel : ce prototype n'est pas un dossier social exploitable.
+#SOC5b ajoute les copies ZIP et leur restauration explicite. Le stockage et les
+ZIP ne sont pas chiffrés ; le navigateur peut effacer ses données locales.
 
 ## Construire et essayer
 
@@ -67,11 +67,56 @@ pas contre du code malveillant : choisir des origines distinctes pour une future
 exploitation. Pas de synchronisation avec le serveur ou le programme local.
 Les uploads sont plafonnés à 1 Mio dans ce prototype sans documents métier.
 
-Une mise à jour téléchargée attend l'action explicite du bouton de la coque,
-hors requête en cours. L'installation complète de ses ressources précède son
-activation. La qualification détaillée des versions anciennes, interruptions
-et récupérations du CHRS reste #SOC5b ; ne pas considérer ce mécanisme minimal
-comme une procédure d'exploitation ou de retour arrière validée.
+## Copies et restauration (#SOC5b)
+
+Ouvrir **Copies et restauration sur cet appareil**. Ces outils techniques
+concernent tout l'espace de ce profil navigateur, comptes et clé compris ; ils
+ne sont pas un nouveau rôle web. Ils sont réservés au propriétaire de cet
+appareil fictif, comme les commandes locales de maintenance.
+
+- **Télécharger une sauvegarde** lit l'état confirmé OPFS, dans un Worker
+  séparé, et produit le même ZIP CHRS que la commande `sauvegarder_paquet`.
+  Vérifier le téléchargement et conserver une copie privée hors appareil.
+- Choisir un ZIP dans **Vérifier une copie à restaurer**. Une copie séparée
+  vérifie identité du produit, chemins, empreintes, intégrité SQLite, relations
+  et migrations. Aucun fichier courant ni pointeur OPFS n'est modifié. Le
+  résumé affiche les nombres de personnes et comptes, et la date de la copie.
+- **Annuler** détruit cette préparation. **Remplacer cet espace par la copie
+  vérifiée** ferme le moteur courant, active la copie durablement, puis recharge
+  l'application. Les sessions et compteurs sont retirés de la copie ; une
+  nouvelle connexion avec ses propres comptes est exigée. Les facteurs TOTP
+  existants ne sont pas supprimés et restent bloquants dans le profil local.
+- **Télécharger l'état avant remplacement** exporte le checkpoint retenu avant
+  migration de version ou restauration. Il ne remplace rien automatiquement.
+  S'il n'existe pas ou est endommagé, l'export est refusé explicitement.
+
+La copie native et la copie navigateur sont interchangeables pour ce prototype
+sans médias. Limites : ZIP de 64 Mio, base de 64 Mio et clé de 64 Kio maximum,
+exactement trois fichiers avec le manifeste. Les ZIP scolaires, altérés,
+incomplets, avec médias ou migrations inconnues sont refusés. La vérification
+et les copies sont bornées mais utilisent de la mémoire WASM ; cela ne reprend
+pas les transferts de médias volumineux de Petits Pas.
+
+Une corruption ou une migration future n'ouvre jamais une base vide : la coque
+garde les outils de copie et restauration disponibles. L'export courant lit
+l'état enregistré sans appliquer de migration ; un état corrompu est refusé.
+Restaurer un ZIP valide reste une action explicite. Après confirmation, les
+blobs de la copie sont réécrits pour éviter de réutiliser des octets altérés
+malgré l'empreinte annoncée par l'ancien pointeur. Un état de secours stocké
+sur le même appareil ne remplace jamais le ZIP externe.
+
+## Mises à jour
+
+Une nouvelle version ne s'installe qu'après contrôle de toutes ses ressources.
+Une ressource absente ou altérée laisse l'ancienne version intacte. Le bouton
+**Installer la mise à jour** exige une confirmation explicite et reste bloqué
+pendant une requête, une vérification ou une restauration. L'ancien Worker est
+arrêté avant activation du Service Worker ; la réouverture impose une connexion.
+L'initialisation migre la copie en mémoire, puis confirme l'état en OPFS avec
+checkpoint pré-version. En cas d'échec avant activation, l'ancien état reste
+confirmé ; après activation, le nouvel état reste confirmé. Pas de retour
+silencieux au code ancien ni de remise à zéro. Des caches d'anciennes versions
+peuvent rester sur le profil ; le nettoyage et le quota relèvent du navigateur.
 
 ## Bancs fictifs
 
@@ -80,8 +125,12 @@ Node 24, puis `npm ci --prefix pwa` et
 
 ```sh
 node scripts/verifier-pwa-pyodide.mjs
-node scripts/verifier-pwa.cjs
-PWA_BASE_PATH=/ node scripts/verifier-pwa.cjs
+# Après la construction normale ci-dessus, sortie neuve de tests :
+python scripts/construire-pwa.py --test --sortie dist/pwa-tests --runtime dist/pwa/runtime --wheels dist/pwa/wheels
+PWA_BUNDLE=dist/pwa-tests PWA_TEST_HTTPS=oui node scripts/verifier-pwa.cjs
+PWA_BUNDLE=dist/pwa-tests PWA_BASE_PATH=/ node scripts/verifier-pwa.cjs
+# Contrôle de la construction normale, protocole de test désactivé :
+PWA_PRODUCTION=oui node scripts/verifier-pwa.cjs
 ```
 
 Le premier banc initialise deux runtimes Pyodide et vérifie copie SQLite,
@@ -94,3 +143,17 @@ Les tests utilisent uniquement des identités fictives et des profils temporaire
 La CI GitHub exécute ces bancs sans publication. La recette GitLab serveur et
 les programmes locaux restent indépendants ; mutualiser les CI relève de #SOC6.
 Firefox, Safari/iOS, installation Windows et appareils réels restent à qualifier.
+
+Le banc #SOC5b exerce aussi l'aller-retour des commandes natives, les refus
+croisés/empreintes/migrations futures, l'annulation, la restauration et le
+secours, la terminaison du vrai Worker avant/après commit, le quota simulé,
+l'échec d'installation d'une version altérée, l'activation hors restauration,
+la reconnexion hors ligne et la réparation explicite depuis un ZIP après
+corruption. `PWA_OLD_BUNDLE` sélectionne une distribution #SOC5a pour tester
+son adoption effective de #SOC5b. Les injections sont gardées par une constante
+compilée fausse hors `--test`, sans paramètre URL pour les activer.
+
+#SOC5 est clos pour le moteur et ces bancs Chromium/Linux. Les Workers et
+coques restent propres aux produits ; les documents et médias n'ont pas de
+correspondance métier à imposer. La qualification d'appareils, des autres
+navigateurs et l'exploitation de données réelles ne sont pas validées ici.

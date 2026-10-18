@@ -105,5 +105,20 @@ Lire pwa/README.md. Le wheel 0.4.0 fournit stockage immuable, vérification des
 capacités, transport et primitives WSGI/crypto. Le bridge définit les fichiers
 CHRS et vérifie les migrations ; les vues, permissions et modèles ne changent pas.
 La coque, le Worker et le Service Worker CHRS demeurent des adaptateurs du
-produit. Les écrans de copie et restauration ne sont pas implémentés à ce stade.
-Ce profil n'ouvre pas un déploiement CHRS de production. #SOC5b reste à réaliser.
+produit. #SOC5b ajoute les copies et restaurations sans transférer les flux scolaires.
+Le profil reste un prototype fictif, sans déploiement CHRS de production.
+
+## Copies et cycle de vie (#SOC5b)
+
+Les outils techniques de la coque lisent le dernier état confirmé dans un
+Worker neuf. Une restauration prépare/valide/migre un autre Worker sans lire
+ni modifier les données courantes. Le moteur actuel ne s'arrête qu'à la
+confirmation ; la sauvegarde OPFS commune active le nouveau pointeur avec
+préservation de l'ancien et sans réemploi de blobs potentiellement corrompus.
+Annuler ou refuser le ZIP ne produit aucune écriture OPFS. La réouverture
+impose la connexion, sans reprise de cookies ni élargissement de droits.
+La copie de secours est exportable même si le moteur Django ne démarre pas.
+
+#SOC5 est clos sur le périmètre des bancs Chromium/Linux. Garder les Workers
+et coques propres au produit ; pas de factorisation supplémentaire imposée.
+Les types d'organisation, documents et habilitations restent des décisions métier.

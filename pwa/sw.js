@@ -1,9 +1,10 @@
 const BASE=new URL('./',self.location.href).pathname;
 const PREFIX='pas-accompagnement-pwa-'+BASE;
-const CACHE=PREFIX+'__BUILD__';
+const VERSION='__BUILD__';
+const CACHE=PREFIX+VERSION;
 self.addEventListener('install',e=>e.waitUntil((async()=>{
   const config=await(await fetch(BASE+'config.json',{cache:'no-store'})).json();
-  if(config.application!=='pas-a-pas-accompagnement')throw new Error('Produit incorrect');
+  if(config.application!=='pas-a-pas-accompagnement'||config.version!==VERSION)throw new Error('Produit incorrect');
   const cache=await caches.open(CACHE);
   try{
     for(const asset of config.assets){

@@ -38,4 +38,12 @@ Masquer clés et formulaires sensibles dans les diagnostics, même en DEBUG.
 #SOC5a : lire pwa/README.md. Ne jamais distribuer une base ou un secret de test.
 Tester le vrai Pyodide et le navigateur, à la racine et sous un préfixe.
 Conserver le stockage propre au produit et l'arrêt sur persistance incertaine.
-Ne pas annoncer de sauvegarde ou récupération PWA CHRS encore absente.
+Les copies PWA sont ajoutées sous #SOC5b ; distinguer téléchargement préparé
+et copie effectivement conservée hors appareil.
+
+#SOC5b : lire pwa/README.md. La vérification d'un ZIP reste dans un Worker
+séparé ; ne jamais modifier le pointeur actif avant confirmation. Conserver
+la reconnexion, les refus TOTP locaux et l'export brut sans migration.
+Tester le vrai Worker aux deux côtés du commit, les ZIP natifs et la mise à
+jour ; ne jamais publier un bundle --test. Garder les nouvelles injections
+inaccessibles dans une construction normale.

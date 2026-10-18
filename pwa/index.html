@@ -4,5 +4,13 @@
 <body><header><h1>Pas à Pas — Accompagnement</h1><p>Prototype navigateur — données fictives uniquement.</p>
 <p id="status" role="status">Préparation de l’espace local…</p><button id="update" hidden>Installer la mise à jour</button>
 <button id="persist">Demander la protection du stockage</button><p id="storage"></p></header>
-<aside>Les données restent dans ce profil de navigateur. Ce prototype ne propose pas encore de sauvegarde ou restauration dans l’interface : n’y saisissez rien à conserver.</aside>
+<aside>Les données restent dans ce profil de navigateur. Données fictives uniquement ; aucun chiffrement ni synchronisation.
+<details><summary>Copies et restauration sur cet appareil</summary>
+<p>Ces outils techniques concernent tout l’espace local, avec ses comptes et sa clé. Conservez les ZIP dans un lieu privé hors appareil. Ils ne donnent aucun droit supplémentaire dans l’application.</p>
+<button id="export" disabled>Télécharger une sauvegarde</button>
+<button id="recovery" disabled>Télécharger l’état avant remplacement</button>
+<p><label>Vérifier une copie à restaurer (ZIP CHRS, 64 Mio maximum) <input id="restore-file" type="file" accept=".zip,application/zip" disabled></label></p>
+<section id="preview" hidden><p id="summary"></p><p>Restaurer remplacera cet espace. Reconnectez-vous avec un compte de la copie. Téléchargez d’abord une sauvegarde ; l’état précédent restera aussi disponible sur cet appareil.</p>
+<button id="confirm">Remplacer cet espace par la copie vérifiée</button><button id="cancel">Annuler</button></section>
+<p id="notice" role="status"></p></details></aside>
 <iframe id="app" title="Personnes fictives et compte local" hidden></iframe><script type="module" src="shell.js"></script></body></html>
