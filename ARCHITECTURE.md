@@ -139,3 +139,11 @@ utilise le format pas-a-pas-accompagnement-publication et les primitives
 communes, sans publier. La PWA normale est vérifiée puis archivée ; un bundle
 test ou non marqué est refusé. Les programmes gardent leurs propres noms et
 leur qualification. Les adaptateurs et politiques Petits Pas ne sont pas copiés.
+
+## Extensions et première V0 métier (#SOC7a)
+
+L'inventaire `EXTENSIONS.md` du dépôt pas-communs ne justifie pas d'extraction
+supplémentaire à ce stade. Images, PDF et traitements scolaires restent dans
+Petits Pas. Le document [V0-METIER.md](V0-METIER.md) propose les premières
+tranches CHRS et les décisions à prendre avant leur code ; il ne décrit pas
+des fonctions disponibles. Le socle reste en 0.5.0, sans nouvelle publication.
