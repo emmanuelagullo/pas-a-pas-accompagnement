@@ -1,4 +1,11 @@
 image: python:3.12-slim
+
+# Même sélection de runners que Petits Pas pour les contrôles ordinaires.
+default:
+  tags:
+    - ci.inria.fr
+    - small
+
 stages: [test]
 test:
   stage: test
