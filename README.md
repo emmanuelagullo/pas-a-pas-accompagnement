@@ -269,3 +269,10 @@ Cela ne remplace pas le wheel épinglé pour une distribution. Pour les commande
 SOC2, choisir des chemins réels dont le dossier parent existe, hors données :
 `mkdir -p "$HOME/sauvegardes-pas-a-pas"`. Le dossier de restauration doit être
 nouveau ; ne pas le désigner comme espace courant avant `restaurer_copie`.
+
+## Profil serveur volontaire (#SOC6a)
+
+Voir [SERVEUR.md](SERVEUR.md). Pas communs 0.5.0 fournit le contrat HTTPS partagé
+avec le profil volontaire Petits Pas. Le serveur d'essai reste fictif, avec
+SQLite mono-processus, clé stable, statiques WhiteNoise, HTTPS et configuration
+explicite. Le profil de développement, le bureau et la PWA restent inchangés.

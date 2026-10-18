@@ -8,8 +8,9 @@ test:
         DJANGO_TEST_VERSION: ['5.2.18', '6.1.1']
   image: python:${VERSION_PYTHON}-slim
   script:
-    - python -m pip install -r requirements.lock -r requirements-2fa.txt
+    - python -m pip install -r requirements-serveur.txt -r requirements-2fa.txt
     - python -m pip install "Django==$DJANGO_TEST_VERSION"
+    - python scripts/verifier-profil-serveur.py
     - python manage.py check
     - python manage.py migrate --noinput
     - python manage.py makemigrations --check --dry-run

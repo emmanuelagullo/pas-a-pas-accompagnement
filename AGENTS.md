@@ -47,3 +47,8 @@ la reconnexion, les refus TOTP locaux et l'export brut sans migration.
 Tester le vrai Worker aux deux côtés du commit, les ZIP natifs et la mise à
 jour ; ne jamais publier un bundle --test. Garder les nouvelles injections
 inaccessibles dans une construction normale.
+
+#SOC6a : lire SERVEUR.md. Conserver le profil local et sa clé persistante.
+Le serveur exige un dossier absolu explicite ; pas d'installation du premier
+compte par le web. Tester scripts/verifier-profil-serveur.py ; aucune confiance
+implicite au proxy et aucune assimilation au déploiement de dossiers réels.

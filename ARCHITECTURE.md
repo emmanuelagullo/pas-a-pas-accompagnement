@@ -122,3 +122,10 @@ La copie de secours est exportable même si le moteur Django ne démarre pas.
 #SOC5 est clos sur le périmètre des bancs Chromium/Linux. Garder les Workers
 et coques propres au produit ; pas de factorisation supplémentaire imposée.
 Les types d'organisation, documents et habilitations restent des décisions métier.
+
+## Profil serveur volontaire (#SOC6a)
+
+settings_serveur conserve les modèles et la disposition base/clé du produit.
+Le contrat HTTPS vient de pas_communs.serveur ; les choix SQLite, statiques,
+TOTP, droits et adresse cliente restent ici. Lire SERVEUR.md. Aucun hébergeur,
+proxy ou établissement n'est créé. La suite des recettes est #SOC6b.

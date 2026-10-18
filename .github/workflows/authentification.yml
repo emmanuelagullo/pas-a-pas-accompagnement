@@ -21,8 +21,9 @@ jobs:
         env:
           DJANGO_TEST_VERSION: ${{ matrix.django }}
         run: |
-          python -m pip install -r requirements.lock -r requirements-2fa.txt
+          python -m pip install -r requirements-serveur.txt -r requirements-2fa.txt
           python -m pip install "Django==$DJANGO_TEST_VERSION"
+          python scripts/verifier-profil-serveur.py
           python manage.py check
           python manage.py makemigrations --check --dry-run
           python manage.py test
