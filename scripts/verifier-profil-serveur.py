@@ -58,6 +58,8 @@ with tempfile.TemporaryDirectory(prefix='serveur-fictif-') as temp:
     controle=lancer('manage.py','check','--deploy','--fail-level','ERROR')
     sys.stdout.write(controle.stdout);sys.stderr.write(controle.stderr)
     resultat=lancer('-c',VERIFICATION);print(resultat.stdout.strip())
+    from pas_communs.qualification_http import verifier
+    verifier(ROOT,'pas_a_pas_accompagnement.wsgi:application',env,'ACCOMPAGNEMENT_PROXY_HTTPS','/static/application.css')
     env['ACCOMPAGNEMENT_HOSTS']='*'
     echec=lancer('manage.py','check',attendu=1)
     assert 'joker' in echec.stderr

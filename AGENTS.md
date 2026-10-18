@@ -52,3 +52,8 @@ inaccessibles dans une construction normale.
 Le serveur exige un dossier absolu explicite ; pas d'installation du premier
 compte par le web. Tester scripts/verifier-profil-serveur.py ; aucune confiance
 implicite au proxy et aucune assimilation au déploiement de dossiers réels.
+
+#SOC6b : la CI appelle pas_communs.ci ; garder les bancs métier dans les scripts
+du produit. Les manifestes décrivent les octets, pas une preuve de CI réussie.
+Aucune release/site CHRS automatique. Tester le refus d'un bundle --test lors
+de la préparation du candidat ; les tests Gunicorn restent loopback.

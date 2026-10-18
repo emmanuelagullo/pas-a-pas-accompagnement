@@ -39,6 +39,17 @@ jobs:
           python manage.py test
           python scripts/verifier-lanceur-local.py
           python -m pas_communs.construire_bureau --spec scripts/PasAPasAccompagnement.spec --nom PasAPasAccompagnement
+      - name: Décrire et vérifier les octets du candidat fictif
+        run: |
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            archive=dist/PasAPasAccompagnement-windows.zip
+            target=windows-x86_64
+          else
+            archive=dist/PasAPasAccompagnement-linux.tar.gz
+            target=linux-ubuntu24.04-x86_64
+          fi
+          python scripts/manifeste-publication.py --mode programme --target "$target" --destination dist/publication-programme.json "$archive"
+          python scripts/manifeste-publication.py --verifier dist/publication-programme.json --mode programme --target "$target"
       - name: Vérifier le parcours de l'exécutable Linux
         if: runner.os == 'Linux'
         run: python scripts/verifier-lanceur-local.py --programme dist/PasAPasAccompagnement/PasAPasAccompagnement
@@ -48,5 +59,6 @@ jobs:
           path: |
             dist/PasAPasAccompagnement-linux.tar.gz
             dist/PasAPasAccompagnement-windows.zip
+            dist/publication-programme.json
           if-no-files-found: error
           retention-days: 30

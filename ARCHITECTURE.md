@@ -128,4 +128,14 @@ Les types d'organisation, documents et habilitations restent des décisions mét
 settings_serveur conserve les modèles et la disposition base/clé du produit.
 Le contrat HTTPS vient de pas_communs.serveur ; les choix SQLite, statiques,
 TOTP, droits et adresse cliente restent ici. Lire SERVEUR.md. Aucun hébergeur,
-proxy ou établissement n'est créé. La suite des recettes est #SOC6b.
+proxy ou établissement n'est créé. Les recettes sont complétées sous #SOC6b ci-dessous.
+
+## Recettes et candidats (#SOC6b)
+
+Les deux forges utilisent la recette Django du wheel. Le banc serveur prépare
+les données fictives puis exerce aussi un vrai Gunicorn local ; les contrôles
+de droits/TOTP restent dans le produit. Le script manifeste-publication.py
+utilise le format pas-a-pas-accompagnement-publication et les primitives
+communes, sans publier. La PWA normale est vérifiée puis archivée ; un bundle
+test ou non marqué est refusé. Les programmes gardent leurs propres noms et
+leur qualification. Les adaptateurs et politiques Petits Pas ne sont pas copiés.

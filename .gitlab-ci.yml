@@ -10,10 +10,4 @@ test:
   script:
     - python -m pip install -r requirements-serveur.txt -r requirements-2fa.txt
     - python -m pip install "Django==$DJANGO_TEST_VERSION"
-    - python scripts/verifier-profil-serveur.py
-    - python manage.py check
-    - python manage.py migrate --noinput
-    - python manage.py makemigrations --check --dry-run
-    - python manage.py test
-    - python scripts/verifier-authentification.py
-    - python -m pip check
+    - python -m pas_communs.ci django --migrer --controle scripts/verifier-profil-serveur.py --controle scripts/verifier-authentification.py --controle scripts/test-manifeste-publication.py --pip-check

@@ -276,3 +276,15 @@ Voir [SERVEUR.md](SERVEUR.md). Pas communs 0.5.0 fournit le contrat HTTPS partag
 avec le profil volontaire Petits Pas. Le serveur d'essai reste fictif, avec
 SQLite mono-processus, clé stable, statiques WhiteNoise, HTTPS et configuration
 explicite. Le profil de développement, le bureau et la PWA restent inchangés.
+
+## Recettes CI et candidats (#SOC6b)
+
+La recette commune est utilisable sans pip avec le PYTHONPATH Guix habituel :
+
+    python3 -m pas_communs.ci django --controle scripts/verifier-profil-serveur.py --controle scripts/verifier-authentification.py
+
+Le banc serveur requiert Gunicorn (déjà présent dans le profil Guix décrit).
+Les CI ajoutent explicitement --pip-check ; aucune installation n'est cachée
+dans le lanceur. Les contrôles gardent leurs espaces fictifs temporaires.
+Les artefacts de programmes et la PWA normale reçoivent un manifeste propre
+au CHRS : lire CI-PUBLICATION.md. Rien n'est publié automatiquement.

@@ -39,7 +39,7 @@ Exemple Linux, derrière un reverse-proxy HTTPS que l'exploitant configure :
 ```sh
 # Seulement si ce proxy remplace X-Forwarded-Proto et protège l'accès backend :
 export ACCOMPAGNEMENT_PROXY_HTTPS=oui
-gunicorn --workers 1 --threads 1 --bind 127.0.0.1:8001 pas_a_pas_accompagnement.wsgi:application
+gunicorn --workers 1 --threads 1 --forwarded-allow-ips="" --bind 127.0.0.1:8001 pas_a_pas_accompagnement.wsgi:application
 ```
 
 Le profil refuse HTTP et les hôtes/origines génériques. Le proxy doit fournir

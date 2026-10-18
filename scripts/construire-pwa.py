@@ -76,7 +76,7 @@ def construire(sortie,runtime_cache=None,wheels_cache=None,test=False):
     version="chrs.pwa."+h.hexdigest()[:16]
     p=sortie/"sw.js";p.write_text(p.read_text().replace("__BUILD__",version))
     assets=[{"url":"/"+p.relative_to(sortie).as_posix(),"sha256":hashlib.sha256(p.read_bytes()).hexdigest()} for p in sorted(sortie.rglob("*")) if p.is_file()]
-    (sortie/"config.json").write_text(json.dumps({"application":"pas-a-pas-accompagnement","version":version,"pyodide":PYODIDE,
+    (sortie/"config.json").write_text(json.dumps({"application":"pas-a-pas-accompagnement","version":version,"testMode":test,"pyodide":PYODIDE,
         "wheels":[p.name for p in sorted(wheels.glob("*.whl"))],"assets":assets},indent=2)+"\n")
     print("PWA fictive construite :",sortie,version)
 

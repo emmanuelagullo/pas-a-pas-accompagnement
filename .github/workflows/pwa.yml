@@ -38,6 +38,18 @@ jobs:
         env:
           PWA_BUNDLE: dist/pwa-production
           PWA_PRODUCTION: oui
+      - name: Préparer et vérifier le candidat normal sans publication
+        run: |
+          python scripts/manifeste-publication.py --mode navigateur --target chromium-statique --bundle dist/pwa-production --destination dist/publication-pwa.json
+          python scripts/manifeste-publication.py --verifier dist/publication-pwa.json --mode navigateur --target chromium-statique
+      - uses: actions/upload-artifact@v6
+        with:
+          name: pwa-fictive-normale-sans-publication
+          path: |
+            dist/PasAPasAccompagnement-pwa.zip
+            dist/publication-pwa.json
+          if-no-files-found: error
+          retention-days: 7
       - uses: actions/upload-artifact@v6
         with:
           name: pwa-fictive-test-ne-pas-publier
