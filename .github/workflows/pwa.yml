@@ -4,6 +4,22 @@ on:
   push:
     branches: [main]
     tags: ['[0-9]*']
+    # Sur main, ne reconstruire que si les entrées du workflow changent.
+    # GitHub n'évalue pas les filtres paths pour les pushes de tags.
+    paths:
+      - '.github/workflows/pwa.yml'
+      - '*.py'
+      - 'pas_a_pas_accompagnement/**'
+      - 'identites/**'
+      - 'personnes/**'
+      - 'templates/**'
+      - 'static/**'
+      - 'requirements*.txt'
+      - 'requirements.lock'
+      - 'scripts/**'
+      - 'CHANGELOG.md'
+      - 'LICENSE'
+      - 'pwa/**'
   pull_request:
   workflow_dispatch:
 

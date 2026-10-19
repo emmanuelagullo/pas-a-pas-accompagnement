@@ -53,3 +53,17 @@ Le socle reste 0.5.0. SOC6b couvrait profils, recettes et candidats ; SOC6c ajou
 les scripts de démarrage, leurs intégrations et les promotions des produits.
 Les plateformes Windows et navigateurs restent qualifiées par leurs CI/bancs
 dédiés. Certificats, proxy réel, exploitation et SMTP restent à configurer.
+
+## Déclenchement GitHub harmonisé
+
+Sur main, les workflows authentification, programmes et PWA filtrent les
+fichiers modifiés : code applicatif, templates, statiques, dépendances, scripts,
+notes et leur propre fichier de workflow. La PWA surveille aussi pwa/. Une
+modification de documentation générale ou du seul workflow de publication
+ne relance donc pas les trois constructions. Les filtres restent prudents :
+tout changement de script ou de dépendance réexerce les parcours concernés.
+
+Comme pour Petits Pas, les pushes de tags numériques ne sont pas filtrés par
+les chemins : tous les workflows de qualification se lancent. Le déclenchement
+manuel et les contrôles sur pull request restent disponibles. Les jobs GitLab,
+les publications et les déploiements serveur ne changent pas.
