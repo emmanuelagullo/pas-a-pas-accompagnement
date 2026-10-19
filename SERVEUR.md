@@ -1,4 +1,4 @@
-# Serveur HTTPS fictif — #SOC6a
+# Serveur HTTPS fictif — contrat actuel
 
 Profil volontaire : `pas_a_pas_accompagnement.settings_serveur`. Le démarrage
 habituel garde son profil local et ne bascule pas sur ce profil automatiquement.
@@ -72,4 +72,6 @@ pas ajoutés. Ne pas annoncer ce profil comme un déploiement CHRS de production
 `python3 scripts/verifier-profil-serveur.py` utilise uniquement un dossier
 fictif temporaire. Le banc crée la base, collecte les statiques et exerce WSGI,
 HTTPS simulé, refus de Host, CSRF, cookies et confiance proxy explicite.
-Les CI exécutent ce contrôle après installation du socle 0.5.0 publié.
+Les CI exécutent ce contrôle avec la version épinglée dans
+requirements-communs.txt. Pour la cible PostgreSQL proposée et sa qualification
+préalable, lire [BASE-CIBLE.md](BASE-CIBLE.md) ; le présent profil reste SQLite.

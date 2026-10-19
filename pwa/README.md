@@ -1,4 +1,4 @@
-# PWA fictive — #SOC5a
+# PWA fictive — fonctionnement actuel et historique SOC5
 
 Premier parcours : préparer son compte, créer une personne, fermer puis rouvrir
 hors connexion et se reconnecter pour retrouver la fiche. Le mot de passe est
@@ -9,8 +9,19 @@ ZIP ne sont pas chiffrés ; le navigateur peut effacer ses données locales.
 
 ## Construire et essayer
 
-Installer Python 3.12+, les dépendances de requirements.lock et le wheel
-pas-communs 0.4.0 épinglé (à publier au préalable), puis :
+Installer les dépendances de requirements.lock avec **Python constructeur
+3.12+** ; le wheel adopté vient de requirements-communs.txt (0.8.0 publié à
+l'issue d'AUD). Sous Guix, les dépendances peuvent venir du profil ; pip reste
+utilisé explicitement par le constructeur pour remplir les caches de wheels.
+
+Le constructeur affiche la version exacte de son Python et son exécutable.
+Le **Python embarqué dans Pyodide** est différent : Python 3.14.2, Pyodide
+314.0.7, ABI 2026_0. Les dépendances pures verrouillées et les wheels WASM
+sont qualifiés dans ce runtime, pas déduits de la version du constructeur.
+GitLab utilise python:3.12-slim-trixie (Node fourni par Trixie) ; GitHub choisit
+Python 3.12 et Node 24. Les versions effectives sont affichées dans les logs.
+
+Construire, puis servir le résultat :
 
 ```sh
 python scripts/construire-pwa.py
@@ -32,7 +43,9 @@ wheels Python sont épinglés dans requirements.lock.
 
 Hors localhost, il faut HTTPS et les bons types MIME (.mjs JavaScript,
 .wasm application/wasm). Un hébergement statique suffit, à la racine ou dans
-un sous-répertoire. **Ne pas publier automatiquement ce prototype.**
+un sous-répertoire. La publication suit les contrôles et déclencheurs décrits dans
+[../DEPLOIEMENTS.md](../DEPLOIEMENTS.md) ; les tags qualifiés sont automatiques,
+main reste manuel. Le caractère fictif reste obligatoire.
 Conserver une adresse et un chemin stables pendant les essais ; leur changement
 ouvre un autre espace et ne déplace aucune donnée.
 

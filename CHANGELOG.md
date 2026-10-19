@@ -2,7 +2,13 @@
 
 ## À venir
 
-- #AUD : adoption candidate de pas-communs 0.8.0, chemins ZIP portables dans les
+- Compléments AUD : Python constructeur PWA >=3.12 affiché séparément du
+  Python embarqué ; documentation des contrats et de la politique RC actuelle.
+  Déclencheurs de publication et déploiements serveur inchangés.
+- Cadrage proposé de PostgreSQL pour le futur serveur et de sa qualification
+  CI ; profils SQLite, dépendances et sauvegardes actuels conservés.
+
+- #AUD : adoption de pas-communs 0.8.0 publiée, chemins ZIP portables dans les
   deux sens, contrôles de promotion partagés et contrat Pyodide explicite.
   Aucun changement du runtime, des formats de données ou des déploiements.
 - #AUD : compatibilité Django annoncée cohérente avec la matrice ; lock 5.2

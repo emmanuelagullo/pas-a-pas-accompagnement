@@ -21,7 +21,17 @@ PYODIDE = RUNTIME.version
 BASE = RUNTIME.base
 
 
+def verifier_python_construction():
+    """Python hôte : distinct de celui du Worker Pyodide et de sa bibliothèque."""
+    if sys.version_info < (3, 12):
+        raise SystemExit("Construction PWA : Python 3.12 ou plus récent requis.")
+    print(f"Python constructeur : {sys.version.split()[0]} ({sys.executable}) ; "
+          f"Python embarqué : {RUNTIME.python} (Pyodide {RUNTIME.version}, ABI {RUNTIME.abi})",
+          flush=True)
+
+
 def construire(sortie,runtime_cache=None,wheels_cache=None,test=False):
+    verifier_python_construction()
     provenance = identity()
     release_notes(provenance['tag'])
     sortie=Path(sortie).resolve()

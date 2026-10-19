@@ -2,7 +2,6 @@
 """Publier l'artefact exact du prototype réussi, sans reconstruction ni secret."""
 # Adapté du préparateur Petits Pas (AGPL-3.0-or-later).
 import argparse
-import hashlib
 import json
 import os
 import re
@@ -14,6 +13,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path, PurePosixPath
 from zipfile import BadZipFile, ZipFile
+from pas_communs.publication import sha256 as _empreinte_fichier
 
 from pas_communs.publication import TAG, verifier
 FORMAT='pas-a-pas-accompagnement-publication'
@@ -31,8 +31,7 @@ def require_pages_url(value):
 
 
 def sha256(path):
-    with path.open("rb") as source:
-        return hashlib.file_digest(source, "sha256").hexdigest()
+    return _empreinte_fichier(path)
 
 
 def validate_bundle(root):

@@ -175,9 +175,18 @@ déploiements serveur restent indépendants, sans changement de déclenchement.
 
 
 #AUD : lire les contrats actualisés et la recette QUALIFICATION.md de pas-communs.
-Le candidat 0.8.0 doit être publié immuablement avant de pousser ses consommateurs.
+La version 0.8.0 est publiée et adoptée ; préserver son tag et ses octets.
+Une modification documentaire seule ne demande pas de nouveau wheel. Les
+consommateurs peuvent conserver des versions différentes, explicitement épinglées.
 Préserver les noms ZIP historiques portables ; refuser les alias Windows à
 l'export comme à l'import sans renommer les données. Le runtime Pyodide est
 sélectionné explicitement dans les constructeurs ; les politiques de promotion
 et de déploiement restent applicatives. Qualifier les octets du wheel et les
 deux consommateurs ; aucune installation pip n'est implicite dans cette recette.
+
+
+Compléments AUD : lire BASE-CIBLE.md avant une garantie métier dépendant du
+backend. La cible PostgreSQL est proposée, pas activée. Pour la PWA, Python
+constructeur >=3.12 et Python embarqué Pyodide sont distincts et journalisés.
+La politique RC de DEPLOIEMENTS.md est une proposition ; ne pas modifier les
+déclencheurs ou une destination de publication sans décision explicite.

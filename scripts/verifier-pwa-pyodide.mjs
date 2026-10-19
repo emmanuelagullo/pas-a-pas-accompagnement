@@ -6,7 +6,12 @@ const dossier=process.env.PWA_BUNDLE?pathToFileURL(path.resolve(process.env.PWA_
 const config=JSON.parse(fs.readFileSync(new URL('config.json',dossier)));
 const {loadPyodide}=await import(new URL('runtime/pyodide.mjs',dossier));
 async function moteur(fichiers={}){
-  const p=await loadPyodide({indexURL:racine+'runtime/'});await p.loadPackage(['micropip','pycryptodome','pillow']);
+  const p=await loadPyodide({indexURL:racine+'runtime/'});
+  const attendu=JSON.parse(fs.readFileSync(new URL('runtime/pyodide-lock.json',dossier),'utf8')).info.python;
+  const effectif=p.runPython("import sys; sys.version.split()[0]");
+  if(effectif!==attendu)throw new Error(`Python embarqué ${effectif}, attendu ${attendu}`);
+  console.log(`Python embarqué exécuté : ${effectif}`);
+  await p.loadPackage(['micropip','pycryptodome','pillow']);
   for(const nom of config.wheels)p.FS.writeFile('/tmp/'+nom,fs.readFileSync(racine+'wheels/'+nom));
   await p.runPythonAsync(`import micropip\nawait micropip.install(${JSON.stringify(config.wheels.map(n=>'emfs:/tmp/'+n))})`);
   p.unpackArchive(new Uint8Array(fs.readFileSync(racine+'application.zip')),'zip',{extractDir:'/application'});

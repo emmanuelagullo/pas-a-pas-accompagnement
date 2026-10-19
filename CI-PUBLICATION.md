@@ -72,7 +72,7 @@ les publications et les déploiements serveur ne changent pas.
 ## AUD — adoption et contrôles partagés
 
 Les petits contrôles des exécutions, événements, tags et artefacts plats viennent
-de pas_communs.promotion (candidat 0.8.0). Les appels de forge, destinations,
+de pas_communs.promotion (0.8.0 publiée). Les appels de forge, destinations,
 formats, notes, noms d'artefacts et décisions de publication restent ici.
 QUALIFICATION.md du socle vérifie les deux produits et les octets importés,
 sans installer ni publier. Ne pas confondre cette recette locale avec les bancs

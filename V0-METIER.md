@@ -123,3 +123,12 @@ Hors V0 : appels du 115, synchronisation SI-SIAO, facturation, dossier médical,
 moteur de formulaires, reporting réglementaire exhaustif et gestion documentaire
 non justifiée par un parcours. Aucun dossier réel avant un chantier explicite
 sur les périmètres d'accès, la conservation et l'exploitation.
+
+
+## Base serveur et garanties concurrentes
+
+Lire [BASE-CIBLE.md](BASE-CIBLE.md) avant un modèle utilisant des contraintes
+ou verrous propres à PostgreSQL. Le backend serveur est une décision distincte
+du mono-espace fictif ; bureau et PWA restent SQLite. La qualification doit
+exercer chaque garantie sur les deux backends concernés, pas la déduire de
+la validation de formulaire ou d'une CI scolaire.

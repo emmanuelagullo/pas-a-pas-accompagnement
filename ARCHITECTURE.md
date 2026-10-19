@@ -1,7 +1,7 @@
 # Architecture — état courant et historique des jalons
 
 Les sections #SOC retracent les introductions successives. La version adoptée
-est fixée par requirements-communs.txt (candidat 0.8.0 dans cette révision),
+est fixée par requirements-communs.txt (0.8.0 publiée et adoptée au 20 octobre 2026),
 non par les mentions anciennes ci-dessous. La fiche PDF est désormais disponible
 (voir PDF.md). Le cadrage retenu avant CHRS1 est dans V0-METIER.md.
 
@@ -168,3 +168,8 @@ La PWA est promue depuis un job GitLab réussi vers un projet dédié ; les arch
 programmes depuis une construction de tag GitHub réussie. Les actions de
 publication et le hook de démonstration sont explicites. Aucun hébergement ou
 projet distant n'est créé par le code.
+
+
+Le futur backend serveur est cadré dans [BASE-CIBLE.md](BASE-CIBLE.md) :
+PostgreSQL recommandé, décision et qualification CI distinctes de SQLite,
+sans modification du profil serveur actuel.

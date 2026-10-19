@@ -67,6 +67,19 @@ class PublicationTests(unittest.TestCase):
             jobs[-1]['commit']['id']='b'*40
             with self.assertRaises(ValueError):PWA.select_job('https://forge.invalid/api','1','12',SHA)
 
+    def test_rc_acceptee_par_la_politique_actuelle_du_canal_pages(self):
+        jobs=[{'name':name,'status':'success','id':i,'commit':{'id':SHA},'pipeline':{'id':12}}
+              for i,name in enumerate(['test: [3.12, 5.2]','pwa-prototype','deploiement-ephemere','deploiement-persistant-local'],1)]
+        for tag in ['0.3.0', '0.3.0-rc.1']:
+            def request(url):
+                if '/jobs?' in url:return jobs,{}
+                if '/pipelines/' in url:return {'sha':SHA,'ref':tag,'source':'push'},{}
+                if '/repository/tags/' in url:return {'commit':{'id':SHA}},{}
+                if '/commits/' in url:return {'sha':SHA},{}
+                return {'id':1,'path_with_namespace':PWA.SOURCE,'default_branch':'main'},{}
+            with self.subTest(tag=tag),patch.object(PWA,'json_request',side_effect=request):
+                self.assertEqual(PWA.select_job('https://forge.invalid/api','1','12',SHA,tag,tag)[0]['name'],'pwa-prototype')
+
     def test_promotion_pwa_normale_et_refus_test_alteration(self):
         for mode in ['normal','test','altere','mauvais-commit']:
             with self.subTest(mode=mode),tempfile.TemporaryDirectory() as t:

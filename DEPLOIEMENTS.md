@@ -1,4 +1,4 @@
-# Déployer et publier les essais fictifs — #SOC6c
+# Déployer et publier les essais fictifs — état courant et historique SOC6c
 
 ## Ce qui est livré
 
@@ -7,11 +7,11 @@
 | Démonstration serveur | start-render.sh, espace SQLite neuf, clé neuve, compte public essai et fiche fictive ; banc de redémarrage HTTP | Créer un service web ; hôte et HTTPS automatiques sur Render |
 | Espace fictif persistant | start-persistent.sh, SQLite mono-processus, sauvegarde avant migration, aucun compte automatique ; banc de persistance/restauration | Dossier privé persistant, arrêt du service, variables et premier compte explicites |
 | PWA | Même job GitLab : vrais Pyodide/Chromium, racine et préfixe, bundle normal puis manifeste | Projet Pages distinct ; automatique sur tag, manuel sur main |
-| Programmes | GitHub Windows/Linux, tests, construction, version embarquée et manifestes | Workflow manuel publier-programmes ou CLI gh depuis une construction du tag réussie |
+| Programmes | GitHub Windows/Linux, tests, construction, version embarquée et manifestes | Automatique après construction de tag réussie ; reprise manuelle publier-programmes ou CLI gh |
 
 Aucun hébergement, projet, secret, tag ou release n'est créé par cette livraison.
-Aucun changement de pas-communs : la dépendance reste 0.5.0 et son empreinte
-reste celle de SOC6b. Aucune modification de Petits Pas nécessaire. La structure
+La version adoptée est fixée par requirements-communs.txt (0.8.0 publiée au
+20 octobre 2026). Les numéros SOC6b/SOC6c ci-dessous décrivent l'historique. La structure
 suit ses profils et promotions, avec les adaptateurs du produit CHRS.
 
 ## Ordre de mise en route
@@ -274,3 +274,31 @@ construit avec Inno Setup via pas-communs 0.7.0. Son empreinte est au manifeste
 Windows et sa présence est obligatoire lors de la promotion. La release publie
 exactement le setup vérifié par la CI, sans reconstruction. Le ZIP portable
 reste disponible. Aucun changement des commandes Render ou profils serveur.
+
+
+## Préversions : comportement actuel et décision proposée
+
+Le canal Pages actuel est unique. Le motif de tag de la CI et le préparateur
+acceptent un suffixe, par exemple `0.12.0-rc.1`. Après qualification du tag et
+vérification des deux forges, **un tel tag peut remplacer la PWA à l'adresse
+habituelle**. Il n'existe pas de routage automatique vers une adresse RC.
+Le marquage « prerelease » d'une release GitHub ne protège pas le canal Pages :
+les politiques programmes et PWA restent distinctes.
+
+Les tests de sélection des jobs couvrent désormais le tag sans suffixe et le
+tag RC. Ils caractérisent le comportement actuel ; ils ne simulent pas une
+publication réelle et ne qualifient pas un appareil utilisateur.
+
+**Décision proposée, non appliquée aux déclencheurs dans ce correctif :** réserver
+la promotion automatique vers l'adresse habituelle aux tags numériques sans
+suffixe. Construire et qualifier les RC en CI, puis les essayer via les artefacts
+ou, si nécessaire, une adresse d'essai distincte à cadrer. Ne pas créer un
+nouveau canal distant implicitement. Le chemin/origine d'essai ouvre un autre
+stockage : ce n'est pas une migration des données de la PWA habituelle.
+
+Une adoption de cette proposition devra modifier ensemble les règles du dépôt
+applicatif, celles de pwa/publication/pages.yml, le refus dans le préparateur
+et leurs tests. Les pipelines manuels de main restent un choix explicite,
+capable eux aussi de remplacer la PWA habituelle ; ils ne sont pas rendus
+« stables » par le seul filtrage des RC. Un tag sans suffixe ne qualifie pas
+un usage métier réel du prototype CHRS.

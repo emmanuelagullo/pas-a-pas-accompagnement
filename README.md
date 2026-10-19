@@ -82,8 +82,8 @@ couvre Django 5.2 à <7 ; la matrice qualifie les branches 5.2 et 6.1 sous Pytho
 3.12/3.13. Le lock conserve Django 5.2.18. Cela ne prétend pas tester chaque
 version intermédiaire. Serveur, bureau, 2FA et PDF gardent leurs profils explicites.
 
-La révision AUD prépare l'adoption du candidat pas-communs 0.8.0 ; publier son
-wheel immuable avant de pousser le consommateur. Les versions citées par les
+La version pas-communs 0.8.0 est publiée et adoptée ; son wheel et son tag
+restent immuables. Les mises à jour documentaires ne la republient pas. Les versions citées par les
 sections #SOC ci-dessous sont celles d'introduction des mécanismes. La version
 et l'empreinte effectives restent dans requirements-communs.txt. La recette
 QUALIFICATION.md du socle s'utilise sans installation implicite, y compris
@@ -352,3 +352,12 @@ réinstallation et désinstallation. Les données sont séparées du programme e
 conservées ; WebView2 reste nécessaire pour la fenêtre. Le ZIP portable reste
 disponible. L’essai interactif du setup reste à faire sur les postes cibles.
 Cette adoption nécessite la publication préalable de pas-communs 0.7.0.
+
+
+## Base cible du serveur d'équipe
+
+SQLite reste le backend des profils livrés. [BASE-CIBLE.md](BASE-CIBLE.md)
+propose PostgreSQL pour le futur serveur, avec une matrice CI avant toute
+règle métier dépendant de ses contraintes ou de sa concurrence. Ce choix
+reste à valider ; aucun déploiement ni profil d'exploitation n'est modifié.
+Les sauvegardes PostgreSQL ne sont pas les paquets SQLite du bureau/PWA.
