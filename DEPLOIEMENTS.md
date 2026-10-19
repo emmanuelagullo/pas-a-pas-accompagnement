@@ -4,7 +4,7 @@
 
 | Canal | Construction / contrôle | Activation |
 | --- | --- | --- |
-| Démonstration serveur | start-render.sh, espace SQLite neuf, clé neuve, compte public essai et fiche fictive ; banc de redémarrage HTTP | Créer un service web puis configurer les hôtes HTTPS et le proxy |
+| Démonstration serveur | start-render.sh, espace SQLite neuf, clé neuve, compte public essai et fiche fictive ; banc de redémarrage HTTP | Créer un service web ; hôte et HTTPS automatiques sur Render |
 | Espace fictif persistant | start-persistent.sh, SQLite mono-processus, sauvegarde avant migration, aucun compte automatique ; banc de persistance/restauration | Dossier privé persistant, arrêt du service, variables et premier compte explicites |
 | PWA | Même job GitLab : vrais Pyodide/Chromium, racine et préfixe, bundle normal puis manifeste | Projet Pages distinct et job publier-pwa manuel |
 | Programmes | GitHub Windows/Linux, tests, construction, version embarquée et manifestes | Workflow manuel publier-programmes ou CLI gh depuis une construction du tag réussie |
@@ -40,10 +40,17 @@ Les commandes suivantes supposent Python 3.12+ et Git, avec Gunicorn disponible 
 - Construction hébergée : `python -m pip install -r requirements-serveur.txt`.
 - Démarrage : `bash start-render.sh`.
 - Contrôle de santé : `/health/`.
-- Variables : ACCOMPAGNEMENT_HOSTS = nom public exact ;
-  ACCOMPAGNEMENT_CSRF_ORIGINS = origine HTTPS exacte ;
-  ACCOMPAGNEMENT_PROXY_HTTPS = oui **uniquement si** le proxy remplace l'en-tête
-  X-Forwarded-Proto et empêche l'accès direct au backend.
+Sur Render, **aucune variable applicative HTTPS n'est nécessaire** : le script
+reprend RENDER_EXTERNAL_HOSTNAME, fourni par la plateforme, pour l'hôte exact,
+l'origine HTTPS et la confiance au proxy Render. Le domaine n'est pas inscrit
+dans le code ; un renommage du service suit automatiquement cette valeur.
+
+Pour un domaine personnalisé, les variables explicites restent prioritaires :
+ACCOMPAGNEMENT_HOSTS (noms exacts séparés par des virgules),
+ACCOMPAGNEMENT_CSRF_ORIGINS (origines HTTPS), ACCOMPAGNEMENT_PROXY_HTTPS
+(oui/non). Sans origine explicite, le script déduit les origines HTTPS de la
+liste effective des hôtes. Hors Render, sans RENDER_EXTERNAL_HOSTNAME, ces
+choix restent explicites ; le profil serveur générique ne change pas.
 
 Le service utilise PORT si fourni, sinon 8000. Ne configurer ni
 ACCOMPAGNEMENT_DONNEES, ni DATABASE_URL, ni ACCOMPAGNEMENT_STATIC_ROOT, ni clés

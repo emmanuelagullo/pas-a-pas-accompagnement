@@ -43,8 +43,9 @@ deploiement-ephemere:
     - python -m pip install -r requirements-serveur.txt -r requirements-2fa.txt
   script:
     - bash -n start-render.sh start-persistent.sh
+    - python -m unittest discover -s scripts -p test_configuration_render.py
     - python -m unittest discover -s scripts -p test_deploiement_attente.py
-    - python scripts/exercer-deploiement.py ephemere
+    - python scripts/exercer-deploiement.py ephemere --render
     - python -m unittest discover -s scripts -p 'test_publication*.py'
 
 deploiement-persistant-local:

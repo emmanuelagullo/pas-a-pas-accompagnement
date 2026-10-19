@@ -42,7 +42,7 @@ def attendre_demarrage(processus, port, journal, delai):
     raise RuntimeError(f'Démarrage expiré après {delai:g} s (préparation et HTTP) : '+journal.read_text())
 
 
-def exercer(mode, delai_demarrage=180):
+def exercer(mode, delai_demarrage=180, render=False):
     with tempfile.TemporaryDirectory(prefix='deploiement-chrs-fictif-') as t:
         temp = Path(t)
         env = {k: v for k, v in os.environ.items()
@@ -54,6 +54,10 @@ def exercer(mode, delai_demarrage=180):
                    ACCOMPAGNEMENT_BIND='127.0.0.1',
                    PYTHONIOENCODING='utf-8', PYTHONUNBUFFERED='1',
                    TMPDIR=str(temp), PATH=str(Path(sys.executable).parent)+os.pathsep+os.environ.get('PATH',''))
+        if render:
+            env['RENDER_EXTERNAL_HOSTNAME'] = 'localhost'
+            for nom in ['ACCOMPAGNEMENT_HOSTS', 'ACCOMPAGNEMENT_CSRF_ORIGINS', 'ACCOMPAGNEMENT_PROXY_HTTPS']:
+                env.pop(nom, None)
         if mode == 'persistant':
             env.update(ACCOMPAGNEMENT_DONNEES=str(temp/'donnees'),
                        ACCOMPAGNEMENT_SAUVEGARDES=str(temp/'sauvegardes'),
@@ -94,6 +98,7 @@ def exercer(mode, delai_demarrage=180):
             cles.append((donnees/'secret-key').read_bytes())
             # La préparation publique ne doit jamais être une commande de reset.
             demo_env = {**env, 'ACCOMPAGNEMENT_DONNEES': str(donnees),
+                        'ACCOMPAGNEMENT_HOSTS': 'localhost', 'ACCOMPAGNEMENT_CSRF_ORIGINS': 'https://localhost',
                         'ACCOMPAGNEMENT_DEMONSTRATION': 'oui',
                         'DJANGO_SETTINGS_MODULE': 'pas_a_pas_accompagnement.settings_demo' if mode == 'ephemere' else 'pas_a_pas_accompagnement.settings_serveur'}
             refus_demo = subprocess.run([sys.executable,'manage.py','preparer_demonstration'],
@@ -137,7 +142,10 @@ if __name__ == '__main__':
     parser.add_argument('mode', choices=['ephemere', 'persistant'])
     parser.add_argument('--delai-demarrage', type=float, default=180,
                         help='Délai par démarrage, préparation incluse (secondes, défaut : 180).')
+    parser.add_argument('--render', action='store_true', help='Exercer les valeurs Render automatiques, sans variables HTTPS explicites.')
     args = parser.parse_args()
+    if args.render and args.mode != 'ephemere':
+        parser.error('--render concerne uniquement la démonstration éphémère.')
     if not 0 < args.delai_demarrage <= 900:
         parser.error('Choisir un délai entre 0 exclu et 900 secondes.')
-    exercer(args.mode, args.delai_demarrage)
+    exercer(args.mode, args.delai_demarrage, args.render)

@@ -7,6 +7,16 @@ if [[ -n "${ACCOMPAGNEMENT_DONNEES:-}" || -n "${DATABASE_URL:-}" || -n "${ACCOMP
     echo 'Refus : le profil jetable ne réutilise aucune donnée, clé 2FA ou base distante.' >&2
     exit 1
 fi
+# Render fournit son nom public : configuration automatique limitée à ce profil.
+# Les valeurs explicites gardent la priorité, notamment pour un domaine personnalisé.
+if [[ -n "${RENDER_EXTERNAL_HOSTNAME:-}" ]]; then
+    export ACCOMPAGNEMENT_HOSTS="${ACCOMPAGNEMENT_HOSTS:-$RENDER_EXTERNAL_HOSTNAME}"
+    if [[ -z "${ACCOMPAGNEMENT_CSRF_ORIGINS:-}" ]]; then
+        ACCOMPAGNEMENT_CSRF_ORIGINS="$(python3 -c 'import os; print(",".join("https://" + h.strip() for h in os.environ["ACCOMPAGNEMENT_HOSTS"].split(",")))')"
+        export ACCOMPAGNEMENT_CSRF_ORIGINS
+    fi
+    export ACCOMPAGNEMENT_PROXY_HTTPS="${ACCOMPAGNEMENT_PROXY_HTTPS:-oui}"
+fi
 export ACCOMPAGNEMENT_DONNEES
 ACCOMPAGNEMENT_DONNEES="$(mktemp -d "${TMPDIR:-/tmp}/pas-a-pas-demo-XXXXXXXX")"
 export ACCOMPAGNEMENT_DEMONSTRATION=oui
