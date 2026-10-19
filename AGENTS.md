@@ -82,3 +82,8 @@ Versionnement : le tag Git exact définit la version ; les branches CI utilisent
 dev.<sha8>. Ne pas commiter version-application.txt : il est généré pour les
 programmes et la PWA. Les notes viennent de CHANGELOG.md et accompagnent les
 artefacts vérifiés ; préserver la promotion sans reconstruction.
+
+#SOC3b : l’installateur Inno Setup et son banc viennent du wheel 0.7.0.
+L’identité du produit reste dans scripts/installateur-windows.json. Préserver
+les données à la désinstallation et inclure le setup vérifié dans les manifestes
+et promotions. Tester les refus d’un candidat sans setup ou altéré.

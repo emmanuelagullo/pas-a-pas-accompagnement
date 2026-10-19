@@ -109,9 +109,13 @@ def prepare(run_id, tag, folder):
         if (record['ci']['provider'] != 'github' or str(record['ci']['run']) != run_id
                 or str(record['ci']['attempt']) != str(run['run_attempt']) or record['ci']['job'] != 'programme'):
             raise ValueError('Manifeste issu d’une autre exécution ou tentative.')
-        if verify(record, source, commit, tag, 'programme', target) != {filename, 'notes-version.md'}:
+        noms = {filename, 'notes-version.md'}
+        setup = f'PasAPasAccompagnement-Setup-{tag}-x64.exe' if os_name == 'Windows' else None
+        if setup:
+            noms.add(setup)
+        if verify(record, source, commit, tag, 'programme', target) != noms:
             raise ValueError('Liste des fichiers inattendue.')
-        if {p.name for p in source.iterdir()} != {filename, path.name, 'notes-version.md'}:
+        if {p.name for p in source.iterdir()} != noms | {path.name}:
             raise ValueError('Artefact contenant des fichiers inattendus.')
         if (source/'notes-version.md').read_bytes() != notes_attendues:
             raise ValueError('Notes différentes du changelog du commit construit.')
@@ -120,6 +124,9 @@ def prepare(run_id, tag, folder):
         manifests.append(destination)
         shutil.copyfile(source / filename, folder / filename)
         archives.append(folder / filename)
+        if setup:
+            shutil.copyfile(source / setup, folder / setup)
+            archives.append(folder / setup)
     # Une réexécution pendant le téléchargement ne doit pas changer le candidat.
     current = api('actions/runs/' + run_id)
     if verify_run(current, tag) != commit or current['run_attempt'] != run['run_attempt']:
@@ -144,7 +151,7 @@ def main():
         if subprocess.run(['gh', 'release', 'view', args.tag, '--repo', DEPOT], capture_output=True).returncode == 0:
             raise ValueError('Cette release existe déjà ; aucun fichier ne sera remplacé.')
         notes = folder / 'release.md'
-        notes.write_text((folder/'notes-version.md').read_text(encoding='utf-8') + f'\n\nPas à Pas — Accompagnement {args.tag}\n\nPrototype sur données fictives uniquement. Aucun dossier réel.\n\nCode : `{commit}`. Construction : https://github.com/{DEPOT}/actions/runs/{args.run}\n\nArchives Windows x64 et Ubuntu 24.04 x86-64 à extraire. Pas d’installateur graphique ; WebView2 requis sous Windows. Les données restent séparées du programme.\n', encoding='utf-8')
+        notes.write_text((folder/'notes-version.md').read_text(encoding='utf-8') + f'\n\nPas à Pas — Accompagnement {args.tag}\n\nPrototype sur données fictives uniquement. Aucun dossier réel.\n\nCode : `{commit}`. Construction : https://github.com/{DEPOT}/actions/runs/{args.run}\n\nInstallateur graphique Windows x64, ZIP portable et archive Ubuntu 24.04 x86-64. WebView2 requis sous Windows. Les données restent séparées du programme.\n', encoding='utf-8')
         print('Publication des fichiers vérifiés :', args.tag, commit, flush=True)
         gh('release', 'create', args.tag, *map(str, files), '--repo', DEPOT, '--verify-tag', '--draft', '--prerelease', '--latest=false', '--title', 'Pas à Pas — Accompagnement ' + args.tag, '--notes-file', str(notes))
         downloaded = folder / 'uploaded'; downloaded.mkdir()

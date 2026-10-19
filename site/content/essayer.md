@@ -29,9 +29,11 @@ appareils. Téléchargez une sauvegarde et conservez-la hors de l’appareil.
 Téléchargez les fichiers joints à la version choisie, avec sa notice et ses
 empreintes ; ne prenez pas le ZIP des sources pour un programme installé.
 
-- **Windows x64** : extraire l’archive et lancer `PasAPasAccompagnement.exe`.
-  WebView2 doit être disponible. Aucun assistant d’installation graphique
-  n’est fourni pour le moment.
+- **Windows x64** : utiliser le setup `PasAPasAccompagnement-Setup-<version>-x64.exe`
+  lorsqu’il est joint à la release. Il propose un assistant en français et un
+  raccourci ; la désinstallation conserve les données. Le ZIP portable reste
+  une alternative : extraire puis lancer `PasAPasAccompagnement.exe`.
+  WebView2 doit être disponible.
 - **Linux** : l’archive cible Ubuntu 24.04 x86-64 avec GTK/WebKitGTK.
   Extraire puis lancer `PasAPasAccompagnement`. La compatibilité avec toutes
   les distributions n’est pas garantie.

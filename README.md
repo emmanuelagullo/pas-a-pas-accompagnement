@@ -8,8 +8,7 @@ incomplète et consultation de sa fiche. Pas de modification ni suppression de
 fiche à ce stade. Les comptes professionnels sont distincts des personnes suivies.
 
 Non disponible : ménages, accompagnements, prestations, séjour, situation sociale,
-historique des modifications, documents, invitations,
-installateur graphique Windows. Une PWA fictive est disponible sous #SOC5a ; voir ci-dessous. La date et l'auteur de création ne sont pas un journal
+historique des modifications, documents, invitations. Une PWA fictive est disponible sous #SOC5a ; voir ci-dessous. La date et l'auteur de création ne sont pas un journal
 d'audit. Ce prototype n'est pas une installation de production.
 
 ## Essayer depuis les sources
@@ -191,8 +190,9 @@ Les scripts emploient l'assembleur de Pas communs, puis l'exécutable construit
 avec `--verifier-distribution`, avant d'archiver `dist/PasAPasAccompagnement/`.
 Les données du premier compte et les bases d'essai ne sont pas embarquées.
 Les artefacts `PasAPasAccompagnement-linux.tar.gz` ou `PasAPasAccompagnement-windows.zip`
-contiennent le programme à extraire entièrement. Il n'y a pas encore de setup
-Windows ni d'installation automatique dans le menu Démarrer.
+contiennent le programme à extraire entièrement. Le setup Windows
+`PasAPasAccompagnement-Setup-<version>-x64.exe` propose aussi un assistant en
+français, un raccourci et une désinstallation préservant les données.
 
 Le workflow GitHub **Programmes locaux Pas à Pas** teste et construit sur
 Ubuntu 24.04 et Windows ; il fournit des artefacts temporaires, sans créer
@@ -324,3 +324,17 @@ GitLab Pages est indépendante de la PWA : le projet à la racine du domaine ne
 contient qu'une redirection vers le site du dépôt applicatif. Les trois projets
 emploient les mêmes runners Inria et l'arborescence de Petits Pas. Les jobs
 Pages automatiques publient le site ; publier-pwa reste manuel.
+
+## Installateur Windows partagé (#SOC3b)
+
+Après construction Windows, installer Inno Setup puis lancer :
+
+```powershell
+python -m pas_communs.installateur_windows --configuration scripts/installateur-windows.json
+```
+
+La CI Windows construit le setup et teste installation, contrôle du programme,
+réinstallation et désinstallation. Les données sont séparées du programme et
+conservées ; WebView2 reste nécessaire pour la fenêtre. Le ZIP portable reste
+disponible. L’essai interactif du setup reste à faire sur les postes cibles.
+Cette adoption nécessite la publication préalable de pas-communs 0.7.0.

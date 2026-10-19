@@ -2,6 +2,9 @@
 
 ## À venir
 
+- Installateur graphique Windows partagé avec Petits Pas via pas-communs 0.7.0,
+  contrôlé en CI et publié avec le ZIP portable, sans supprimer les données.
+
 - Publication PWA alignée sur Petits Pas : configuration sur main et préparateur
   pris au commit source, sans ré-épinglage manuel.
 
@@ -15,8 +18,7 @@
 - Qualification des démarrages et publication explicite des programmes/PWA.
 
 Données fictives uniquement. Les ménages, accompagnements et prestations ne
-sont pas encore implémentés. Les archives ne comprennent pas d'installateur
-graphique Windows. L'exploitation avec des dossiers réels n'est pas qualifiée.
+sont pas encore implémentés. L'exploitation avec des dossiers réels n'est pas qualifiée.
 
 ## 0.1.0
 

@@ -106,7 +106,7 @@ class PublicationTests(unittest.TestCase):
         run={'head_repository':{'full_name':PROGRAMMES.DEPOT},'conclusion':'success',
              'status':'completed','path':PROGRAMMES.WORKFLOW,'head_branch':'0.2.0',
              'event':'push','head_sha':SHA,'run_attempt':1}
-        for alter in [False,True,"notes"]:
+        for alter in [False,True,"notes","sans-setup","setup-altere"]:
             with self.subTest(alter=alter),tempfile.TemporaryDirectory() as t:
                 root=Path(t);arts=[];blobs={}
                 for i,(system,target,name) in enumerate([
@@ -114,9 +114,15 @@ class PublicationTests(unittest.TestCase):
                     ('Windows','windows-x86_64','PasAPasAccompagnement-windows.zip')],1):
                     src=root/system;src.mkdir();f=src/name;f.write_bytes(b'archive fictive '+system.encode())
                     notes=src/'notes-version.md';notes.write_text('Autres notes.\n' if alter=='notes' else 'Notes fictives.\n')
+                    fichiers=[f,notes]
+                    if system=='Windows':
+                        setup=src/'PasAPasAccompagnement-Setup-0.2.0-x64.exe'
+                        setup.write_bytes(b'setup fictif');fichiers.append(setup)
                     m=manifeste('pas-a-pas-accompagnement-publication',{'commit':SHA,'tag':'0.2.0','application_version':'0.2.0'},
-                        'programme',target,[f,notes],{'GITHUB_RUN_ID':'12','GITHUB_JOB':'programme','GITHUB_RUN_ATTEMPT':'2' if alter is True else '1'})
+                        'programme',target,fichiers,{'GITHUB_RUN_ID':'12','GITHUB_JOB':'programme','GITHUB_RUN_ATTEMPT':'2' if alter is True else '1'})
                     (src/'publication-programme.json').write_text(json.dumps(m))
+                    if system=='Windows' and alter=='sans-setup':setup.unlink()
+                    if system=='Windows' and alter=='setup-altere':setup.write_bytes(b'setup altere')
                     archive=root/(system+'.zip')
                     with ZipFile(archive,'w') as z:
                         for p in src.iterdir():z.write(p,p.name)
@@ -132,7 +138,7 @@ class PublicationTests(unittest.TestCase):
                     else:
                         files,commit=PROGRAMMES.prepare('12','0.2.0',out)
                         self.assertEqual(commit,SHA)
-                        self.assertEqual(len(files),6)
+                        self.assertEqual(len(files),7)
                         self.assertEqual((out/'PasAPasAccompagnement-linux.tar.gz').read_bytes(),b'archive fictive Linux')
 
     def test_hook_confirme_le_commit_et_masque_les_destinations_invalides(self):

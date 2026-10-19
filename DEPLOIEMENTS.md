@@ -195,9 +195,8 @@ validés, accompagnées des deux manifestes, de notes-version.md et de SHA256SUM
 Alternative depuis un environnement Guix avec gh connecté au dépôt et le socle
 sur PYTHONPATH : `python3 scripts/publier-paquets.py NUMERO_DU_RUN TAG`.
 L'exécution de cette commande est une action de publication, pas un essai.
-Un brouillon peut rester après erreur ; l'examiner avant de recommencer. Aucun
-installateur Windows graphique n'est ajouté ; vérifier les programmes sur les
-appareils cibles avant de les recommander.
+Un brouillon peut rester après erreur ; l'examiner avant de recommencer. L’installateur
+Windows doit être essayé sur les appareils cibles avant de le recommander.
 
 ## Qualification locale et limites
 
@@ -261,3 +260,11 @@ Après ce correctif, produire de nouveaux candidats : les anciens artefacts
 sans notes sont refusés. Ne pas déplacer un tag ni remplacer une release
 existante ; choisir le prochain numéro disponible. Aucun nouveau wheel
 pas-communs n’est requis.
+
+## Setup Windows (#SOC3b)
+
+Le candidat Windows contient aussi PasAPasAccompagnement-Setup-<version>-x64.exe,
+construit avec Inno Setup via pas-communs 0.7.0. Son empreinte est au manifeste
+Windows et sa présence est obligatoire lors de la promotion. La release publie
+exactement le setup vérifié par la CI, sans reconstruction. Le ZIP portable
+reste disponible. Aucun changement des commandes Render ou profils serveur.

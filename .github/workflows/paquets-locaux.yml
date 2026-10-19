@@ -55,18 +55,29 @@ jobs:
           python manage.py test
           python scripts/verifier-lanceur-local.py
           python -m pas_communs.construire_bureau --spec scripts/PasAPasAccompagnement.spec --nom PasAPasAccompagnement
+      - name: Construire et vérifier le setup Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          choco install innosetup --yes --no-progress
+          if ($LASTEXITCODE -ne 0) { throw 'Installation Inno Setup impossible.' }
+          python -m pas_communs.installateur_windows --configuration scripts/installateur-windows.json --verifier
+          if ($LASTEXITCODE -ne 0) { throw 'Construction ou verification du setup Windows impossible.' }
       - name: Vérifier la version embarquée des archives
         run: python scripts/verifier-version-archive.py
       - name: Décrire et vérifier les octets du candidat fictif
         run: |
+          supplement=()
           if [[ "$RUNNER_OS" == "Windows" ]]; then
+            version=$(python -m pas_a_pas_accompagnement.version)
+            supplement+=("dist/PasAPasAccompagnement-Setup-$version-x64.exe")
             archive=dist/PasAPasAccompagnement-windows.zip
             target=windows-x86_64
           else
             archive=dist/PasAPasAccompagnement-linux.tar.gz
             target=linux-ubuntu24.04-x86_64
           fi
-          python scripts/manifeste-publication.py --mode programme --target "$target" --destination dist/publication-programme.json "$archive"
+          python scripts/manifeste-publication.py --mode programme --target "$target" --destination dist/publication-programme.json "$archive" "${supplement[@]}"
           python scripts/manifeste-publication.py --verifier dist/publication-programme.json --mode programme --target "$target"
       - name: Vérifier le parcours de l'exécutable Linux
         if: runner.os == 'Linux'
@@ -77,6 +88,7 @@ jobs:
           path: |
             dist/PasAPasAccompagnement-linux.tar.gz
             dist/PasAPasAccompagnement-windows.zip
+            dist/PasAPasAccompagnement-Setup-*-x64.exe
             dist/publication-programme.json
             dist/notes-version.md
           if-no-files-found: error
