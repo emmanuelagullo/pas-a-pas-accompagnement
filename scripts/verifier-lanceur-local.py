@@ -81,4 +81,4 @@ with tempfile.TemporaryDirectory() as t:
         assert 'Identité fictive SOC3' in client.open(base+'personnes/').read().decode()
     finally:
         stop(p,sortie)
-    print('Lanceur CHRS : premier compte → fiche → second lancement refusé → fermeture → relance et persistance : OK')
+    print('Lanceur CHRS : premier compte -> fiche -> second lancement refusé -> fermeture -> relance et persistance : OK')
