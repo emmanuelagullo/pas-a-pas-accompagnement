@@ -9,6 +9,7 @@ import subprocess
 import tempfile
 from zipfile import ZipFile
 from pas_communs.publication import TAG, verifier, sha256
+from publication import release_notes
 
 
 def verify(record, source, commit, tag, mode, target):
@@ -69,9 +70,9 @@ def prepare(run_id, tag, folder):
     run = api('actions/runs/' + run_id)
     commit = verify_run(run, tag)
     verify_tags(tag, commit)
-    local_version = subprocess.check_output(['git', 'show', commit + ':version-application.txt'], text=True).strip()
-    if local_version != tag:
-        raise ValueError('Le tag ne correspond pas à version-application.txt.')
+    # Les notes viennent du commit construit, pas de main au moment de publier.
+    journal = subprocess.check_output(['git', 'show', commit + ':CHANGELOG.md'], text=True)
+    notes_attendues = release_notes(tag, journal).encode('utf-8')
     artifacts = []
     page = 1
     while True:
@@ -108,10 +109,12 @@ def prepare(run_id, tag, folder):
         if (record['ci']['provider'] != 'github' or str(record['ci']['run']) != run_id
                 or str(record['ci']['attempt']) != str(run['run_attempt']) or record['ci']['job'] != 'programme'):
             raise ValueError('Manifeste issu d’une autre exécution ou tentative.')
-        if verify(record, source, commit, tag, 'programme', target) != {filename}:
+        if verify(record, source, commit, tag, 'programme', target) != {filename, 'notes-version.md'}:
             raise ValueError('Liste des fichiers inattendue.')
-        if {p.name for p in source.iterdir()} != {filename, path.name}:
+        if {p.name for p in source.iterdir()} != {filename, path.name, 'notes-version.md'}:
             raise ValueError('Artefact contenant des fichiers inattendus.')
+        if (source/'notes-version.md').read_bytes() != notes_attendues:
+            raise ValueError('Notes différentes du changelog du commit construit.')
         destination = folder / ('publication-' + os_name.lower() + '.json')
         shutil.copyfile(path, destination)
         manifests.append(destination)
@@ -121,7 +124,9 @@ def prepare(run_id, tag, folder):
     current = api('actions/runs/' + run_id)
     if verify_run(current, tag) != commit or current['run_attempt'] != run['run_attempt']:
         raise ValueError('Construction modifiée pendant le téléchargement.')
-    files = [*archives, *manifests]
+    notes = folder/'notes-version.md'
+    notes.write_bytes(notes_attendues)
+    files = [*archives, *manifests, notes]
     (folder / 'SHA256SUMS').write_text(''.join(f'{sha256(p)}  {p.name}\n' for p in files), encoding='utf-8')
     return files + [folder / 'SHA256SUMS'], commit
 
@@ -139,7 +144,7 @@ def main():
         if subprocess.run(['gh', 'release', 'view', args.tag, '--repo', DEPOT], capture_output=True).returncode == 0:
             raise ValueError('Cette release existe déjà ; aucun fichier ne sera remplacé.')
         notes = folder / 'release.md'
-        notes.write_text(f'Pas à Pas — Accompagnement {args.tag}\n\nPrototype sur données fictives uniquement. Aucun dossier réel.\n\nCode : `{commit}`. Construction : https://github.com/{DEPOT}/actions/runs/{args.run}\n\nArchives Windows x64 et Ubuntu 24.04 x86-64 à extraire. Pas d’installateur graphique ; WebView2 requis sous Windows. Les données restent séparées du programme.\n', encoding='utf-8')
+        notes.write_text((folder/'notes-version.md').read_text(encoding='utf-8') + f'\n\nPas à Pas — Accompagnement {args.tag}\n\nPrototype sur données fictives uniquement. Aucun dossier réel.\n\nCode : `{commit}`. Construction : https://github.com/{DEPOT}/actions/runs/{args.run}\n\nArchives Windows x64 et Ubuntu 24.04 x86-64 à extraire. Pas d’installateur graphique ; WebView2 requis sous Windows. Les données restent séparées du programme.\n', encoding='utf-8')
         print('Publication des fichiers vérifiés :', args.tag, commit, flush=True)
         gh('release', 'create', args.tag, *map(str, files), '--repo', DEPOT, '--verify-tag', '--draft', '--prerelease', '--latest=false', '--title', 'Pas à Pas — Accompagnement ' + args.tag, '--notes-file', str(notes))
         downloaded = folder / 'uploaded'; downloaded.mkdir()

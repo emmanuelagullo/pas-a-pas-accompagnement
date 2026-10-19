@@ -59,7 +59,8 @@ def main():
     if os.name == "nt" and getattr(sys, "frozen", False):
         os.environ.setdefault("WEASYPRINT_DLL_DIRECTORIES", str(projet))
     analyseur = argparse.ArgumentParser(description=__doc__)
-    analyseur.add_argument("--version", action="version", version=(projet / "version-application.txt").read_text().strip())
+    from pas_a_pas_accompagnement.version import version_application
+    analyseur.add_argument("--version", action="version", version=version_application())
     analyseur.add_argument("--paquet", type=Path)
     analyseur.add_argument("--copier-paquet", type=Path, metavar="DESTINATION")
     analyseur.add_argument("--verifier-distribution", action="store_true")

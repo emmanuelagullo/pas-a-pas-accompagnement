@@ -5,7 +5,8 @@ import tarfile
 from zipfile import ZipFile
 
 ROOT = Path(__file__).resolve().parent.parent
-attendu = (ROOT/'version-application.txt').read_bytes()
+from publication import identity
+attendu = (identity()['application_version']+'\n').encode('utf-8')
 archives = [ROOT/'dist'/name for name in ['PasAPasAccompagnement-windows.zip', 'PasAPasAccompagnement-linux.tar.gz'] if (ROOT/'dist'/name).is_file()]
 if not archives:
     raise SystemExit('Aucune archive de programme.')

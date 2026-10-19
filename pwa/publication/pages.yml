@@ -31,7 +31,7 @@ pages:
   pages:
     publish: public
   artifacts:
-    paths: [public, publication-pwa.json]
+    paths: [public, publication-pwa.json, notes-version.md]
     expire_in: 30 days
   environment:
     name: pwa-fictive

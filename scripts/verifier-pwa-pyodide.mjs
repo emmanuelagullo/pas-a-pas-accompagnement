@@ -13,6 +13,7 @@ async function moteur(fichiers={}){
   p.runPython("import sys;sys.path.insert(0,'/application');from pwa import bridge as b");
   p.FS.mkdirTree('/data');for(const [nom,contenu] of Object.entries(fichiers))p.FS.writeFile('/data/'+nom,contenu);
   p.runPython("b.initialize('https://chrs-fictif.example','/chrs/')");
+  p.runPython(`from django.conf import settings; assert settings.VERSION_APPLICATION == ${JSON.stringify(config.application_version)}`);
   return p;
 }
 const premier=await moteur();

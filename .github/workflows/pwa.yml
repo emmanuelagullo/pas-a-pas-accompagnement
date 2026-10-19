@@ -53,6 +53,7 @@ jobs:
           path: |
             dist/PasAPasAccompagnement-pwa.zip
             dist/publication-pwa.json
+            dist/notes-version.md
           if-no-files-found: error
           retention-days: 7
       - uses: actions/upload-artifact@v6

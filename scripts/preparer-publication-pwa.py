@@ -143,11 +143,11 @@ def main():
         download(url,archive)
         candidate=temp/'candidate';candidate.mkdir()
         extract(archive,candidate,prefix='dist/')
-        if {p.name for p in candidate.iterdir()} != {'PasAPasAccompagnement-pwa.zip','publication-pwa.json'}:
+        if {p.name for p in candidate.iterdir()} != {'PasAPasAccompagnement-pwa.zip','publication-pwa.json','notes-version.md'}:
             raise ValueError('Inventaire du candidat inattendu.')
         record=json.loads((candidate/'publication-pwa.json').read_text())
         expected=verifier(record,candidate,format=FORMAT,commit=commit,tag=tag,mode='navigateur',target='chromium-statique')
-        if expected != {'PasAPasAccompagnement-pwa.zip'} or record.get('tag') != tag:
+        if expected != {'PasAPasAccompagnement-pwa.zip','notes-version.md'} or record.get('tag') != tag:
             raise ValueError('Identité ou fichiers inattendus.')
         if record['ci']['provider'] != 'gitlab' or str(record['ci']['run']) != pipeline or str(record['ci']['job']) != str(job['id']):
             raise ValueError('Candidat issu d’un autre job.')
@@ -161,6 +161,7 @@ def main():
         if current['id'] != job['id']:
             raise ValueError('Job remplacé pendant la promotion.')
         shutil.copytree(bundle,args.destination)
+        shutil.copyfile(candidate/'notes-version.md',Path('notes-version.md'))
         Path('publication-pwa.json').write_text(json.dumps({**record,'pages_url':args.pages_url,'source_job':job['id']},indent=2)+'\n')
     print('Bundle normal validé, prêt pour GitLab Pages. Aucun code reconstruit.')
 

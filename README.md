@@ -297,7 +297,9 @@ bancs réels de déploiement, programmes publiables depuis un tag et PWA vers
 un projet Pages dédié. La page d'accès PWA contient les limites et le lien vers
 les releases publiques. Les destinations doivent être créées/configurées avant
 activation ; aucun déploiement distant n'est effectué par cette livraison.
-La version applicative candidate est 0.2.0, indépendante du socle 0.5.0.
+Le tag Git définit la version applicative, indépendamment du socle ; les
+branches portent `dev.<sha8>`. Voir DEPLOIEMENTS.md pour préparer le changelog
+et promouvoir les artefacts validés sans reconstruction.
 
 ## Télécharger la fiche PDF (#SOC7b)
 

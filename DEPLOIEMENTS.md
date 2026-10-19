@@ -21,9 +21,10 @@ suit ses profils et promotions, avec les adaptateurs du produit CHRS.
 2. Créer le service de démonstration si souhaité. Le tester publiquement sur
    des données fictives ; sa disponibilité n'est pas requise pour les CI.
 3. Créer le projet Pages, épingler sa configuration et activer publier-pwa.
-4. Lorsque les plateformes sont vertes, choisir la version applicative. Le
-   fichier version-application.txt propose **0.2.0**, distinct du socle 0.5.0.
-   Le modifier avant le tag si une autre version est souhaitée.
+4. Choisir la prochaine version applicative disponible, indépendante du socle.
+   Renommer la rubrique `## À venir` de CHANGELOG.md en `## X.Y.Z — AAAA-MM-JJ`,
+   conserver ses notes et ajouter une nouvelle rubrique vide `## À venir`.
+   Commiter puis attendre les CI de ce commit avant de le taguer.
 5. Pousser le même tag applicatif sur les deux forges. Attendre les builds,
    publier les programmes et la PWA séparément. Ne pas déplacer un tag publié.
 
@@ -169,9 +170,9 @@ Lors d'une évolution du préparateur, mettre à jour explicitement les deux SHA
 
 ## Programmes Linux/Windows
 
-Les builds main/MR servent à vérifier ; seuls les builds d'un tag numérique égal
-à version-application.txt sont publiables. Le workflow publier-programmes se
-lance manuellement **depuis main**, avec le numéro du run paquets-locaux réussi
+Les builds main/MR servent à vérifier ; seuls les builds d'un tag numérique
+avec une rubrique correspondante non vide dans CHANGELOG.md sont publiables.
+Le workflow publier-programmes se lance manuellement **depuis main**, avec le numéro du run paquets-locaux réussi
 et le tag. Un environnement GitHub publication-programmes peut ajouter une
 approbation et restreindre la branche ; le configurer dans les réglages GitHub.
 Le jeton intégré reste en lecture dans les builds ; l'écriture est limitée au
@@ -181,7 +182,7 @@ Le script vérifie la provenance, les tags des deux forges, la version du commit
 la tentative du run, les cibles, inventaires et SHA-256. Il crée un brouillon de
 préversion GitHub sans remplacer de release existante, retélécharge les assets
 et compare les octets avant de publier. Les archives sont celles des jobs
-validés, accompagnées des deux manifestes et de SHA256SUMS.
+validés, accompagnées des deux manifestes, de notes-version.md et de SHA256SUMS.
 
 Alternative depuis un environnement Guix avec gh connecté au dépôt et le socle
 sur PYTHONPATH : `python3 scripts/publier-paquets.py NUMERO_DU_RUN TAG`.
@@ -227,3 +228,28 @@ runner particulièrement lent, --delai-demarrage SECONDES permet une borne
 explicite jusqu'à 900 secondes. Un délai expiré reste un échec ; les processus
 sont arrêtés par le nettoyage habituel. Les avertissements HSTS ne sont ni
 masqués ni transformés en erreurs.
+
+## Version du code et notes de publication
+
+Comme pour Petits Pas, le tag Git numérique exact (`0.2.0`, par exemple)
+est la source de vérité. Une branche CI utilise `dev.<sha8>`, même si le
+commit porte aussi un tag. En local, seul un tag pointant exactement sur HEAD
+nomme une release ; un ancêtre tagué ne suffit pas. Plusieurs versions sur le
+même commit sont refusées. Sans révision Git disponible, la version est `dev`.
+Sur Render, les tags publics du miroir sont consultés pour RENDER_GIT_COMMIT ;
+une consultation indisponible donne une version de développement.
+
+`version-application.txt` est désormais généré à la construction et ignoré par
+Git : il est embarqué dans le programme et le ZIP applicatif PWA. Il ne faut
+plus le modifier ni le commiter. Le serveur calcule la même version au
+chargement des réglages ; le pied de page l’affiche dans tous les profils.
+Les commandes Render et les profils de dépendances restent identiques.
+
+Les candidats contiennent `notes-version.md`, extrait de la rubrique exacte
+du tag ou de `À venir` pour une branche ; son empreinte figure au manifeste.
+La promotion des programmes compare aussi ces notes au changelog du commit
+construit. Les notes, programmes et statiques sont promus sans reconstruction.
+Après ce correctif, produire de nouveaux candidats : les anciens artefacts
+sans notes sont refusés. Ne pas déplacer un tag ni remplacer une release
+existante ; choisir le prochain numéro disponible. Aucun nouveau wheel
+pas-communs n’est requis.

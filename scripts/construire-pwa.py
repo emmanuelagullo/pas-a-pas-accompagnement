@@ -13,12 +13,14 @@ from urllib.parse import urldefrag,urlsplit
 from zipfile import ZipFile,ZipInfo,ZIP_DEFLATED
 from pas_communs.construction_pwa import PYODIDE,BASE,telecharger,verifier_runtime
 from pas_communs.navigateur import copier_ressources
-from pas_communs.publication import identite
+from publication import identity, release_notes
 
 ROOT=Path(__file__).resolve().parent.parent
 
 
 def construire(sortie,runtime_cache=None,wheels_cache=None,test=False):
+    provenance = identity()
+    release_notes(provenance['tag'])
     sortie=Path(sortie).resolve()
     if sortie==ROOT or ROOT.is_relative_to(sortie) or sortie==Path(sortie.anchor):
         raise ValueError("Choisir un dossier de sortie distinct")
@@ -59,6 +61,8 @@ def construire(sortie,runtime_cache=None,wheels_cache=None,test=False):
         subprocess.run([sys.executable,"-m","pip","download","--only-binary=:all:","--platform","any","--no-deps","--dest",str(wheels),"-r",str(exigences),
             *(["--no-index","--find-links",str(Path(wheels_cache).resolve())] if wheels_cache else [])],check=True)
     with ZipFile(sortie/"application.zip","w",ZIP_DEFLATED) as archive:
+        info=ZipInfo("version-application.txt",(2026,1,1,0,0,0));info.compress_type=ZIP_DEFLATED
+        archive.writestr(info,(provenance['application_version']+'\n').encode('utf-8'))
         for dossier in ["pas_a_pas_accompagnement","identites","personnes","templates","pwa"]:
             for path in sorted((ROOT/dossier).rglob("*")):
                 if not path.is_file() or any(part in {"__pycache__", "node_modules"} for part in path.parts) or path.name.startswith("tests") or path.suffix not in {".py",".html"}:continue
@@ -74,9 +78,6 @@ def construire(sortie,runtime_cache=None,wheels_cache=None,test=False):
     h=hashlib.sha256()
     for p in sorted(sortie.rglob("*")):
         if p.is_file():h.update(p.relative_to(sortie).as_posix().encode());h.update(p.read_bytes())
-    provenance = identite(commit_local=lambda: subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip())
-    if provenance['tag'] and provenance['tag'] != (ROOT/'version-application.txt').read_text().strip():
-        raise ValueError('Tag différent de version-application.txt')
     # L'identité fait partie de la version du cache, même si le code est identique.
     h.update(json.dumps(provenance,sort_keys=True).encode())
     version="chrs.pwa."+h.hexdigest()[:16]

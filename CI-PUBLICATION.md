@@ -18,12 +18,13 @@ La confiance HTTPS ne décide pas de l'adresse IP cliente.
 Le workflow des programmes produit publication-programme.json à côté de
 l'archive, avec format pas-a-pas-accompagnement-publication, schema 1, identité
 déclarée de la construction, cible, taille et SHA-256. Il vérifie le manifeste
-avant l'upload temporaire. Un lien symbolique, nom dupliqué, format étranger,
+avant l'upload temporaire. Il décrit aussi notes-version.md, extrait du
+changelog de la version construite. Un lien symbolique, nom dupliqué, format étranger,
 cible attendue différente ou fichier altéré est refusé.
 
 Pour la PWA, seul un bundle normal marqué testMode=false, à version/application,
 fichiers et empreintes valides, est archivé par manifeste-publication.py.
-Le ZIP exact et publication-pwa.json sont conservés comme artefact fictif
+Le ZIP exact, notes-version.md et publication-pwa.json sont conservés comme artefact fictif
 normal, distinct du bundle de tests. Un bundle --test ou ancien non marqué
 est refusé. Les manifestes sont placés hors bundle pour ne pas modifier les
 statiques validés.

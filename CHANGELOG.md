@@ -1,6 +1,9 @@
 # Historique
 
-## 0.2.0 — candidat
+## À venir
+
+- Versionnement aligné sur Petits Pas : tag exact ou dev.<sha8>, version
+  embarquée générée et notes du changelog vérifiées lors des publications.
 
 - Export de fiche personne PDF, natif et navigateur hors ligne ; moteur natif partagé avec Petits Pas via Pas communs 0.6.0.
 

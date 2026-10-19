@@ -29,6 +29,7 @@ test:
     - apt-get install --yes --no-install-recommends libpango-1.0-0 libpangoft2-1.0-0
     - python -m pip install -r requirements-serveur.txt -r requirements-2fa.txt
     - python -m pip install "Django==$DJANGO_TEST_VERSION"
+    - python -m unittest discover -s scripts -p test_version_application.py
     - python -m pas_communs.ci django --migrer --controle scripts/verifier-profil-serveur.py --controle scripts/verifier-authentification.py --controle scripts/test-manifeste-publication.py --pip-check
 
 
@@ -84,6 +85,7 @@ pwa-prototype:
     paths:
       - dist/PasAPasAccompagnement-pwa.zip
       - dist/publication-pwa.json
+      - dist/notes-version.md
     expire_in: 30 days
 
 publier-pwa:

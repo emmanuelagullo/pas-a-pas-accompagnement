@@ -80,8 +80,9 @@ class PublicationTests(unittest.TestCase):
                 candidate=root/'candidate';candidate.mkdir();archive=candidate/'PasAPasAccompagnement-pwa.zip'
                 with ZipFile(archive,'w') as z:
                     for p in bundle.iterdir():z.write(p,p.name)
+                notes=candidate/'notes-version.md';notes.write_text('Notes fictives.\n')
                 record=manifeste(PWA.FORMAT,{'commit':SHA,'tag':None,'application_version':'dev.'+SHA[:8]},
-                    'navigateur','chromium-statique',[archive],{'CI_PIPELINE_ID':'12','CI_JOB_ID':'2'})
+                    'navigateur','chromium-statique',[archive,notes],{'CI_PIPELINE_ID':'12','CI_JOB_ID':'2'})
                 (candidate/'publication-pwa.json').write_text(json.dumps(record))
                 if mode=='altere':archive.write_bytes(archive.read_bytes()+b'alteration')
                 artifact=root/'artifact.zip'
@@ -105,15 +106,16 @@ class PublicationTests(unittest.TestCase):
         run={'head_repository':{'full_name':PROGRAMMES.DEPOT},'conclusion':'success',
              'status':'completed','path':PROGRAMMES.WORKFLOW,'head_branch':'0.2.0',
              'event':'push','head_sha':SHA,'run_attempt':1}
-        for alter in [False,True]:
+        for alter in [False,True,"notes"]:
             with self.subTest(alter=alter),tempfile.TemporaryDirectory() as t:
                 root=Path(t);arts=[];blobs={}
                 for i,(system,target,name) in enumerate([
                     ('Linux','linux-ubuntu24.04-x86_64','PasAPasAccompagnement-linux.tar.gz'),
                     ('Windows','windows-x86_64','PasAPasAccompagnement-windows.zip')],1):
                     src=root/system;src.mkdir();f=src/name;f.write_bytes(b'archive fictive '+system.encode())
+                    notes=src/'notes-version.md';notes.write_text('Autres notes.\n' if alter=='notes' else 'Notes fictives.\n')
                     m=manifeste('pas-a-pas-accompagnement-publication',{'commit':SHA,'tag':'0.2.0','application_version':'0.2.0'},
-                        'programme',target,[f],{'GITHUB_RUN_ID':'12','GITHUB_JOB':'programme','GITHUB_RUN_ATTEMPT':'2' if alter else '1'})
+                        'programme',target,[f,notes],{'GITHUB_RUN_ID':'12','GITHUB_JOB':'programme','GITHUB_RUN_ATTEMPT':'2' if alter is True else '1'})
                     (src/'publication-programme.json').write_text(json.dumps(m))
                     archive=root/(system+'.zip')
                     with ZipFile(archive,'w') as z:
@@ -124,13 +126,13 @@ class PublicationTests(unittest.TestCase):
                 def gh(*args,**kwargs):
                     ident=args[1].split('/')[-2];kwargs['stdout'].write(blobs[ident])
                 out=root/'out';out.mkdir()
-                with patch.object(PROGRAMMES,'api',side_effect=api),patch.object(PROGRAMMES,'gh',side_effect=gh),patch.object(PROGRAMMES,'verify_tags'),patch.object(PROGRAMMES.subprocess,'check_output',return_value='0.2.0'):
+                with patch.object(PROGRAMMES,'api',side_effect=api),patch.object(PROGRAMMES,'gh',side_effect=gh),patch.object(PROGRAMMES,'verify_tags'),patch.object(PROGRAMMES.subprocess,'check_output',return_value='## 0.2.0\nNotes fictives.\n'):
                     if alter:
                         with self.assertRaises(ValueError):PROGRAMMES.prepare('12','0.2.0',out)
                     else:
                         files,commit=PROGRAMMES.prepare('12','0.2.0',out)
                         self.assertEqual(commit,SHA)
-                        self.assertEqual(len(files),5)
+                        self.assertEqual(len(files),6)
                         self.assertEqual((out/'PasAPasAccompagnement-linux.tar.gz').read_bytes(),b'archive fictive Linux')
 
     def test_hook_confirme_le_commit_et_masque_les_destinations_invalides(self):

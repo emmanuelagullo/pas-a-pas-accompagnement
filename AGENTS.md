@@ -77,3 +77,8 @@ scolaires par le backend texte. Préserver le chargement autorisé des médias.
 applicatif ; les deux autres projets contiennent redirection et inclusion CI.
 Vérifier Hugo et scripts/verifier-site-public.py ; ne pas annoncer une fonction
 métier seulement prévue ou publier une base, des secrets ou des ZIP privés.
+
+Versionnement : le tag Git exact définit la version ; les branches CI utilisent
+dev.<sha8>. Ne pas commiter version-application.txt : il est généré pour les
+programmes et la PWA. Les notes viennent de CHANGELOG.md et accompagnent les
+artefacts vérifiés ; préserver la promotion sans reconstruction.

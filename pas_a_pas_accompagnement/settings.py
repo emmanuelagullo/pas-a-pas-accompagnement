@@ -35,6 +35,7 @@ TEMPLATES = [{
     "BACKEND": "django.template.backends.django.DjangoTemplates",
     "DIRS": [BASE_DIR / "templates"], "APP_DIRS": True,
     "OPTIONS": {"context_processors": [
+        "pas_a_pas_accompagnement.version.contexte",
         "django.template.context_processors.request",
         "django.contrib.auth.context_processors.auth",
         "django.contrib.messages.context_processors.messages",
@@ -95,3 +96,6 @@ LOGGING = {
 }
 
 DEFAULT_EXCEPTION_REPORTER_FILTER = "identites.diagnostics.FiltreSecurite"
+
+from .version import version_application as _version_application
+VERSION_APPLICATION = _version_application()
