@@ -87,3 +87,9 @@ artefacts vérifiés ; préserver la promotion sans reconstruction.
 L’identité du produit reste dans scripts/installateur-windows.json. Préserver
 les données à la désinstallation et inclure le setup vérifié dans les manifestes
 et promotions. Tester les refus d’un candidat sans setup ou altéré.
+
+#SOC6c — publications automatiques : un tag numérique qualifié déclenche
+release GitHub et PWA. Le workflow de publication GitHub utilise le code de
+main et les artefacts du run terminé ; ignorer branches, PR, forks et échecs.
+Conserver les vérifications des deux forges et la reprise manuelle. Les
+déploiements serveur restent indépendants, sans changement de déclenchement.

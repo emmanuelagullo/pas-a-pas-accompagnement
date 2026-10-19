@@ -43,8 +43,8 @@ future promotion. Aucun jeton ni paramètre privé de déploiement n'est écrit.
 
 ## Publication (#SOC6c)
 
-Les promotions explicites sont décrites dans [DEPLOIEMENTS.md](DEPLOIEMENTS.md).
-Les programmes d'un tag validé sont publiables via le workflow manuel GitHub ;
+Les promotions sont décrites dans [DEPLOIEMENTS.md](DEPLOIEMENTS.md).
+Les programmes d'un tag validé sont publiables via le workflow GitHub automatique sur tag (reprise manuelle conservée) ;
 la PWA depuis le même pipeline GitLab que ses contrôles réussis, vers un projet
 Pages dédié. Aucun dossier réel, site ou secret d'hébergement n'est configuré
 par le dépôt. Les artefacts temporaires restent distincts des releases.

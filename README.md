@@ -323,7 +323,9 @@ Le site Hugo est dans site/ ; lire [site/README.md](site/README.md). Sa publicat
 GitLab Pages est indépendante de la PWA : le projet à la racine du domaine ne
 contient qu'une redirection vers le site du dépôt applicatif. Les trois projets
 emploient les mêmes runners Inria et l'arborescence de Petits Pas. Les jobs
-Pages automatiques publient le site ; publier-pwa reste manuel.
+Pages automatiques publient le site ; publier-pwa est automatique sur tag
+numérique et reste manuel sur main. Les releases GitHub suivent automatiquement
+les constructions de tag réussies ; les déploiements serveur restent séparés.
 
 ## Installateur Windows partagé (#SOC3b)
 

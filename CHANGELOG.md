@@ -2,6 +2,9 @@
 
 ## À venir
 
+- Releases GitHub et publication PWA automatiques sur tag qualifié ; reprise
+  manuelle conservée et déploiements serveur séparés.
+
 - Installateur graphique Windows partagé avec Petits Pas via pas-communs 0.7.0,
   contrôlé en CI et publié avec le ZIP portable, sans supprimer les données.
 

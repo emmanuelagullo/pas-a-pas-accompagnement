@@ -6,7 +6,7 @@
 | --- | --- | --- |
 | Démonstration serveur | start-render.sh, espace SQLite neuf, clé neuve, compte public essai et fiche fictive ; banc de redémarrage HTTP | Créer un service web ; hôte et HTTPS automatiques sur Render |
 | Espace fictif persistant | start-persistent.sh, SQLite mono-processus, sauvegarde avant migration, aucun compte automatique ; banc de persistance/restauration | Dossier privé persistant, arrêt du service, variables et premier compte explicites |
-| PWA | Même job GitLab : vrais Pyodide/Chromium, racine et préfixe, bundle normal puis manifeste | Projet Pages distinct et job publier-pwa manuel |
+| PWA | Même job GitLab : vrais Pyodide/Chromium, racine et préfixe, bundle normal puis manifeste | Projet Pages distinct ; automatique sur tag, manuel sur main |
 | Programmes | GitHub Windows/Linux, tests, construction, version embarquée et manifestes | Workflow manuel publier-programmes ou CLI gh depuis une construction du tag réussie |
 
 Aucun hébergement, projet, secret, tag ou release n'est créé par cette livraison.
@@ -151,7 +151,7 @@ préparateur et requirements téléchargés au commit exact du pipeline source.
    elles ne sont plus utilisées. Aucun autre paramètre ne les remplace.
 5. Lancer un nouveau pipeline main du projet source, attendre les tests et les
    deux intégrations de déploiement ainsi que pwa-prototype, puis cliquer sur
-   publier-pwa. Le job pages du projet cible effectue la publication.
+   publier-pwa sur main. Sur tag numérique, la publication démarre automatiquement. Le job pages du projet cible effectue la publication.
 
 Le commit du .gitlab-ci.yml cible ne publie rien par lui-même. Ne pas lancer
 manuellement un pipeline web dans ce projet : seuls les déclenchements depuis
@@ -163,7 +163,8 @@ artefact de main. Le préparateur vérifie projet, pipeline, branche/tag, jobs
 Django, deux déploiements et pwa-prototype réussis pour ce commit. Sur tag,
 les deux forges doivent désigner le même commit. Le candidat du job précis est
 vérifié (manifeste, empreintes, identité et testMode=false), puis ses statiques
-sont copiés sans reconstruction. Les publications restent manuelles.
+sont copiés sans reconstruction. Les tags numériques sont publiés automatiquement après les contrôles ; main
+reste manuel. Un échec de publication du tag fait échouer le pipeline.
 
 L'adresse est celle de Deploy → Pages / CI_PAGES_URL dans le projet cible.
 Choisir le domaine et son éventuel sous-chemin avant les premiers essais, puis
@@ -180,11 +181,16 @@ les requirements du commit source, comme pour les autres distributions.
 
 Les builds main/MR servent à vérifier ; seuls les builds d'un tag numérique
 avec une rubrique correspondante non vide dans CHANGELOG.md sont publiables.
-Le workflow publier-programmes se lance manuellement **depuis main**, avec le numéro du run paquets-locaux réussi
-et le tag. Un environnement GitHub publication-programmes peut ajouter une
-approbation et restreindre la branche ; le configurer dans les réglages GitHub.
-Le jeton intégré reste en lecture dans les builds ; l'écriture est limitée au
-job de publication.
+Le workflow publier-programmes démarre automatiquement après la réussite du
+workflow des programmes sur tag. Il charge le code de publication depuis main
+et promeut les artefacts du run terminé, sans reconstruction. Le workflow doit
+être présent sur main avant le tag. Pour reprendre, utiliser Run workflow
+depuis main en donnant le numéro du run réussi et son tag.
+
+L'environnement GitHub publication-programmes est conservé. Si des reviewers
+y sont requis, GitHub attendra encore leur approbation ; pour une publication
+entièrement automatique, retirer cette exigence dans les réglages de cet
+environnement. Les permissions d'écriture restent limitées au job de publication.
 
 Le script vérifie la provenance, les tags des deux forges, la version du commit,
 la tentative du run, les cibles, inventaires et SHA-256. Il crée un brouillon de
