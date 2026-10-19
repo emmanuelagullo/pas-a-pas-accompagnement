@@ -57,3 +57,12 @@ implicite au proxy et aucune assimilation au déploiement de dossiers réels.
 du produit. Les manifestes décrivent les octets, pas une preuve de CI réussie.
 Aucune release/site CHRS automatique. Tester le refus d'un bundle --test lors
 de la préparation du candidat ; les tests Gunicorn restent loopback.
+
+#SOC6c : lire DEPLOIEMENTS.md. Le profil Render est jetable et refuse tout
+emplacement existant ; le persistant ne crée aucun compte ni fiche. Les essais
+utilisent les scripts réels, des dossiers temporaires et un Gunicorn loopback.
+Ne pas assimiler cette qualification SQLite à PostgreSQL/S3 ou à la production.
+Les promotions vérifient projet, commit, tag, job et empreintes ; aucune
+reconstruction ni remplacement d'une release existante. Préserver les jobs
+manuels, les secrets hors dépôt et la séparation des projets Pages. Toute
+activation réelle exige les destinations configurées par l'exploitant.

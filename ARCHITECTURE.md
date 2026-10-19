@@ -147,3 +147,17 @@ supplémentaire à ce stade. Images, PDF et traitements scolaires restent dans
 Petits Pas. Le document [V0-METIER.md](V0-METIER.md) propose les premières
 tranches CHRS et les décisions à prendre avant leur code ; il ne décrit pas
 des fonctions disponibles. Le socle reste en 0.5.0, sans nouvelle publication.
+
+## Déploiements et promotions (#SOC6c)
+
+Voir [DEPLOIEMENTS.md](DEPLOIEMENTS.md). Deux scripts serveur distincts :
+start-render.sh prépare un espace temporaire neuf avec identifiants publics
+fictifs ; start-persistent.sh conserve le dossier et crée une sauvegarde privée
+avant migration d'une base existante, après arrêt explicite du service.
+Les bancs d'intégration lancent les scripts, vérifient HTTP et redémarrent.
+Aucune dépendance PostgreSQL/S3 n'est ajoutée à ce prototype sans fichiers.
+Les distributions portent une version applicative distincte du socle 0.5.0.
+La PWA est promue depuis un job GitLab réussi vers un projet dédié ; les archives
+programmes depuis une construction de tag GitHub réussie. Les actions de
+publication et le hook de démonstration sont explicites. Aucun hébergement ou
+projet distant n'est créé par le code.

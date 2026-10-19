@@ -157,3 +157,12 @@ compilée fausse hors `--test`, sans paramètre URL pour les activer.
 coques restent propres aux produits ; les documents et médias n'ont pas de
 correspondance métier à imposer. La qualification d'appareils, des autres
 navigateurs et l'exploitation de données réelles ne sont pas validées ici.
+
+
+## Publication explicite (#SOC6c)
+
+Voir ../DEPLOIEMENTS.md pour la construction/qualification GitLab, la promotion
+du bundle normal vers un projet Pages distinct, et les SHA de confiance à
+épingler. Les identités commit/tag/version sont dans config.json ; les bundles
+test restent impropres à la publication. La nouvelle page telecharger.html
+renvoie aux releases publiques des programmes et rappelle les limites fictives.

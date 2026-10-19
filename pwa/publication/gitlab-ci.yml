@@ -1,0 +1,5 @@
+# À copier dans le NOUVEAU projet Pages ; remplacer la ref par le SHA SOC6c appliqué.
+include:
+  - project: pas-a-pas-accompagnement/pas-a-pas-accompagnement
+    ref: REMPLACER_PAR_LE_SHA_SOC6C_APPLIQUE
+    file: pwa/publication/pages.yml

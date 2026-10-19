@@ -9,7 +9,7 @@
 {% if user.is_authenticated %}<nav aria-label="Navigation principale">
 <span>Compte : {{ user.get_username }}</span>
 <a href="{% url 'accueil' %}">Accueil</a>
-<a href="{% url 'securite_compte' %}">Sécurité du compte</a>
+{% if not demonstration_publique %}<a href="{% url 'securite_compte' %}">Sécurité du compte</a>{% endif %}
 {% if perms.personnes.view_personne and not request.inscription_2fa_requise %}<a href="{% url 'personnes:liste' %}">Personnes</a>{% endif %}
 <form method="post" action="{% url 'deconnexion' %}">{% csrf_token %}<button class="secondaire" type="submit">Se déconnecter</button></form>
 </nav>{% endif %}</header>

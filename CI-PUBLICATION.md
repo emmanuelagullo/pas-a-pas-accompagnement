@@ -40,15 +40,15 @@ du contenu de toute archive. Il ne prouve pas à lui seul la version interne
 d'un binaire. La chaîne CI doit lier construction, tests et octets avant toute
 future promotion. Aucun jeton ni paramètre privé de déploiement n'est écrit.
 
-## Publication
+## Publication (#SOC6c)
 
-Aucun tag, release CHRS, envoi à un registre ou site public automatique n'est
-ajouté. Les artefacts CI expirent et ne sont pas un canal stable de distribution.
-La publication du wheel Pas communs 0.5.0 est distincte : attendre ses tests,
-publier son premier tag et vérifier ses octets, puis pousser les consommateurs.
+Les promotions explicites sont décrites dans [DEPLOIEMENTS.md](DEPLOIEMENTS.md).
+Les programmes d'un tag validé sont publiables via le workflow manuel GitHub ;
+la PWA depuis le même pipeline GitLab que ses contrôles réussis, vers un projet
+Pages dédié. Aucun dossier réel, site ou secret d'hébergement n'est configuré
+par le dépôt. Les artefacts temporaires restent distincts des releases.
 
-#SOC6 est clos pour le socle des profils volontaires, recettes et candidats.
-Le CHRS demeure fictif ; habilitations multi-structures et dossiers sociaux
-réels ne sont pas validés. Les plateformes Windows et navigateurs restent
-qualifiés par leurs CI/bancs dédiés, pas par le seul manifeste. Les certificats,
-proxy réel, sauvegardes hébergeur et SMTP ne sont pas configurés ici.
+Le socle reste 0.5.0. SOC6b couvrait profils, recettes et candidats ; SOC6c ajoute
+les scripts de démarrage, leurs intégrations et les promotions des produits.
+Les plateformes Windows et navigateurs restent qualifiées par leurs CI/bancs
+dédiés. Certificats, proxy réel, exploitation et SMTP restent à configurer.

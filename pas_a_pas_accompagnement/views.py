@@ -25,4 +25,9 @@ def health(request):
             cursor.fetchone()
     except DatabaseError:
         return JsonResponse({"status": "indisponible"}, status=503)
-    return JsonResponse({"status": "ok"})
+    import os, re
+    result = {"status": "ok"}
+    revision = os.environ.get("ACCOMPAGNEMENT_REVISION", "")
+    if re.fullmatch(r"[a-f0-9]{40}", revision):
+        result["commit"] = revision
+    return JsonResponse(result)

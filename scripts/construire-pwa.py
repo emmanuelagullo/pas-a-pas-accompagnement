@@ -13,6 +13,7 @@ from urllib.parse import urldefrag,urlsplit
 from zipfile import ZipFile,ZipInfo,ZIP_DEFLATED
 from pas_communs.construction_pwa import PYODIDE,BASE,telecharger,verifier_runtime
 from pas_communs.navigateur import copier_ressources
+from pas_communs.publication import identite
 
 ROOT=Path(__file__).resolve().parent.parent
 
@@ -65,7 +66,7 @@ def construire(sortie,runtime_cache=None,wheels_cache=None,test=False):
                 info=ZipInfo(path.relative_to(ROOT).as_posix(),(2026,1,1,0,0,0));info.compress_type=ZIP_DEFLATED
                 archive.writestr(info,path.read_bytes())
     shutil.copytree(ROOT/"static",sortie/"static")
-    for nom in ["index.html","shell.js","worker.js","sw.js","manifest.webmanifest","icon.svg","icon-192.png","icon-512.png"]:
+    for nom in ["index.html","shell.js","worker.js","sw.js","manifest.webmanifest","icon.svg","icon-192.png","icon-512.png","telecharger.html"]:
         shutil.copyfile(ROOT/"pwa"/nom,sortie/nom)
     for nom in ["shell.js", "worker.js"]:
         p=sortie/nom;p.write_text(p.read_text().replace("__TEST__", "true" if test else "false"))
@@ -73,10 +74,15 @@ def construire(sortie,runtime_cache=None,wheels_cache=None,test=False):
     h=hashlib.sha256()
     for p in sorted(sortie.rglob("*")):
         if p.is_file():h.update(p.relative_to(sortie).as_posix().encode());h.update(p.read_bytes())
+    provenance = identite(commit_local=lambda: subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip())
+    if provenance['tag'] and provenance['tag'] != (ROOT/'version-application.txt').read_text().strip():
+        raise ValueError('Tag différent de version-application.txt')
+    # L'identité fait partie de la version du cache, même si le code est identique.
+    h.update(json.dumps(provenance,sort_keys=True).encode())
     version="chrs.pwa."+h.hexdigest()[:16]
     p=sortie/"sw.js";p.write_text(p.read_text().replace("__BUILD__",version))
     assets=[{"url":"/"+p.relative_to(sortie).as_posix(),"sha256":hashlib.sha256(p.read_bytes()).hexdigest()} for p in sorted(sortie.rglob("*")) if p.is_file()]
-    (sortie/"config.json").write_text(json.dumps({"application":"pas-a-pas-accompagnement","version":version,"testMode":test,"pyodide":PYODIDE,
+    (sortie/"config.json").write_text(json.dumps({"application":"pas-a-pas-accompagnement",**provenance,"version":version,"testMode":test,"pyodide":PYODIDE,
         "wheels":[p.name for p in sorted(wheels.glob("*.whl"))],"assets":assets},indent=2)+"\n")
     print("PWA fictive construite :",sortie,version)
 

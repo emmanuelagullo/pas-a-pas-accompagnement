@@ -1,0 +1,38 @@
+name: Publier les programmes fictifs validés
+on:
+  workflow_dispatch:
+    inputs:
+      run:
+        description: Numéro de la construction du tag réussie (paquets-locaux)
+        required: true
+      tag:
+        description: Tag applicatif identique sur les deux forges
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: publication-programmes
+  cancel-in-progress: false
+jobs:
+  publier:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    environment: publication-programmes
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --no-deps -r requirements-communs.txt
+      - name: Promouvoir les archives exactes, sans reconstruction
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE_RUN: ${{ inputs.run }}
+          CANDIDATE_TAG: ${{ inputs.tag }}
+        run: python scripts/publier-paquets.py "$CANDIDATE_RUN" "$CANDIDATE_TAG"

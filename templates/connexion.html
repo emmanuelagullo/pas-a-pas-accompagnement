@@ -2,6 +2,10 @@
 {% block titre %}Connexion — Pas à Pas{% endblock %}
 {% block contenu %}<section class="carte etroite"><h1>Connexion</h1>
 <p>En cas de perte du téléphone, un code de secours permet de se connecter. Si vous avez aussi perdu ces codes ou votre mot de passe, contactez la personne qui administre cet essai.</p>
+{% if demonstration_publique %}<aside aria-label="Démonstration publique">
+<p>Démonstration publique partagée, remise à zéro à chaque redémarrage. N’inscrivez aucune information réelle.</p>
+<p>Identifiant : <strong>{{ identifiant_demo }}</strong> — Mot de passe : <strong>{{ mot_de_passe_demo }}</strong></p>
+</aside>{% endif %}
 <p>Retrouvez les personnes fictives de votre espace d’essai.</p>
 <form method="post">{% csrf_token %}{{ form.as_p }}
 {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}

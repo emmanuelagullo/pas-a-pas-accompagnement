@@ -1,0 +1,38 @@
+# Inclure depuis le projet Pages cible avec ref épinglée au commit SOC6c appliqué.
+image: python:3.12-slim
+stages: [publication]
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "pipeline" && $PWA_SOURCE_PROJECT == "pas-a-pas-accompagnement/pas-a-pas-accompagnement"'
+    - when: never
+default:
+  tags: [ci.inria.fr, small]
+pages:
+  stage: publication
+  resource_group: pwa-pages
+  variables:
+    GIT_STRATEGY: none
+  script:
+    # Définir ce SHA protégé dans le projet cible ; ne pas suivre main à distance.
+    - |
+      python3 - <<'PY'
+      import os,re,urllib.request,urllib.parse
+      from pathlib import Path
+      sha=os.environ['PWA_PUBLICATION_COMMIT']
+      if not re.fullmatch('[a-f0-9]{40}',sha):
+          raise SystemExit('SHA du préparateur épinglé requis.')
+      base=os.environ['CI_API_V4_URL']+'/projects/pas-a-pas-accompagnement%2Fpas-a-pas-accompagnement/repository/files/'
+      for source,target in [('scripts/preparer-publication-pwa.py','preparer-publication-pwa.py'),('requirements-communs.txt','requirements-communs.txt')]:
+          with urllib.request.urlopen(base+urllib.parse.quote(source,safe='')+'/raw?ref='+sha,timeout=60) as r:
+              Path(target).write_bytes(r.read())
+      PY
+    - python3 -m pip install --no-deps -r requirements-communs.txt
+    - python3 preparer-publication-pwa.py --destination public --pages-url "$CI_PAGES_URL"
+  pages:
+    publish: public
+  artifacts:
+    paths: [public, publication-pwa.json]
+    expire_in: 30 days
+  environment:
+    name: pwa-fictive
+    url: $CI_PAGES_URL

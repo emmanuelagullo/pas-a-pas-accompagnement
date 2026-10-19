@@ -3,8 +3,13 @@ name: Programmes locaux Pas à Pas
 on:
   push:
     branches: [main]
+    tags: ['[0-9]*']
   pull_request:
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_type != 'tag' }}
 
 permissions:
   contents: read
@@ -35,10 +40,19 @@ jobs:
       - name: Installer les dépendances, tester et construire
         run: |
           python -m pip install -r requirements-bureau.txt
+          python - <<'PYVERSION'
+          import os,re
+          from pathlib import Path
+          tag=os.environ.get('GITHUB_REF_NAME') if os.environ.get('GITHUB_REF_TYPE')=='tag' else None
+          if tag and (not re.fullmatch(r'[0-9]+\.[0-9]+(?:\.[0-9]+)?(?:-[A-Za-z0-9.-]+)?',tag) or tag!=Path('version-application.txt').read_text().strip()):
+              raise SystemExit('Tag différent de la version applicative.')
+          PYVERSION
           python manage.py check
           python manage.py test
           python scripts/verifier-lanceur-local.py
           python -m pas_communs.construire_bureau --spec scripts/PasAPasAccompagnement.spec --nom PasAPasAccompagnement
+      - name: Vérifier la version embarquée des archives
+        run: python scripts/verifier-version-archive.py
       - name: Décrire et vérifier les octets du candidat fictif
         run: |
           if [[ "$RUNNER_OS" == "Windows" ]]; then

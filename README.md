@@ -1,6 +1,6 @@
 # Pas à Pas — Accompagnement
 
-Prototype **#SOC1–#SOC5b** pour préparer une application d'accueil et d'accompagnement
+Prototype **#SOC1–#SOC6c** pour préparer une application d'accueil et d'accompagnement
 social, notamment en CHRS. **Données fictives uniquement ; développement local.**
 
 Disponible : connexion, accueil, liste des personnes, création d'une identité
@@ -288,3 +288,13 @@ Les CI ajoutent explicitement --pip-check ; aucune installation n'est cachée
 dans le lanceur. Les contrôles gardent leurs espaces fictifs temporaires.
 Les artefacts de programmes et la PWA normale reçoivent un manifeste propre
 au CHRS : lire CI-PUBLICATION.md. Rien n'est publié automatiquement.
+
+
+## Déployer et publier les essais (#SOC6c)
+
+Lire [DEPLOIEMENTS.md](DEPLOIEMENTS.md) : démarrages jetable/persistant,
+bancs réels de déploiement, programmes publiables depuis un tag et PWA vers
+un projet Pages dédié. La page d'accès PWA contient les limites et le lien vers
+les releases publiques. Les destinations doivent être créées/configurées avant
+activation ; aucun déploiement distant n'est effectué par cette livraison.
+La version applicative candidate est 0.2.0, indépendante du socle 0.5.0.

@@ -51,6 +51,7 @@ def main():
     projet = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
     sys.path.insert(0, str(projet))
     analyseur = argparse.ArgumentParser(description=__doc__)
+    analyseur.add_argument("--version", action="version", version=(projet / "version-application.txt").read_text().strip())
     analyseur.add_argument("--paquet", type=Path)
     analyseur.add_argument("--copier-paquet", type=Path, metavar="DESTINATION")
     analyseur.add_argument("--verifier-distribution", action="store_true")
