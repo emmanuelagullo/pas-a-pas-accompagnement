@@ -1,0 +1,14 @@
+baseURL = "/"
+title = "Pas à Pas — Accompagnement"
+languageCode = "fr-FR"
+defaultContentLanguage = "fr"
+enableRobotsTXT = true
+disableKinds = ["taxonomy", "term"]
+[params]
+  description = "Un logiciel libre en construction pour l’accueil et l’accompagnement social."
+  repository = "https://gitlab.inria.fr/pas-a-pas-accompagnement/pas-a-pas-accompagnement"
+  pwa = "https://pas-a-pas-accompagnement.gitlabpages.inria.fr/pas-a-pas-accompagnement-pwa/"
+  demo = "https://pas-a-pas-accompagnement.onrender.com/"
+  releases = "https://github.com/emmanuelagullo/pas-a-pas-accompagnement/releases"
+[markup.goldmark.renderer]
+  unsafe = false

@@ -122,3 +122,50 @@ deployer-demonstration:
     name: demonstration-fictive
   script:
     - python scripts/deployer-demonstration.py
+
+# Le contenu vit dans ce dépôt, comme le site Hugo Petits Pas.
+.site-public-rules:
+  rules:
+    - changes:
+        - .gitlab-ci.yml
+        - site/**/*
+        - scripts/verifier-site-public.py
+    - when: never
+
+site-public:
+  extends: .site-public-rules
+  stage: construction
+  needs: []
+  interruptible: true
+  image:
+    name: registry.gitlab.com/pages/hugo/hugo_extended@sha256:ff07c15f0ff5876c7a737d07b906d48802e7fcd1bba02f648fae63fda57ddb56
+    entrypoint: [""]
+  script:
+    - hugo version
+    - hugo --source site --baseURL "$CI_PAGES_URL/" --cleanDestinationDir --minify --panicOnWarning
+  artifacts:
+    paths: [site/public]
+    expire_in: 7 days
+
+pages:
+  stage: publication
+  needs:
+    - job: site-public
+      artifacts: true
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      changes:
+        - .gitlab-ci.yml
+        - site/**/*
+        - scripts/verifier-site-public.py
+    - when: never
+  script:
+    - python scripts/verifier-site-public.py --sortie site/public --base-url "$CI_PAGES_URL/"
+  pages:
+    publish: site/public
+  artifacts:
+    paths: [site/public]
+    expire_in: 30 days
+  environment:
+    name: site-public
+    url: $CI_PAGES_URL

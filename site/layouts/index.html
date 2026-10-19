@@ -1,0 +1,15 @@
+{{ define "main" }}
+<section class="accueil"><p class="etiquette">Accueil et accompagnement social · Logiciel libre</p>
+<h1>Pas à Pas — Accompagnement</h1>
+<p class="introduction">Préparer un outil simple pour les équipes des Centres d’Hébergement et de Réinsertion Sociale.</p>
+<p>Le premier prototype permet de créer une personne, retrouver sa fiche et la télécharger en PDF. Il sert à éprouver les outils et les parcours avant de construire le suivi social.</p>
+<p class="avertissement">Pour l’instant, utilisez exclusivement des données fictives.</p>
+<a class="bouton" href="{{ "essayer/" | relURL }}">Essayer le prototype</a>
+</section>
+<section><h2>Trois façons de faire un essai</h2><div class="cartes">
+<article><h3>La démonstration partagée</h3><p>Découvrir les écrans sans installer de programme. Les personnes fictives sont visibles par les autres visiteurs et les essais sont remis à zéro au redémarrage.</p><a href="{{ site.Params.demo }}">Ouvrir la démonstration</a></article>
+<article><h3>Dans votre navigateur</h3><p>Préparer un espace local et poursuivre hors ligne après le premier chargement. Les données restent sur cet appareil ; conservez des sauvegardes à part.</p><a href="{{ site.Params.pwa }}">Ouvrir l’application navigateur</a></article>
+<article><h3>Un programme local</h3><p>Utiliser une version publiée pour Windows ou Linux. Le programme et son dossier de données sont séparés.</p><a href="{{ site.Params.releases }}">Consulter les téléchargements</a></article>
+</div></section>
+<section class="texte"><h2>Fonctions disponibles et prochaines étapes</h2>{{ .Content }}</section>
+{{ end }}

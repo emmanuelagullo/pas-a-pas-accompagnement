@@ -314,3 +314,11 @@ La PWA emploie un PDF texte avec police DejaVu Sans intégrée ; la présentatio
 peut différer du rendu natif. Un caractère absent de la police est signalé,
 jamais remplacé silencieusement. Tous les éléments nécessaires sont embarqués,
 sans appel à un serveur de conversion. Voir PDF.md pour les contrats et essais.
+
+## Site public et projets Pages
+
+Le site Hugo est dans site/ ; lire [site/README.md](site/README.md). Sa publication
+GitLab Pages est indépendante de la PWA : le projet à la racine du domaine ne
+contient qu'une redirection vers le site du dépôt applicatif. Les trois projets
+emploient les mêmes runners Inria et l'arborescence de Petits Pas. Les jobs
+Pages automatiques publient le site ; publier-pwa reste manuel.

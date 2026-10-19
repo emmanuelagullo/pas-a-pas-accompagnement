@@ -72,3 +72,8 @@ les façades du produit. Les droits, contenu et templates restent ici. Tester
 les vrais PDF, le téléchargement et les dépendances propres aux profils.
 Ne pas importer WeasyPrint/Pango dans le navigateur ni remplacer les carnets
 scolaires par le backend texte. Préserver le chargement autorisé des médias.
+
+#SOC6c — Pages : lire site/README.md. Le site Hugo reste dans le dépôt
+applicatif ; les deux autres projets contiennent redirection et inclusion CI.
+Vérifier Hugo et scripts/verifier-site-public.py ; ne pas annoncer une fonction
+métier seulement prévue ou publier une base, des secrets ou des ZIP privés.
