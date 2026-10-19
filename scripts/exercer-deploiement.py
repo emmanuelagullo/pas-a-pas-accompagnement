@@ -25,7 +25,24 @@ def requete(port, path, **headers):
         c.close()
 
 
-def exercer(mode):
+def attendre_demarrage(processus, port, journal, delai):
+    """Borne réelle incluant migrations/statiques ; ne pas compter les sondages."""
+    limite = time.monotonic() + delai
+    while time.monotonic() < limite:
+        code = processus.poll()
+        if code is not None:
+            raise RuntimeError(f'Démarrage interrompu (code {code}) : '+journal.read_text())
+        try:
+            status, _, body = requete(port, '/health/', **{'X-Forwarded-Proto': 'https'})
+            if status == 200 and json.loads(body).get('status') == 'ok':
+                return
+        except (OSError, ValueError):
+            pass
+        time.sleep(.2)
+    raise RuntimeError(f'Démarrage expiré après {delai:g} s (préparation et HTTP) : '+journal.read_text())
+
+
+def exercer(mode, delai_demarrage=180):
     with tempfile.TemporaryDirectory(prefix='deploiement-chrs-fictif-') as t:
         temp = Path(t)
         env = {k: v for k, v in os.environ.items()
@@ -53,18 +70,7 @@ def exercer(mode):
                 p = subprocess.Popen(['bash', str(script)], cwd=ROOT, env=env,
                     stdout=out, stderr=subprocess.STDOUT, start_new_session=True)
                 try:
-                    for _ in range(400):
-                        if p.poll() is not None:
-                            raise RuntimeError('Démarrage interrompu : '+log.read_text())
-                        try:
-                            status, headers, body = requete(port, '/health/', **{'X-Forwarded-Proto': 'https'})
-                            if status == 200 and json.loads(body)['status'] == 'ok':
-                                break
-                        except (OSError, ValueError):
-                            pass
-                        time.sleep(.05)
-                    else:
-                        raise RuntimeError('Démarrage expiré : '+log.read_text())
+                    attendre_demarrage(p, port, log, delai_demarrage)
                     assert requete(port, '/health/')[0] == 301
                     status, headers, body = requete(port, '/connexion/', **{'X-Forwarded-Proto': 'https'})
                     assert status == 200 and 'Secure' in headers['Set-Cookie']
@@ -129,4 +135,9 @@ def exercer(mode):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('mode', choices=['ephemere', 'persistant'])
-    exercer(parser.parse_args().mode)
+    parser.add_argument('--delai-demarrage', type=float, default=180,
+                        help='Délai par démarrage, préparation incluse (secondes, défaut : 180).')
+    args = parser.parse_args()
+    if not 0 < args.delai_demarrage <= 900:
+        parser.error('Choisir un délai entre 0 exclu et 900 secondes.')
+    exercer(args.mode, args.delai_demarrage)

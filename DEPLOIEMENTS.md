@@ -210,3 +210,13 @@ la CI Debian installe libpango-1.0-0 et libpangoft2-1.0-0. Si l'offre ne permet
 pas ces dépendances, choisir un environnement adapté avant de proposer le PDF.
 Le contrôle /health/ seul ne qualifie pas le rendu : télécharger effectivement
 une fiche fictive après déploiement. La PWA ne dépend pas de Pango.
+
+### Délai des bancs d'intégration
+
+Le banc attend au plus 180 secondes par démarrage, migrations et collecte des
+statiques comprises. Le temps est mesuré par horloge monotone ; une sortie du
+processus est immédiatement signalée avec son code et son journal. Sur un
+runner particulièrement lent, --delai-demarrage SECONDES permet une borne
+explicite jusqu'à 900 secondes. Un délai expiré reste un échec ; les processus
+sont arrêtés par le nettoyage habituel. Les avertissements HSTS ne sont ni
+masqués ni transformés en erreurs.
