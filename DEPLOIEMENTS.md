@@ -20,7 +20,7 @@ suit ses profils et promotions, avec les adaptateurs du produit CHRS.
    correctif UTF-8 Windows. Pousser et attendre les CI.
 2. Créer le service de démonstration si souhaité. Le tester publiquement sur
    des données fictives ; sa disponibilité n'est pas requise pour les CI.
-3. Créer le projet Pages, épingler sa configuration et activer publier-pwa.
+3. Configurer le projet Pages dédié et activer publier-pwa.
 4. Choisir la prochaine version applicative disponible, indépendante du socle.
    Renommer la rubrique `## À venir` de CHANGELOG.md en `## X.Y.Z — AAAA-MM-JJ`,
    conserver ses notes et ajouter une nouvelle rubrique vide `## À venir`.
@@ -134,39 +134,47 @@ et AUTHENTIFICATION.md pour le TOTP et les limites. Aucun dossier réel autoris�
 
 ## Projet GitLab Pages dédié
 
-Créer un nouveau projet public dans le groupe Pas à Pas (nom libre ; par exemple
-pas-a-pas-pwa). Ne pas réutiliser le projet du site Petits Pas. Dans ce projet :
+Projet cible : pas-a-pas-accompagnement/pas-a-pas-accompagnement-pwa.
+La chaîne reprend celle de Petits Pas : configuration incluse depuis main,
+préparateur et requirements téléchargés au commit exact du pipeline source.
 
-1. Copier pwa/publication/gitlab-ci.yml comme .gitlab-ci.yml et remplacer la ref
-   par le **SHA du commit SOC6c appliqué** au dépôt source. Pas de main flottant.
-2. Définir PWA_PUBLICATION_COMMIT au même SHA comme variable protégée. Protéger
-   la branche main du projet cible et réserver la modification de sa CI/variable
-   aux personnes responsables de la publication.
-3. Autoriser les runners Inria ci.inria.fr/small et le déclenchement interprojets
-   depuis le projet source. Régler la visibilité des artefacts/API nécessaires
-   aux dépôts publics ; aucun jeton personnel n'est requis par le préparateur.
-4. Dans le projet source, définir PWA_PUBLICATION_PROJECT au chemin réel du
-   nouveau projet. Le job publier-pwa manuel apparaît sur main et les tags.
+1. Sur main du projet cible, copier pwa/publication/gitlab-ci.yml comme
+   .gitlab-ci.yml. Son include utilise ref: main ; aucun SHA à remplacer.
+2. Autoriser les runners Inria ci.inria.fr/small et le déclenchement interprojets
+   depuis le projet source. Garder une branche main protégée et des droits de
+   modification réservés aux personnes responsables de la publication.
+3. Garder les sources, API de pipeline et artefacts accessibles au préparateur
+   des dépôts publics ; aucun jeton personnel n'est requis. Le compte lançant
+   la publication doit pouvoir déclencher le pipeline du projet cible.
+4. Si un premier setup avait défini PWA_PUBLICATION_COMMIT dans le projet cible
+   ou PWA_PUBLICATION_PROJECT dans le projet source, supprimer ces variables :
+   elles ne sont plus utilisées. Aucun autre paramètre ne les remplace.
+5. Lancer un nouveau pipeline main du projet source, attendre les tests et les
+   deux intégrations de déploiement ainsi que pwa-prototype, puis cliquer sur
+   publier-pwa. Le job pages du projet cible effectue la publication.
 
-Le préparateur est téléchargé au SHA de confiance épinglé, pas depuis la valeur
-forwardée PWA_SOURCE_SHA. Il vérifie ensuite le projet source, le pipeline,
-sa branche/tag, les jobs Django, les deux déploiements et pwa-prototype réussis
-pour le même commit. Sur tag, les deux forges doivent désigner le même commit.
-Il télécharge l'artefact de ce job précis (jamais « dernier main »), vérifie
-manifeste, empreintes, identité embarquée et testMode=false, puis copie les
-statiques sans reconstruction. Un artefact expiré doit être reconstruit et
-requalifié dans un nouveau pipeline, pas remplacé à la main.
+Le commit du .gitlab-ci.yml cible ne publie rien par lui-même. Ne pas lancer
+manuellement un pipeline web dans ce projet : seuls les déclenchements depuis
+le projet source sont acceptés. Le job source transmet explicitement les
+PWA_SOURCE_* ; aucune autre variable du pipeline source n'est forwardée.
 
-L'adresse est celle donnée par CI_PAGES_URL dans le projet cible. Ne pas la
-deviner ni changer son chemin après ouverture des premiers essais sans prévenir :
-les données navigateur sont propres à l'origine et au chemin. Le fonctionnement
-à la racine et sous un préfixe est testé ; les sous-projets d'une même origine
-ne constituent pas une isolation de sécurité. La page telecharger.html fournit
-un accès minimal à la PWA et aux releases publiques, sans annoncer une release
-inexistante ni un service de démonstration encore non configuré.
+Le préparateur et la dépendance viennent de PWA_SOURCE_SHA, pas du dernier
+artefact de main. Le préparateur vérifie projet, pipeline, branche/tag, jobs
+Django, deux déploiements et pwa-prototype réussis pour ce commit. Sur tag,
+les deux forges doivent désigner le même commit. Le candidat du job précis est
+vérifié (manifeste, empreintes, identité et testMode=false), puis ses statiques
+sont copiés sans reconstruction. Les publications restent manuelles.
 
-Lors d'une évolution du préparateur, mettre à jour explicitement les deux SHA
-épinglés dans le projet cible après validation de la nouvelle version.
+L'adresse est celle de Deploy → Pages / CI_PAGES_URL dans le projet cible.
+Choisir le domaine et son éventuel sous-chemin avant les premiers essais, puis
+les conserver : le stockage navigateur dépend de l'origine et du chemin. Le
+bundle fonctionne à la racine et sous un préfixe. Les sous-projets d'une même
+origine ne constituent pas une isolation de sécurité. La page telecharger.html
+fournit l'accès minimal aux programmes et rappelle le périmètre fictif.
+
+Une évolution du préparateur suit désormais le code source, sans mise à jour
+de SHA dans le projet cible. Le wheel reste épinglé par URL et empreinte dans
+les requirements du commit source, comme pour les autres distributions.
 
 ## Programmes Linux/Windows
 

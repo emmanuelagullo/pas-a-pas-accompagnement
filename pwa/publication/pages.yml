@@ -1,9 +1,9 @@
-# Inclure depuis le projet Pages cible avec ref épinglée au commit SOC6c appliqué.
+# Configuration incluse depuis main par le projet Pages destinataire.
 image: python:3.12-slim
 stages: [publication]
 workflow:
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "pipeline" && $PWA_SOURCE_PROJECT == "pas-a-pas-accompagnement/pas-a-pas-accompagnement"'
+    - if: '$CI_PIPELINE_SOURCE == "pipeline" && $PWA_SOURCE_PROJECT == "pas-a-pas-accompagnement/pas-a-pas-accompagnement" && ($PWA_SOURCE_REF == "main" || $PWA_SOURCE_TAG =~ /^[0-9]+\.[0-9]+(\.[0-9]+)?(-[A-Za-z0-9.-]+)?$/)'
     - when: never
 default:
   tags: [ci.inria.fr, small]
@@ -13,14 +13,14 @@ pages:
   variables:
     GIT_STRATEGY: none
   script:
-    # Définir ce SHA protégé dans le projet cible ; ne pas suivre main à distance.
+    # Télécharger le préparateur et la dépendance du commit exact du pipeline source.
     - |
       python3 - <<'PY'
       import os,re,urllib.request,urllib.parse
       from pathlib import Path
-      sha=os.environ['PWA_PUBLICATION_COMMIT']
+      sha=os.environ['PWA_SOURCE_SHA']
       if not re.fullmatch('[a-f0-9]{40}',sha):
-          raise SystemExit('SHA du préparateur épinglé requis.')
+          raise SystemExit('SHA source invalide.')
       base=os.environ['CI_API_V4_URL']+'/projects/pas-a-pas-accompagnement%2Fpas-a-pas-accompagnement/repository/files/'
       for source,target in [('scripts/preparer-publication-pwa.py','preparer-publication-pwa.py'),('requirements-communs.txt','requirements-communs.txt')]:
           with urllib.request.urlopen(base+urllib.parse.quote(source,safe='')+'/raw?ref='+sha,timeout=60) as r:

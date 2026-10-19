@@ -2,6 +2,9 @@
 
 ## À venir
 
+- Publication PWA alignée sur Petits Pas : configuration sur main et préparateur
+  pris au commit source, sans ré-épinglage manuel.
+
 - Versionnement aligné sur Petits Pas : tag exact ou dev.<sha8>, version
   embarquée générée et notes du changelog vérifiées lors des publications.
 

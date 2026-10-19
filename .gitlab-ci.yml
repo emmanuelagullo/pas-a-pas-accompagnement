@@ -91,11 +91,25 @@ pwa-prototype:
 publier-pwa:
   stage: publication
   resource_group: publication-pwa
+  needs:
+    - job: test
+      artifacts: false
+    - job: deploiement-ephemere
+      artifacts: false
+    - job: deploiement-persistant-local
+      artifacts: false
+    - job: pwa-prototype
+      artifacts: false
+  inherit:
+    default: false
+    variables: false
   rules:
-    - if: '$PWA_PUBLICATION_PROJECT && ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_TAG)'
+    - if: '$CI_COMMIT_TAG =~ /^[0-9]+\.[0-9]+(\.[0-9]+)?(-[A-Za-z0-9.-]+)?$/'
       when: manual
-      allow_failure: true
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      when: manual
     - when: never
+  allow_failure: true
   variables:
     PWA_SOURCE_PROJECT: $CI_PROJECT_PATH
     PWA_SOURCE_PROJECT_ID: $CI_PROJECT_ID
@@ -104,7 +118,7 @@ publier-pwa:
     PWA_SOURCE_REF: $CI_COMMIT_REF_NAME
     PWA_SOURCE_TAG: $CI_COMMIT_TAG
   trigger:
-    project: $PWA_PUBLICATION_PROJECT
+    project: pas-a-pas-accompagnement/pas-a-pas-accompagnement-pwa
     branch: main
     strategy: depend
     forward:

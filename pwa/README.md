@@ -162,7 +162,7 @@ navigateurs et l'exploitation de données réelles ne sont pas validées ici.
 ## Publication explicite (#SOC6c)
 
 Voir ../DEPLOIEMENTS.md pour la construction/qualification GitLab, la promotion
-du bundle normal vers un projet Pages distinct, et les SHA de confiance à
-épingler. Les identités commit/tag/version sont dans config.json ; les bundles
+du bundle normal vers le projet Pages dédié. La configuration est incluse depuis
+main et le préparateur provient du commit source exact, comme pour Petits Pas. Les identités commit/tag/version sont dans config.json ; les bundles
 test restent impropres à la publication. La nouvelle page telecharger.html
 renvoie aux releases publiques des programmes et rappelle les limites fictives.
