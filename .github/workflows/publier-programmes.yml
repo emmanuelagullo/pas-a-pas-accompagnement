@@ -3,6 +3,8 @@ on:
   workflow_run:
     workflows: ['Programmes locaux Pas à Pas']
     types: [completed]
+    # Ne pas créer de publication ignorée après les builds de main.
+    branches-ignore: [main]
   workflow_dispatch:
     inputs:
       run:
