@@ -2,6 +2,12 @@
 
 ## À venir
 
+- #AUD : adoption candidate de pas-communs 0.8.0, chemins ZIP portables dans les
+  deux sens, contrôles de promotion partagés et contrat Pyodide explicite.
+  Aucun changement du runtime, des formats de données ou des déploiements.
+- #AUD : compatibilité Django annoncée cohérente avec la matrice ; lock 5.2
+  et profils explicites conservés. Cadrage CHRS1 fictif mono-espace documenté.
+
 ## 0.2.0 — 2026-10-19
 
 Première qualification de la chaîne complète avec Pas communs 0.7.0 :

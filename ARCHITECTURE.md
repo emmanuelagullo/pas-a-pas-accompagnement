@@ -1,4 +1,11 @@
-# Architecture de #SOC1
+# Architecture — état courant et historique des jalons
+
+Les sections #SOC retracent les introductions successives. La version adoptée
+est fixée par requirements-communs.txt (candidat 0.8.0 dans cette révision),
+non par les mentions anciennes ci-dessous. La fiche PDF est désormais disponible
+(voir PDF.md). Le cadrage retenu avant CHRS1 est dans V0-METIER.md.
+
+## Architecture initiale de #SOC1
 
 ## Composants
 

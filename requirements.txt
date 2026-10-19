@@ -1,3 +1,4 @@
 -r requirements-communs.txt
-Django>=5.2,<5.3
+# Compatibilité qualifiée par la matrice CI ; le lock reste sur la branche 5.2.
+Django>=5.2,<7
 tzdata>=2025.1

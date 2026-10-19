@@ -49,7 +49,7 @@ la PWA depuis le même pipeline GitLab que ses contrôles réussis, vers un proj
 Pages dédié. Aucun dossier réel, site ou secret d'hébergement n'est configuré
 par le dépôt. Les artefacts temporaires restent distincts des releases.
 
-Le socle reste 0.5.0. SOC6b couvrait profils, recettes et candidats ; SOC6c ajoute
+À cette étape historique, le socle était 0.5.0. SOC6b couvrait profils, recettes et candidats ; SOC6c ajoute
 les scripts de démarrage, leurs intégrations et les promotions des produits.
 Les plateformes Windows et navigateurs restent qualifiées par leurs CI/bancs
 dédiés. Certificats, proxy réel, exploitation et SMTP restent à configurer.
@@ -67,3 +67,13 @@ Comme pour Petits Pas, les pushes de tags numériques ne sont pas filtrés par
 les chemins : tous les workflows de qualification se lancent. Le déclenchement
 manuel et les contrôles sur pull request restent disponibles. Les jobs GitLab,
 les publications et les déploiements serveur ne changent pas.
+
+
+## AUD — adoption et contrôles partagés
+
+Les petits contrôles des exécutions, événements, tags et artefacts plats viennent
+de pas_communs.promotion (candidat 0.8.0). Les appels de forge, destinations,
+formats, notes, noms d'artefacts et décisions de publication restent ici.
+QUALIFICATION.md du socle vérifie les deux produits et les octets importés,
+sans installer ni publier. Ne pas confondre cette recette locale avec les bancs
+Windows, PWA et déploiement ; ils restent obligatoires dans leurs CI.

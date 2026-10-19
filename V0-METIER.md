@@ -1,5 +1,40 @@
 # Première V0 métier — préparation après #SOC7a
 
+## Cadrage retenu pour démarrer CHRS1 (AUD)
+
+La première tranche reste **fictive, mono-espace**, avec un seul service d'essai.
+Ce service décrit le périmètre du prototype ; il n'impose pas une table
+d'organisation avant qu'une action en ait besoin. Aucun cloisonnement entre
+établissements n'est revendiqué. Une extension multi-structure exigera un
+cadrage explicite, des règles de visibilité et une stratégie de migration.
+
+Les personnes gardent leur UUID et restent distinctes des comptes. Le suivi
+porte sur le ménage, personne seule comprise ; ses bénéficiaires sont
+enregistrés explicitement et ne dépendent pas de la composition courante.
+Plusieurs appartenances ou suivis simultanés ne sont pas interdits par analogie
+avec les classes ; leurs cas et invariants doivent être testés dans CHRS1.
+
+Lecture, création et modification des nouveaux objets exigent des permissions
+Django explicites propres au CHRS, contrôlées dans les vues et services. Les
+comptes existants ne reçoivent aucun nouveau droit automatiquement à la
+migration. Le premier compte et les fixtures devront attribuer seulement les
+droits nécessaires au parcours d'essai ; l'administration technique n'est pas
+un rôle social. Le profil actuel de création de personne reste inchangé.
+
+Pour les périodes de CHRS1, retenir des dates civiles avec début inclus et fin
+exclue, fin absente pour une période ouverte. Refuser fin antérieure ou égale au
+début ; ne pas déduire une clôture des réalisations ou d'une absence. Distinguer
+dates d'effet et horodatages d'enregistrement. Les conventions de repas et de
+nuitées seront fixées avec CHRS2/3, sans les déduire de cette convention.
+
+Les décisions ouvertes ci-dessous restent l'inventaire des autres points à
+préciser lors des tranches. Ce cadrage n'ajoute encore aucune table ni fonction.
+Avant de livrer CHRS1 : accès sans droit refusé, migration depuis SOC1/SOC4b,
+reprise des anciennes copies, mêmes UUID et mots de passe, nouvelles migrations
+embarquées dans bureau/PWA, export/restauration des nouvelles relations. Les
+premières écritures définiront leurs événements d'audit applicatifs, sans
+copier le journal scolaire ni construire un moteur générique.
+
 Proposition de développement, sans nouveau modèle ni écran livré ici. Le
 prototype actuel permet seulement de créer et consulter une personne fictive,
 avec comptes, sauvegardes et distributions techniques. Le socle 0.5.0 suffit
@@ -43,16 +78,15 @@ de tâches pour ces petites écritures transactionnelles.
 
 ## Décisions avant le code concerné
 
-Les choix suivants sont proposés pour discussion, pas validés par la livraison :
+Les points déjà retenus sont précisés dans le cadrage AUD ci-dessus. Les autres
+choix suivants restent à préciser avant le code concerné :
 
-- **Avant CHRS1 :** conserver provisoirement l'espace fictif unique et un service
-  d'essai, ou introduire un périmètre gestionnaire/établissement/service ? Qui
-  voit et modifie quoi ? Proposition de départ : rester fictif et mono-espace,
-  avec permissions de lecture/écriture explicites, sans prétendre isoler des
-  établissements. La connexion seule ne confère aucun droit.
-- **Avant CHRS1 :** accompagner le ménage avec bénéficiaires explicites, comme
-  proposé ci-dessus, ou attacher le suivi à une autre unité ? Autoriser plusieurs
-  ménages ou suivis simultanés ? Fixer les bornes des appartenances et des suivis.
+- **CHRS1 retenu :** espace fictif unique et service d'essai, permissions
+  explicites sans droits nouveaux attribués par migration. La connexion seule
+  ne confère aucun droit. Le multi-établissement reste hors de cette tranche.
+- **CHRS1 retenu :** accompagner le ménage avec bénéficiaires explicites et
+  périodes datées selon le cadrage ci-dessus. Décrire les exemples de simultanéité
+  et les contrôles de cohérence dans les tests de la tranche.
 - **Avant CHRS2 :** repas par personne et jour, ou par service de repas ? Quelle
   quantité, quelles limites de consommation, et comment corriger/annuler ? Où
   porte l'orientation : suivi ou accord ? Ne pas collecter deux fois la même

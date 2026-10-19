@@ -11,11 +11,14 @@ import sys
 import tempfile
 from urllib.parse import urldefrag,urlsplit
 from zipfile import ZipFile,ZipInfo,ZIP_DEFLATED
-from pas_communs.construction_pwa import PYODIDE,BASE,telecharger,verifier_runtime
+from pas_communs.construction_pwa import RUNTIME_314_0_7,telecharger,verifier_runtime
 from pas_communs.navigateur import copier_ressources
 from publication import identity, release_notes
 
 ROOT=Path(__file__).resolve().parent.parent
+RUNTIME = RUNTIME_314_0_7
+PYODIDE = RUNTIME.version
+BASE = RUNTIME.base
 
 
 def construire(sortie,runtime_cache=None,wheels_cache=None,test=False):
@@ -36,7 +39,7 @@ def construire(sortie,runtime_cache=None,wheels_cache=None,test=False):
         source=cache/nom;telecharger(BASE+nom,source,empreinte)
         if source!=runtime/nom:shutil.copyfile(source,runtime/nom)
     obtenir("pyodide-lock.json")
-    lock=json.loads((runtime/"pyodide-lock.json").read_text());verifier_runtime(lock)
+    lock=json.loads((runtime/"pyodide-lock.json").read_text());verifier_runtime(lock, runtime=RUNTIME)
     choisis=set()
     def choisir(nom):
         if nom in choisis:return

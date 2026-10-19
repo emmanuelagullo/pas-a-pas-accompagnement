@@ -8,7 +8,7 @@ incomplète et consultation de sa fiche. Pas de modification ni suppression de
 fiche à ce stade. Les comptes professionnels sont distincts des personnes suivies.
 
 Non disponible : ménages, accompagnements, prestations, séjour, situation sociale,
-historique des modifications, documents, invitations. Une PWA fictive est disponible sous #SOC5a ; voir ci-dessous. La date et l'auteur de création ne sont pas un journal
+historique des modifications, documents joints, invitations. Une PWA fictive est disponible sous #SOC5a ; voir ci-dessous. La date et l'auteur de création ne sont pas un journal
 d'audit. Ce prototype n'est pas une installation de production.
 
 ## Essayer depuis les sources
@@ -71,12 +71,23 @@ git diff --check
 
 La CI GitLab exécute ces contrôles sous Python 3.12 et 3.13, avec Django 5.2 et 6.1
 et les dépendances TOTP. GitHub teste aussi le parcours serveur et les programmes. Elle nécessite un
-runner Docker autorisé pour le futur projet. Le fichier CI ne publie rien.
+runner Docker autorisé pour le futur projet. Les jobs de contrôle ne publient rien ; les jobs Pages et les promotions
+de tags qualifiés ont leurs déclenchements propres (voir la section publication).
 Les tests n'emploient que des identités fictives et une base de test temporaire.
 La persistance réelle après redémarrage peut être exercée par le parcours ci-dessus.
 
 `requirements.txt` décrit la plage de compatibilité ; `requirements.lock` fixe
-l'environnement de ce jalon. Les mises à jour de dépendances sont explicites.
+l'environnement de ce jalon. Les mises à jour de dépendances sont explicites. La compatibilité déclarée
+couvre Django 5.2 à <7 ; la matrice qualifie les branches 5.2 et 6.1 sous Python
+3.12/3.13. Le lock conserve Django 5.2.18. Cela ne prétend pas tester chaque
+version intermédiaire. Serveur, bureau, 2FA et PDF gardent leurs profils explicites.
+
+La révision AUD prépare l'adoption du candidat pas-communs 0.8.0 ; publier son
+wheel immuable avant de pousser le consommateur. Les versions citées par les
+sections #SOC ci-dessous sont celles d'introduction des mécanismes. La version
+et l'empreinte effectives restent dans requirements-communs.txt. La recette
+QUALIFICATION.md du socle s'utilise sans installation implicite, y compris
+avec un environnement Guix ; elle vérifie les octets importés et les deux produits.
 
 ## Socle commun avec Petits Pas
 
@@ -287,7 +298,8 @@ Le banc serveur requiert Gunicorn (déjà présent dans le profil Guix décrit).
 Les CI ajoutent explicitement --pip-check ; aucune installation n'est cachée
 dans le lanceur. Les contrôles gardent leurs espaces fictifs temporaires.
 Les artefacts de programmes et la PWA normale reçoivent un manifeste propre
-au CHRS : lire CI-PUBLICATION.md. Rien n'est publié automatiquement.
+au CHRS : lire CI-PUBLICATION.md. La publication suit désormais SOC6c : automatique sur tag qualifié,
+avec reprise manuelle ; la publication PWA de main reste manuelle.
 
 
 ## Déployer et publier les essais (#SOC6c)
