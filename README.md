@@ -357,7 +357,7 @@ Cette adoption nécessite la publication préalable de pas-communs 0.7.0.
 ## Base cible du serveur d'équipe
 
 SQLite reste le backend des profils livrés. [BASE-CIBLE.md](BASE-CIBLE.md)
-propose PostgreSQL pour le futur serveur, avec une matrice CI avant toute
+retient PostgreSQL pour le futur serveur, avec une matrice CI avant toute
 règle métier dépendant de ses contraintes ou de sa concurrence. Ce choix
-reste à valider ; aucun déploiement ni profil d'exploitation n'est modifié.
+est cadré ; aucun déploiement ni profil d'exploitation n'est modifié.
 Les sauvegardes PostgreSQL ne sont pas les paquets SQLite du bureau/PWA.

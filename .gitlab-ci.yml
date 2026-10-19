@@ -31,7 +31,37 @@ test:
     - python -m pip install "Django==$DJANGO_TEST_VERSION"
     - python -m unittest discover -s scripts -p test_version_application.py
     - python -m unittest discover -s scripts -p test_publication_automatique.py
+    - python -m unittest discover -s scripts -p test_canal_pwa.py
+    - python -m unittest discover -s scripts -p test_qualification_postgresql.py
     - python -m pas_communs.ci django --migrer --controle scripts/verifier-profil-serveur.py --controle scripts/verifier-authentification.py --controle scripts/test-manifeste-publication.py --pip-check
+
+
+qualification-postgresql:
+  stage: test
+  image: python:${VERSION_PYTHON}-slim-trixie
+  parallel:
+    matrix:
+      - VERSION_PYTHON: ['3.12', '3.13']
+        DJANGO_TEST_VERSION: ['5.2.18', '6.1.1']
+  services:
+    - name: postgres:17-alpine
+      alias: postgres
+  variables:
+    POSTGRES_DB: postgres
+    POSTGRES_USER: qualification
+    POSTGRES_PASSWORD: fictif-ci-seulement
+    PGHOST: postgres
+    PGPORT: '5432'
+    PGUSER: qualification
+    PGPASSWORD: fictif-ci-seulement
+    ACCOMPAGNEMENT_PG_QUALIFICATION: 'oui'
+  script:
+    - apt-get update
+    - apt-get install --yes --no-install-recommends postgresql-client libpq5 libpango-1.0-0 libpangoft2-1.0-0
+    - python -m pip install -r requirements-serveur.txt -r requirements-2fa.txt -r requirements-tests-postgresql.txt
+    - python -m pip install "Django==$DJANGO_TEST_VERSION"
+    - python -m pip check
+    - python scripts/qualifier-postgresql.py
 
 
 deploiement-ephemere:
@@ -99,13 +129,15 @@ publier-pwa:
       artifacts: false
     - job: deploiement-persistant-local
       artifacts: false
+    - job: qualification-postgresql
+      artifacts: false
     - job: pwa-prototype
       artifacts: false
   inherit:
     default: false
     variables: false
   rules:
-    - if: '$CI_COMMIT_TAG =~ /^[0-9]+\.[0-9]+(\.[0-9]+)?(-[A-Za-z0-9.-]+)?$/'
+    - if: '$CI_COMMIT_TAG =~ /^[0-9]+\.[0-9]+(\.[0-9]+)?$/'
       when: on_success
       allow_failure: false
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'

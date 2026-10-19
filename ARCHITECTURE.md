@@ -171,5 +171,5 @@ projet distant n'est créé par le code.
 
 
 Le futur backend serveur est cadré dans [BASE-CIBLE.md](BASE-CIBLE.md) :
-PostgreSQL recommandé, décision et qualification CI distinctes de SQLite,
+PostgreSQL retenu, avec qualification CI distincte de SQLite,
 sans modification du profil serveur actuel.

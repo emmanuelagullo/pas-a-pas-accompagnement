@@ -73,5 +73,5 @@ pas ajoutés. Ne pas annoncer ce profil comme un déploiement CHRS de production
 fictif temporaire. Le banc crée la base, collecte les statiques et exerce WSGI,
 HTTPS simulé, refus de Host, CSRF, cookies et confiance proxy explicite.
 Les CI exécutent ce contrôle avec la version épinglée dans
-requirements-communs.txt. Pour la cible PostgreSQL proposée et sa qualification
+requirements-communs.txt. Pour la cible PostgreSQL retenue et sa qualification
 préalable, lire [BASE-CIBLE.md](BASE-CIBLE.md) ; le présent profil reste SQLite.

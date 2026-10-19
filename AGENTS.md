@@ -67,7 +67,8 @@ les manifestes et les sources des sites se modifient dans le dépôt applicatif.
   à l'avance tout changement de profils d'installation ou de commandes de
   déploiement pour permettre la préparation des instances existantes.
 - Dans les deux applications, les tags numériques qualifiés déclenchent les
-  releases GitHub et les publications PWA, à partir des artefacts validés sans
+  releases GitHub ; seuls les tags sans suffixe publient automatiquement la PWA,
+  à partir des artefacts validés sans
   reconstruction ; la reprise manuelle reste disponible. Sur main, la publication
   PWA reste manuelle. Les déploiements serveur gardent leur procédure séparée
   et ne sont pas modifiés implicitement
@@ -168,7 +169,7 @@ les données à la désinstallation et inclure le setup vérifié dans les manif
 et promotions. Tester les refus d’un candidat sans setup ou altéré.
 
 #SOC6c — publications automatiques : un tag numérique qualifié déclenche
-release GitHub et PWA. Le workflow de publication GitHub utilise le code de
+la release GitHub ; la PWA automatique exige un tag sans suffixe. Le workflow de publication GitHub utilise le code de
 main et les artefacts du run terminé ; ignorer branches, PR, forks et échecs.
 Conserver les vérifications des deux forges et la reprise manuelle. Les
 déploiements serveur restent indépendants, sans changement de déclenchement.
@@ -186,7 +187,10 @@ deux consommateurs ; aucune installation pip n'est implicite dans cette recette.
 
 
 Compléments AUD : lire BASE-CIBLE.md avant une garantie métier dépendant du
-backend. La cible PostgreSQL est proposée, pas activée. Pour la PWA, Python
+backend. La cible PostgreSQL est retenue pour le futur serveur ; seuls les tests sont ajoutés. Pour la PWA, Python
 constructeur >=3.12 et Python embarqué Pyodide sont distincts et journalisés.
-La politique RC de DEPLOIEMENTS.md est une proposition ; ne pas modifier les
-déclencheurs ou une destination de publication sans décision explicite.
+La politique du canal stable est décrite dans DEPLOIEMENTS.md.
+
+Politique PWA adoptée : seuls les tags sans suffixe publient automatiquement
+à l’adresse habituelle. Les préversions sont construites et testées, mais refusées
+par le préparateur Pages. La publication de main reste manuelle.

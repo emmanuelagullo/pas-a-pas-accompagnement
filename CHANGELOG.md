@@ -2,11 +2,13 @@
 
 ## À venir
 
+- Canal PWA habituel réservé aux tags sans suffixe ; préversions construites et
+  testées, promotion refusée. Publication manuelle de main conservée.
+- PostgreSQL 17 retenu pour le futur serveur CHRS : profil de tests explicite,
+  matrice CI, concurrence et dump/restauration fictifs. Aucun profil de
+  déploiement modifié ; la première CI verte doit confirmer la qualification.
 - Compléments AUD : Python constructeur PWA >=3.12 affiché séparément du
-  Python embarqué ; documentation des contrats et de la politique RC actuelle.
-  Déclencheurs de publication et déploiements serveur inchangés.
-- Cadrage proposé de PostgreSQL pour le futur serveur et de sa qualification
-  CI ; profils SQLite, dépendances et sauvegardes actuels conservés.
+  Python embarqué ; documentation des contrats actualisée.
 
 - #AUD : adoption de pas-communs 0.8.0 publiée, chemins ZIP portables dans les
   deux sens, contrôles de promotion partagés et contrat Pyodide explicite.

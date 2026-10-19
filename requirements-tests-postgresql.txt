@@ -1,0 +1,3 @@
+# Qualification jetable seulement : aucune inclusion serveur/bureau/PWA.
+# Avec requirements-serveur.txt et requirements-2fa.txt dans la matrice CI.
+psycopg==3.3.6

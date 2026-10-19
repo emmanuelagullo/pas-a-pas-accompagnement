@@ -53,7 +53,7 @@ class PublicationTests(unittest.TestCase):
 
     def test_selection_gitlab_exige_tous_les_controles_du_commit(self):
         jobs=[{'name':name,'status':'success','id':i,'commit':{'id':SHA},'pipeline':{'id':12}}
-              for i,name in enumerate(['test: [3.12, 5.2]','pwa-prototype','deploiement-ephemere','deploiement-persistant-local'],1)]
+              for i,name in enumerate(['test: [3.12, 5.2]','qualification-postgresql: [3.12, 5.2]','pwa-prototype','deploiement-ephemere','deploiement-persistant-local'],1)]
         def request(url):
             if '/jobs?' in url:return jobs,{}
             if '/pipelines/' in url:return {'sha':SHA,'ref':'main','source':'push'},{}
@@ -64,13 +64,16 @@ class PublicationTests(unittest.TestCase):
                 job['status']='failed'
                 with self.assertRaises(ValueError):PWA.select_job('https://forge.invalid/api','1','12',SHA)
                 job['status']='success'
+            absent=jobs.pop(1)
+            with self.assertRaisesRegex(ValueError, 'PostgreSQL'):PWA.select_job('https://forge.invalid/api','1','12',SHA)
+            jobs.insert(1,absent)
             jobs[-1]['commit']['id']='b'*40
             with self.assertRaises(ValueError):PWA.select_job('https://forge.invalid/api','1','12',SHA)
 
-    def test_rc_acceptee_par_la_politique_actuelle_du_canal_pages(self):
+    def test_versions_stables_acceptees_par_le_canal_pages(self):
         jobs=[{'name':name,'status':'success','id':i,'commit':{'id':SHA},'pipeline':{'id':12}}
-              for i,name in enumerate(['test: [3.12, 5.2]','pwa-prototype','deploiement-ephemere','deploiement-persistant-local'],1)]
-        for tag in ['0.3.0', '0.3.0-rc.1']:
+              for i,name in enumerate(['test: [3.12, 5.2]','qualification-postgresql: [3.12, 5.2]','pwa-prototype','deploiement-ephemere','deploiement-persistant-local'],1)]
+        for tag in ['0.3.0', '0.3']:
             def request(url):
                 if '/jobs?' in url:return jobs,{}
                 if '/pipelines/' in url:return {'sha':SHA,'ref':tag,'source':'push'},{}

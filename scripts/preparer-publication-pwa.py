@@ -46,6 +46,9 @@ def json_request(url):
 
 
 def select_job(api, project, pipeline_id, commit, ref='main', tag=None):
+    # Canal habituel : les préversions restent des artefacts de qualification.
+    if tag and not re.fullmatch(r"[0-9]+\.[0-9]+(?:\.[0-9]+)?", tag):
+        raise ValueError("Le canal PWA habituel exige un tag stable sans suffixe.")
     info, _ = json_request(api + '/projects/' + urllib.parse.quote(SOURCE, safe=''))
     if str(info['id']) != project or info['path_with_namespace'] != SOURCE:
         raise ValueError('Projet source inattendu.')
@@ -78,7 +81,11 @@ def select_job(api, project, pipeline_id, commit, ref='main', tag=None):
     tests = [j for j in jobs if j['name'].startswith('test:') or j['name'] == 'test']
     if not tests or any(j['status'] != 'success' for j in tests):
         raise ValueError('Matrice Django non réussie.')
-    checked = [j for j in jobs if j['name'] in required or j in tests]
+    postgresql = [j for j in jobs if j['name'] == 'qualification-postgresql'
+                  or j['name'].startswith('qualification-postgresql:')]
+    if not postgresql or any(j['status'] != 'success' for j in postgresql):
+        raise ValueError('Matrice PostgreSQL non réussie.')
+    checked = [j for j in jobs if j['name'] in required or j in tests or j in postgresql]
     if any(j['commit']['id'] != commit or str(j['pipeline']['id']) != pipeline_id for j in checked):
         raise ValueError('Contrôle issu d’un autre commit ou pipeline.')
     job = next(j for j in jobs if j['name'] == 'pwa-prototype')
