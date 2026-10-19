@@ -298,3 +298,19 @@ un projet Pages dédié. La page d'accès PWA contient les limites et le lien ve
 les releases publiques. Les destinations doivent être créées/configurées avant
 activation ; aucun déploiement distant n'est effectué par cette livraison.
 La version applicative candidate est 0.2.0, indépendante du socle 0.5.0.
+
+## Télécharger la fiche PDF (#SOC7b)
+
+Depuis la fiche d'une personne : **Télécharger la fiche PDF**. Le document
+reprend l'identité disponible, l'UUID et les dates, avec les mêmes droits de
+lecture que la fiche. Il n'ajoute ni accompagnement ni information sociale.
+Le téléchargement fonctionne aussi hors ligne dans la PWA.
+
+Le serveur et le programme emploient WeasyPrint/Pango via pas-communs 0.6.0 ;
+voir requirements-pdf.txt. Dans l'environnement Guix habituel, conserver
+weasyprint (et ses bibliothèques) ; aucune installation pip locale imposée.
+Le programme Windows embarque les DLL Pango sélectionnées par le .spec.
+La PWA emploie un PDF texte avec police DejaVu Sans intégrée ; la présentation
+peut différer du rendu natif. Un caractère absent de la police est signalé,
+jamais remplacé silencieusement. Tous les éléments nécessaires sont embarqués,
+sans appel à un serveur de conversion. Voir PDF.md pour les contrats et essais.

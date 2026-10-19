@@ -12,12 +12,13 @@ donnees_construction = tempfile.TemporaryDirectory(prefix="pas-accompagnement-co
 os.environ["ACCOMPAGNEMENT_DONNEES"] = donnees_construction.name
 collation = assembler(racine, globals(), nom="PasAPasAccompagnement",
     settings="pas_a_pas_accompagnement.settings_local",
+    pango_variable="ACCOMPAGNEMENT_PANGO_BIN",
     ressources=[("templates", "templates"), ("static", "static"), ("LICENSE", "."), ("version-application.txt", ".")],
     paquets=["pas_a_pas_accompagnement", "identites", "personnes"],
     paquets_ressources=["django.forms"],
     imports=["pas_a_pas_accompagnement.settings_local", "pas_a_pas_accompagnement.urls",
              "whitenoise.middleware", "whitenoise.storage"],
-    exclusions=["gunicorn", "psycopg", "storages", "boto3", "botocore", "weasyprint", "suivi", "referentiel", "comptes",
+    exclusions=["gunicorn", "psycopg", "storages", "boto3", "botocore", "suivi", "referentiel", "comptes",
                 "django_otp", "cryptography", "qrcode"])
 
 donnees_construction.cleanup()

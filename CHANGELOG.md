@@ -2,6 +2,8 @@
 
 ## 0.2.0 — candidat
 
+- Export de fiche personne PDF, natif et navigateur hors ligne ; moteur natif partagé avec Petits Pas via Pas communs 0.6.0.
+
 - Socle partagé 0.5.0 : sauvegardes, authentification, programme local et PWA.
 - Profils de démonstration éphémère et d'espace fictif persistant.
 - Qualification des démarrages et publication explicite des programmes/PWA.

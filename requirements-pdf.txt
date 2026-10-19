@@ -1,0 +1,2 @@
+# Serveur/programme seulement ; Pango doit être présent sur le système cible.
+weasyprint==68.1

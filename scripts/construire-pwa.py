@@ -40,7 +40,7 @@ def construire(sortie,runtime_cache=None,wheels_cache=None,test=False):
         if nom in choisis:return
         choisis.add(nom)
         for dep in lock["packages"][nom]["depends"]:choisir(dep)
-    for nom in ["micropip","pycryptodome"]:choisir(nom)
+    for nom in ["micropip","pycryptodome","pillow"]:choisir(nom)
     noms={n:None for n in ["pyodide.mjs","pyodide.asm.mjs","pyodide.asm.wasm","python_stdlib.zip"]}
     noms.update({lock["packages"][n]["file_name"]:lock["packages"][n]["sha256"] for n in choisis})
     with ThreadPoolExecutor(max_workers=3) as pool:list(pool.map(lambda v:obtenir(*v),noms.items()))
@@ -55,8 +55,8 @@ def construire(sortie,runtime_cache=None,wheels_cache=None,test=False):
     else:telecharger(url,wheels/nom,fragment[7:])
     with tempfile.TemporaryDirectory() as temp:
         exigences=Path(temp)/"pwa.txt"
-        exigences.write_text("\n".join(l for l in (ROOT/"requirements.lock").read_text().splitlines() if not l.startswith("-r ")))
-        subprocess.run([sys.executable,"-m","pip","download","--only-binary=:all:","--no-deps","--dest",str(wheels),"-r",str(exigences),
+        exigences.write_text("\n".join(l for l in ((ROOT/"requirements.lock").read_text()+"\n"+(ROOT/"pwa/requirements-pdf.txt").read_text()).splitlines() if not l.startswith("-r ")))
+        subprocess.run([sys.executable,"-m","pip","download","--only-binary=:all:","--platform","any","--no-deps","--dest",str(wheels),"-r",str(exigences),
             *(["--no-index","--find-links",str(Path(wheels_cache).resolve())] if wheels_cache else [])],check=True)
     with ZipFile(sortie/"application.zip","w",ZIP_DEFLATED) as archive:
         for dossier in ["pas_a_pas_accompagnement","identites","personnes","templates","pwa"]:

@@ -44,12 +44,20 @@ def verifier_distribution():
         import gi
         gi.require_version("WebKit2", "4.1")
         from gi.repository import Gtk, WebKit2  # noqa: F401
-    print("Distribution Pas à Pas vérifiée.")
+    from personnes.models import Personne
+    from personnes.pdf import produire
+    from django.utils import timezone
+    sonde = Personne(designation="Vérification fictive du programme", cree_le=timezone.now())
+    if not produire(sonde).startswith(b"%PDF-"):
+        raise RuntimeError("Le moteur PDF est absent de la distribution.")
+    print("Distribution Pas à Pas vérifiée, moteur PDF compris.")
 
 
 def main():
     projet = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
     sys.path.insert(0, str(projet))
+    if os.name == "nt" and getattr(sys, "frozen", False):
+        os.environ.setdefault("WEASYPRINT_DLL_DIRECTORIES", str(projet))
     analyseur = argparse.ArgumentParser(description=__doc__)
     analyseur.add_argument("--version", action="version", version=(projet / "version-application.txt").read_text().strip())
     analyseur.add_argument("--paquet", type=Path)

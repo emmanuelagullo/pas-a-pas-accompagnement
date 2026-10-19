@@ -1,0 +1,30 @@
+# Export d'une personne — SOC7b
+
+Le lien Télécharger la fiche PDF appelle une vue GET/HEAD avec connexion et
+permission personnes.view_personne ; aucune permission de création requise.
+Une personne inconnue est refusée, sans génération. Les réponses sont privées
+et non conservables en cache ; le nom du fichier contient un UUID, sans nom
+d'usage. Les textes HTML sont échappés et aucun fichier, média ou réseau n'est
+autorisé par le récupérateur de cette fiche native.
+
+Contenu : désignation, prénom s'il existe, identifiant stable, création et
+date d'édition. Pas de compte professionnel créateur dans le document.
+Aucun fichier PDF n'est enregistré dans la base ou dans les médias.
+
+En serveur/bureau, le template personnes/fiche_pdf.html et la feuille
+static/fiche-pdf.css passent par le moteur natif commun. Le programme Windows
+nécessite les DLL Pango du profil de construction, comme Petits Pas.
+
+En PWA, le même contenu est composé en texte via le backend facultatif du
+socle (fpdf2, FontTools, DejaVu Sans et Pillow du runtime Pyodide). Les PDF
+ont une mise en page propre à ce backend ; la police ne couvre pas tous les
+systèmes d'écriture. Un caractère non représentable produit une erreur 422
+sans révéler le diagnostic interne. Aucun recours distant à un convertisseur.
+La PWA Petits Pas conserve son impression navigateur ; elle n'emploie pas
+ce backend pour remplacer les carnets avec images.
+
+Tests : personnes.tests_pdf (droits avant rendu, vrai PDF, échappement, ressource
+externe refusée, backend PWA, erreur privée), tests du socle (Unicode, pagination),
+vrai Pyodide et téléchargement Chromium hors ligne. Les parcours d'authentification
+et les copies conservent leurs limites et politiques. Cette fonction reste sur
+données fictives et ne qualifie pas l'exploitation de dossiers réels.

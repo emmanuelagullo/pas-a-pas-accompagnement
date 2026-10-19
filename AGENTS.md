@@ -66,3 +66,9 @@ Les promotions vérifient projet, commit, tag, job et empreintes ; aucune
 reconstruction ni remplacement d'une release existante. Préserver les jobs
 manuels, les secrets hors dépôt et la séparation des projets Pages. Toute
 activation réelle exige les destinations configurées par l'exploitant.
+
+#SOC7b : le rendu PDF natif est dans pas_communs.pdf (0.6.0), appelé par
+les façades du produit. Les droits, contenu et templates restent ici. Tester
+les vrais PDF, le téléchargement et les dépendances propres aux profils.
+Ne pas importer WeasyPrint/Pango dans le navigateur ni remplacer les carnets
+scolaires par le backend texte. Préserver le chargement autorisé des médias.

@@ -199,3 +199,14 @@ Les tests de promotion sont simulés et n'effectuent aucune publication distante
 Les pipelines distants, Windows, les permissions interprojets et les déploiements
 hébergés restent à valider après configuration. Voir le LIRE-MOI de livraison
 pour les essais effectivement exécutés ; ne pas confondre recette et résultat.
+
+## Complément PDF (#SOC7b)
+
+requirements-serveur.txt et requirements-bureau.txt incluent désormais
+requirements-pdf.txt. L'hébergement natif doit aussi fournir Pango, Fontconfig
+et des polices : installer un wheel Python ne fournit pas ces bibliothèques.
+Vérifier leur disponibilité chez l'hébergeur avant d'activer l'export natif ;
+la CI Debian installe libpango-1.0-0 et libpangoft2-1.0-0. Si l'offre ne permet
+pas ces dépendances, choisir un environnement adapté avant de proposer le PDF.
+Le contrôle /health/ seul ne qualifie pas le rendu : télécharger effectivement
+une fiche fictive après déploiement. La PWA ne dépend pas de Pango.

@@ -1,0 +1,4 @@
+# Backend texte sans Pango ; Pillow vient du runtime Pyodide épinglé.
+fpdf2==2.8.4
+fonttools==4.60.1
+defusedxml==0.7.1

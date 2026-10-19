@@ -19,7 +19,7 @@ async function charger(){
   const {loadPyodide,version}=await import('./runtime/pyodide.mjs');
   if(version!==config.pyodide)throw new Error('Moteur incohérent');
   python=await loadPyodide({indexURL:new URL('./runtime/',location.href).href});
-  await python.loadPackage(['micropip','pycryptodome']);
+  await python.loadPackage(['micropip','pycryptodome','pillow']);
   const micropip=python.pyimport('micropip');
   try{await micropip.install(config.wheels.map(n=>new URL('./wheels/'+n,location.href).href));}
   finally{micropip.destroy();}

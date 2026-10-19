@@ -25,6 +25,8 @@ test:
         DJANGO_TEST_VERSION: ['5.2.18', '6.1.1']
   image: python:${VERSION_PYTHON}-slim
   script:
+    - apt-get update
+    - apt-get install --yes --no-install-recommends libpango-1.0-0 libpangoft2-1.0-0
     - python -m pip install -r requirements-serveur.txt -r requirements-2fa.txt
     - python -m pip install "Django==$DJANGO_TEST_VERSION"
     - python -m pas_communs.ci django --migrer --controle scripts/verifier-profil-serveur.py --controle scripts/verifier-authentification.py --controle scripts/test-manifeste-publication.py --pip-check
@@ -36,6 +38,8 @@ deploiement-ephemere:
   before_script:
     - apt-get update
     - apt-get install --yes --no-install-recommends git
+    - apt-get update
+    - apt-get install --yes --no-install-recommends libpango-1.0-0 libpangoft2-1.0-0
     - python -m pip install -r requirements-serveur.txt -r requirements-2fa.txt
   script:
     - bash -n start-render.sh start-persistent.sh
@@ -47,6 +51,8 @@ deploiement-persistant-local:
   before_script:
     - apt-get update
     - apt-get install --yes --no-install-recommends git
+    - apt-get update
+    - apt-get install --yes --no-install-recommends libpango-1.0-0 libpangoft2-1.0-0
     - python -m pip install -r requirements-serveur.txt -r requirements-2fa.txt
   script:
     - python scripts/exercer-deploiement.py persistant

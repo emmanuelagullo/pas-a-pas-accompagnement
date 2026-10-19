@@ -53,6 +53,14 @@ const server=(tls?require('node:https'):http).createServer(options,(req,res)=>{
   await apres.getByRole('button',{name:'Se connecter'}).click();
   await apres.getByRole('link',{name:'Personnes',exact:true}).click();
   await apres.getByText('Personne fictive conservée').waitFor();
+  // Le PDF doit être un téléchargement réel, y compris sans réseau.
+  await apres.getByText('Personne fictive conservée',{exact:true}).click();
+  const pdfFini=page.waitForEvent('download',{timeout:120000});
+  await apres.getByRole('link',{name:'Télécharger la fiche PDF'}).click();
+  const pdf=await pdfFini;
+  assert.match(pdf.suggestedFilename(),/^fiche-personne-[a-f0-9-]+\.pdf$/);
+  assert.equal(fs.readFileSync(await pdf.path()).subarray(0,5).toString(),'%PDF-');
+  await apres.getByRole('link',{name:'Retour aux personnes'}).click();
   await context.setOffline(false);
   if(process.env.PWA_PRODUCTION==='oui'){
    assert.equal(await page.evaluate(()=>typeof window.pwaTest),'undefined');

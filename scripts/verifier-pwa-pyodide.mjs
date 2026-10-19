@@ -1,11 +1,12 @@
 // Vrais Django/SQLite dans deux runtimes WASM, sans navigateur ni données réelles.
 import fs from 'node:fs';
-import {fileURLToPath} from 'node:url';
-const dossier=new URL('../dist/pwa/',import.meta.url),racine=fileURLToPath(dossier);
+import {fileURLToPath,pathToFileURL} from 'node:url';
+import path from 'node:path';
+const dossier=process.env.PWA_BUNDLE?pathToFileURL(path.resolve(process.env.PWA_BUNDLE)+path.sep):new URL('../dist/pwa/',import.meta.url),racine=fileURLToPath(dossier);
 const config=JSON.parse(fs.readFileSync(new URL('config.json',dossier)));
 const {loadPyodide}=await import(new URL('runtime/pyodide.mjs',dossier));
 async function moteur(fichiers={}){
-  const p=await loadPyodide({indexURL:racine+'runtime/'});await p.loadPackage(['micropip','pycryptodome']);
+  const p=await loadPyodide({indexURL:racine+'runtime/'});await p.loadPackage(['micropip','pycryptodome','pillow']);
   for(const nom of config.wheels)p.FS.writeFile('/tmp/'+nom,fs.readFileSync(racine+'wheels/'+nom));
   await p.runPythonAsync(`import micropip\nawait micropip.install(${JSON.stringify(config.wheels.map(n=>'emfs:/tmp/'+n))})`);
   p.unpackArchive(new Uint8Array(fs.readFileSync(racine+'application.zip')),'zip',{extractDir:'/application'});
@@ -36,6 +37,12 @@ meta,_=requete('personnes/creer/',{'designation':'Personne fictive WASM','csrfmi
 assert meta['status']==302,meta
 meta,html=requete('personnes/')
 assert meta['status']==200 and 'Personne fictive WASM' in html
+from personnes.models import Personne
+personne=Personne.objects.get()
+meta=json.loads(b.handle(json.dumps({'url':f'https://chrs-fictif.example/chrs/app/personnes/{personne.pk}/fiche.pdf','method':'GET','headers':[]}),b''))
+assert meta['status']==200,meta
+assert dict(meta['headers'])['Content-Type']=='application/pdf'
+assert b.response_bytes().startswith(b'%PDF-')
 inventaire=json.loads(b.inventory())
 assert set(inventaire['files'])=={'accompagnement.sqlite3','secret-key'}
 `);
