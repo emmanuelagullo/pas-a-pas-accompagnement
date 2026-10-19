@@ -2,6 +2,12 @@
 
 ## À venir
 
+## 0.2.0 — 2026-10-19
+
+Première qualification de la chaîne complète avec Pas communs 0.7.0 :
+programmes Linux/Windows, setup, PWA et export PDF. Prototype réservé
+aux données fictives ; cette publication ne qualifie pas un usage réel.
+
 - Releases GitHub et publication PWA automatiques sur tag qualifié ; reprise
   manuelle conservée et déploiements serveur séparés.
 
