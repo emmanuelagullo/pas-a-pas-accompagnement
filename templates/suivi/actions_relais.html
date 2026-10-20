@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% block contenu %}
+<h1>Actions de relève</h1><p><a href="{% url 'suivi:jour' %}">Retour au travail du jour</a></p>
+<p>Actions explicites, distinctes des transmissions. Ne pas y inscrire de données sociales sensibles ou de détails de dossiers individuels.</p>
+{% if form %}<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Ajouter une action</button></form>{% endif %}
+<h2>Actions en attente</h2><ul>{% for action in actions %}<li>{{ action.libelle }}{% if action.echeance %} — échéance : {{ action.echeance|date:'d/m/Y' }}{% endif %}
+{% if perms.personnes.change_actionrelais %}<form method="post" action="{% url 'suivi:terminer_action_relais' action.pk %}">{% csrf_token %}<button type="submit">Marquer comme réalisée</button></form>{% endif %}</li>
+{% empty %}<li>Aucune action en attente.</li>{% endfor %}</ul>
+{% endblock %}

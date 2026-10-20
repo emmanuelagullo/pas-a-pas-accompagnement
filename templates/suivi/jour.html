@@ -19,6 +19,13 @@
 <p><a href="{% url 'suivi:cahier' %}">Ouvrir le cahier de liaison{% if perms.personnes.add_transmission %} et transmettre une information{% endif %}</a></p>
 </section>
 {% endif %}
+{% if perms.personnes.view_actionrelais %}
+<section class="carte" aria-labelledby="actions-en-attente"><h2 id="actions-en-attente">Actions explicitement en attente</h2>
+<p>Seules les actions saisies volontairement figurent ici. Une transmission ne crée jamais de tâche.</p>
+<ul>{% for action in actions_relais %}<li>{{ action.libelle }}{% if action.echeance %} — échéance indiquée : {{ action.echeance|date:'d/m/Y' }}{% endif %}</li>
+{% empty %}<li>Aucune action en attente.</li>{% endfor %}</ul>
+<p><a href="{% url 'suivi:actions_relais' %}">Consulter et gérer les actions de relève</a></p></section>
+{% endif %}
 <p>Les dates reflètent les informations enregistrées. Un séjour ouvert ne prouve pas la présence physique.</p>
 {% if perms.personnes.view_accordhebergement and perms.personnes.view_sejour %}<section class="carte"><h2>Hébergement au {{ date }}</h2><ul>{% for ligne in hebergements %}<li><a href="{% url 'suivi:accord_hebergement' ligne.sejour.accord_id %}">{{ ligne.sejour.accord.accompagnement.menage }}</a> : {% for p in ligne.sejour.beneficiaires.all %}{{ p }} ; {% endfor %}
 <p>Actions sur le séjour :

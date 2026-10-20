@@ -7,11 +7,11 @@ from django.core.exceptions import ValidationError
 from django.db import transaction, OperationalError
 from django.db.models import Q
 from django.forms import formset_factory
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
-from .models import AccordRepas, RepasDistribue, Sejour, Accompagnement, Personne, Transmission
+from .models import AccordRepas, RepasDistribue, Sejour, Accompagnement, Personne, Transmission, ActionRelais
 from .forms_social import ConsultationForm
 from . import repas
 
@@ -103,7 +103,49 @@ def jour(request):
             if fin and date <= fin <= date + timedelta(days=7):
                 echeances.append({"menage": ligne["sejour"].accord.accompagnement.menage,
                                   "accord": ligne["sejour"].accord, "fin": fin})
-    return render(request,"suivi/jour.html",{"transmissions_recentes": transmissions_recentes,
+    actions_relais = (ActionRelais.objects.filter(terminee_le__isnull=True).select_related("auteur")
+                     if request.user.has_perm("personnes.view_actionrelais") else ActionRelais.objects.none())
+    return render(request,"suivi/jour.html",{"actions_relais": actions_relais, "transmissions_recentes": transmissions_recentes,
         "echeances": echeances,"date_form":date_form,"date":date,"hebergements":hebergements,
         "lignes":list(zip(lignes,formset)) if not trop else [],"formset":formset,"erreur":erreur,
         "lecture_repas":lecture_repas,"ecriture":ecriture and date and date<=timezone.localdate(),"trop":trop})
+
+
+class ActionRelaisForm(forms.ModelForm):
+    class Meta:
+        model = ActionRelais
+        fields = ("libelle", "echeance")
+        labels = {"libelle": "Action à reprendre", "echeance": "Échéance connue (facultative)"}
+        widgets = {"echeance": forms.DateInput(attrs={"type": "date"})}
+
+
+@require_http_methods(["GET", "POST"])
+@login_required
+@permission_required("personnes.view_actionrelais", raise_exception=True)
+def actions(request):
+    peut_creer = request.user.has_perm("personnes.add_actionrelais")
+    form = ActionRelaisForm(request.POST if request.method == "POST" else None) if peut_creer else None
+    if request.method == "POST":
+        if not peut_creer:
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied
+        if form.is_valid():
+            action = form.save(commit=False)
+            action.auteur = request.user
+            action.save()
+            return redirect("suivi:actions_relais")
+    ouvertes = ActionRelais.objects.filter(terminee_le__isnull=True).select_related("auteur")
+    return render(request, "suivi/actions_relais.html", {"form": form, "actions": ouvertes})
+
+
+@require_http_methods(["POST"])
+@login_required
+@permission_required("personnes.change_actionrelais", raise_exception=True)
+def terminer_action(request, pk):
+    with transaction.atomic():
+        action = get_object_or_404(ActionRelais.objects.select_for_update(), pk=pk)
+        if action.terminee_le is None:
+            action.terminee_le = timezone.now()
+            action.terminee_par = request.user
+            action.save(update_fields=["terminee_le", "terminee_par"])
+    return redirect("suivi:actions_relais")

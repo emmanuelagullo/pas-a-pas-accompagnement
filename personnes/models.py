@@ -360,3 +360,17 @@ class RevisionContribution(models.Model):
         constraints = [models.CheckConstraint(condition=(
             models.Q(transmission__isnull=False, note__isnull=True)
             | models.Q(transmission__isnull=True, note__isnull=False)), name="revision_une_cible")]
+
+
+class ActionRelais(models.Model):
+    """Action explicite d'équipe, distincte d'une transmission informative."""
+    libelle = models.CharField(max_length=240)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="actions_relais_creees")
+    cree_le = models.DateTimeField(auto_now_add=True)
+    echeance = models.DateField(null=True, blank=True)
+    terminee_le = models.DateTimeField(null=True, blank=True)
+    terminee_par = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.PROTECT, related_name="actions_relais_terminees")
+
+    class Meta:
+        ordering = ["echeance", "cree_le", "pk"]
+
