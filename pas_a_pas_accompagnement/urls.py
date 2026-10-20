@@ -3,6 +3,7 @@ from django.urls import include, path
 from .views import accueil, health, choisir_espace_local
 from personnes.installation import installer
 from personnes.views import decouverte
+from personnes.vues_statistiques import statistiques
 from identites import vues as identites
 
 from .copies_locales import copies
@@ -12,6 +13,7 @@ urlpatterns = [
     path("decouverte/", decouverte, name="decouverte"),
     path("copies-locales/", copies, name="copies_locales"),
     path("menages/", include("personnes.urls_suivi")),
+    path("statistiques/", statistiques, name="statistiques"),
     path("installer/", installer, name="installation_locale"),
     path("", accueil, name="accueil"),
     path("health/", health, name="health"),

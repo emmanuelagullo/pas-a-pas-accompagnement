@@ -1,0 +1,19 @@
+{% extends "base.html" %}{% block contenu %}
+<h1>Statistiques d’activité</h1>
+<p>Les indicateurs portent sur la période civile choisie, début inclus et fin exclue.</p>
+<form method="get">{{ formulaire.as_p }}<button type="submit">Calculer</button></form>
+{% if resultats != None %}
+<section class="carte"><h2>Activité pendant la période</h2>
+<dl>
+<dt>Ménages accompagnés distincts</dt><dd>{{ resultats.menages_accompagnes }}</dd>
+<dt>Accompagnements</dt><dd>{{ resultats.accompagnements }}</dd>
+<dt>Personnes distinctes bénéficiaires d’un séjour</dt><dd>{{ resultats.personnes_avec_sejour }}</dd>
+<dt>Séjours</dt><dd>{{ resultats.sejours }}</dd>
+<dt>Admissions (début de séjour)</dt><dd>{{ resultats.admissions }}</dd>
+<dt>Sorties (fin de séjour)</dt><dd>{{ resultats.sorties }}</dd>
+<dt>Nuitées théoriques de séjour, par bénéficiaire</dt><dd>{{ resultats.nuitees_theoriques }}</dd>
+<dt>Repas effectivement enregistrés (hors annulations)</dt><dd>{{ resultats.repas_distribues }}</dd>
+</dl></section>
+<p>Attention : les nuitées ne prouvent pas une présence physique. Les absences ne sont pas soustraites et les séjours simultanés peuvent être comptés plusieurs fois. Les repas accordés ne sont pas des repas distribués.</p>
+{% endif %}
+{% endblock %}
