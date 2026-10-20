@@ -59,8 +59,9 @@ Utiliser la même URL de base pour Hugo et le contrôle. Tester aussi la racine
 et le préfixe public. Le contrôle attend les captures et fichiers d’essai du
 produit lorsqu’ils sont référencés. Il ne remplace pas la revue clavier et
 mobile/ordinateur. Pour une évolution commune : publier d’abord le commit du
-socle sur les deux forges, puis avancer les sous-modules applicatifs, construire
-et publier les sites. Leurs URL restent inchangées.
+socle sur GitLab Inria, puis avancer les sous-modules applicatifs, construire
+et publier les sites. Le miroir GitHub conserve son rôle de miroir ; il n’est
+pas utilisé pour récupérer le thème. Leurs URL restent inchangées.
 
 
 ## Rubriques et disponibilité
@@ -77,3 +78,10 @@ pas encore le sélecteur Les Passerelles. Le serveur Render n’a pas répondu
 pendant la vérification. Les pages gardent donc les instructions conditionnelles
 et renvoient aux versions effectivement publiées, sans déclarer les déploiements
 à jour. Recontrôler les publications avant d’enlever cette réserve.
+
+Le sous-module utilise l’URL HTTPS absolue de GitLab Inria déclarée dans
+`.gitmodules`. Cette déclaration fait foi pour la récupération du thème ;
+l’ancienne mention du miroir GitHub dans le contrat du commit importé est
+historique. Le commit adopté est celui effectivement publié sur Inria :
+`5d64e2487939093bd6378a8a1611da95d93830ca`. Aucune reproduction de SHA avec
+une commande spéciale `git am` n’est nécessaire.

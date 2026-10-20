@@ -1,3 +1,3 @@
 [submodule "site/theme-communs"]
 	path = site/theme-communs
-	url = https://github.com/emmanuelagullo/pas-communs.git
+	url = https://gitlab.inria.fr/pas-communs/pas-communs.git
