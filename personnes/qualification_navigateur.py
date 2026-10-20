@@ -73,3 +73,41 @@ class ProfilsNavigateur(LiveServerTestCase):
         self.assertEqual(self.ouvrir(page, 'suivi:actions_relais').status, 403)
         self.assertEqual(page.goto(self.live_server_url + reverse(
             'suivi:trajectoire', args=[self.a.pk])).status, 200)
+
+    def test_releve_historique_conserve_date_et_droits(self):
+        """Recette veilleur : consultation passée, relève, retour à la même date."""
+        self.profil('view_personne', 'view_menage', 'view_accompagnement',
+                    'view_transmission', 'add_transmission',
+                    'view_actionrelais', 'add_actionrelais', 'change_actionrelais')
+        page = self.navigateur()
+        cible = self.live_server_url + reverse('suivi:jour') + '?date=2026-01-03'
+        page.goto(cible)
+        page.get_by_role('heading', name='Situation à la date choisie — 03/01/2026').wait_for()
+        page.get_by_role('link', name='Écrire une transmission').click()
+        page.get_by_role('heading', name='Cahier de liaison').wait_for()
+        self.assertEqual(page.locator('input[name="date_service"]').input_value(), '2026-01-03')
+        page.get_by_role('link', name='Retour au travail du jour').click()
+        self.assertEqual(page.url, cible)
+        page.get_by_role('link', name='Créer une action de relève').click()
+        page.get_by_role('heading', name='Actions de relève').wait_for()
+        self.assertEqual(page.locator('input[name="date_service"]').input_value(), '2026-01-03')
+        page.get_by_role('link', name='Retour au travail du jour').click()
+        self.assertEqual(page.url, cible)
+        self.assertEqual(page.goto(self.live_server_url + reverse(
+            'suivi:trajectoire', args=[self.a.pk])).status, 403)
+
+    def test_parcours_accueil_et_suivi_reste_navigable(self):
+        """Recette d'un accompagnement fictif, sans écriture ni mutation de données."""
+        self.profil('view_personne', 'view_menage', 'view_accompagnement',
+                    'view_accordhebergement', 'view_sejour',
+                    'view_accordrepas', 'view_repasdistribue')
+        page = self.navigateur()
+        page.goto(self.live_server_url + reverse('suivi:liste'))
+        self.assertEqual(page.locator('main').count(), 1)
+        page.goto(self.live_server_url + reverse('suivi:detail', args=[self.m.pk]))
+        self.assertEqual(page.locator('main').count(), 1)
+        page.goto(self.live_server_url + reverse('suivi:accompagnement', args=[self.a.pk]))
+        self.assertEqual(page.locator('main').count(), 1)
+        page.goto(self.live_server_url + reverse('suivi:jour') + '?date=2026-01-03')
+        page.get_by_role('heading', name='Travail du jour').wait_for()
+        self.assertEqual(page.locator('main').count(), 1)
