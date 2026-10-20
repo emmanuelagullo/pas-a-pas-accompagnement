@@ -110,3 +110,52 @@ class DemonstrationTests(TestCase):
             self.assertEqual(self.client.get(reverse('choisir_espace_local')).status_code, 404)
         with override_settings(OUTILS_COPIES_BUREAU=False):
             self.assertEqual(self.client.get(reverse('choisir_espace_local')).status_code, 404)
+
+
+class DemonstrationStatistiquesTests(TestCase):
+    """Contrat métier chiffré de la démonstration, indépendant des UUID."""
+
+    def test_bilan_fictif_sur_60_jours(self):
+        from .statistiques import bilan, evolution_mensuelle, ventilation_repas
+        jour = timezone.localdate()
+        compte = get_user_model().objects.create_user('essai-statistiques')
+        generer(compte, reference=jour)
+        debut, fin = jour - timedelta(days=60), jour + timedelta(days=1)
+        chiffres = bilan(debut, fin)
+        for cle, attendu in {
+            'menages_accompagnes': 3, 'accompagnements': 3,
+            'personnes_avec_sejour': 4, 'sejours': 2,
+            'admissions': 2, 'sorties': 1,
+            'nuitees_theoriques': 156, 'nuits_distinctes': 156,
+            'nuits_hors_absences_declarees': 150, 'repas_distribues': 5,
+        }.items():
+            with self.subTest(indicateur=cle):
+                self.assertEqual(chiffres[cle], attendu)
+        self.assertEqual(ventilation_repas(debut, fin)['dejeuner'], 2)
+        self.assertEqual(ventilation_repas(debut, fin)['diner'], 3)
+        lignes = evolution_mensuelle(debut, fin)
+        for cle in ('admissions', 'sorties', 'nuitees_theoriques', 'repas_distribues'):
+            self.assertEqual(sum(l[cle] for l in lignes), chiffres[cle])
+
+    def test_navigation_et_export_de_la_demonstration(self):
+        import csv
+        from io import StringIO
+        jour = timezone.localdate()
+        compte = get_user_model().objects.create_user('essai-statistiques')
+        generer(compte, reference=jour)
+        self.client.force_login(compte)
+        params = {'debut': (jour - timedelta(days=60)).isoformat(),
+                  'fin': (jour + timedelta(days=1)).isoformat()}
+        page = self.client.get(reverse('statistiques'), params)
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, '156')
+        self.assertContains(self.client.get(reverse('personnes:liste')), 'Statistiques')
+        export = self.client.get(reverse('statistiques'), {**params, 'format': 'csv'})
+        self.assertEqual(export.status_code, 200)
+        lignes = list(csv.reader(StringIO(export.content.decode('utf-8'))))
+        self.assertIn(['nuitees_theoriques', '156'], [ligne[-2:] for ligne in lignes])
+        compte.user_permissions.clear()
+        compte = get_user_model().objects.get(pk=compte.pk)
+        self.client.force_login(compte)
+        self.assertEqual(self.client.get(reverse('statistiques'), params).status_code, 403)
+        self.assertEqual(self.client.get(reverse('statistiques'), {**params, 'format': 'csv'}).status_code, 403)

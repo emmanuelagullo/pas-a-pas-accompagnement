@@ -77,3 +77,17 @@ ce dernier mois n'appartient pas à la période.
 Cette qualification ne constitue pas une validation institutionnelle des
 définitions, notamment des sorties définitives, des absences non saisies et
 de la présence effective.
+
+
+## Qualification par le scénario fictif Les Passerelles (CHRS10-08)
+
+Sur la fenêtre civile `[date de référence - 60 jours, date de référence + 1 jour[`,
+le jeu fictif initial (avant toute saisie manuelle) doit donner : 3 ménages,
+3 accompagnements, 4 personnes ayant un séjour, 2 séjours, 2 admissions,
+1 sortie, 156 nuitées de séjour, 156 nuits distinctes, 150 nuits hors
+absences déclarées et 5 repas distribués (2 déjeuners, 3 dîners).
+Les 6 nuits exclues correspondent à deux nuits d'absence pour trois personnes.
+Ces chiffres sont un **contrat de démonstration**, pas des données de référence
+pour les bilans réels. Ils sont vérifiés par `personnes.tests_demonstration.DemonstrationStatistiquesTests`.
+La navigation propose « Statistiques » uniquement aux comptes disposant des
+trois permissions de consultation nécessaires ; les exports sont également protégés.
