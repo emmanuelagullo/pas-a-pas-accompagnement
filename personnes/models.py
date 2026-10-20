@@ -316,6 +316,7 @@ class RevisionTexteSocial(models.Model):
 
 class Transmission(models.Model):
     """Message transversal d'équipe, distinct des dossiers individuels."""
+    id = models.BigAutoField(primary_key=True)
     contenu = models.TextField()
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     cree_le = models.DateTimeField(auto_now_add=True)
@@ -326,6 +327,7 @@ class Transmission(models.Model):
 
 class NotePartagee(models.Model):
     """Contribution libre liée à un seul objet métier."""
+    id = models.BigAutoField(primary_key=True)
     contenu = models.TextField()
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     cree_le = models.DateTimeField(auto_now_add=True)
@@ -345,6 +347,7 @@ class NotePartagee(models.Model):
 
 class RevisionContribution(models.Model):
     transmission = models.ForeignKey(Transmission, on_delete=models.PROTECT, null=True, blank=True, related_name="revisions")
+    id = models.BigAutoField(primary_key=True)
     note = models.ForeignKey(NotePartagee, on_delete=models.PROTECT, null=True, blank=True, related_name="revisions")
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     date = models.DateTimeField(auto_now_add=True)
