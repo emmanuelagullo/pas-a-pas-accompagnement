@@ -1,10 +1,10 @@
 {% extends "base.html" %}{% block contenu %}<h1>{{ menage }}</h1>
-<h2>Appartenances</h2><ul>{% for a in appartenances %}<li>{{ a.personne }} : du {{ a.debut }} au {{ a.fin|default:"— période ouverte" }} (fin exclue)
+<h2>Appartenances</h2><ul>{% for a in appartenances %}<li><a href="{% url 'personnes:detail' a.personne_id %}">{{ a.personne }}</a> : du {{ a.debut }} au {{ a.fin|default:"— période ouverte" }} (fin exclue)
 {% if not a.fin and perms.personnes.change_appartenance %}<a href="{% url 'suivi:clore_appartenance' menage.pk a.pk %}">Clôturer l’appartenance</a>{% endif %}</li>{% endfor %}</ul>
 {% if perms.personnes.add_appartenance %}<a href="{% url 'suivi:ajouter' menage.pk %}">Ajouter une appartenance</a>{% endif %}
 {% if perms.personnes.view_accompagnement %}<h2>Accompagnements — service d’essai</h2>
 <p>Les bénéficiaires enregistrés restent indépendants de la composition actuelle du ménage.</p>
-<ul>{% for a in accompagnements %}<li>Du {{ a.debut }} au {{ a.fin|default:"— période ouverte" }} (fin exclue) : {% for p in a.beneficiaires.all %}{{ p }}{% if not forloop.last %}, {% endif %}{% endfor %}
+<ul>{% for a in accompagnements %}<li><a href="{% url 'suivi:accompagnement' a.pk %}">Ouvrir la fiche d’accompagnement</a> — Du {{ a.debut }} au {{ a.fin|default:"— période ouverte" }} (fin exclue) : {% for p in a.beneficiaires.all %}{{ p }}{% if not forloop.last %}, {% endif %}{% endfor %}
 {% if perms.personnes.view_accordrepas and perms.personnes.view_repasdistribue %}<ul>{% for accord in a.accords_repas.all %}<li><a href="{% url 'suivi:accord_repas' accord.pk %}">{{ accord.get_service_display }} accordé du {{ accord.debut }} au {{ accord.fin|default:"—" }} (fin exclue)</a></li>{% endfor %}</ul>{% endif %}
 {% if perms.personnes.add_accordrepas and perms.personnes.view_accordrepas %}<a href="{% url 'suivi:accorder_repas' a.pk %}">Accorder des repas</a>{% endif %}
 {% if perms.personnes.view_accordhebergement and perms.personnes.view_sejour %}<ul>{% for accord in a.accords_hebergement.all %}<li><a href="{% url 'suivi:accord_hebergement' accord.pk %}">Hébergement accordé du {{ accord.debut }} au {{ accord.fin|default:"—" }}</a></li>{% endfor %}</ul>{% endif %}

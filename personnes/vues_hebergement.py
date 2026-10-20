@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.db import OperationalError
+from django.urls import reverse
 from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponse
 from django.views.decorators.http import require_http_methods, require_safe
@@ -22,7 +23,7 @@ def accorder(request, pk):
     h.droit(request.user, "add_accordhebergement")
     a = get_object_or_404(Accompagnement, pk=pk)
     form = AccordForm(request.POST or None, beneficiaires=a.beneficiaires.all())
-    return traiter_hebergement(request, form, "Accorder un hébergement", lambda **d:h.accorder(request.user,a,**d), a.menage)
+    return traiter_hebergement(request, form, "Accorder un hébergement", lambda **d:h.accorder(request.user,a,**d), a.menage, retour=lambda accord: reverse("suivi:accord_hebergement", args=[accord.pk]))
 
 
 @require_safe
@@ -40,7 +41,7 @@ def detail(request, pk):
 def admettre(request, pk):
     h.droit(request.user,"add_sejour")
     a=get_object_or_404(AccordHebergement,pk=pk)
-    return traiter_hebergement(request,AdmissionForm(request.POST or None,beneficiaires=a.beneficiaires.all()),"Enregistrer une admission effective",lambda **d:h.admettre(request.user,a,**d),a.accompagnement.menage)
+    return traiter_hebergement(request,AdmissionForm(request.POST or None,beneficiaires=a.beneficiaires.all()),"Enregistrer une admission effective",lambda **d:h.admettre(request.user,a,**d),a.accompagnement.menage, retour=reverse("suivi:accord_hebergement", args=[a.pk]))
 
 
 @require_http_methods(["GET", "POST"])
@@ -50,7 +51,7 @@ def periode(request, pk, absence=False):
     if not absence: h.exiger(request.user,"view_lieuhebergement")
     s=get_object_or_404(Sejour,pk=pk)
     form=(PeriodeForm if absence else AffectationForm)(request.POST or None)
-    return traiter_hebergement(request,form,"Enregistrer une absence de tous les bénéficiaires" if absence else "Affecter tous les bénéficiaires à un lieu",lambda **d:h.ajouter_periode(request.user,s,absence=absence,**d),s.accord.accompagnement.menage)
+    return traiter_hebergement(request,form,"Enregistrer une absence de tous les bénéficiaires" if absence else "Affecter tous les bénéficiaires à un lieu",lambda **d:h.ajouter_periode(request.user,s,absence=absence,**d),s.accord.accompagnement.menage, retour=reverse("suivi:accord_hebergement", args=[s.accord_id]))
 
 
 @require_http_methods(["GET", "POST"])
@@ -61,7 +62,7 @@ def terminer(request, pk, nature):
     objet=get_object_or_404(modele,pk=pk)
     s=objet if nature=="sejour" else objet.sejour
     action=h.sortir if nature=="sejour" else h.terminer_periode
-    return traiter_hebergement(request,ClotureForm(request.POST or None),"Enregistrer la sortie" if nature=="sejour" else "Clôturer la période",lambda **d:action(request.user,objet,**d),s.accord.accompagnement.menage)
+    return traiter_hebergement(request,ClotureForm(request.POST or None),"Enregistrer la sortie" if nature=="sejour" else "Clôturer la période",lambda **d:action(request.user,objet,**d),s.accord.accompagnement.menage, retour=reverse("suivi:accord_hebergement", args=[s.accord_id]))
 
 
 @require_http_methods(["GET", "POST"])

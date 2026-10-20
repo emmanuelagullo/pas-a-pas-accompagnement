@@ -2,6 +2,8 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.contrib import messages
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods, require_safe
 from .models import Menage, Appartenance, Accompagnement
@@ -27,15 +29,18 @@ def detail(request, pk):
         "evenements": menage.evenements.select_related("auteur") if request.user.has_perm("personnes.view_evenementsuivi") else []})
 
 
-def traiter(request, formulaire, titre, action, menage=None):
+def traiter(request, formulaire, titre, action, menage=None, retour=None):
     if request.method == "POST" and formulaire.is_valid():
         try:
             resultat = action(**formulaire.cleaned_data)
         except ValidationError as erreur:
             formulaire.add_error(None, " ".join(erreur.messages))
         else:
+            messages.success(request, "Enregistrement effectué.")
+            if retour:
+                return redirect(retour(resultat) if callable(retour) else retour)
             return redirect("suivi:detail", pk=menage.pk if menage else resultat.pk)
-    return render(request, "suivi/form.html", {"form": formulaire, "titre": titre, "menage": menage})
+    return render(request, "suivi/form.html", {"form": formulaire, "titre": titre, "menage": menage, "retour": retour if isinstance(retour, str) else None})
 
 
 @require_http_methods(["GET", "POST"])
@@ -61,7 +66,7 @@ def ouvrir(request, pk):
     jour = timezone.localdate()
     membres = menage.appartenances.filter(debut__lte=jour).filter(Q(fin__isnull=True) | Q(fin__gt=jour)).values_list("personne_id", flat=True)
     form = AccompagnementForm(request.POST or None, initial={"debut": jour, "beneficiaires": list(membres)})
-    return traiter(request, form, "Ouvrir un accompagnement — service d’essai", lambda **d: suivi.ouvrir(request.user, menage, **d), menage)
+    return traiter(request, form, "Ouvrir un accompagnement — service d’essai", lambda **d: suivi.ouvrir(request.user, menage, **d), menage, retour=lambda a: reverse("suivi:accompagnement", args=[a.pk]))
 
 
 @require_http_methods(["GET", "POST"])
@@ -75,4 +80,17 @@ def clore(request, pk, type_objet, objet_pk):
         suivi.exiger(request.user, "change_appartenance")
         modele = Appartenance
     objet = get_object_or_404(modele, pk=objet_pk, menage_id=pk)
-    return traiter(request, ClotureForm(request.POST or None), "Clôturer la période", lambda **d: suivi.clore(request.user, objet, **d), objet.menage)
+    return traiter(request, ClotureForm(request.POST or None), "Clôturer la période", lambda **d: suivi.clore(request.user, objet, **d), objet.menage, retour=reverse("suivi:accompagnement", args=[objet.pk]) if type_objet == "accompagnement" else None)
+
+
+@require_safe
+@login_required
+@permission_required(("personnes.view_personne", "personnes.view_menage", "personnes.view_accompagnement"), raise_exception=True)
+def accompagnement(request, pk):
+    a = get_object_or_404(Accompagnement.objects.select_related("menage").prefetch_related("beneficiaires"), pk=pk)
+    droits = request.user
+    return render(request, "suivi/accompagnement.html", {
+        "accompagnement": a,
+        "accords_repas": a.accords_repas.prefetch_related("beneficiaires") if droits.has_perms(["personnes.view_accordrepas", "personnes.view_repasdistribue"]) else [],
+        "accords_hebergement": a.accords_hebergement.prefetch_related("beneficiaires", "sejours") if droits.has_perms(["personnes.view_accordhebergement", "personnes.view_sejour"]) else [],
+    })

@@ -1,3 +1,8 @@
+## CHRS5 — fiche d’accompagnement
+
+- Navigation depuis les personnes et ménages, rubriques repas/hébergement/social.
+- Retour contextuel après écriture et message de confirmation.
+
 ## À venir — copies locales communes
 
 - #SOC : démonstration métier fictive Les Passerelles, parcours CHRS1–4 guidé,

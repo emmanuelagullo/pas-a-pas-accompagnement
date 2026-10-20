@@ -33,7 +33,11 @@ def creer(request):
 @permission_required("personnes.view_personne", raise_exception=True)
 def detail(request, pk):
     personne = get_object_or_404(Personne, pk=pk)
-    return render(request, "personnes/detail.html", {"personne": personne})
+    return render(request, "personnes/detail.html", {
+        "personne": personne,
+        "appartenances": personne.appartenances.select_related("menage").order_by("-debut") if request.user.has_perm("personnes.view_menage") else [],
+        "accompagnements": personne.accompagnements.select_related("menage").order_by("-debut") if request.user.has_perms(["personnes.view_menage", "personnes.view_accompagnement"]) else [],
+    })
 
 
 @never_cache

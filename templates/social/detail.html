@@ -1,4 +1,4 @@
-{% extends "base.html" %}{% block contenu %}<h1>Situation et parcours sociaux — {{ accompagnement.menage }}</h1>
+{% extends "base.html" %}{% block contenu %}<h1>Situation et parcours sociaux — {{ accompagnement.menage }}</h1><p><a href="{% url 'suivi:accompagnement' accompagnement.pk %}">Retour à l’accompagnement</a></p>
 <p>Informations propres à cet accompagnement. Non renseigné ne signifie pas absence de difficulté. Les événements ne modifient pas automatiquement la situation.</p>
 <form method="get">{{ form.as_p }}<button type="submit">Consulter à cette date</button></form>
 <h2>Situation au {{ jour|default:"—" }}</h2><ul>{% for s in valeurs %}<li>{{ s.beneficiaire }} — {{ s.get_dimension_display }} : {{ s.libelle_valeur }} (depuis {{ s.debut }}, source : {{ s.source }})</li>{% empty %}<li>Aucune valeur renseignée pour cette date dans cet accompagnement.</li>{% endfor %}</ul>

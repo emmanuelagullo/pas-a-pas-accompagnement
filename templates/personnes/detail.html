@@ -6,4 +6,6 @@
 <dt>Prénom</dt><dd>{{ personne.prenom|default:"Non renseigné" }}</dd>
 <dt>Fiche créée le</dt><dd>{{ personne.cree_le|date:"j F Y à H:i" }}</dd></dl>
 <p><a href="{% url 'personnes:fiche_pdf' personne.pk %}">Télécharger la fiche PDF</a></p>
-<p>Cette fiche peut commencer avec une identité incomplète.</p></section>{% endblock %}
+<p>Cette fiche peut commencer avec une identité incomplète.</p></section>
+{% if perms.personnes.view_menage %}<section class="carte"><h2>Ménages</h2><ul>{% for lien in appartenances %}<li><a href="{% url 'suivi:detail' lien.menage_id %}">{{ lien.menage }}</a> — {% include "suivi/periode.html" with periode=lien %}</li>{% empty %}<li>Aucune appartenance enregistrée.</li>{% endfor %}</ul></section>{% endif %}
+{% if perms.personnes.view_menage and perms.personnes.view_accompagnement %}<section class="carte"><h2>Accompagnements</h2><ul>{% for a in accompagnements %}<li><a href="{% url 'suivi:accompagnement' a.pk %}">{{ a.menage }}</a> — {% include "suivi/periode.html" with periode=a %}</li>{% empty %}<li>Aucun accompagnement enregistré pour cette personne.</li>{% endfor %}</ul></section>{% endif %}{% endblock %}

@@ -5,6 +5,7 @@ from . import vues_hebergement as h
 from . import vues_social as social
 app_name = "suivi"
 urlpatterns = [
+    path("accompagnements/<uuid:pk>/", vues.accompagnement, name="accompagnement"),
     path("accompagnements/<uuid:pk>/social/", social.detail, name="social"),
     path("accompagnements/<uuid:pk>/social/situation/<str:dimension>/", social.renseigner, name="situation_sociale"),
     path("situations/<int:pk>/corriger/", social.corriger, name="corriger_situation"),

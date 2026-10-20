@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse
 from django.http import Http404
 from django.shortcuts import get_object_or_404,render
 from django.utils import timezone
@@ -49,7 +50,7 @@ def renseigner(request,pk,dimension):
     if dimension not in SituationSociale.VALEURS: raise Http404
     a=get_object_or_404(Accompagnement,pk=pk)
     form=SituationForm(request.POST or None,accompagnement=a,dimension=dimension)
-    return traiter_hebergement(request,form,"Renseigner : "+dict(SituationSociale.DIMENSIONS)[dimension],lambda **d:social.renseigner(request.user,a,dimension=dimension,**d),a.menage)
+    return traiter_hebergement(request,form,"Renseigner : "+dict(SituationSociale.DIMENSIONS)[dimension],lambda **d:social.renseigner(request.user,a,dimension=dimension,**d),a.menage, retour=reverse("suivi:social", args=[a.pk]))
 
 
 @require_http_methods(["GET","POST"])
@@ -58,7 +59,7 @@ def corriger(request,pk):
     social.droit(request.user,"change_situationsociale");social.droit(request.user,"view_situationsociale")
     s=get_object_or_404(SituationSociale.objects.select_related("accompagnement__menage"),pk=pk)
     form=CorrectionForm(request.POST or None,dimension=s.dimension)
-    return traiter_hebergement(request,form,"Corriger une valeur sans changer sa date",lambda **d:social.corriger(request.user,s,**d),s.accompagnement.menage)
+    return traiter_hebergement(request,form,"Corriger une valeur sans changer sa date",lambda **d:social.corriger(request.user,s,**d),s.accompagnement.menage, retour=reverse("suivi:social", args=[s.accompagnement_id]))
 
 
 @require_http_methods(["GET","POST"])
@@ -69,4 +70,4 @@ def ecrire(request,pk,nature):
     a=get_object_or_404(Accompagnement,pk=pk)
     form=EvenementForm(request.POST or None,accompagnement=a) if nature=="evenement" else BilanForm(request.POST or None)
     action=social.evenement if nature=="evenement" else social.bilan
-    return traiter_hebergement(request,form,"Enregistrer un événement" if nature=="evenement" else "Enregistrer un bilan court",lambda **d:action(request.user,a,**d),a.menage)
+    return traiter_hebergement(request,form,"Enregistrer un événement" if nature=="evenement" else "Enregistrer un bilan court",lambda **d:action(request.user,a,**d),a.menage, retour=reverse("suivi:social", args=[a.pk]))

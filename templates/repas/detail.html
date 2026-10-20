@@ -1,4 +1,4 @@
-{% extends "base.html" %}{% block contenu %}<h1>{{ accord.get_service_display }} — accord et réalisation effective</h1>
+{% extends "base.html" %}{% block contenu %}<h1>{{ accord.get_service_display }} — accord et réalisation effective</h1><p><a href="{% url 'suivi:accompagnement' accord.accompagnement_id %}">Retour à l’accompagnement</a></p>
 <p>Accordé du {{ accord.debut }} au {{ accord.fin|default:"— période ouverte" }} (fin exclue). Prestataire : {{ accord.prestataire|default:"non renseigné" }}.</p>
 <p>Bénéficiaires : {% for p in accord.beneficiaires.all %}{{ p }}{% if not forloop.last %}, {% endif %}{% endfor %}.</p>
 <p>L’accord couvre ce service chaque jour de sa période, sans plafond global. Il ne prouve pas une distribution.</p>

@@ -1,4 +1,4 @@
-{% extends "base.html" %}{% block contenu %}<h1>Hébergement accordé et séjours effectifs</h1>
+{% extends "base.html" %}{% block contenu %}<h1>Hébergement accordé et séjours effectifs</h1><p><a href="{% url 'suivi:accompagnement' accord.accompagnement_id %}">Retour à l’accompagnement</a></p>
 <p>Accord du {{ accord.debut }} au {{ accord.fin|default:"— période ouverte" }} (fin exclue).</p>
 <p>Bénéficiaires : {% for p in accord.beneficiaires.all %}{{ p }} ; {% endfor %}</p>
 {% if perms.personnes.add_sejour %}<a href="{% url 'suivi:admettre' accord.pk %}">Enregistrer une admission</a>{% endif %}

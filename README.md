@@ -543,3 +543,11 @@ dossier seulement. Les limites PWA restent plus basses que celles des programmes
 ZIP et contenu décompressé 64 Mio, 5 000 entrées, clé 64 Kio. Pas de chiffrement
 ni synchronisation. Un ZIP privé complet n'est pas un jeu public de démonstration.
 Cette adoption de pas-communs 0.9.0 doit attendre sa publication immuable.
+
+## CHRS5 — navigation contextuelle
+
+La fiche personne donne accès à ses ménages et accompagnements selon les droits.
+La fiche d’accompagnement regroupe bénéficiaires, accords de repas, hébergement
+et suivi social. Après une saisie, le retour reste dans la rubrique concernée.
+Les anciens liens et routes restent disponibles ; aucune migration ni nouveau
+droit n’est nécessaire.
