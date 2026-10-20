@@ -24,7 +24,9 @@ Ce guide de l’application ne charge ni ne remplace aucune donnée.
 5. Chez **Thomas**, comparer le séjour terminé et l’accompagnement toujours
    ouvert. Dans **Situation et parcours sociaux**, lire le logement daté,
    l’événement et le bilan. Le logement autonome est renseigné explicitement ;
-   il ne découle pas automatiquement de la sortie.
+   il ne découle pas automatiquement de la sortie. Ouvrir ensuite la
+   **Trajectoire d’accompagnement** pour comparer les situations datées et
+   distinguer événement, bilan et fin du séjour.
 
 Pour poursuivre, ajouter un événement ou un bilan inventé chez Thomas avec
 une date comprise dans l’accompagnement. Les dates initiales sont calculées au
@@ -42,6 +44,8 @@ aussi des [corrections tracées](../corriger-saisie/) avec les droits nécessair
 6. **Relève d’équipe** : ouvrir le [cahier de liaison et les notes partagées](../transmissions/). Comparer une transmission générale et une note liée à Alex ou Thomas.
 7. **Accueil** : découvrir la [création progressive d’une fiche](../accueil-progressif/) et les actions rapides du travail du jour.
 8. **Bilan** : ouvrir les [statistiques](../statistiques/) sur la période du scénario et comparer hébergement, absences et repas effectivement distribués.
+
+La [fiche Trajectoire sociale](../trajectoire-sociale/) approfondit le parcours de Thomas.
 
 Les étapes 6 à 8 sont un prolongement de la visite initiale de cinq minutes ; elles supposent une version de l’application intégrant CHRS8 à CHRS10.
 

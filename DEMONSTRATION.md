@@ -74,6 +74,15 @@ comptes publics. Les modifications sont partagées entre visiteurs et perdues
 à la recréation du service. Aucun changement de commande ou de profil serveur
 persistant : le serveur réseau n’expose pas le sélecteur de dossiers locaux.
 
+## Lecture de la trajectoire sociale
+
+Chez Thomas, la page **Trajectoire d’accompagnement** met en regard les
+situations datées au début et à la fin de la période sélectionnée et les
+éléments chronologiques (événement, bilan, hébergement). Cette lecture ne
+produit aucun score, ne déduit pas une situation de la sortie d’hébergement
+et distingue les informations absentes des valeurs renseignées. Voir
+`site/content/guide/trajectoire-sociale.md`.
+
 ## Découverte en cinq minutes
 
 Depuis l’accueil, ouvrir **Découvrir le scénario fictif Les Passerelles** :
