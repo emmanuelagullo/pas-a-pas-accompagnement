@@ -91,7 +91,10 @@ def evolution_mensuelle(debut, fin, *, maximum_mois=24):
     """Découpe [debut, fin[ en mois civils, sans sommer les populations distinctes."""
     if fin <= debut:
         raise ValueError("La fin doit être postérieure au début")
-    mois = (fin.year - debut.year) * 12 + fin.month - debut.month + 1
+    # Le mois contenant la borne exclusive ne compte que si une nuit/jour
+    # de ce mois est effectivement inclus dans la période.
+    dernier_jour = fin - timedelta(days=1)
+    mois = (dernier_jour.year - debut.year) * 12 + dernier_jour.month - debut.month + 1
     if mois > maximum_mois:
         raise ValueError("Période trop longue pour la ventilation mensuelle (24 mois maximum)")
     lignes = []

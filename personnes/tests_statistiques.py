@@ -166,3 +166,75 @@ class PeriodesRapportsTests(TestCase):
             'periode': 'inconnue', 'debut': '2026-01-02', 'fin': '2026-01-05'})
         self.assertEqual(reponse.status_code, 200)
         self.assertContains(reponse, '2026-01-02')
+
+
+class QualificationStatistiquesTests(TestCase):
+    """Contrats transversaux entre agrégats, ventilations et exports."""
+
+    def setUp(self):
+        NavigationTests.setUp(self)
+
+    def test_reconciliation_mensuelle_des_flux_et_nuitees(self):
+        from .statistiques import evolution_mensuelle
+        accord = AccordHebergement.objects.create(
+            accompagnement=self.a, debut=date(2026, 1, 1), cree_par=self.u)
+        accord.beneficiaires.add(self.p)
+        sejour = Sejour.objects.create(
+            accord=accord, debut=date(2026, 1, 30),
+            fin=date(2026, 3, 2), cree_par=self.u)
+        sejour.beneficiaires.add(self.p)
+        accord_repas = repas.accorder(self.u, self.a, [self.p],
+                                     date(2026, 1, 1), None, 'dejeuner')
+        for jour, quantite in ((date(2026, 1, 31), 2),
+                               (date(2026, 2, 1), 3)):
+            RepasDistribue.objects.create(accord=accord_repas,
+                beneficiaire=self.p, date=jour, quantite=quantite, cree_par=self.u)
+        debut, fin = date(2026, 1, 31), date(2026, 3, 1)
+        total = bilan(debut, fin)
+        lignes = evolution_mensuelle(debut, fin)
+        self.assertEqual([l['mois'] for l in lignes], ['2026-01', '2026-02'])
+        for cle in ('admissions', 'sorties', 'nuitees_theoriques',
+                    'repas_distribues'):
+            with self.subTest(indicateur=cle):
+                self.assertEqual(sum(l[cle] for l in lignes), total[cle])
+        self.assertEqual(total['nuitees_theoriques'], 29)
+        self.assertEqual(total['repas_distribues'], 5)
+
+    def test_exactement_24_mois_autorises_fin_exclue(self):
+        from .statistiques import evolution_mensuelle
+        debut = date(2024, 1, 1)
+        fin = date(2026, 1, 1)
+        self.assertEqual(len(evolution_mensuelle(debut, fin)), 24)
+        with self.assertRaises(ValueError):
+            evolution_mensuelle(debut, date(2026, 1, 2))
+
+    def test_export_csv_mensuel_correspond_aux_calculs(self):
+        import csv
+        from io import StringIO
+        from .statistiques import evolution_mensuelle
+        params = {'debut': '2026-01-31', 'fin': '2026-03-01',
+                  'rapport': 'mensuel', 'format': 'csv'}
+        reponse = self.client.get(reverse('statistiques'), params)
+        self.assertEqual(reponse.status_code, 200)
+        lignes = list(csv.DictReader(StringIO(reponse.content.decode('utf-8'))))
+        attendues = evolution_mensuelle(date(2026, 1, 31), date(2026, 3, 1))
+        self.assertEqual([l['mois'] for l in lignes],
+                         [l['mois'] for l in attendues])
+        for ligne, attendue in zip(lignes, attendues):
+            for cle in ('admissions', 'sorties', 'nuitees_theoriques',
+                        'repas_distribues'):
+                self.assertEqual(int(ligne[cle]), attendue[cle])
+
+    def test_populations_mensuelles_non_additives(self):
+        from .statistiques import evolution_mensuelle
+        accord = AccordHebergement.objects.create(
+            accompagnement=self.a, debut=date(2026, 1, 1), cree_par=self.u)
+        accord.beneficiaires.add(self.p)
+        sejour = Sejour.objects.create(
+            accord=accord, debut=date(2026, 1, 30),
+            fin=date(2026, 2, 3), cree_par=self.u)
+        sejour.beneficiaires.add(self.p)
+        debut, fin = date(2026, 1, 1), date(2026, 3, 1)
+        lignes = evolution_mensuelle(debut, fin)
+        self.assertEqual(bilan(debut, fin)['personnes_avec_sejour'], 1)
+        self.assertEqual(sum(l['personnes_avec_sejour'] for l in lignes), 2)

@@ -62,3 +62,18 @@ précédente. Elle juxtapose les chiffres bruts, sans présenter de variation en
 pourcentage lorsque la base est nulle. Les personnes distinctes ne sont jamais
 additionnées entre périodes. L'export CSV reste celui de la période choisie ;
 la comparaison est une aide de lecture à l'écran.
+
+## Qualification croisée CHRS10-07
+
+Les tests vérifient que les **flux additifs** (admissions, sorties, nuitées
+théoriques par séjour et repas distribués) se réconcilient entre le bilan
+global et les sous-périodes mensuelles. À l'inverse, les **effectifs
+distincts** ne sont pas additifs : une personne peut apparaître plusieurs mois.
+
+La limite de 24 mois porte sur les mois **effectivement intersectés** par
+`[début, fin[` : une fin au premier jour du 25e mois reste autorisée, car
+ce dernier mois n'appartient pas à la période.
+
+Cette qualification ne constitue pas une validation institutionnelle des
+définitions, notamment des sorties définitives, des absences non saisies et
+de la présence effective.
