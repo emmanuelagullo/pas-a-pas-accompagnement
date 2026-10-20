@@ -1,56 +1,62 @@
 ---
-title: Essayer le prototype
+title: "Essayer avec Les Passerelles"
+description: "Le même scénario fictif, partagé en ligne ou conservé sur cet appareil."
 ---
 
-Utilisez uniquement des personnes et informations inventées.
+Utilisez exclusivement des personnes et informations inventées.
+[Découvrir le parcours en cinq minutes](../guide/decouvrir-passerelles/)
+et [rencontrer l’équipe fictive](../roles/equipe/).
 
-## Découvrir sans installation
+{{< parcours mode="service" titre="Dans la démonstration partagée" >}}
+[Ouvrir la démonstration en ligne](https://pas-a-pas-accompagnement.onrender.com/).
+Utilisez les accès affichés sur la page de connexion : tous les visiteurs voient
+et peuvent modifier les mêmes essais. Les changements disparaissent à la
+recréation du service. Le démarrage peut demander de patienter.
 
-[Ouvrir la démonstration partagée](https://pas-a-pas-accompagnement.onrender.com/).
-La page de connexion indique les identifiants publics. Les essais sont visibles
-par les autres visiteurs et disparaissent au redémarrage du service. Cette
-version n’est pas un espace de travail privé.
+Le code de démarrage prépare **Les Passerelles**. Vérifiez que la version en ligne
+propose **Découvrir le scénario fictif Les Passerelles** à l’accueil ; sa présence
+effective sur cette publication reste à confirmer.
+{{< /parcours >}}
 
-La version intégrant **Les Passerelles** propose un scénario de découverte
-depuis l’accueil : ménages, repas, séjours et situations sociales datées.
-Nadia, Rémi et Camille illustrent des fonctions professionnelles ; leurs
-comptes publics ont les mêmes droits, sans administration ni cloisonnement.
+{{< parcours mode="appareil" titre="Sur cet appareil" >}}
+Dans les versions qui proposent **Essayer avec Les Passerelles**, ce bouton ouvre
+un autre espace persistant. Votre espace habituel reste intact. Les essais
+restent conservés lorsque vous revenez à cet espace.
 
-## Créer un espace dans le navigateur
+### Dans votre navigateur
 
-[Ouvrir l’application navigateur](https://pas-a-pas-accompagnement.gitlabpages.inria.fr/pas-a-pas-accompagnement-pwa/).
-Le premier chargement installe les ressources nécessaires. Créez votre propre
-compte : les identifiants publics de la démonstration ne s’y appliquent pas.
+[Ouvrir l’application navigateur](https://pas-a-pas-accompagnement.gitlabpages.inria.fr/pas-a-pas-accompagnement-pwa/),
+puis choisir **Essayer avec Les Passerelles**. Le chargement initial télécharge
+les ressources. Si ce bouton est absent, cette publication n’intègre pas encore
+ce parcours ; ne chargez pas de sauvegarde privée pour le remplacer.
 
-Le parcours hors ligne est vérifié par des essais automatisés sous
-Chromium/Linux. Les autres navigateurs restent à qualifier. Les données sont
-liées au navigateur, à son profil et à l’adresse de l’application : effacer les
-données du site peut supprimer l’espace. Ce n’est pas une synchronisation entre
-appareils. Téléchargez une sauvegarde et conservez-la hors de l’appareil.
-
-## Télécharger un programme
+### Avec le programme
 
 [Consulter les versions publiées](https://github.com/emmanuelagullo/pas-a-pas-accompagnement/releases).
-Téléchargez les fichiers joints à la version choisie, avec sa notice et ses
-empreintes ; ne prenez pas le ZIP des sources pour un programme installé.
+Choisissez les fichiers joints à la release et lisez sa notice : le ZIP des sources
+n’est pas le programme. La présence du nouveau parcours dépend de la version.
 
-- **Windows x64** : utiliser le setup `PasAPasAccompagnement-Setup-<version>-x64.exe`
-  lorsqu’il est joint à la release. Il propose un assistant en français et un
-  raccourci ; la désinstallation conserve les données. Le ZIP portable reste
-  une alternative : extraire puis lancer `PasAPasAccompagnement.exe`.
-  WebView2 doit être disponible.
-- **Linux** : l’archive cible Ubuntu 24.04 x86-64 avec GTK/WebKitGTK.
-  Extraire puis lancer `PasAPasAccompagnement`. La compatibilité avec toutes
-  les distributions n’est pas garantie.
+- **Windows x64** : le setup `PasAPasAccompagnement-Setup-<version>-x64.exe`,
+  s’il est joint, fournit un assistant et un raccourci. Sinon, extraire le ZIP
+  portable puis lancer `PasAPasAccompagnement.exe`. WebView2 est nécessaire.
+- **Linux x86-64** : extraire l’archive puis lancer `PasAPasAccompagnement`.
+  La cible de construction est Ubuntu 24.04 avec GTK/WebKitGTK ; la compatibilité
+  avec les autres distributions reste à vérifier.
 
-Les fichiers disponibles dépendent des releases effectivement publiées.
-Le premier démarrage demande de créer un compte local. Gardez le dossier de
-données et vos sauvegardes lors d’une mise à jour du programme.
+Ouvrez **Essayer avec Les Passerelles**, puis confirmez le changement d’espace.
+La fenêtre se ferme et se rouvre. [Comprendre le retour et la conservation des essais](../guide/espaces-locaux/).
+{{< /parcours >}}
 
-Dans les versions proposant **Essayer avec Les Passerelles**, ce lien ouvre
-un espace d’essai distinct, même si vous avez déjà créé votre espace habituel.
-Les comptes publics sont affichés. **Revenir à mon espace habituel** retrouve
-vos données ; vos essais restent conservés dans l’autre espace. Le programme
-ferme puis rouvre sa fenêtre après confirmation. Dans le navigateur, terminez
-vos saisies avant de changer d’espace et fermez les autres onglets.
-Les espaces créés avec l’ancien chargement initial restent conservés.
+## Les accès du jeu neuf
+
+{{< acces-demonstration >}}
+
+## Ce que la publication permet réellement
+
+Les parcours ci-dessus sont implémentés dans le code actuel. Une nouvelle page
+web ne met pas à jour la démonstration, les programmes ou la PWA. Vérifiez la
+version proposée dans l’application et les notes de la release. Les identifiants
+ci-dessus s’appliquent au jeu neuf ; les comptes d’une copie restaurée peuvent
+différer. [Détails et vérifications techniques](../conception/).
+
+Pour préparer votre utilisation, revenez à [Démarrer](../demarrer/).

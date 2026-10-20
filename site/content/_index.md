@@ -1,13 +1,12 @@
 ---
-title: Pas à Pas — Accompagnement
+title: "Pas à Pas — Accompagnement"
+description: "Comprendre les parcours d’accueil et d’accompagnement social."
 ---
 
-Disponible aujourd’hui : comptes distincts des personnes suivies, création et
-consultation de fiches avec identité incomplète, export PDF, sauvegardes et
-restauration dans les modes locaux.
+Pas à Pas est un logiciel libre en construction pour les équipes d’accueil
+et d’accompagnement social, notamment en CHRS. Découvrez ses parcours avec
+**Les Passerelles**, un jeu entièrement fictif.
 
-Les ménages, les accompagnements, les prestations, les séjours et la situation
-sociale restent à développer. Les habilitations entre plusieurs structures et
-l’exploitation avec des dossiers réels ne sont pas encore qualifiées.
-
-[Comprendre le projet et ses limites](le-projet/).
+Le code actuel propose personnes, ménages, accompagnements, repas, hébergement
+et situations sociales datées. L’utilisation de dossiers réels et les
+habilitations entre structures ne sont pas qualifiées.

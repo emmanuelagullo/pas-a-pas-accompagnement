@@ -178,11 +178,14 @@ deployer-demonstration:
   rules:
     - changes:
         - .gitlab-ci.yml
+        - .gitmodules
         - site/**/*
         - scripts/verifier-site-public.py
     - when: never
 
 site-public:
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
   extends: .site-public-rules
   stage: construction
   needs: []
@@ -198,6 +201,8 @@ site-public:
     expire_in: 7 days
 
 pages:
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
   stage: publication
   needs:
     - job: site-public
@@ -206,6 +211,7 @@ pages:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
       changes:
         - .gitlab-ci.yml
+        - .gitmodules
         - site/**/*
         - scripts/verifier-site-public.py
     - when: never

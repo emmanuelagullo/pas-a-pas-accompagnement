@@ -207,3 +207,7 @@ habituel intact, y compris les jeux chargés par le premier patch ; le bouton
 d’essai ouvre un autre espace persistant (stockage -essai / dossier essai-fictif),
 avec retour au chemin habituel personnalisé. Réutiliser configurerEspace et les
 parcours de copie existants, sans nouveau format ni reset.
+
+#SOC — sites : lire site/README.md et site/theme-communs/HUGO.md. Initialiser
+le sous-module épinglé avant Hugo. Ne pas recopier les layouts/styles du thème.
+Conserver contenus, démonstration, URL et paramètres de couleur propres au produit.

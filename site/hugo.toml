@@ -1,3 +1,5 @@
+theme = "pas"
+themesDir = "theme-communs/hugo"
 baseURL = "/"
 title = "Pas à Pas — Accompagnement"
 languageCode = "fr-FR"
@@ -5,6 +7,8 @@ defaultContentLanguage = "fr"
 enableRobotsTXT = true
 disableKinds = ["taxonomy", "term"]
 [params]
+  themeColor = "#304e78"
+  projectPath = "le-projet/"
   description = "Un logiciel libre en construction pour l’accueil et l’accompagnement social."
   repository = "https://gitlab.inria.fr/pas-a-pas-accompagnement/pas-a-pas-accompagnement"
   pwa = "https://pas-a-pas-accompagnement.gitlabpages.inria.fr/pas-a-pas-accompagnement-pwa/"
@@ -12,3 +16,48 @@ disableKinds = ["taxonomy", "term"]
   releases = "https://github.com/emmanuelagullo/pas-a-pas-accompagnement/releases"
 [markup.goldmark.renderer]
   unsafe = false
+
+[[menus.main]]
+  name = "Démarrer"
+  pageRef = "/demarrer/"
+  weight = 1
+
+[[menus.main]]
+  name = "Essayer"
+  pageRef = "/essayer/"
+  weight = 2
+
+[[menus.main]]
+  name = "Guide pratique"
+  pageRef = "/guide/"
+  weight = 3
+
+[[menus.main]]
+  name = "Le projet"
+  pageRef = "/le-projet/"
+  weight = 4
+
+[[menus.main]]
+  name = "Contribuer"
+  pageRef = "/contribuer/"
+  weight = 5
+
+[[menus.footer]]
+  name = "Protéger les données"
+  pageRef = "/proteger-donnees/"
+  weight = 1
+
+[[menus.footer]]
+  name = "Institutions et hébergement"
+  pageRef = "/dsi/"
+  weight = 2
+
+[[menus.footer]]
+  name = "Rôles et accès"
+  pageRef = "/roles/"
+  weight = 3
+
+[[menus.footer]]
+  name = "Documentation technique"
+  pageRef = "/conception/"
+  weight = 4

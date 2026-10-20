@@ -2,6 +2,8 @@
 title: Premiers pas sur des données fictives
 ---
 
+[Démarrer](../demarrer/) · [Guide pratique](../guide/) · [Comptes et accès](../roles/)
+
 1. Choisissez une version depuis [Essayer](../essayer/).
 2. Dans la démonstration, utilisez les identifiants publics affichés. En local,
    créez votre compte et conservez son mot de passe hors de l’application.

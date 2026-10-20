@@ -1,15 +1,21 @@
 {{ define "main" }}
-<section class="accueil"><p class="etiquette">Accueil et accompagnement social · Logiciel libre</p>
-<h1>Pas à Pas — Accompagnement</h1>
-<p class="introduction">Préparer un outil simple pour les équipes des Centres d’Hébergement et de Réinsertion Sociale.</p>
-<p>Le premier prototype permet de créer une personne, retrouver sa fiche et la télécharger en PDF. Il sert à éprouver les outils et les parcours avant de construire le suivi social.</p>
-<p class="avertissement">Pour l’instant, utilisez exclusivement des données fictives.</p>
-<a class="bouton" href="{{ "essayer/" | relURL }}">Essayer le prototype</a>
+<section class="hero shell"><div>
+<p class="eyebrow">Accueil et accompagnement social</p>
+<h1>Comprendre les parcours.<br>Construire avec les équipes.</h1>
+<div class="lede">{{ .Content }}</div>
+<div class="actions"><a class="button primary" href="{{ "demarrer/" | relURL }}">Choisir comment démarrer</a><a class="button" href="{{ "essayer/" | relURL }}">Essayer Les Passerelles</a></div>
+</div><aside class="demo-card" aria-label="Trois situations fictives des Passerelles">
+<p class="demo-kicker">Les Passerelles · jeu fictif</p><h2>Trois parcours à découvrir</h2>
+<div class="demo-item"><b>Alex</b><small>Un accompagnement sans hébergement, des repas accordés et distribués.</small></div>
+<div class="demo-item"><b>Samira, Lina et Adam</b><small>Un ménage, trois bénéficiaires, deux lieux d’hébergement successifs.</small></div>
+<div class="demo-item"><b>Thomas</b><small>Le séjour est terminé, l’accompagnement continue.</small></div>
+<p><a href="{{ "guide/decouvrir-passerelles/" | relURL }}">La visite en cinq minutes</a></p>
+</aside></section>
+<section class="principles shell" aria-label="Principes du projet">
+<article><span>01</span><h2>Partir du métier</h2><p>Distinguer les décisions, les prestations et ce qui a effectivement été réalisé.</p></article>
+<article><span>02</span><h2>Des essais fictifs</h2><p>Relire les parcours avant toute qualification pour des dossiers réels.</p></article>
+<article><span>03</span><h2>Un logiciel libre</h2><p>Du code et des choix documentés, ouverts à la discussion.</p></article>
 </section>
-<section><h2>Trois façons de faire un essai</h2><div class="cartes">
-<article><h3>La démonstration partagée</h3><p>Découvrir les écrans sans installer de programme. Les personnes fictives sont visibles par les autres visiteurs et les essais sont remis à zéro au redémarrage.</p><a href="{{ site.Params.demo }}">Ouvrir la démonstration</a></article>
-<article><h3>Dans votre navigateur</h3><p>Préparer un espace local et poursuivre hors ligne après le premier chargement. Les données restent sur cet appareil ; conservez des sauvegardes à part.</p><a href="{{ site.Params.pwa }}">Ouvrir l’application navigateur</a></article>
-<article><h3>Un programme local</h3><p>Utiliser une version publiée pour Windows ou Linux. Le programme et son dossier de données sont séparés.</p><a href="{{ site.Params.releases }}">Consulter les téléchargements</a></article>
-</div></section>
-<section class="texte"><h2>Fonctions disponibles et prochaines étapes</h2>{{ .Content }}</section>
+<section class="audiences"><div class="shell"><p class="eyebrow">Trois portes d’entrée</p><h2>Découvrir selon votre besoin</h2>
+<div class="cards"><a href="{{ "equipes/" | relURL }}"><b>Équipes d’accompagnement</b><span>Découvrir et discuter les situations métier.</span></a><a href="{{ "dsi/" | relURL }}"><b>Institutions et hébergement</b><span>Évaluer l’architecture et ses limites.</span></a><a href="{{ "contribuer/" | relURL }}"><b>Contributeurs</b><span>Étudier le code et proposer une amélioration.</span></a></div></div></section>
 {{ end }}

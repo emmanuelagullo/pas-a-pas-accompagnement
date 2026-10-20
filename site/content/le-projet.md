@@ -1,36 +1,33 @@
 ---
-title: Le projet
+title: "Le projet"
+description: "Un logiciel libre pour explorer les besoins des équipes sociales."
 ---
 
 Pas à Pas — Accompagnement est une application libre en construction pour les
 équipes d’accueil et d’accompagnement social, notamment en CHRS.
 
-## Ce que prépare le développement
+## Parcours présents dans le code actuel
 
-Le premier parcours métier envisagé distingue les personnes, les ménages aux
-appartenances datées et les accompagnements sociaux. Une prestation accordée
-sera distincte de sa réalisation effective. La première version métier vise
-l’hébergement et les repas ; un accompagnement pourra exister sans hébergement.
+Personnes à identité éventuellement incomplète, ménages aux appartenances
+datées, accompagnements, repas accordés et distribués, hébergement accordé,
+séjours et affectations, absences et situations sociales datées : le jeu
+[Les Passerelles](../guide/decouvrir-passerelles/) illustre ces distinctions.
+L’accompagnement peut se poursuivre sans hébergement.
 
-Ces fonctions ne sont pas encore proposées par le prototype. La gestion des
-appels du 115, la synchronisation SI-SIAO, la facturation et le dossier médical
-ne font pas partie de cette première version.
+La modification ou suppression des fiches d’identité n’est pas proposée.
+Les transports, documents joints, invitations, appels du 115, synchronisation
+SI-SIAO, facturation et dossier médical ne sont pas disponibles dans ce périmètre.
+Les habilitations entre structures et l’exploitation de dossiers réels ne sont
+pas qualifiées. [Accès actuels](../roles/) · [Versions effectivement publiées](../conception/).
 
 ## Des outils partagés avec Petits Pas
 
 [Petits Pas](https://petits-pas.gitlabpages.inria.fr/petits-pas/) s’adresse aux
-équipes de maternelle. Les deux métiers restent distincts : aucun modèle
-scolaire n’est transposé dans le dossier social.
+équipes de maternelle. Les métiers restent distincts, sans transposition des
+modèles scolaires dans le dossier social.
 
 [Pas communs](https://gitlab.inria.fr/pas-communs/pas-communs) partage des
-mécanismes techniques : sauvegardes, outils d’authentification, exécution locale,
-primitives navigateur et génération PDF. Chaque application conserve ses
-modèles, autorisations, contenus et données.
+mécanismes techniques et le thème des sites publics. Chaque application garde
+ses modèles, autorisations, contenus, couleurs et données.
 
-## Contribuer
-
-Le code est disponible sous licence **AGPL-3.0-or-later** dans le
-[dépôt de référence](https://gitlab.inria.fr/pas-a-pas-accompagnement/pas-a-pas-accompagnement),
-avec un [miroir GitHub](https://github.com/emmanuelagullo/pas-a-pas-accompagnement).
-Les retours sur les parcours et les besoins des équipes sont bienvenus.
-Dans les tickets et exemples publics, utilisez exclusivement des données fictives.
+[Contribuer](../contribuer/) · [Démarrer](../demarrer/).
