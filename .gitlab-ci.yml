@@ -173,6 +173,32 @@ deployer-demonstration:
   script:
     - python scripts/deployer-demonstration.py
 
+# Captures exclusivement depuis un serveur jetable initialisé avec Les Passerelles.
+captures-demonstration:
+  extends: .site-public-rules
+  stage: test
+  image:
+    name: mcr.microsoft.com/playwright/python@sha256:72bd171a9ffc2b4b59532aaa6210e21014d07093120dc25528870c0b840da1f0
+    entrypoint: [""]
+  variables:
+    PORT: "8000"
+  before_script:
+    - python3 -m pip install -r requirements-serveur.txt -r requirements-2fa.txt "playwright==1.63.0"
+  script:
+    - test -z "${DATABASE_URL:-}" && test -z "${ACCOMPAGNEMENT_DONNEES:-}"
+    - |
+      ACCOMPAGNEMENT_HOSTS=127.0.0.1,localhost ACCOMPAGNEMENT_BIND=127.0.0.1 bash start-render.sh >.ci-captures-chrs.log 2>&1 &
+      application_pid=$!
+      trap 'kill "$application_pid" 2>/dev/null || true' EXIT
+      python3 scripts/capturer-site-chrs.py --output site/static/captures
+      kill "$application_pid" 2>/dev/null || true
+      wait "$application_pid" || true
+      trap - EXIT
+  artifacts:
+    when: always
+    paths: [site/static/captures, .ci-captures-chrs.log]
+    expire_in: 7 days
+
 # Le contenu vit dans ce dépôt, comme le site Hugo Petits Pas.
 .site-public-rules:
   rules:
@@ -181,6 +207,7 @@ deployer-demonstration:
         - .gitmodules
         - site/**/*
         - scripts/verifier-site-public.py
+        - scripts/capturer-site-chrs.py
     - when: never
 
 site-public:
@@ -188,7 +215,9 @@ site-public:
     GIT_SUBMODULE_STRATEGY: recursive
   extends: .site-public-rules
   stage: construction
-  needs: []
+  needs:
+    - job: captures-demonstration
+      artifacts: true
   interruptible: true
   image:
     name: registry.gitlab.com/pages/hugo/hugo_extended@sha256:ff07c15f0ff5876c7a737d07b906d48802e7fcd1bba02f648fae63fda57ddb56
@@ -214,6 +243,7 @@ pages:
         - .gitmodules
         - site/**/*
         - scripts/verifier-site-public.py
+        - scripts/capturer-site-chrs.py
     - when: never
   script:
     - python scripts/verifier-site-public.py --sortie site/public --base-url "$CI_PAGES_URL/"

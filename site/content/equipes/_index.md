@@ -22,3 +22,7 @@ La qualification pour des dossiers réels et les habilitations entre structures
 restent des chantiers distincts.
 
 Pour préparer une relève, consulter les [transmissions](../guide/transmissions/). Pour les bilans d’activité, lire les [statistiques](../guide/statistiques/) et leurs limites.
+
+## Les Passerelles en images
+
+{{< captures-passerelles >}}

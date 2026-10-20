@@ -44,3 +44,7 @@ aussi des [corrections tracées](../corriger-saisie/) avec les droits nécessair
 8. **Bilan** : ouvrir les [statistiques](../statistiques/) sur la période du scénario et comparer hébergement, absences et repas effectivement distribués.
 
 Les étapes 6 à 8 sont un prolongement de la visite initiale de cinq minutes ; elles supposent une version de l’application intégrant CHRS8 à CHRS10.
+
+## Captures du parcours
+
+{{< captures-passerelles >}}

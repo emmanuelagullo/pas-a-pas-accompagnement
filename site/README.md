@@ -102,3 +102,20 @@ Aucune capture d'écran n'est ajoutée sans capture réellement produite par la 
 le pipeline actuel ne contient pas de job de captures du scénario CHRS.
 Une future capture automatisée doit utiliser uniquement un jeu fictif neuf,
 avec masquage des secrets et vérification des pages générées avant publication.
+
+## CHRS10-11 — Captures publiques
+
+Le job `captures-demonstration` reprend le principe de Petits Pas : navigateur
+Playwright épinglé, démarrage d’une base jetable neuve avec `start-render.sh`,
+contrôle des pages et captures PNG comme artefacts CI. Le job `site-public`
+consomme ces artefacts avant Hugo ; les pages du guide et des équipes affichent
+la galerie `captures-passerelles`. Aucun PNG n’est conservé dans Git.
+
+Pour tester localement, utiliser **uniquement** une instance fictive jetable :
+
+```sh
+python3 scripts/capturer-site-chrs.py --base-url http://127.0.0.1:8000 --output site/static/captures
+```
+
+Ne pas exécuter ce script sur une instance contenant des dossiers réels.
+La vérification visuelle du rendu du thème partagé reste nécessaire.
