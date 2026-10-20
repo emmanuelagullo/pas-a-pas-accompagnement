@@ -52,10 +52,17 @@ def clore(acteur, objet, fin):
     exiger(acteur, "view_menage", "change_accompagnement" if accompagnement else "change_appartenance")
     if accompagnement:
         exiger(acteur, "view_accompagnement")
+    if accompagnement:
+        Accompagnement.objects.filter(pk=objet.pk).update(revision_sociale=models.F("revision_sociale") + 1)
+        objet = Accompagnement.objects.get(pk=objet.pk)
     if objet.fin is not None:
         raise ValidationError("Cette période est déjà close.")
     if accompagnement:
-        from .models import RepasDistribue, Sejour
+        from .models import RepasDistribue, Sejour, SituationSociale, EvenementSocial, BilanSocial
+        if (SituationSociale.objects.filter(accompagnement=objet, debut__gte=fin).exists()
+            or EvenementSocial.objects.filter(accompagnement=objet, date_effet__gte=fin).exists()
+            or BilanSocial.objects.filter(accompagnement=objet, date_effet__gte=fin).exists()):
+            raise ValidationError("Des informations sociales datées seraient exclues de l’accompagnement.")
         if Sejour.objects.filter(accord__accompagnement=objet).filter(models.Q(fin__isnull=True) | models.Q(fin__gt=fin)).exists():
             raise ValidationError("Clôturez d’abord les séjours au plus tard à la fin de l’accompagnement.")
         if RepasDistribue.objects.filter(accord__accompagnement=objet, annule_le__isnull=True, date__gte=fin).exists():

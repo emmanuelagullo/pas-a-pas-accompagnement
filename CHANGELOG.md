@@ -1,3 +1,10 @@
+## CHRS4 — situation et parcours sociaux
+
+- Logement, emploi/formation et ressources déclarées par bénéficiaire et date.
+- Historique des valeurs, correction motivée, événements et bilans courts.
+- Consultation datée et chronologie avec les prestations accessibles.
+- Attribution cumulative explicite CHRS1–4 ; sauvegardes et migrations qualifiées.
+
 ## CHRS3 — hébergement et séjours effectifs
 
 - Accords d’hébergement, admissions avec bénéficiaires explicites et lieux partenaires.

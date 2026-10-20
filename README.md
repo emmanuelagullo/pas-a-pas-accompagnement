@@ -7,7 +7,7 @@ Disponible : connexion, accueil, liste des personnes, création d'une identité
 incomplète et consultation de sa fiche. Pas de modification ni suppression de
 fiche à ce stade. Les comptes professionnels sont distincts des personnes suivies.
 
-Non disponible : transports, situation sociale,
+Non disponible : transports,
 documents joints, invitations. Une PWA fictive est disponible sous #SOC5a ; voir ci-dessous. La date et l'auteur de création ne sont pas un journal
 d'audit. Ce prototype n'est pas une installation de production.
 
@@ -463,3 +463,50 @@ Pas de contrôle global des capacités ni des doubles occupations entre séjours
 pas de réservation, tarification ou calcul automatique des nuitées facturables.
 Les corrections/annulations des séjours ne sont pas encore proposées : aucune
 suppression, réouverture ou modification silencieuse de l’historique.
+
+## CHRS4 — situation et parcours sociaux
+
+Pour appliquer ensemble les quatre patches CHRS dans leur ordre : exécuter les
+migrations une seule fois, puis attribuer volontairement tous les droits du
+parcours fictif au compte voulu :
+
+```sh
+python manage.py migrate
+python manage.py autoriser_chrs4 nom-utilisateur
+```
+
+Il n’est pas nécessaire d’appeler autoriser_chrs1, autoriser_chrs2 et
+autoriser_chrs3 auparavant. Cette attribution est cumulative et idempotente,
+sans droit de suppression ni superutilisateur. Les comptes existants ne
+reçoivent toujours aucun droit automatiquement à la migration.
+
+Depuis un accompagnement, ouvrir « Situation et parcours sociaux ». Trois
+dimensions simples : logement, emploi/formation et ressources déclarées, sans
+montants ni dossier médical. Les valeurs sont propres à un bénéficiaire et à
+cet accompagnement ; pas de dossier social partagé entre services. Une valeur
+« Non renseigné » reste distincte de « sans emploi » ou « sans ressources ».
+Une absence de ligne ne signifie pas que la personne n’a aucune difficulté.
+
+Renseigner une dimension avec sa date d’effet et la source de l’information.
+Une nouvelle valeur ferme la précédente à sa date d’effet (fin exclue). Les
+ajouts sont chronologiques par personne/dimension ; la consultation sélectionne
+les valeurs valables à la date demandée. On ne rejoue pas les événements.
+Pour une erreur de valeur, « Corriger » conserve dates et source, mais enregistre
+ancienne/nouvelle valeur, motif, auteur et horodatage dans le journal. Les erreurs
+de dates, de bénéficiaire ou de source ne se corrigent pas encore dans cette V0.
+
+Événements significatifs par personne (500 caractères maximum) et bilans du
+suivi (2 000 caractères maximum) sont saisis séparément, sans modifier les
+valeurs sociales. Pas de modification ni suppression de ces textes dans cette
+tranche. Leur chronologie utilise les dates d’effet ; date de saisie et auteur
+restent visibles. Les repas et séjours apparaissent si les droits le permettent.
+La consultation datée présente la situation telle que corrigée aujourd’hui,
+pas une reconstitution de ce que l’équipe savait dans le passé.
+
+Dates d’effet non futures et comprises dans l’accompagnement, fin exclue. Une
+clôture qui exclurait une information sociale datée est refusée. La dernière
+valeur reste la dernière information connue ; hors période d’accompagnement,
+aucune situation courante n’est affirmée. Les bilans et événements de fin de
+suivi doivent être datés du dernier jour inclus, pas de la borne de fin exclue.
+Les écritures sociales et la clôture sont sérialisées par accompagnement ; un
+conflit de stockage web est refusé et demande de recharger avant réessai.

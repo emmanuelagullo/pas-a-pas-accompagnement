@@ -60,6 +60,7 @@ class Appartenance(Periode):
 
 
 class Accompagnement(Periode):
+    revision_sociale = models.PositiveIntegerField(default=0, editable=False)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     menage = models.ForeignKey(Menage, on_delete=models.PROTECT, related_name="accompagnements")
     beneficiaires = models.ManyToManyField(Personne, related_name="accompagnements")
@@ -192,6 +193,75 @@ class OperationHebergement(models.Model):
     action = models.CharField(max_length=40)
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     date_effet = models.DateField()
+    enregistre_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["enregistre_le", "pk"]
+
+
+class SituationSociale(Periode):
+    DIMENSIONS = [("logement", "Logement"), ("emploi", "Emploi / formation"), ("ressources", "Ressources")]
+    VALEURS = {
+        "logement": [("inconnu", "Non renseigné"), ("sans_solution", "Sans solution stable"), ("hebergement", "Hébergé"), ("logement_autonome", "Logement autonome"), ("autre", "Autre situation")],
+        "emploi": [("inconnu", "Non renseigné"), ("sans_emploi", "Sans emploi"), ("emploi", "En emploi"), ("formation", "En formation"), ("autre", "Autre situation")],
+        "ressources": [("inconnu", "Non renseigné"), ("sans_ressources", "Sans ressources déclarées"), ("ressources_declarees", "Ressources déclarées"), ("autre", "Autre situation")],
+    }
+    accompagnement = models.ForeignKey(Accompagnement, on_delete=models.PROTECT, related_name="situations_sociales")
+    beneficiaire = models.ForeignKey(Personne, on_delete=models.PROTECT)
+    dimension = models.CharField(max_length=20, choices=DIMENSIONS)
+    valeur = models.CharField(max_length=30)
+    source = models.CharField("Source de l’information", max_length=160)
+    cree_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    cree_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["debut", "pk"]
+        constraints = [
+            models.CheckConstraint(condition=models.Q(fin__isnull=True) | models.Q(fin__gt=models.F("debut")), name="situation_sociale_periode"),
+            models.UniqueConstraint(fields=["accompagnement", "beneficiaire", "dimension", "debut"], name="situation_sociale_date_unique"),
+            models.UniqueConstraint(fields=["accompagnement", "beneficiaire", "dimension"], condition=models.Q(fin__isnull=True), name="situation_sociale_ouverte_unique"),
+        ]
+
+    def clean(self):
+        super().clean()
+        if self.valeur not in dict(self.VALEURS.get(self.dimension, [])):
+            from django.core.exceptions import ValidationError
+            raise ValidationError({"valeur": "Choisissez une valeur de cette dimension."})
+
+    @property
+    def libelle_valeur(self):
+        return dict(self.VALEURS.get(self.dimension, [])).get(self.valeur, self.valeur)
+
+
+class EvenementSocial(models.Model):
+    accompagnement = models.ForeignKey(Accompagnement, on_delete=models.PROTECT, related_name="evenements_sociaux")
+    beneficiaire = models.ForeignKey(Personne, on_delete=models.PROTECT)
+    date_effet = models.DateField("Date de l’événement")
+    texte = models.CharField("Événement significatif", max_length=500)
+    source = models.CharField("Source de l’information", max_length=160)
+    cree_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    cree_le = models.DateTimeField(auto_now_add=True)
+
+
+class BilanSocial(models.Model):
+    accompagnement = models.ForeignKey(Accompagnement, on_delete=models.PROTECT, related_name="bilans_sociaux")
+    date_effet = models.DateField("Date du bilan")
+    texte = models.TextField("Bilan court", max_length=2000)
+    cree_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    cree_le = models.DateTimeField(auto_now_add=True)
+
+
+class OperationSociale(models.Model):
+    accompagnement = models.ForeignKey(Accompagnement, on_delete=models.PROTECT, related_name="operations_sociales")
+    situation = models.ForeignKey(SituationSociale, on_delete=models.PROTECT, null=True)
+    evenement = models.ForeignKey(EvenementSocial, on_delete=models.PROTECT, null=True)
+    bilan = models.ForeignKey(BilanSocial, on_delete=models.PROTECT, null=True)
+    action = models.CharField(max_length=40)
+    ancienne_valeur = models.CharField(max_length=30, blank=True)
+    nouvelle_valeur = models.CharField(max_length=30, blank=True)
+    motif = models.CharField(max_length=240, blank=True)
+    date_effet = models.DateField()
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     enregistre_le = models.DateTimeField(auto_now_add=True)
 
     class Meta:

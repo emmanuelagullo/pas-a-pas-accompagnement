@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% block contenu %}<h1>Situation et parcours sociaux — {{ accompagnement.menage }}</h1>
+<p>Informations propres à cet accompagnement. Non renseigné ne signifie pas absence de difficulté. Les événements ne modifient pas automatiquement la situation.</p>
+<form method="get">{{ form.as_p }}<button type="submit">Consulter à cette date</button></form>
+<h2>Situation au {{ jour|default:"—" }}</h2><ul>{% for s in valeurs %}<li>{{ s.beneficiaire }} — {{ s.get_dimension_display }} : {{ s.libelle_valeur }} (depuis {{ s.debut }}, source : {{ s.source }})</li>{% empty %}<li>Aucune valeur renseignée pour cette date dans cet accompagnement.</li>{% endfor %}</ul>
+{% if perms.personnes.add_situationsociale %}<p>{% for code,nom in dimensions %}<a href="{% url 'suivi:situation_sociale' accompagnement.pk code %}">Renseigner {{ nom }}</a> {% endfor %}</p>{% endif %}
+{% if perms.personnes.add_evenementsocial and perms.personnes.view_evenementsocial %}<a href="{% url 'suivi:evenement_social' accompagnement.pk %}">Ajouter un événement</a>{% endif %}
+{% if perms.personnes.add_bilansocial and perms.personnes.view_bilansocial %}<a href="{% url 'suivi:bilan_social' accompagnement.pk %}">Ajouter un bilan court</a>{% endif %}
+<h2>Historique par date d’effet</h2><ul>{% for ligne in histoire %}<li>{{ ligne.date }} — {{ ligne.type }} : {% with o=ligne.objet %}
+{% if ligne.type == "Situation" %}{{ o.beneficiaire }} — {{ o.get_dimension_display }} : {{ o.libelle_valeur }}, fin exclue {{ o.fin|default:"non renseignée" }}. Source : {{ o.source }}.
+{% if perms.personnes.change_situationsociale %}<a href="{% url 'suivi:corriger_situation' o.pk %}">Corriger la valeur</a>{% endif %}
+{% elif ligne.type == "Repas" %}{{ o.beneficiaire }} — {{ o.quantite }} repas ({{ o.accord.get_service_display }}){% if o.annule_le %} — distribution annulée{% endif %}.
+{% elif ligne.type == "Séjour" %}Admission effective ; fin exclue {{ o.fin|default:"— séjour ouvert" }}. Bénéficiaires : {% for p in o.beneficiaires.all %}{{ p }} ; {% endfor %}
+{% else %}{% if o.beneficiaire %}{{ o.beneficiaire }} — {% endif %}{{ o.texte|linebreaksbr }}{% if o.source %} — Source : {{ o.source }}{% endif %}{% endif %}
+<p>Enregistré {{ ligne.enregistre }} par {{ o.cree_par }}.</p>{% endwith %}</li>{% endfor %}</ul>
+{% if perms.personnes.view_operationsociale %}<h2>Journal des opérations</h2><ul>{% for o in operations %}<li>{{ o.action }} — effet {{ o.date_effet }}, enregistré {{ o.enregistre_le }} par {{ o.auteur }}{% if o.ancienne_valeur %} ; {{ o.ancienne_valeur }} → {{ o.nouvelle_valeur }} ; motif : {{ o.motif }}{% endif %}</li>{% endfor %}</ul>{% endif %}
+<a href="{% url 'suivi:detail' accompagnement.menage_id %}">Retour au ménage et aux accompagnements</a>{% endblock %}

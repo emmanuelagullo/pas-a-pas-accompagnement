@@ -2,8 +2,14 @@ from django.urls import path
 from . import vues_suivi as vues
 from . import vues_repas
 from . import vues_hebergement as h
+from . import vues_social as social
 app_name = "suivi"
 urlpatterns = [
+    path("accompagnements/<uuid:pk>/social/", social.detail, name="social"),
+    path("accompagnements/<uuid:pk>/social/situation/<str:dimension>/", social.renseigner, name="situation_sociale"),
+    path("situations/<int:pk>/corriger/", social.corriger, name="corriger_situation"),
+    path("accompagnements/<uuid:pk>/social/evenement/", social.ecrire, {"nature":"evenement"}, name="evenement_social"),
+    path("accompagnements/<uuid:pk>/social/bilan/", social.ecrire, {"nature":"bilan"}, name="bilan_social"),
     path("accompagnements/<uuid:pk>/hebergement/accorder/", h.accorder, name="accorder_hebergement"),
     path("hebergement/<uuid:pk>/", h.detail, name="accord_hebergement"),
     path("hebergement/<uuid:pk>/admettre/", h.admettre, name="admettre"),

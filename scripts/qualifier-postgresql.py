@@ -61,7 +61,7 @@ def main():
                 django('migrate', '--noinput')
                 django('makemigrations', '--check', '--dry-run')
                 django('test', 'identites', 'personnes.tests', 'personnes.tests_pdf',
-                       'personnes.tests_postgresql', 'personnes.tests_suivi', 'personnes.tests_repas', 'personnes.tests_hebergement', '--noinput')
+                       'personnes.tests_postgresql', 'personnes.tests_suivi', 'personnes.tests_repas', 'personnes.tests_hebergement', 'personnes.tests_social', '--noinput')
                 # Compte sans mot de passe utilisable, personne UUID et relation protégée.
                 django('shell', '-c', """
 from django.contrib.auth import get_user_model

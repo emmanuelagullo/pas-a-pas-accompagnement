@@ -44,7 +44,7 @@ Ménages, appartenances, accompagnements et journal applicatif sont maintenant
 implémentés dans personnes. Attribution volontaire via autoriser_chrs1, sans
 modification des droits existants. Dates inclus/exclu ; bénéficiaires explicites
 figés à l’ouverture. Clôture conditionnelle ; pas de correction ou réouverture
-dans cette tranche. CHRS2 est livré ci-dessous ; CHRS3 est livré ; CHRS4 reste proposé.
+dans cette tranche. CHRS2 est livré ci-dessous ; CHRS3 est livré ; CHRS4 est livré ci-dessous.
 
 ## Modèle minimal proposé
 
@@ -161,3 +161,15 @@ un même séjour pour les périodes de même type ; mutation sérialisée par s�
 La sortie clôture atomiquement les périodes ouvertes et conserve les périodes
 historiques. Chaque opération est auditée ; aucune attribution automatique de
 droits. Voir README.md pour les limites et le parcours complet.
+
+## CHRS4 livré — conventions
+
+Trois dimensions par bénéficiaire et accompagnement : logement, emploi/formation,
+ressources déclarées. Valeurs datées avec source, transitions chronologiques,
+correction de valeur motivée et auditée. Les dates d’effet et d’enregistrement
+restent distinctes. Pas de moteur d’événements ni d’état scolaire réutilisé.
+Événements datés indépendants, bilans courts du suivi et chronologie comprenant
+les réalisations accessibles. Consultation d’un état à une date, dans les
+bornes de l’accompagnement. Valeur inconnue distincte d’une absence de ressources.
+La commande autoriser_chrs4 attribue explicitement tout le parcours CHRS1–4.
+Voir README.md pour les limites des corrections et les conventions de clôture.
