@@ -1,0 +1,64 @@
+"""Écritures CHRS1 : droits contrôlés et audit dans la même transaction."""
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.db import transaction
+from .models import Menage, Appartenance, Accompagnement, EvenementSuivi
+
+
+def exiger(acteur, *droits):
+    if not acteur.has_perms(["personnes." + droit for droit in droits]):
+        raise PermissionDenied
+
+
+@transaction.atomic
+def creer_menage(acteur, libelle, personnes, debut):
+    exiger(acteur, "view_personne", "view_menage", "add_menage", "add_appartenance")
+    if not personnes:
+        raise ValidationError("Sélectionnez au moins une personne.")
+    menage = Menage(libelle=libelle, cree_par=acteur)
+    menage.full_clean()
+    menage.save()
+    EvenementSuivi.objects.create(menage=menage, type="menage_cree", auteur=acteur, date_effet=debut)
+    for personne in personnes:
+        ajouter_appartenance(acteur, menage, personne, debut)
+    return menage
+
+
+@transaction.atomic
+def ajouter_appartenance(acteur, menage, personne, debut, fin=None):
+    exiger(acteur, "view_personne", "view_menage", "add_appartenance")
+    objet = Appartenance(menage=menage, personne=personne, debut=debut, fin=fin)
+    objet.full_clean()
+    objet.save()
+    EvenementSuivi.objects.create(menage=menage, appartenance=objet, type="appartenance_ajoutee", auteur=acteur, date_effet=debut)
+    return objet
+
+
+@transaction.atomic
+def ouvrir(acteur, menage, beneficiaires, debut):
+    exiger(acteur, "view_personne", "view_menage", "view_accompagnement", "add_accompagnement")
+    if not beneficiaires:
+        raise ValidationError("Sélectionnez au moins un bénéficiaire.")
+    objet = Accompagnement(menage=menage, debut=debut, cree_par=acteur)
+    objet.full_clean()
+    objet.save()
+    objet.beneficiaires.set(beneficiaires)
+    EvenementSuivi.objects.create(menage=menage, accompagnement=objet, type="accompagnement_ouvert", auteur=acteur, date_effet=debut)
+    return objet
+
+
+@transaction.atomic
+def clore(acteur, objet, fin):
+    accompagnement = isinstance(objet, Accompagnement)
+    exiger(acteur, "view_menage", "change_accompagnement" if accompagnement else "change_appartenance")
+    if accompagnement:
+        exiger(acteur, "view_accompagnement")
+    if objet.fin is not None:
+        raise ValidationError("Cette période est déjà close.")
+    objet.fin = fin
+    objet.full_clean()
+    # UPDATE conditionnel : une clôture concurrente ne peut pas être écrasée.
+    if type(objet).objects.filter(pk=objet.pk, fin__isnull=True).update(fin=fin) != 1:
+        raise ValidationError("Cette période vient d’être close. Rechargez la fiche.")
+    EvenementSuivi.objects.create(menage=objet.menage, auteur=acteur, date_effet=fin,
+        type="accompagnement_clos" if accompagnement else "appartenance_close",
+        **({"accompagnement": objet} if accompagnement else {"appartenance": objet}))

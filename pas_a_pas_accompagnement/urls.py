@@ -5,6 +5,7 @@ from personnes.installation import installer
 from identites import vues as identites
 
 urlpatterns = [
+    path("menages/", include("personnes.urls_suivi")),
     path("installer/", installer, name="installation_locale"),
     path("", accueil, name="accueil"),
     path("health/", health, name="health"),

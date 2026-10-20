@@ -4,4 +4,4 @@
 {% if perms.personnes.view_personne %}<p>Consultez une fiche ou préparez une première identité, même incomplète.</p>
 <a class="bouton" href="{% url 'personnes:liste' %}">Consulter les personnes</a>
 {% else %}<p>Votre compte n’a pas encore de droit de consultation dans cet espace d’essai.</p>{% endif %}
-</section><p>Les ménages, accompagnements, hébergements et repas seront ajoutés lors des prochaines étapes.</p>{% endblock %}
+</section>{% if perms.personnes.view_menage and perms.personnes.view_personne %}<section class="carte"><h2>Ménages et accompagnements</h2><a href="{% url 'suivi:liste' %}">Consulter les ménages</a></section>{% endif %}<p>Les hébergements et repas seront ajoutés lors des prochaines étapes.</p>{% endblock %}

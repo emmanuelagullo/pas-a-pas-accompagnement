@@ -28,17 +28,23 @@ dates d'effet et horodatages d'enregistrement. Les conventions de repas et de
 nuitées seront fixées avec CHRS2/3, sans les déduire de cette convention.
 
 Les décisions ouvertes ci-dessous restent l'inventaire des autres points à
-préciser lors des tranches. Ce cadrage n'ajoute encore aucune table ni fonction.
+préciser lors des tranches. Ce cadrage précède la livraison CHRS1 décrite ci-dessous.
 Avant de livrer CHRS1 : accès sans droit refusé, migration depuis SOC1/SOC4b,
 reprise des anciennes copies, mêmes UUID et mots de passe, nouvelles migrations
 embarquées dans bureau/PWA, export/restauration des nouvelles relations. Les
 premières écritures définiront leurs événements d'audit applicatifs, sans
 copier le journal scolaire ni construire un moteur générique.
 
-Proposition de développement, sans nouveau modèle ni écran livré ici. Le
-prototype actuel permet seulement de créer et consulter une personne fictive,
-avec comptes, sauvegardes et distributions techniques. Le socle 0.5.0 suffit
-pour commencer ; les extensions attendent deux usages démontrés.
+Les tranches CHRS2–4 restent des propositions. CHRS1 étend le prototype
+avec les ménages et accompagnements ; le socle adopté reste en 0.8.0.
+
+## CHRS1 livré
+
+Ménages, appartenances, accompagnements et journal applicatif sont maintenant
+implémentés dans personnes. Attribution volontaire via autoriser_chrs1, sans
+modification des droits existants. Dates inclus/exclu ; bénéficiaires explicites
+figés à l’ouverture. Clôture conditionnelle ; pas de correction ou réouverture
+dans cette tranche. CHRS2–4 restent proposés, non implémentés.
 
 ## Modèle minimal proposé
 

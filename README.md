@@ -7,8 +7,8 @@ Disponible : connexion, accueil, liste des personnes, création d'une identité
 incomplète et consultation de sa fiche. Pas de modification ni suppression de
 fiche à ce stade. Les comptes professionnels sont distincts des personnes suivies.
 
-Non disponible : ménages, accompagnements, prestations, séjour, situation sociale,
-historique des modifications, documents joints, invitations. Une PWA fictive est disponible sous #SOC5a ; voir ci-dessous. La date et l'auteur de création ne sont pas un journal
+Non disponible : prestations, séjour, situation sociale,
+documents joints, invitations. Une PWA fictive est disponible sous #SOC5a ; voir ci-dessous. La date et l'auteur de création ne sont pas un journal
 d'audit. Ce prototype n'est pas une installation de production.
 
 ## Essayer depuis les sources
@@ -361,3 +361,35 @@ retient PostgreSQL pour le futur serveur, avec une matrice CI avant toute
 règle métier dépendant de ses contraintes ou de sa concurrence. Ce choix
 est cadré ; aucun déploiement ni profil d'exploitation n'est modifié.
 Les sauvegardes PostgreSQL ne sont pas les paquets SQLite du bureau/PWA.
+
+## CHRS1 — ménages et accompagnements fictifs
+
+Disponible : ménage seul ou composé, appartenances datées, accompagnement sans
+hébergement avec bénéficiaires explicites, clôtures et journal des opérations.
+Un seul espace et un service d’essai ; tous les comptes autorisés voient les mêmes
+objets. Aucun cloisonnement entre établissements n’est revendiqué.
+
+Après migration, attribuer volontairement les droits du parcours à un compte existant :
+
+```sh
+python manage.py autoriser_chrs1 nom-utilisateur
+```
+
+Cette commande technique ajoute les droits CHRS1 sans superutilisateur. Aucun
+compte existant ne reçoit de droit par migration ; le premier compte local garde
+son profil de création/lecture des personnes. L’attribution reste hors interface
+web dans cette tranche. Ouvrir « Ménages et accompagnements », créer un ménage
+avec une personne existante, puis ouvrir et clôturer un accompagnement.
+
+Les périodes ont un début inclus et une fin exclue. Les bénéficiaires enregistrés
+ne changent pas lorsque les appartenances sont closes. Plusieurs ménages ou
+accompagnements simultanés sont possibles. Les bénéficiaires peuvent être choisis
+explicitement parmi les personnes de l’espace, indépendamment des appartenances.
+Pas de suppression, correction rétroactive ni réouverture dans cette tranche.
+Le journal conserve les opérations et leur acteur, sans recopier les identités.
+
+Vérification de reprise historique et aller-retour des relations CHRS1 :
+
+```sh
+python scripts/verifier-chrs1-reprise.py
+```

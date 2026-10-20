@@ -1,3 +1,10 @@
+## CHRS1 — ménages et accompagnements
+
+- Ménages, appartenances datées et accompagnements sans hébergement.
+- Bénéficiaires explicites, clôtures conditionnelles et journal des opérations.
+- Droits attribués volontairement via autoriser_chrs1 ; aucune migration de droits.
+- Reprise des copies historiques et nouvelles relations testées sur SQLite.
+
 # Historique
 
 ## À venir

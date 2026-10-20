@@ -11,6 +11,7 @@
 <a href="{% url 'accueil' %}">Accueil</a>
 {% if not demonstration_publique %}<a href="{% url 'securite_compte' %}">Sécurité du compte</a>{% endif %}
 {% if perms.personnes.view_personne and not request.inscription_2fa_requise %}<a href="{% url 'personnes:liste' %}">Personnes</a>{% endif %}
+{% if perms.personnes.view_menage and perms.personnes.view_personne and not request.inscription_2fa_requise %}<a href="{% url 'suivi:liste' %}">Ménages et accompagnements</a>{% endif %}
 <form method="post" action="{% url 'deconnexion' %}">{% csrf_token %}<button class="secondaire" type="submit">Se déconnecter</button></form>
 </nav>{% endif %}</header>
 <p class="prototype">Prototype d’essai — Données fictives uniquement.</p>
