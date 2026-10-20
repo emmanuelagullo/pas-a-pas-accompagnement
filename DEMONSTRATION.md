@@ -242,3 +242,31 @@ Le jeu fictif nouvellement généré reçoit explicitement les droits de relève
 les comptes et espaces existants ne sont pas modifiés.
 Une recette humaine sur petit écran, avec les profils réels prévus, reste
 nécessaire avant de qualifier l'ergonomie ou la confidentialité en situation.
+
+## CHRS14 — Qualification par profils fictifs (recette)
+
+Les trois profils ci-dessous sont **des jeux de droits de test**, pas des rôles
+créés en production ni des recommandations universelles d'habilitation.
+L'établissement doit définir ses propres responsabilités avant toute donnée réelle.
+
+| Profil fictif | Parcours attendu | Refus à vérifier |
+| --- | --- | --- |
+| Veilleur | Travail du jour → cahier de liaison → transmission → action de relève | Trajectoire sociale et statistiques |
+| Équipe de journée | Travail du jour → transmissions en lecture → action ouverte → clôture | Saisie de transmission/action sans droit de création, trajectoire sociale |
+| Référent social | Accompagnement → trajectoire sociale | Cahier de liaison, actions de relève et statistiques sans autorisation spécifique |
+
+La commande `python3 manage.py test personnes.tests_profils` contrôle les réponses
+HTTP et certaines écritures, avec permissions explicites et données fictives.
+Elle ne remplace **ni** une vérification humaine de l'ergonomie **ni** une
+validation juridique des habilitations. Les informations libres dans les
+transmissions et actions de relève sont accessibles à tous les titulaires du
+droit de lecture correspondant : ne pas y consigner de détails sociaux sensibles.
+
+### Recette humaine à réaliser avec Les Passerelles
+
+Pour chaque profil, chronométrer et compter les changements d'écran nécessaires
+pour accomplir la tâche ci-dessus ; noter les libellés ambigus, retours perdus,
+contrôles proposés sans droit, informations manquantes et informations affichées
+sans nécessité. Sur petit écran, vérifier notamment le passage entre la relève
+actuelle et la situation à une date choisie. Ne corriger que les difficultés
+observées ; ne pas inventer un système de rôles ou de tâches supplémentaire.
