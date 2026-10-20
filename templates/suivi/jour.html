@@ -1,5 +1,6 @@
 {% extends "base.html" %}{% block contenu %}<h1>Travail du jour</h1>
 <form method="get">{{ date_form.as_p }}<button type="submit">Afficher</button></form>
+<p>La date choisie concerne uniquement les séjours, les accords et les repas ci-dessous. La relève est toujours actuelle, indépendamment de cette date.</p>
 {% if perms.personnes.add_personne and perms.personnes.view_personne or perms.personnes.add_menage and perms.personnes.view_menage and perms.personnes.add_appartenance or perms.personnes.view_transmission %}
 <section class="carte" aria-label="Actions rapides"><h2>Actions rapides</h2>
 <ul>
@@ -11,7 +12,7 @@
 {% endif %}
 {% if perms.personnes.view_transmission %}
 <section class="carte" aria-labelledby="relais-equipe">
-<h2 id="relais-equipe">Relais entre équipes</h2>
+<h2 id="relais-equipe">Relève actuelle — transmissions récentes</h2>
 <p>Dernières transmissions du cahier de liaison, toutes dates confondues. Elles ne constituent pas une liste de tâches ni une preuve de prise en charge.</p>
 <ul>{% for transmission in transmissions_recentes %}
 <li><time datetime="{{ transmission.cree_le|date:'c' }}">{{ transmission.cree_le|date:'d/m/Y H:i' }}</time> — {{ transmission.contenu|linebreaksbr }}</li>
@@ -20,12 +21,14 @@
 </section>
 {% endif %}
 {% if perms.personnes.view_actionrelais %}
-<section class="carte" aria-labelledby="actions-en-attente"><h2 id="actions-en-attente">Actions explicitement en attente</h2>
+<section class="carte" aria-labelledby="actions-en-attente"><h2 id="actions-en-attente">Relève actuelle — actions explicitement en attente</h2>
 <p>Seules les actions saisies volontairement figurent ici. Une transmission ne crée jamais de tâche.</p>
-<ul>{% for action in actions_relais %}<li>{{ action.libelle }}{% if action.echeance %} — échéance indiquée : {{ action.echeance|date:'d/m/Y' }}{% endif %}</li>
-{% empty %}<li>Aucune action en attente.</li>{% endfor %}</ul>
+<h3>En retard</h3><ul>{% for action in actions_en_retard %}<li>{{ action.libelle }} — échéance : {{ action.echeance|date:'d/m/Y' }}</li>{% empty %}<li>Aucune.</li>{% endfor %}</ul>
+<h3>À traiter aujourd’hui</h3><ul>{% for action in actions_du_jour %}<li>{{ action.libelle }}</li>{% empty %}<li>Aucune.</li>{% endfor %}</ul>
+<h3>À venir ou sans échéance</h3><ul>{% for action in actions_autres %}<li>{{ action.libelle }}{% if action.echeance %} — échéance : {{ action.echeance|date:'d/m/Y' }}{% endif %}</li>{% empty %}<li>Aucune.</li>{% endfor %}</ul>
 <p><a href="{% url 'suivi:actions_relais' %}">Consulter et gérer les actions de relève</a></p></section>
 {% endif %}
+<h2>Situation à la date choisie</h2>
 <p>Les dates reflètent les informations enregistrées. Un séjour ouvert ne prouve pas la présence physique.</p>
 {% if perms.personnes.view_accordhebergement and perms.personnes.view_sejour %}<section class="carte"><h2>Hébergement au {{ date }}</h2><ul>{% for ligne in hebergements %}<li><a href="{% url 'suivi:accord_hebergement' ligne.sejour.accord_id %}">{{ ligne.sejour.accord.accompagnement.menage }}</a> : {% for p in ligne.sejour.beneficiaires.all %}{{ p }} ; {% endfor %}
 <p>Actions sur le séjour :

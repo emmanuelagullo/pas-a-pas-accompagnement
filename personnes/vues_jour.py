@@ -105,7 +105,13 @@ def jour(request):
                                   "accord": ligne["sejour"].accord, "fin": fin})
     actions_relais = (ActionRelais.objects.filter(terminee_le__isnull=True).select_related("auteur")
                      if request.user.has_perm("personnes.view_actionrelais") else ActionRelais.objects.none())
-    return render(request,"suivi/jour.html",{"actions_relais": actions_relais, "transmissions_recentes": transmissions_recentes,
+    aujourd_hui = timezone.localdate()
+    actions_en_retard = actions_relais.filter(echeance__lt=aujourd_hui)
+    actions_du_jour = actions_relais.filter(echeance=aujourd_hui)
+    actions_autres = actions_relais.filter(Q(echeance__isnull=True) | Q(echeance__gt=aujourd_hui))
+    return render(request,"suivi/jour.html",{"actions_relais": actions_relais, "actions_en_retard": actions_en_retard,
+        "actions_du_jour": actions_du_jour, "actions_autres": actions_autres,
+        "transmissions_recentes": transmissions_recentes,
         "echeances": echeances,"date_form":date_form,"date":date,"hebergements":hebergements,
         "lignes":list(zip(lignes,formset)) if not trop else [],"formset":formset,"erreur":erreur,
         "lecture_repas":lecture_repas,"ecriture":ecriture and date and date<=timezone.localdate(),"trop":trop})
@@ -135,7 +141,11 @@ def actions(request):
             action.save()
             return redirect("suivi:actions_relais")
     ouvertes = ActionRelais.objects.filter(terminee_le__isnull=True).select_related("auteur")
-    return render(request, "suivi/actions_relais.html", {"form": form, "actions": ouvertes})
+    aujourd_hui = timezone.localdate()
+    return render(request, "suivi/actions_relais.html", {"form": form,
+        "actions_en_retard": ouvertes.filter(echeance__lt=aujourd_hui),
+        "actions_du_jour": ouvertes.filter(echeance=aujourd_hui),
+        "actions_autres": ouvertes.filter(Q(echeance__isnull=True) | Q(echeance__gt=aujourd_hui))})
 
 
 @require_http_methods(["POST"])

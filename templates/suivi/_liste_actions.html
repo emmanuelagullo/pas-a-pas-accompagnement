@@ -1,0 +1,3 @@
+<ul>{% for action in actions %}<li>{{ action.libelle }}{% if action.echeance %} — échéance : {{ action.echeance|date:'d/m/Y' }}{% endif %}
+{% if perms.personnes.change_actionrelais %}<form method="post" action="{% url 'suivi:terminer_action_relais' action.pk %}">{% csrf_token %}<button type="submit">Marquer comme réalisée</button></form>{% endif %}</li>
+{% empty %}<li>Aucune action.</li>{% endfor %}</ul>
