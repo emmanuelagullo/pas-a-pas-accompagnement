@@ -47,6 +47,20 @@ class JourTests(TestCase):
         self.assertNotContains(reponse, 'Créer un ménage</a> ·')
         self.assertContains(reponse, 'Actions rapides')
 
+    def test_raccourcis_releve_suivant_permissions(self):
+        droit = Permission.objects.get(codename="view_actionrelais", content_type__app_label="personnes")
+        self.u.user_permissions.add(droit)
+        reponse = self.client.get(self.url)
+        self.assertContains(reponse, reverse("suivi:actions_relais"))
+        self.assertContains(reponse, "Consulter les actions de relève")
+        self.assertNotContains(reponse, "Créer une action de relève")
+        self.assertContains(reponse, 'id="situation-date"')
+        self.assertContains(reponse, 'id="repas-du-jour"')
+        self.u.user_permissions.add(Permission.objects.get(codename="add_actionrelais", content_type__app_label="personnes"))
+        self.assertContains(self.client.get(self.url), "Créer une action de relève")
+        self.u.user_permissions.remove(droit)
+        self.assertNotContains(self.client.get(self.url), reverse("suivi:actions_relais"))
+
     def test_actions_rapides_masquees_sans_droit(self):
         # Le droit de consulter le travail du jour reste, sans droit de créer.
         self.u.user_permissions.remove(*list(self.u.user_permissions.filter(
