@@ -1,7 +1,7 @@
 ---
 title: "Accueillir progressivement une personne"
 description: "Commencer par la fiche utile sans imposer tout le dossier d’emblée."
-fiche = true
+fiche: true
 ---
 
 À l'arrivée, créer d'abord la **fiche personne** avec les informations

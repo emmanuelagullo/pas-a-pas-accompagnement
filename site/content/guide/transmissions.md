@@ -1,7 +1,7 @@
 ---
 title: "Transmettre une information à l’équipe"
 description: "Distinguer cahier de liaison et notes partagées sur un dossier."
-fiche = true
+fiche: true
 ---
 
 Le **Cahier de liaison** sert à transmettre une information entre membres de

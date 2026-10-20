@@ -1,5 +1,5 @@
 ---
-fiche = true
+fiche: true
 title: "Retrouver un accompagnement"
 description: "Passer d’une personne ou d’un ménage aux prestations et au suivi social."
 ---

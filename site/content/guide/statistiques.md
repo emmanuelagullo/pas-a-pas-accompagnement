@@ -1,7 +1,7 @@
 ---
 title: "Lire les statistiques d’activité"
 description: "Choisir une période, comprendre les indicateurs et exporter un bilan."
-fiche = true
+fiche: true
 ---
 
 Depuis la navigation, ouvrir **Statistiques** avec un compte autorisé. Choisir
