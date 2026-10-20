@@ -9,6 +9,9 @@ Partez de la tâche que vous souhaitez accomplir.
 - [Découvrir Les Passerelles en cinq minutes](decouvrir-passerelles/).
 - [Essayer puis retrouver son espace habituel](espaces-locaux/).
 - [Créer une fiche et conserver un essai](../premiers-pas/).
+- [Retrouver un accompagnement](accompagnement/).
+- [Préparer le travail du jour](travail-du-jour/).
+- [Corriger une erreur de saisie](corriger-saisie/).
 - [Comprendre les comptes et permissions](../roles/).
 
 La disponibilité dépend de la version installée ou publiée. Les fiches décrivent

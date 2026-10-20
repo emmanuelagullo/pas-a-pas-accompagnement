@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.contrib import messages
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods, require_safe
-from .models import Menage, Appartenance, Accompagnement
+from .models import Menage, Appartenance, Accompagnement, CorrectionPeriode
 from .forms_suivi import MenageForm, AppartenanceForm, AccompagnementForm, ClotureForm
 from . import suivi
 
@@ -24,6 +24,7 @@ def liste(request):
 def detail(request, pk):
     menage = get_object_or_404(Menage, pk=pk)
     return render(request, "suivi/detail.html", {"menage": menage,
+        "corrections_appartenances": CorrectionPeriode.objects.filter(menage=menage, nature="appartenance").select_related("auteur") if request.user.has_perm("personnes.view_correctionperiode") else [],
         "appartenances": menage.appartenances.select_related("personne").order_by("debut", "pk"),
         "accompagnements": menage.accompagnements.prefetch_related("beneficiaires") if request.user.has_perm("personnes.view_accompagnement") else [],
         "evenements": menage.evenements.select_related("auteur") if request.user.has_perm("personnes.view_evenementsuivi") else []})

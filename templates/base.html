@@ -16,7 +16,7 @@
 <form method="post" action="{% url 'deconnexion' %}">{% csrf_token %}<button class="secondaire" type="submit">Se déconnecter</button></form>
 </nav>{% endif %}</header>
 {% if espace_essai %}<aside aria-label="Espace d’essai"><p><strong>Espace d’essai Les Passerelles</strong> — distinct de votre espace habituel. Données fictives uniquement. Vos essais sont conservés.</p>
-<p>Comptes du jeu de départ : <strong>nadia</strong>, <strong>remi</strong>, <strong>camille</strong> ou <strong>essai</strong> ; mot de passe <strong>{{ mot_de_passe_essai }}</strong>. Mêmes droits CHRS1–4, sans administration.</p></aside>{% endif %}
+<p>Comptes du jeu de départ : <strong>nadia</strong>, <strong>remi</strong>, <strong>camille</strong> ou <strong>essai</strong> ; mot de passe <strong>{{ mot_de_passe_essai }}</strong>. Mêmes droits CHRS1–7, sans administration.</p></aside>{% endif %}
 {% if outils_copies_bureau %}<p><a href="{% url 'choisir_espace_local' %}">{% if espace_essai %}Revenir à mon espace habituel{% else %}Essayer avec Les Passerelles{% endif %}</a></p><p><a href="{% url 'copies_locales' %}">Copies et restauration sur cet appareil</a></p>{% endif %}
 <p class="prototype">Prototype d’essai — Données fictives uniquement.</p>
 <main id="contenu">{% for message in messages %}<p role="status">{{ message }}</p>{% endfor %}{% block contenu %}{% endblock %}</main>

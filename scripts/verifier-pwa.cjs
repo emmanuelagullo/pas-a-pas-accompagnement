@@ -91,6 +91,7 @@ const server=(tls?require('node:https'):http).createServer(options,(req,res)=>{
   await df.getByRole('link',{name:'Alex — Les Passerelles (fictif)',exact:true}).click();
   await df.getByRole('link',{name:/Déjeuner accordé du/}).click();
   await df.getByRole('heading',{name:'Réalisation effective : 2 repas distribués'}).waitFor();
+  await require('./verifier-parcours-metier.cjs')(df);
   await df.getByRole('link',{name:'Personnes',exact:true}).click();
   await df.getByRole('link',{name:'Créer une personne'}).click();
   await df.locator('[name=designation]').fill('Essai séparé conservé');

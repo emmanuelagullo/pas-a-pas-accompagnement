@@ -1,3 +1,10 @@
+## CHRS7 — corrections motivées
+
+- Dates corrigibles sans exclure les réalisations ou créer des chevauchements.
+- Dates/sources sociales et textes d’événements/bilans, avec historique avant/après.
+- Refus des formulaires périmés, droits explicites et sérialisation des écritures liées.
+- Nouveaux jeux fictifs CHRS1–7 ; espaces et permissions existants préservés.
+
 ## CHRS6 — travail du jour
 
 - Séjours, lieux et absences enregistrés à une date ; alertes d’accord expiré.

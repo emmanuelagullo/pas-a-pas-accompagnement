@@ -28,3 +28,9 @@ footer { color: #4e665f; font-size: .9rem; }
 .evitement { position: absolute; left: -10000px; } .evitement:focus { left: 1rem; top: 1rem; background: white; padding: .75rem; }
 
 .carte svg { max-width: 100%; height: auto; }
+
+input[type="checkbox"], input[type="radio"] { display: inline-block; width: auto; margin-right: .5rem; }
+textarea { display: block; width: 100%; max-width: 45rem; min-height: 8rem; font: inherit; padding: .65rem; }
+select { max-width: 100%; font: inherit; padding: .4rem; }
+form ul { padding-left: 1.2rem; }
+form li { margin-bottom: 1rem; }

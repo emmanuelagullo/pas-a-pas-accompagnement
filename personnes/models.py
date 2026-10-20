@@ -24,6 +24,7 @@ class Personne(models.Model):
 
 
 class Menage(models.Model):
+    revision = models.PositiveIntegerField(default=0, editable=False)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     libelle = models.CharField("Libellé", max_length=160, validators=[RegexValidator(r"\S", "Indiquez un libellé.")])
     cree_le = models.DateTimeField(auto_now_add=True)
@@ -261,6 +262,51 @@ class OperationSociale(models.Model):
     nouvelle_valeur = models.CharField(max_length=30, blank=True)
     motif = models.CharField(max_length=240, blank=True)
     date_effet = models.DateField()
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    enregistre_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["enregistre_le", "pk"]
+
+
+class CorrectionPeriode(models.Model):
+    """Avant/après typé : uniquement dates et source, jamais un dossier JSON."""
+    menage = models.ForeignKey(Menage, on_delete=models.PROTECT)
+    suivi = models.ForeignKey(Accompagnement, null=True, on_delete=models.PROTECT, related_name="corrections_periodes")
+    accompagnement = models.ForeignKey(Accompagnement, null=True, on_delete=models.PROTECT, related_name="corrections_dates")
+    appartenance = models.ForeignKey(Appartenance, null=True, on_delete=models.PROTECT)
+    accord_repas = models.ForeignKey(AccordRepas, null=True, on_delete=models.PROTECT)
+    accord_hebergement = models.ForeignKey(AccordHebergement, null=True, on_delete=models.PROTECT)
+    sejour = models.ForeignKey(Sejour, null=True, on_delete=models.PROTECT)
+    affectation = models.ForeignKey(Affectation, null=True, on_delete=models.PROTECT)
+    absence = models.ForeignKey(Absence, null=True, on_delete=models.PROTECT)
+    situation = models.ForeignKey(SituationSociale, null=True, on_delete=models.PROTECT)
+    nature = models.CharField(max_length=30)
+    ancien_debut = models.DateField()
+    ancienne_fin = models.DateField(null=True)
+    nouveau_debut = models.DateField()
+    nouvelle_fin = models.DateField(null=True)
+    ancienne_source = models.CharField(max_length=160, blank=True)
+    nouvelle_source = models.CharField(max_length=160, blank=True)
+    motif = models.CharField(max_length=240)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    enregistre_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["enregistre_le", "pk"]
+
+
+class RevisionTexteSocial(models.Model):
+    accompagnement = models.ForeignKey(Accompagnement, on_delete=models.PROTECT, related_name="revisions_textes")
+    evenement = models.ForeignKey(EvenementSocial, null=True, on_delete=models.PROTECT)
+    bilan = models.ForeignKey(BilanSocial, null=True, on_delete=models.PROTECT)
+    ancienne_date = models.DateField()
+    nouvelle_date = models.DateField()
+    ancien_texte = models.TextField(max_length=2000)
+    nouveau_texte = models.TextField(max_length=2000)
+    ancienne_source = models.CharField(max_length=160, blank=True)
+    nouvelle_source = models.CharField(max_length=160, blank=True)
+    motif = models.CharField(max_length=240)
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     enregistre_le = models.DateTimeField(auto_now_add=True)
 

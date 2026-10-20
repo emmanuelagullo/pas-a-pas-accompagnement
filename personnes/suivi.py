@@ -1,4 +1,5 @@
 """Écritures CHRS1 : droits contrôlés et audit dans la même transaction."""
+from .verrous_metier import serialiser
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction, models
 from .models import Menage, Appartenance, Accompagnement, EvenementSuivi
@@ -23,6 +24,7 @@ def creer_menage(acteur, libelle, personnes, debut):
     return menage
 
 
+@serialiser("menage")
 @transaction.atomic
 def ajouter_appartenance(acteur, menage, personne, debut, fin=None):
     exiger(acteur, "view_personne", "view_menage", "add_appartenance")
@@ -33,6 +35,7 @@ def ajouter_appartenance(acteur, menage, personne, debut, fin=None):
     return objet
 
 
+@serialiser("menage")
 @transaction.atomic
 def ouvrir(acteur, menage, beneficiaires, debut):
     exiger(acteur, "view_personne", "view_menage", "view_accompagnement", "add_accompagnement")
@@ -46,6 +49,7 @@ def ouvrir(acteur, menage, beneficiaires, debut):
     return objet
 
 
+@serialiser("objet")
 @transaction.atomic
 def clore(acteur, objet, fin):
     accompagnement = isinstance(objet, Accompagnement)

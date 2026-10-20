@@ -31,3 +31,7 @@ jour de génération et ne changent plus à la réouverture.
 
 [Revenir à son espace habituel et conserver ses essais](../espaces-locaux/).
 [Comprendre les droits de Nadia, Rémi et Camille](../../roles/equipe/).
+
+Pour poursuivre l’essai, ouvrir la [fiche d’accompagnement](../accompagnement/),
+puis le [travail du jour](../travail-du-jour/). Les versions récentes proposent
+aussi des [corrections tracées](../corriger-saisie/) avec les droits nécessaires.

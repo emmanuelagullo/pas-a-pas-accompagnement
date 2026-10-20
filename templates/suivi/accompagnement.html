@@ -7,4 +7,6 @@
 {% if perms.personnes.view_accordhebergement and perms.personnes.view_sejour %}<section class="carte"><h2>Hébergement</h2><ul>{% for accord in accords_hebergement %}<li><a href="{% url 'suivi:accord_hebergement' accord.pk %}">Accord d’hébergement</a> — {% include "suivi/periode.html" with periode=accord %} ; {{ accord.sejours.count }} séjour(s) enregistré(s).</li>{% empty %}<li>Aucun hébergement accordé.</li>{% endfor %}</ul>{% if perms.personnes.add_accordhebergement %}<a href="{% url 'suivi:accorder_hebergement' accompagnement.pk %}">Accorder un hébergement</a>{% endif %}</section>{% endif %}
 {% if perms.personnes.view_situationsociale %}<section class="carte"><h2>Suivi social</h2><a href="{% url 'suivi:social' accompagnement.pk %}">Situation et parcours sociaux</a></section>{% endif %}
 {% if not accompagnement.fin and perms.personnes.change_accompagnement %}<p><a href="{% url 'suivi:clore_accompagnement' accompagnement.menage_id accompagnement.pk %}">Clôturer l’accompagnement</a></p>{% endif %}
-{% endblock %}
+{% if perms.personnes.view_correctionperiode %}<section class="carte"><h2>Corrections</h2>
+{% if perms.personnes.change_accompagnement %}<a href="{% url 'suivi:corriger_saisie' 'accompagnement' accompagnement.pk %}">Corriger les dates de l’accompagnement</a>{% endif %}
+<a href="{% url 'suivi:corrections' accompagnement.pk %}">Consulter l’avant/après des corrections</a></section>{% endif %}{% endblock %}

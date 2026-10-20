@@ -1,4 +1,5 @@
 """CHRS2 : accords immuables et réalisations annulables, droits explicites."""
+from .verrous_metier import serialiser
 from django.core.exceptions import ValidationError
 from django.db import transaction, IntegrityError
 from django.utils import timezone
@@ -10,6 +11,7 @@ def droit(acteur, action):
     exiger(acteur, "view_personne", "view_menage", "view_accompagnement", "view_accordrepas", action)
 
 
+@serialiser("accompagnement")
 @transaction.atomic
 def accorder(acteur, accompagnement, beneficiaires, debut, fin, service, prestataire=""):
     droit(acteur, "add_accordrepas")
@@ -27,6 +29,7 @@ def accorder(acteur, accompagnement, beneficiaires, debut, fin, service, prestat
     return accord
 
 
+@serialiser("accord")
 @transaction.atomic
 def distribuer(acteur, accord, beneficiaire, date, quantite):
     droit(acteur, "add_repasdistribue")
@@ -52,6 +55,7 @@ def distribuer(acteur, accord, beneficiaire, date, quantite):
     return repas
 
 
+@serialiser("repas")
 @transaction.atomic
 def annuler(acteur, repas, motif):
     droit(acteur, "change_repasdistribue")

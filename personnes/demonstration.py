@@ -16,7 +16,7 @@ def espace_metier_vide():
 
 
 def autoriser(compte):
-    call_command('autoriser_chrs4', compte.username, stdout=StringIO())
+    call_command('autoriser_chrs7', compte.username, stdout=StringIO())
     compte.user_permissions.add(Permission.objects.get(content_type__app_label='personnes', codename='add_personne'))
     # Les commandes rechargent le compte ; ne pas conserver un cache de droits.
     return get_user_model().objects.get(pk=compte.pk)

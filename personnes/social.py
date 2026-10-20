@@ -1,4 +1,5 @@
 """CHRS4 : valeurs datées par dimension, sans reconstruction événementielle."""
+from .verrous_metier import serialiser
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import F, Q
@@ -26,6 +27,7 @@ def personne_valide(accompagnement, personne):
         raise ValidationError("Choisissez un bénéficiaire de cet accompagnement.")
 
 
+@serialiser("accompagnement")
 @transaction.atomic
 def renseigner(acteur, accompagnement, beneficiaire, dimension, valeur, debut, source):
     droit(acteur,"add_situationsociale")
@@ -47,6 +49,7 @@ def renseigner(acteur, accompagnement, beneficiaire, dimension, valeur, debut, s
     return nouvelle
 
 
+@serialiser("situation")
 @transaction.atomic
 def corriger(acteur, situation, valeur, motif):
     droit(acteur,"change_situationsociale"); droit(acteur,"view_situationsociale")
@@ -61,6 +64,7 @@ def corriger(acteur, situation, valeur, motif):
     return situation
 
 
+@serialiser("accompagnement")
 @transaction.atomic
 def evenement(acteur, accompagnement, beneficiaire, date_effet, texte, source):
     droit(acteur,"add_evenementsocial"); droit(acteur,"view_evenementsocial")
@@ -72,6 +76,7 @@ def evenement(acteur, accompagnement, beneficiaire, date_effet, texte, source):
     return objet
 
 
+@serialiser("accompagnement")
 @transaction.atomic
 def bilan(acteur, accompagnement, date_effet, texte):
     droit(acteur,"add_bilansocial"); droit(acteur,"view_bilansocial")

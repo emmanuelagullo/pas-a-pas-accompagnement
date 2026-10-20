@@ -11,7 +11,7 @@ narratif, pas un cloisonnement entre CHRS. Données fictives exclusivement.
 
 Nadia illustre l’accompagnement social, Rémi l’accueil/hébergement, Camille la
 restauration. Les comptes publics `nadia`, `remi`, `camille` et l’accès historique
-`essai` ont les mêmes droits explicites CHRS1–4 et création de personnes, sans
+`essai` ont les mêmes droits explicites CHRS1–7 et création de personnes, sans
 suppression ni administration. Ce ne sont pas des habilitations par service.
 Les écritures initiales passent par les services métier et leurs journaux.
 Les enfants ont des fiches et prestations explicites, sans âge enregistré,
@@ -91,7 +91,7 @@ Le nouveau bouton ouvre un autre espace d’essai ; le retour retrouve exactemen
 l’ancien espace habituel, même s’il contient déjà Les Passerelles.
 
 La case de chargement initial est retirée. Le premier compte habituel garde
-les droits lecture/création de personnes antérieurs ; il ne reçoit plus CHRS1–4
+les droits lecture/création de personnes antérieurs ; il ne reçoit plus CHRS1–7
 par cette case. Un ancien POST contenant ce champ ne charge rien. Les permissions
 des comptes existants ne sont pas retirées. Aucun reset ou nettoyage implicite
 n’est ajouté. Une sauvegarde privée reste le moyen de conserver les essais.
@@ -162,3 +162,13 @@ confirmer en CI et sur les postes cibles ; CPython ne la remplace pas.
 - Restent à confirmer en CI : parcours Chromium aux deux chemins, constructions
   Linux/Windows et Hugo ; puis essai interactif WebKit/WebView2. L’installation
   Chromium et Headless Shell a échoué ici (archives téléchargées incomplètes).
+
+## Parcours quotidien et corrections (CHRS5–7)
+
+Les jeux nouvellement créés accordent CHRS1–7 aux quatre comptes, toujours sans
+rôle professionnel distinct. Les espaces déjà générés sont préservés : leurs
+droits ne changent pas à l’ouverture. Pour étendre volontairement un compte
+existant, utiliser autoriser_chrs7 au terminal. Aucun reset n’est nécessaire.
+La fiche personne conduit à l’accompagnement. Le travail du jour permet la
+saisie explicite des repas. Les erreurs de dates ou de texte se corrigent avec
+motif et conservation de l’avant/après ; ne pas utiliser la suppression.

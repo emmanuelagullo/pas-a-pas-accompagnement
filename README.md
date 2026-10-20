@@ -392,7 +392,7 @@ Les périodes ont un début inclus et une fin exclue. Les bénéficiaires enregi
 ne changent pas lorsque les appartenances sont closes. Plusieurs ménages ou
 accompagnements simultanés sont possibles. Les bénéficiaires peuvent être choisis
 explicitement parmi les personnes de l’espace, indépendamment des appartenances.
-Pas de suppression, correction rétroactive ni réouverture dans cette tranche.
+Pas de suppression ni réouverture ; CHRS7 ajoute des corrections datées avec historique.
 Le journal conserve les opérations et leur acteur, sans recopier les identités.
 
 Vérification de reprise historique et aller-retour des relations CHRS1 :
@@ -413,7 +413,7 @@ Cette commande ajoute CHRS1 et CHRS2 au compte désigné ; aucune migration ne
 modifie les droits. Depuis un accompagnement, choisir « Accorder des repas » :
 bénéficiaires parmi ceux du suivi, service (petit déjeuner, déjeuner, dîner),
 période début inclus / fin exclue et prestataire facultatif, y compris extérieur.
-L’accord couvre chaque jour de la période et reste immuable dans cette tranche.
+L’accord couvre chaque jour de la période ; CHRS7 ajoute des corrections de dates motivées.
 Pas de plafond global ni de calendrier hebdomadaire dans cette V0.
 
 Ouvrir l’accord pour enregistrer les repas effectivement distribués : personne,
@@ -468,8 +468,8 @@ un conflit de stockage web est refusé, avec demande de recharger avant réessai
 Absence et affectation peuvent se chevaucher : la place reste attribuée.
 Pas de contrôle global des capacités ni des doubles occupations entre séjours,
 pas de réservation, tarification ou calcul automatique des nuitées facturables.
-Les corrections/annulations des séjours ne sont pas encore proposées : aucune
-suppression, réouverture ou modification silencieuse de l’historique.
+CHRS7 permet de corriger les dates des séjours avec motif et historique.
+Aucune suppression ni réouverture silencieuse n’est proposée.
 
 ## CHRS4 — situation et parcours sociaux
 
@@ -499,13 +499,11 @@ Une nouvelle valeur ferme la précédente à sa date d’effet (fin exclue). Les
 ajouts sont chronologiques par personne/dimension ; la consultation sélectionne
 les valeurs valables à la date demandée. On ne rejoue pas les événements.
 Pour une erreur de valeur, « Corriger » conserve dates et source, mais enregistre
-ancienne/nouvelle valeur, motif, auteur et horodatage dans le journal. Les erreurs
-de dates, de bénéficiaire ou de source ne se corrigent pas encore dans cette V0.
+ancienne/nouvelle valeur, motif, auteur et horodatage dans le journal. CHRS7 ajoute la correction des dates et sources ; le bénéficiaire ne change pas.
 
 Événements significatifs par personne (500 caractères maximum) et bilans du
 suivi (2 000 caractères maximum) sont saisis séparément, sans modifier les
-valeurs sociales. Pas de modification ni suppression de ces textes dans cette
-tranche. Leur chronologie utilise les dates d’effet ; date de saisie et auteur
+valeurs sociales. CHRS7 ajoute leur correction tracée, sans suppression. Leur chronologie utilise les dates d’effet ; date de saisie et auteur
 restent visibles. Les repas et séjours apparaissent si les droits le permettent.
 La consultation datée présente la situation telle que corrigée aujourd’hui,
 pas une reconstitution de ce que l’équipe savait dans le passé.
@@ -561,3 +559,35 @@ par lot (500 lignes maximum) : renseigner seulement les distributions réalisée
 Case vide : aucune écriture ; doublon, ligne invalide ou conflit : lot refusé.
 Aucune date future n’est acceptée pour une distribution. Les corrections restent
 accessibles depuis l’accord. Aucun nouveau droit ni migration pour cette tranche.
+
+## CHRS7 — corrections tracées
+
+```sh
+python manage.py migrate
+python manage.py autoriser_chrs7 nom-utilisateur
+```
+
+Cette commande attribue explicitement CHRS1–7, sans administration ou suppression.
+Aucun compte existant ne reçoit ces nouveaux droits à la migration ; les jeux
+fictifs nouvellement générés les attribuent. Les jeux existants ne sont pas reset.
+
+Les liens Corriger permettent de rectifier les dates d’un accompagnement, d’une
+appartenance, d’un accord, d’un séjour, d’une affectation ou d’une absence. Une
+situation sociale permet aussi de corriger sa date/source, entre ses voisines,
+sans réordonner la série ; la borne de la valeur précédente suit la date corrigée.
+Les événements et bilans autorisent une correction du texte et de sa date/source.
+Un motif est requis. Les dates, sources et textes avant/après restent dans deux
+journaux typés avec auteur et horodatage. Un formulaire périmé ou dont la cible
+a été modifiée entre-temps est refusé. Les opérations initiales restent intactes.
+
+La validation refuse les réalisations exclues, les chevauchements et dates
+incompatibles. Aucun déplacement automatique des repas ou périodes dépendantes.
+La correction ne rouvre ni ne clôture une période ; utiliser les clôtures dédiées.
+Les bénéficiaires, identités, liens familiaux et lieux attribués ne sont pas
+modifiés par ce formulaire. Pour les repas distribués, annuler puis ressaisir.
+Les mécanismes restent applicatifs ; ni socle ni profils de déploiement modifiés.
+
+Le banc navigateur scripts/verifier-pwa.cjs exerce aussi la fiche d’accompagnement,
+une correction avec avant/après et une distribution du jour via le vrai Worker
+Pyodide (scripts/verifier-parcours-metier.cjs). Sa réussite reste à confirmer
+dans la CI du candidat ; elle ne se déduit pas des tests Django.

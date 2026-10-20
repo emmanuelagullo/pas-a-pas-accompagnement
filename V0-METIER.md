@@ -173,3 +173,14 @@ les réalisations accessibles. Consultation d’un état à une date, dans les
 bornes de l’accompagnement. Valeur inconnue distincte d’une absence de ressources.
 La commande autoriser_chrs4 attribue explicitement tout le parcours CHRS1–4.
 Voir README.md pour les limites des corrections et les conventions de clôture.
+
+## CHRS5–7 livrés
+
+Fiche d’accompagnement et navigation contextuelle ; travail du jour et saisie
+atomique de repas ; corrections de dates et textes avec avant/après typé.
+Les écritures liées sont sérialisées par ménage avant les verrous de suivi/séjour.
+Les permissions de correction sont attribuées explicitement par autoriser_chrs7 ;
+aucun nouveau droit automatique à la migration. Les restrictions historiques
+« immuable » et « pas de correction de date/texte » de CHRS1–4 sont remplacées
+par les parcours CHRS7 décrits dans README.md. Pas de réouverture, suppression,
+réservation ou contrôle global des capacités.

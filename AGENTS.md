@@ -211,3 +211,18 @@ parcours de copie existants, sans nouveau format ni reset.
 #SOC — sites : lire site/README.md et site/theme-communs/HUGO.md. Initialiser
 le sous-module épinglé avant Hugo. Ne pas recopier les layouts/styles du thème.
 Conserver contenus, démonstration, URL et paramètres de couleur propres au produit.
+
+# CHRS5–7 : ergonomie et corrections
+
+Lire les sections CHRS5–7 de README.md et les services de personnes. Retourner à
+la fiche/accord concerné après POST ; destinations construites côté serveur,
+pas de next arbitraire. Travail du jour : aucun repas implicite, lots atomiques
+et doublons refusés. Corrections motivées avec jeton d’état signé, avant/après
+typé, règles de dépendances et permissions explicites ; ne pas supprimer ou
+réécrire les journaux d’origine. Aucune attribution de droits en migration.
+Les services liés prennent le verrou métier du ménage avant ceux du suivi et
+du séjour, pour qualifier concurrence et corrections sur SQLite/PostgreSQL.
+Toute nouvelle écriture liée doit respecter cet ordre. Vérifier les refus,
+rollback, stale forms, concurrence et reprise ZIP des nouveaux journaux.
+La démonstration existante reste intacte ; seuls les jeux nouvellement générés
+reçoivent CHRS1–7. Ne pas rouvrir le socle pour ces parcours strictement métier.

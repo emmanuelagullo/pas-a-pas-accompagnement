@@ -85,3 +85,10 @@ l’ancienne mention du miroir GitHub dans le contrat du commit importé est
 historique. Le commit adopté est celui effectivement publié sur Inria :
 `5d64e2487939093bd6378a8a1611da95d93830ca`. Aucune reproduction de SHA avec
 une commande spéciale `git am` n’est nécessaire.
+
+## Guide métier CHRS5–7
+
+Les fiches accompagnement, travail-du-jour et corriger-saisie décrivent les
+parcours du code courant. Conserver les réserves sur la version effectivement
+installée/publiée. Ne pas annoncer l’attribution de droits aux comptes existants :
+autoriser_chrs7 est une action explicite. Aucun changement du thème ou gitlink.

@@ -1,5 +1,6 @@
 {% extends "base.html" %}{% block contenu %}<h1>{{ menage }}</h1>
 <h2>Appartenances</h2><ul>{% for a in appartenances %}<li><a href="{% url 'personnes:detail' a.personne_id %}">{{ a.personne }}</a> : du {{ a.debut }} au {{ a.fin|default:"— période ouverte" }} (fin exclue)
+{% if perms.personnes.change_appartenance and perms.personnes.view_correctionperiode %}<a href="{% url 'suivi:corriger_saisie' 'appartenance' a.pk %}">Corriger les dates</a>{% endif %}
 {% if not a.fin and perms.personnes.change_appartenance %}<a href="{% url 'suivi:clore_appartenance' menage.pk a.pk %}">Clôturer l’appartenance</a>{% endif %}</li>{% endfor %}</ul>
 {% if perms.personnes.add_appartenance %}<a href="{% url 'suivi:ajouter' menage.pk %}">Ajouter une appartenance</a>{% endif %}
 {% if perms.personnes.view_accompagnement %}<h2>Accompagnements — service d’essai</h2>
@@ -13,4 +14,5 @@
 {% if not a.fin and perms.personnes.change_accompagnement %}<a href="{% url 'suivi:clore_accompagnement' menage.pk a.pk %}">Clôturer l’accompagnement</a>{% endif %}</li>{% empty %}<li>Aucun accompagnement.</li>{% endfor %}</ul>
 {% if perms.personnes.add_accompagnement %}<a href="{% url 'suivi:ouvrir' menage.pk %}">Ouvrir un accompagnement</a>{% endif %}{% endif %}
 {% if perms.personnes.view_evenementsuivi %}<h2>Journal des opérations</h2><ul>{% for e in evenements %}<li>{{ e.get_type_display }} — effet {{ e.date_effet }}, enregistré {{ e.enregistre_le }} par {{ e.auteur }}</li>{% endfor %}</ul>{% endif %}
+{% if perms.personnes.view_correctionperiode %}<h2>Corrections d’appartenance</h2><ul>{% for c in corrections_appartenances %}<li>{{ c.enregistre_le }} — {{ c.auteur }} : {{ c.ancien_debut }} / {{ c.ancienne_fin|default:"ouverte" }} → {{ c.nouveau_debut }} / {{ c.nouvelle_fin|default:"ouverte" }} ; {{ c.motif }}</li>{% endfor %}</ul>{% endif %}
 <a href="{% url 'suivi:liste' %}">Retour aux ménages</a>{% endblock %}

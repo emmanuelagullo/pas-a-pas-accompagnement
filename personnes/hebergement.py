@@ -1,4 +1,5 @@
 """Écritures CHRS3, périodes civiles et sérialisation par séjour."""
+from .verrous_metier import serialiser
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import F, Q
@@ -42,6 +43,7 @@ def bornes(sejour, debut, fin):
         raise ValidationError("Le début effectif ne peut pas être futur.")
 
 
+@serialiser("accompagnement")
 @transaction.atomic
 def accorder(acteur, accompagnement, beneficiaires, debut, fin):
     droit(acteur, "add_accordhebergement")
@@ -58,6 +60,7 @@ def accorder(acteur, accompagnement, beneficiaires, debut, fin):
     return accord
 
 
+@serialiser("accord")
 @transaction.atomic
 def admettre(acteur, accord, beneficiaires, debut):
     droit(acteur, "add_sejour")
@@ -85,6 +88,7 @@ def creer_lieu(acteur, libelle, partenaire=""):
     return lieu
 
 
+@serialiser("sejour")
 @transaction.atomic
 def ajouter_periode(acteur, sejour, debut, fin, lieu=None, absence=False):
     droit(acteur, "add_absence" if absence else "add_affectation")
@@ -106,6 +110,7 @@ def ajouter_periode(acteur, sejour, debut, fin, lieu=None, absence=False):
     return objet
 
 
+@serialiser("objet")
 @transaction.atomic
 def terminer_periode(acteur, objet, fin):
     absence = isinstance(objet, Absence)
@@ -121,6 +126,7 @@ def terminer_periode(acteur, objet, fin):
         sejour=sejour, **({"absence": objet} if absence else {"affectation": objet}))
 
 
+@serialiser("sejour")
 @transaction.atomic
 def sortir(acteur, sejour, fin):
     droit(acteur, "change_sejour")

@@ -2,7 +2,7 @@
 <p>Accordé du {{ accord.debut }} au {{ accord.fin|default:"— période ouverte" }} (fin exclue). Prestataire : {{ accord.prestataire|default:"non renseigné" }}.</p>
 <p>Bénéficiaires : {% for p in accord.beneficiaires.all %}{{ p }}{% if not forloop.last %}, {% endif %}{% endfor %}.</p>
 <p>L’accord couvre ce service chaque jour de sa période, sans plafond global. Il ne prouve pas une distribution.</p>
-<h2>Réalisation effective : {{ total }} repas distribués</h2>
+{% if perms.personnes.change_accordrepas and perms.personnes.view_correctionperiode %}<p><a href="{% url 'suivi:corriger_saisie' 'accordrepas' accord.pk %}">Corriger les dates de l’accord</a></p>{% endif %}<h2>Réalisation effective : {{ total }} repas distribués</h2>
 {% if perms.personnes.add_repasdistribue %}<a href="{% url 'suivi:distribuer_repas' accord.pk %}">Enregistrer une distribution</a>{% endif %}
 <ul>{% for r in realisations %}<li>{{ r.date }} — {{ r.beneficiaire }} : {{ r.quantite }} repas.
 {% if r.annule_le %}Annulée le {{ r.annule_le }} par {{ r.annule_par }} : {{ r.motif_annulation }}{% elif perms.personnes.change_repasdistribue %}<a href="{% url 'suivi:annuler_repas' r.pk %}">Annuler cette distribution</a>{% endif %}</li>{% empty %}<li>Aucune distribution.</li>{% endfor %}</ul>

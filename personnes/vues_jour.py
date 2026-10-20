@@ -69,7 +69,7 @@ def jour(request):
                     raise ValidationError("Renseignez au moins une quantité effectivement distribuée.")
                 vus = set()
                 with transaction.atomic():
-                    for d in sorted(demandes,key=lambda x:(str(x["accord"].pk),str(x["beneficiaire"].pk))):
+                    for d in sorted(demandes,key=lambda x:(str(x["accord"].accompagnement.menage_id),str(x["accord"].pk),str(x["beneficiaire"].pk))):
                         cle=(d["accord"].pk,d["beneficiaire"].pk)
                         if cle not in actifs_ids or cle in vus:
                             raise ValidationError("La sélection est invalide ou contient un doublon. Rechargez la page.")
