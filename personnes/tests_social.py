@@ -139,7 +139,11 @@ class TrajectoireTests(TestCase):
         reponse = self.client.get(url, {'beneficiaire': str(self.p.pk), 'debut': '2026-02-01', 'fin': '2026-02-01'})
         self.assertContains(reponse, 'Événement fictif')
         self.assertNotContains(reponse, 'Bilan collectif fictif')
-        self.assertNotContains(reponse, 'Sans emploi')
+        # Le filtre porte sur les événements datés ; la comparaison affiche
+        # séparément la situation encore en vigueur à cette date.
+        self.assertContains(reponse, 'Sans emploi')
+        self.assertFalse(any('Sans emploi' in ligne['texte']
+                             for ligne in reponse.context['lignes']))
         self.assertContains(self.client.get(url, {'fin': '2026-01-01', 'debut': '2026-02-01'}), 'La fin ne peut pas précéder')
         self.assertContains(self.client.get(url, {'beneficiaire': 'inconnu'}), 'Sélectionnez un choix valide')
 
