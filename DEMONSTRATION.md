@@ -200,3 +200,29 @@ reste à effectuer. Revenir avec un autre compte disposant du droit de clôture
 pour marquer l'action comme réalisée. Une transmission informative ne crée
 aucune action. Les notes sociales de Thomas ne sont pas reprises dans la
 liste transversale : leur consultation reste soumise aux droits du dossier.
+
+
+## Qualification transversale CHRS-Q — relève et date métier
+
+Sur « Travail du jour », choisir une date ancienne : les séjours, repas et accords
+sont affichés à cette date ; la **relève actuelle** conserve les transmissions
+récentes et les actions encore ouvertes. Ces informations ne constituent pas
+une photographie historique. Les actions sont réparties entre *en retard*,
+*à traiter aujourd’hui* et *à venir ou sans échéance* ; l'échéance est
+facultative et aucune tâche n'est déduite d'une transmission.
+
+Parcours de recette avec des profils fictifs distincts :
+
+1. **Nuit** : ouvrir le travail du jour, consulter le cahier si autorisé,
+   transmettre une information factuelle sans données sociales sensibles.
+2. **Journée** : consulter la relève, créer explicitement une action à reprendre,
+   puis la marquer réalisée avec le droit de modification.
+3. **Référent social** : consulter la trajectoire et les bilans avec les droits
+   correspondants ; vérifier séparément les chiffres d'activité.
+4. **Contrôle négatif** : retirer `view_transmission` et `view_actionrelais` ;
+   vérifier l'absence des textes dans la page et le refus des URLs dédiées.
+5. **Date historique** : vérifier que le changement de date métier ne transforme
+   pas la relève actuelle en historique de cette date.
+
+Les captures Hugo ne constituent pas à elles seules un test de confidentialité :
+la recette doit aussi vérifier les réponses HTTP et les textes absents.

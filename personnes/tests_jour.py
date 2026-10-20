@@ -105,3 +105,38 @@ class JourTests(TestCase):
         self.assertNotContains(self.client.get(self.url), "Vérifier le relais")
         self.u.user_permissions.remove(consulter)
         self.assertNotContains(self.client.get(self.url), "Actions explicitement en attente")
+
+
+class QualificationTransversaleTests(TestCase):
+    """Relève actuelle, indépendamment de la date métier consultée."""
+
+    def setUp(self):
+        JourTests.setUp(self)
+
+    def test_releve_actuelle_et_regroupement_des_echeances(self):
+        from datetime import timedelta
+        from django.utils import timezone
+        from .models import ActionRelais
+        droits = Permission.objects.filter(content_type__app_label="personnes", codename__in=[
+            "view_actionrelais", "view_transmission"])
+        self.u.user_permissions.add(*droits)
+        aujourd_hui = timezone.localdate()
+        ActionRelais.objects.create(libelle="Action en retard fictive", auteur=self.u, echeance=aujourd_hui-timedelta(days=1))
+        ActionRelais.objects.create(libelle="Action du jour fictive", auteur=self.u, echeance=aujourd_hui)
+        ActionRelais.objects.create(libelle="Action future fictive", auteur=self.u, echeance=aujourd_hui+timedelta(days=2))
+        ActionRelais.objects.create(libelle="Action sans date fictive", auteur=self.u)
+        Transmission.objects.create(auteur=self.u, contenu="Transmission actuelle fictive")
+        reponse = self.client.get(self.url)
+        self.assertContains(reponse, "La date choisie concerne uniquement")
+        self.assertContains(reponse, "Relève actuelle")
+        self.assertContains(reponse, "Transmission actuelle fictive")
+        for libelle in ("Action en retard fictive", "Action du jour fictive", "Action future fictive", "Action sans date fictive"):
+            self.assertContains(reponse, libelle)
+        self.assertContains(reponse, "En retard")
+        self.assertContains(reponse, "À traiter aujourd’hui")
+        self.assertContains(reponse, "À venir ou sans échéance")
+        self.u.user_permissions.remove(*droits)
+        reponse = self.client.get(self.url)
+        for libelle in ("Action en retard fictive", "Transmission actuelle fictive"):
+            self.assertNotContains(reponse, libelle)
+        self.assertNotContains(reponse, "Relève actuelle —")
