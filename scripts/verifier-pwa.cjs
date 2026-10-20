@@ -33,6 +33,19 @@ const server=(tls?require('node:https'):http).createServer(options,(req,res)=>{
   const context=await browser.newContext({ignoreHTTPSErrors:tls});let page=await context.newPage();
   page.on('pageerror',e=>console.error('PAGE',String(e)));
   page.on('console',m=>{if(m.type()==='error')console.error('CONSOLE',m.text());});
+  async function changerEspace(essai){
+   // Le retour de l’iframe peut encore occuper le moteur après le clic.
+   // Le bouton d’export indique que propriétaire, opérations et requêtes
+   // sont prêts : attendre cet état avant de demander le changement.
+   await page.waitForFunction(()=>!document.querySelector('#export').disabled,{},{timeout:120000});
+   await Promise.all([
+    page.waitForURL(u=>essai?u.searchParams.get('essai')==='oui':!u.searchParams.has('essai'),{waitUntil:'commit'}),
+    page.locator('#changer-espace').click(),
+   ]).catch(async erreur=>{
+    console.error('Changement d’espace non atteint :',page.url(),await page.locator('#status').textContent(),await page.locator('#notice').textContent());
+    throw erreur;
+   });
+  }
   async function ouvrir(){await page.goto(url);await page.frameLocator('#app').locator('h1').waitFor({timeout:120000});}
   await ouvrir();const frame=page.frameLocator('#app');
   await frame.locator('[name=username]').fill('essai-pwa');
@@ -61,11 +74,11 @@ const server=(tls?require('node:https'):http).createServer(options,(req,res)=>{
   assert.match(pdf.suggestedFilename(),/^fiche-personne-[a-f0-9-]+\.pdf$/);
   assert.equal(fs.readFileSync(await pdf.path()).subarray(0,5).toString(),'%PDF-');
   await apres.getByRole('link',{name:'Retour aux personnes'}).click();
+  await apres.getByRole('link',{name:'Personne fictive conservée',exact:true}).waitFor();
   await context.setOffline(false);
   // Même profil et origine : isoler l’essai de l’espace habituel déjà rempli.
   await context.setOffline(true);
-  await page.locator('#changer-espace').click();
-  await page.waitForURL(u=>u.searchParams.get('essai')==='oui');
+  await changerEspace(true);
   const df=page.frameLocator('#app');
   await df.locator('[name=username]').waitFor({timeout:120000});
   assert.equal(await df.locator('[name=password1]').count(),0);
@@ -106,7 +119,7 @@ with zipfile.ZipFile(sys.argv[1]) as z,tempfile.TemporaryDirectory() as t:
   await df.getByRole('link',{name:'Personnes',exact:true}).click();
   await df.getByText('Essai séparé conservé',{exact:true}).waitFor();
   async function retrouverHabituel(){
-   await page.locator('#changer-espace').click();await page.waitForURL(u=>!u.searchParams.has('essai'));
+   await changerEspace(false);
    const f=page.frameLocator('#app');await f.locator('[name=username]').waitFor({timeout:120000});
    await f.locator('[name=username]').fill('essai-pwa');
    await f.locator('[name=password]').fill('Phrase fictive navigateur-854!');
@@ -117,7 +130,7 @@ with zipfile.ZipFile(sys.argv[1]) as z,tempfile.TemporaryDirectory() as t:
    assert.equal(await f.getByText('Alex (fictif)',{exact:true}).count(),0);
   }
   await retrouverHabituel();
-  await page.locator('#changer-espace').click();
+  await changerEspace(true);
   await df.locator('[name=username]').waitFor({timeout:120000});
   await df.locator('[name=username]').fill('nadia');
   await df.locator('[name=password]').fill('Demonstration-fictive-2026!');
