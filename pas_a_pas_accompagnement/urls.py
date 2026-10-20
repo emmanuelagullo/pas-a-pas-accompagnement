@@ -3,7 +3,7 @@ from django.urls import include, path
 from .views import accueil, health, choisir_espace_local
 from personnes.installation import installer
 from personnes.views import decouverte
-from personnes.vues_statistiques import statistiques
+from personnes.vues_statistiques import statistiques, enregistrer_modele_rapport, supprimer_modele_rapport
 from identites import vues as identites
 
 from .copies_locales import copies
@@ -14,6 +14,8 @@ urlpatterns = [
     path("copies-locales/", copies, name="copies_locales"),
     path("menages/", include("personnes.urls_suivi")),
     path("statistiques/", statistiques, name="statistiques"),
+    path("statistiques/modeles/ajouter/", enregistrer_modele_rapport, name="statistiques_modele_ajouter"),
+    path("statistiques/modeles/<int:pk>/supprimer/", supprimer_modele_rapport, name="statistiques_modele_supprimer"),
     path("installer/", installer, name="installation_locale"),
     path("", accueil, name="accueil"),
     path("health/", health, name="health"),

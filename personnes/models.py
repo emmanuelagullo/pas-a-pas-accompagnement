@@ -362,6 +362,17 @@ class RevisionContribution(models.Model):
             | models.Q(transmission__isnull=True, note__isnull=False)), name="revision_une_cible")]
 
 
+class ModeleRapport(models.Model):
+    """Configuration privée de statistiques, jamais une copie des résultats."""
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='modeles_rapports')
+    nom = models.CharField(max_length=100)
+    parametres = models.JSONField(default=dict)
+    cree_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['nom', 'pk']
+
+
 class ActionRelais(models.Model):
     id = models.BigAutoField(primary_key=True)
     """Action explicite d'équipe, distincte d'une transmission informative."""

@@ -4,12 +4,12 @@ import csv
 from django import forms
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required, permission_required
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import QueryDict
 from django.utils import timezone
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 from .statistiques import bilan, evolution_mensuelle, ventilation_repas, exploration_repas, exploration_affectations, regrouper_exploration, REGROUPEMENTS_EXPLORATION
-from .models import AccordRepas, LieuHebergement
+from .models import AccordRepas, LieuHebergement, ModeleRapport
 
 
 RAPPORTS = {
@@ -56,6 +56,72 @@ class PeriodeStatistiquesForm(forms.Form):
         return valeurs
 
 
+# Seuls les paramètres publics et validés sont conservés ; ni données nominatives,
+# ni export CSV, ni identifiants d'autres utilisateurs.
+PARAMETRES_MODELE = ('rapport', 'debut', 'fin', 'service', 'lieu', 'regroupement', 'comparer')
+
+
+def parametres_modele(donnees):
+    periode = PeriodeStatistiquesForm(donnees)
+    if not periode.is_valid():
+        raise ValueError('Période invalide')
+    rapport = donnees.get('rapport', 'synthese')
+    if rapport not in RAPPORTS:
+        raise ValueError('Rapport inconnu')
+    service = donnees.get('service', '')
+    if service not in dict(AccordRepas.SERVICES) and service:
+        raise ValueError('Service inconnu')
+    lieu = donnees.get('lieu', '')
+    if lieu and (not lieu.isdigit() or not LieuHebergement.objects.filter(pk=lieu).exists()):
+        raise ValueError('Lieu inconnu')
+    regroupement = donnees.get('regroupement', 'mois_categorie')
+    if regroupement not in dict(REGROUPEMENTS_EXPLORATION):
+        raise ValueError('Regroupement inconnu')
+    if rapport in ('exploration_repas', 'exploration_hebergement'):
+        debut, fin = periode.cleaned_data['debut'], periode.cleaned_data['fin']
+        dernier = fin - timedelta(days=1)
+        mois = (dernier.year - debut.year) * 12 + dernier.month - debut.month + 1
+        if mois > 24:
+            raise ValueError('Période trop longue')
+    return {
+        'rapport': rapport,
+        'debut': periode.cleaned_data['debut'].isoformat(),
+        'fin': periode.cleaned_data['fin'].isoformat(),
+        'service': service if rapport == 'exploration_repas' else '',
+        'lieu': lieu if rapport == 'exploration_hebergement' else '',
+        'regroupement': regroupement,
+        'comparer': '1' if donnees.get('comparer') == '1' else '',
+    }
+
+
+@require_POST
+@login_required
+@permission_required(('personnes.view_accompagnement', 'personnes.view_sejour',
+                      'personnes.view_repasdistribue'), raise_exception=True)
+def enregistrer_modele_rapport(request):
+    nom = request.POST.get('nom', '').strip()
+    if not nom or len(nom) > 100:
+        return HttpResponse('Nom de rapport invalide', status=400)
+    if ModeleRapport.objects.filter(auteur=request.user).count() >= 30:
+        return HttpResponse('Limite de 30 modèles atteinte', status=400)
+    try:
+        parametres = parametres_modele(request.POST)
+    except (ValueError, TypeError):
+        return HttpResponse('Configuration de rapport invalide', status=400)
+    ModeleRapport.objects.create(auteur=request.user, nom=nom, parametres=parametres)
+    return redirect('statistiques')
+
+
+@require_POST
+@login_required
+@permission_required(('personnes.view_accompagnement', 'personnes.view_sejour',
+                      'personnes.view_repasdistribue'), raise_exception=True)
+def supprimer_modele_rapport(request, pk):
+    modele = get_object_or_404(ModeleRapport, pk=pk, auteur=request.user)
+    modele.delete()
+    return redirect('statistiques')
+
+
 @require_GET
 @login_required
 @permission_required(('personnes.view_accompagnement', 'personnes.view_sejour',
@@ -63,25 +129,29 @@ class PeriodeStatistiquesForm(forms.Form):
 def statistiques(request):
     aujourd_hui = timezone.localdate()
     initial = {'debut': aujourd_hui.replace(day=1), 'fin': aujourd_hui + timedelta(days=1)}
-    periode_choisie = request.GET.get('periode', '')
+    modele = None
+    if request.GET.get('modele'):
+        modele = get_object_or_404(ModeleRapport, pk=request.GET['modele'], auteur=request.user)
+    selection = modele.parametres if modele else request.GET
+    periode_choisie = selection.get('periode', '')
     if periode_choisie in PERIODES:
         debut, fin = bornes_periode(periode_choisie, aujourd_hui)
         formulaire = PeriodeStatistiquesForm({'debut': debut.isoformat(), 'fin': fin.isoformat()})
     else:
-        formulaire = PeriodeStatistiquesForm(request.GET or None, initial=initial)
+        formulaire = PeriodeStatistiquesForm(selection or None, initial=initial)
 
-    rapport = request.GET.get('rapport', 'synthese')
+    rapport = selection.get('rapport', 'synthese')
     if rapport not in RAPPORTS:
         rapport = 'synthese'
-    service_choisi = request.GET.get('service', '')
+    service_choisi = selection.get('service', '')
     if service_choisi not in dict(AccordRepas.SERVICES):
         service_choisi = ''
     resultats = bilan(**formulaire.cleaned_data) if formulaire.is_valid() else None
-    lieu_choisi = request.GET.get('lieu', '')
+    lieu_choisi = selection.get('lieu', '')
     lieux_possibles = list(LieuHebergement.objects.order_by('libelle', 'pk'))
     if lieu_choisi and not any(str(l.pk) == lieu_choisi for l in lieux_possibles):
         lieu_choisi = ''
-    regroupement = request.GET.get('regroupement', 'mois_categorie')
+    regroupement = selection.get('regroupement', 'mois_categorie')
     if regroupement not in dict(REGROUPEMENTS_EXPLORATION):
         regroupement = 'mois_categorie'
     exploration_hebergement = []
@@ -156,13 +226,14 @@ def statistiques(request):
                                  formulaire.cleaned_data['fin'].isoformat(), indicateur, valeur])
         return reponse
     comparaison = None
-    if resultats is not None and request.GET.get('comparer') == '1':
+    if resultats is not None and selection.get('comparer') == '1':
         duree = formulaire.cleaned_data['fin'] - formulaire.cleaned_data['debut']
         comparaison = bilan(formulaire.cleaned_data['debut'] - duree,
                             formulaire.cleaned_data['debut'])
     periode = formulaire.cleaned_data if formulaire.is_valid() else {}
     return render(request, 'suivi/statistiques.html', {
         'formulaire': formulaire, 'resultats': resultats,
+        'modeles_rapports': ModeleRapport.objects.filter(auteur=request.user),
         'regroupement': regroupement, 'regroupements': REGROUPEMENTS_EXPLORATION,
         'exploration_hebergement': exploration_hebergement,
         'erreur_hebergement': erreur_hebergement,
@@ -170,7 +241,7 @@ def statistiques(request):
         'exploration': exploration, 'erreur_exploration': erreur_exploration,
         'services_possibles': AccordRepas.SERVICES, 'service_choisi': service_choisi,
         'periodes': PERIODES, 'periode_choisie': periode_choisie,
-        'comparaison': comparaison, 'comparer': request.GET.get('comparer') == '1',
+        'comparaison': comparaison, 'comparer': selection.get('comparer') == '1',
         'rapport': rapport, 'rapports': RAPPORTS,
         'evolution': evolution, 'services': services, 'erreur_evolution': erreur_evolution,
         'debut_iso': periode['debut'].isoformat() if periode else '',

@@ -2,6 +2,10 @@
 <h1>Statistiques d’activité</h1>
 {% if perms.personnes.view_personne and perms.personnes.view_menage and perms.personnes.view_accompagnement %}<p><a href="{% url 'suivi:jour' %}">Retour au travail du jour</a> · <a href="{% url 'suivi:liste' %}">Ménages et accompagnements</a></p>{% endif %}
 <p>Les indicateurs portent sur la période civile choisie, début inclus et fin exclue.</p>
+<section class="carte"><h2>Mes modèles de rapports</h2>
+<p>Les modèles sont personnels et mémorisent les filtres, pas les résultats. Les chiffres sont recalculés à chaque consultation.</p>
+<ul>{% for modele in modeles_rapports %}<li><a href="{% url 'statistiques' %}?modele={{ modele.pk }}">{{ modele.nom }}</a>
+<form method="post" action="{% url 'statistiques_modele_supprimer' modele.pk %}" style="display:inline">{% csrf_token %}<button type="submit">Supprimer</button></form></li>{% empty %}<li>Aucun modèle enregistré.</li>{% endfor %}</ul></section>
 <form method="get" aria-label="Périodes prédéfinies">
 <label for="periode">Période rapide</label>
 <select id="periode" name="periode">
@@ -27,6 +31,12 @@
 </select>
 <label><input type="checkbox" name="comparer" value="1" {% if comparer %}checked{% endif %}> Comparer avec la période précédente de même durée</label>
 <button type="submit">Calculer</button></form>
+{% if resultats != None %}<form method="post" action="{% url 'statistiques_modele_ajouter' %}">
+{% csrf_token %}<label for="nom_modele">Nom du modèle</label><input id="nom_modele" name="nom" maxlength="100" required>
+<input type="hidden" name="rapport" value="{{ rapport }}"><input type="hidden" name="debut" value="{{ debut_iso }}"><input type="hidden" name="fin" value="{{ fin_iso }}">
+<input type="hidden" name="service" value="{{ service_choisi }}"><input type="hidden" name="lieu" value="{{ lieu_choisi }}">
+<input type="hidden" name="regroupement" value="{{ regroupement }}">{% if comparer %}<input type="hidden" name="comparer" value="1">{% endif %}
+<button type="submit">Enregistrer cette configuration</button></form>{% endif %}
 {% if comparaison != None %}
 <section class="carte"><h2>Comparaison avec la période précédente</h2>
 <p>La période précédente a exactement la même durée en jours. Les effectifs distincts ne sont pas additionnables.</p>

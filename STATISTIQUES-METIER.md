@@ -124,3 +124,14 @@ de la vue choisie. Aucun résultat nominatif n'est ajouté.
 Les nuitées d'affectation peuvent rester doublonnées en cas d'affectations
 concomitantes : un total par lieu ou par mois ne doit pas être interprété
 comme un nombre de nuits distinctes ni comme un taux d'occupation.
+
+
+## Modèles personnels de rapports (CHRS16)
+
+Les professionnels disposant des droits de consultation statistique peuvent
+enregistrer jusqu’à 30 configurations personnelles : rapport, bornes civiles,
+service ou lieu et regroupement. Aucun résultat ni donnée nominative n'est
+stocké dans le modèle ; la consultation recalcule les indicateurs avec les
+données et permissions actuelles. Les modèles ne sont pas partagés entre comptes.
+Les bornes sont fixes : un modèle enregistré pour janvier 2026 ne devient pas
+automatiquement « janvier prochain ». La suppression est explicite.
