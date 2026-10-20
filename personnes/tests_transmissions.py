@@ -88,3 +88,32 @@ class TransmissionsTests(TestCase):
         self.assertContains(reponse, "Rectification documentée")
         self.assertContains(reponse, "Avant")
         self.assertContains(reponse, "Après")
+
+class RetourServiceTests(TestCase):
+    """Le retour explicite est borné à une route interne connue."""
+
+    def setUp(self):
+        self.u = get_user_model().objects.create_user("retour-service-fictif")
+        self.u.user_permissions.add(*Permission.objects.filter(
+            content_type__app_label="personnes", codename__in=[
+                "view_transmission", "add_transmission", "view_actionrelais", "add_actionrelais", "change_actionrelais"]))
+        self.client.force_login(self.u)
+
+    def test_transmission_retour_au_service(self):
+        url = reverse("suivi:cahier")
+        self.assertContains(self.client.get(url + "?retour=jour"), 'name="retour" value="jour"')
+        self.assertRedirects(self.client.post(url, {"contenu": "Relève", "retour": "jour"}),
+                             reverse("suivi:jour"), fetch_redirect_response=False)
+        self.assertRedirects(self.client.post(url, {"contenu": "Autre", "retour": "https://exemple.test/"}),
+                             url, fetch_redirect_response=False)
+
+    def test_action_retour_au_service(self):
+        from .models import ActionRelais
+        url = reverse("suivi:actions_relais")
+        self.assertContains(self.client.get(url + "?retour=jour"), 'name="retour" value="jour"')
+        self.assertRedirects(self.client.post(url, {"libelle": "Relire le cahier", "retour": "jour"}),
+                             reverse("suivi:jour"), fetch_redirect_response=False)
+        action = ActionRelais.objects.get()
+        self.assertRedirects(self.client.post(reverse("suivi:terminer_action_relais", args=[action.pk]),
+                                              {"retour": "jour"}), reverse("suivi:jour"),
+                             fetch_redirect_response=False)
