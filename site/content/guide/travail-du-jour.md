@@ -46,3 +46,16 @@ cela est nécessaire et autorisé.
 
 Les dates de fin d'accord sont exclusives. Un accord arrivant à échéance
 n'entraîne ni renouvellement automatique ni création d'une action.
+
+## Repères pour la prise de poste et le pilotage
+
+Sur « Travail du jour », commencer par la **relève actuelle** : les compteurs
+distinguent les actions en retard, celles à traiter aujourd’hui et les autres.
+Les compteurs concernent uniquement les actions encore ouvertes et visibles
+selon vos droits. Une transmission reste une information, jamais une action
+créée automatiquement.
+
+La **situation à la date choisie** affiche explicitement la date de consultation.
+Pour poursuivre l’analyse, les liens vers les ménages et les statistiques
+restent soumis aux autorisations existantes. Les statistiques portent sur une
+période et ne décrivent pas une présence physique certaine.

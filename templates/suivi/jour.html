@@ -30,6 +30,7 @@
 <h3>À venir ou sans échéance ({{ actions_autres.count }})</h3><ul>{% for action in actions_autres %}<li>{{ action.libelle }}{% if action.echeance %} — échéance : {{ action.echeance|date:'d/m/Y' }}{% endif %}</li>{% empty %}<li>Aucune.</li>{% endfor %}</ul>
 <p><a href="{% url 'suivi:actions_relais' %}?retour=jour">{% if perms.personnes.change_actionrelais %}Consulter et clôturer les actions de relève{% else %}Consulter les actions de relève{% endif %}</a></p></section>
 {% endif %}
+{% if perms.personnes.view_menage %}<p><a href="{% url 'suivi:liste' %}">Ouvrir les ménages et accompagnements</a>{% if perms.personnes.view_accompagnement and perms.personnes.view_sejour and perms.personnes.view_repasdistribue %} · <a href="{% url 'statistiques' %}">Consulter les statistiques d’activité</a>{% endif %}</p>{% endif %}
 <h2 id="situation-date">Situation à la date choisie{% if date %} — {{ date|date:"d/m/Y" }}{% endif %}</h2>
 <p>Les dates reflètent les informations enregistrées. Un séjour ouvert ne prouve pas la présence physique.</p>
 {% if perms.personnes.view_accordhebergement and perms.personnes.view_sejour %}<section class="carte"><h2>Hébergement au {{ date }}</h2><ul>{% for ligne in hebergements %}<li><a href="{% url 'suivi:accord_hebergement' ligne.sejour.accord_id %}">{{ ligne.sejour.accord.accompagnement.menage }}</a> : {% for p in ligne.sejour.beneficiaires.all %}{{ p }} ; {% endfor %}

@@ -1,5 +1,6 @@
 {% extends "base.html" %}{% block contenu %}
 <h1>Statistiques d’activité</h1>
+{% if perms.personnes.view_personne and perms.personnes.view_menage and perms.personnes.view_accompagnement %}<p><a href="{% url 'suivi:jour' %}">Retour au travail du jour</a> · <a href="{% url 'suivi:liste' %}">Ménages et accompagnements</a></p>{% endif %}
 <p>Les indicateurs portent sur la période civile choisie, début inclus et fin exclue.</p>
 <form method="get" aria-label="Périodes prédéfinies">
 <label for="periode">Période rapide</label>
