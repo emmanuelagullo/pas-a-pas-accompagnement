@@ -4,7 +4,7 @@ from . import tests_navigation
 from django.test import TestCase
 from django.contrib.auth.models import Permission
 from . import repas
-from .models import RepasDistribue
+from .models import RepasDistribue, Transmission
 
 
 class JourTests(TestCase):
@@ -65,3 +65,12 @@ class JourTests(TestCase):
         # Le menu ne doit pas inventer d'opérations non autorisées.
         self.u.user_permissions.clear()
         self.assertEqual(self.client.get(self.url).status_code, 403)
+
+    def test_relais_transmissions_et_confidentialite(self):
+        message = Transmission.objects.create(auteur=self.u, contenu="Relais de nuit fictif")
+        self.assertContains(self.client.get(self.url), message.contenu)
+        self.u.user_permissions.remove(*list(self.u.user_permissions.filter(codename="view_transmission")))
+        reponse = self.client.get(self.url)
+        self.assertEqual(reponse.status_code, 200)
+        self.assertNotContains(reponse, message.contenu)
+        self.assertNotContains(reponse, "Relais entre équipes")

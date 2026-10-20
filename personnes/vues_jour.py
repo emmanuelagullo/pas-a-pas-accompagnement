@@ -10,7 +10,7 @@ from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
-from .models import AccordRepas, RepasDistribue, Sejour, Accompagnement, Personne
+from .models import AccordRepas, RepasDistribue, Sejour, Accompagnement, Personne, Transmission
 from .forms_social import ConsultationForm
 from . import repas
 
@@ -89,6 +89,10 @@ def jour(request):
             lieux = [a for a in s.affectations.all() if a.debut<=date and (a.fin is None or a.fin>date)] if request.user.has_perms(["personnes.view_affectation","personnes.view_lieuhebergement"]) else None
             absences = [a for a in s.absences.all() if a.debut<=date and (a.fin is None or a.fin>date)] if request.user.has_perm("personnes.view_absence") else None
             hebergements.append({"sejour":s,"lieux":lieux,"absences":absences,"accord_expire":s.accord.fin and s.accord.fin<=date})
-    return render(request,"suivi/jour.html",{"date_form":date_form,"date":date,"hebergements":hebergements,
+    # Le cahier transversal est consultable sans exposer les notes individuelles.
+    # Les dernières transmissions restent accessibles indépendamment de la date métier.
+    transmissions_recentes = (list(Transmission.objects.select_related("auteur")[:8])
+                             if request.user.has_perm("personnes.view_transmission") else [])
+    return render(request,"suivi/jour.html",{"transmissions_recentes": transmissions_recentes,"date_form":date_form,"date":date,"hebergements":hebergements,
         "lignes":list(zip(lignes,formset)) if not trop else [],"formset":formset,"erreur":erreur,
         "lecture_repas":lecture_repas,"ecriture":ecriture and date and date<=timezone.localdate(),"trop":trop})

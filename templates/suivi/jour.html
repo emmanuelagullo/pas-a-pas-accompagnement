@@ -9,6 +9,16 @@
 </ul>
 </section>
 {% endif %}
+{% if perms.personnes.view_transmission %}
+<section class="carte" aria-labelledby="relais-equipe">
+<h2 id="relais-equipe">Relais entre équipes</h2>
+<p>Dernières transmissions du cahier de liaison, toutes dates confondues. Elles ne constituent pas une liste de tâches ni une preuve de prise en charge.</p>
+<ul>{% for transmission in transmissions_recentes %}
+<li><time datetime="{{ transmission.cree_le|date:'c' }}">{{ transmission.cree_le|date:'d/m/Y H:i' }}</time> — {{ transmission.contenu|linebreaksbr }}</li>
+{% empty %}<li>Aucune transmission enregistrée.</li>{% endfor %}</ul>
+<p><a href="{% url 'suivi:cahier' %}">Ouvrir le cahier de liaison{% if perms.personnes.add_transmission %} et transmettre une information{% endif %}</a></p>
+</section>
+{% endif %}
 <p>Les dates reflètent les informations enregistrées. Un séjour ouvert ne prouve pas la présence physique.</p>
 {% if perms.personnes.view_accordhebergement and perms.personnes.view_sejour %}<section class="carte"><h2>Hébergement au {{ date }}</h2><ul>{% for ligne in hebergements %}<li><a href="{% url 'suivi:accord_hebergement' ligne.sejour.accord_id %}">{{ ligne.sejour.accord.accompagnement.menage }}</a> : {% for p in ligne.sejour.beneficiaires.all %}{{ p }} ; {% endfor %}
 <p>Actions sur le séjour :
