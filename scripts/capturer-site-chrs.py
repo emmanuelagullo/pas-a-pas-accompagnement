@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
 """Captures publiques de la base jetable Les Passerelles (jamais de données réelles)."""
 import argparse
+import sys
 import time
 import urllib.request
 from pathlib import Path
+
+# Lance depuis scripts/ : ajouter explicitement la racine du depot aux imports.
+RACINE_DEPOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(RACINE_DEPOT))
+
+from pas_a_pas_accompagnement.demo import IDENTIFIANT, MOT_DE_PASSE
 from playwright.sync_api import sync_playwright
 
 
@@ -34,7 +41,6 @@ def main():
         page.screenshot(path=str(args.output / 'connexion.png'))
         # Le profil jetable affiche des identifiants publics ; ils ne sont jamais
         # extraits d'une base persistante ni d'un environnement de production.
-        from pas_a_pas_accompagnement.demo import IDENTIFIANT, MOT_DE_PASSE
         page.locator('input[name="username"]').fill(IDENTIFIANT)
         page.locator('input[name="password"]').fill(MOT_DE_PASSE)
         page.get_by_role('button', name='Se connecter').click()
