@@ -1,4 +1,5 @@
 ---
+fiche = true
 title: "Corriger une erreur de saisie"
 description: "Rectifier une date ou un texte en conservant l’avant et l’après."
 ---

@@ -1,4 +1,5 @@
 ---
+fiche = true
 title: "Essayer et retrouver son espace habituel"
 description: "Deux espaces distincts dans la PWA et les programmes récents."
 liste_auto: false

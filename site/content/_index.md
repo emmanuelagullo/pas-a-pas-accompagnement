@@ -10,3 +10,5 @@ et d’accompagnement social, notamment en CHRS. Découvrez ses parcours avec
 Le code actuel propose personnes, ménages, accompagnements, repas, hébergement
 et situations sociales datées. L’utilisation de dossiers réels et les
 habilitations entre structures ne sont pas qualifiées.
+
+Le code inclut également le **cahier de liaison**, les **notes partagées**, l’**accueil progressif** et des **bilans statistiques exportables**. [Découvrir les fiches pratiques](guide/).

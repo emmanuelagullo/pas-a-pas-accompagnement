@@ -92,3 +92,13 @@ Les fiches accompagnement, travail-du-jour et corriger-saisie décrivent les
 parcours du code courant. Conserver les réserves sur la version effectivement
 installée/publiée. Ne pas annoncer l’attribution de droits aux comptes existants :
 autoriser_chrs7 est une action explicite. Aucun changement du thème ou gitlink.
+
+## CHRS10 — Synchronisation documentaire
+
+Les fiches de `site/content/guide/` utilisent `fiche = true`, comme les fiches
+du guide Petits Pas. Le rendu dépend du thème partagé épinglé ; ne pas dupliquer
+les layouts. Les nouvelles pages décrivent CHRS8–10 et les exemples fictifs.
+Aucune capture d'écran n'est ajoutée sans capture réellement produite par la CI :
+le pipeline actuel ne contient pas de job de captures du scénario CHRS.
+Une future capture automatisée doit utiliser uniquement un jeu fictif neuf,
+avec masquage des secrets et vérification des pages générées avant publication.

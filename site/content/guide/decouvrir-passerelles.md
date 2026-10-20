@@ -1,4 +1,5 @@
 ---
+fiche = true
 title: "Découvrir Les Passerelles en cinq minutes"
 description: "Suivre trois situations pour comprendre les distinctions métier."
 liste_auto: false
@@ -35,3 +36,11 @@ jour de génération et ne changent plus à la réouverture.
 Pour poursuivre l’essai, ouvrir la [fiche d’accompagnement](../accompagnement/),
 puis le [travail du jour](../travail-du-jour/). Les versions récentes proposent
 aussi des [corrections tracées](../corriger-saisie/) avec les droits nécessaires.
+
+## Pour prolonger la visite
+
+6. **Relève d’équipe** : ouvrir le [cahier de liaison et les notes partagées](../transmissions/). Comparer une transmission générale et une note liée à Alex ou Thomas.
+7. **Accueil** : découvrir la [création progressive d’une fiche](../accueil-progressif/) et les actions rapides du travail du jour.
+8. **Bilan** : ouvrir les [statistiques](../statistiques/) sur la période du scénario et comparer hébergement, absences et repas effectivement distribués.
+
+Les étapes 6 à 8 sont un prolongement de la visite initiale de cinq minutes ; elles supposent une version de l’application intégrant CHRS8 à CHRS10.
