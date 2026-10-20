@@ -195,6 +195,11 @@ captures-demonstration:
         tail -100 .ci-captures-chrs.log >&2
         exit 1
       fi
+      if ! python3 manage.py test personnes.qualification_navigateur --noinput; then
+        echo '=== Échec de la qualification navigateur par profils ===' >&2
+        tail -100 .ci-captures-chrs.log >&2
+        exit 1
+      fi
       kill "$application_pid" 2>/dev/null || true
       wait "$application_pid" || true
       trap - EXIT
