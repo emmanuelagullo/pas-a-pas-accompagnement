@@ -14,6 +14,7 @@ from django.views.decorators.http import require_http_methods
 from .models import AccordRepas, RepasDistribue, Sejour, Accompagnement, Personne, Transmission, ActionRelais
 from .forms_social import ConsultationForm
 from . import repas
+from .retour_service import date_service, url_jour
 
 
 def actifs(queryset, jour):
@@ -114,7 +115,8 @@ def jour(request):
         "transmissions_recentes": transmissions_recentes,
         "echeances": echeances,"date_form":date_form,"date":date,"hebergements":hebergements,
         "lignes":list(zip(lignes,formset)) if not trop else [],"formset":formset,"erreur":erreur,
-        "lecture_repas":lecture_repas,"ecriture":ecriture and date and date<=timezone.localdate(),"trop":trop})
+        "lecture_repas":lecture_repas,"ecriture":ecriture and date and date<=timezone.localdate(),"trop":trop,
+        "date_service": date.isoformat() if date else ""})
 
 
 class ActionRelaisForm(forms.ModelForm):
@@ -140,7 +142,7 @@ def actions(request):
             action.auteur = request.user
             action.save()
             if request.POST.get("retour") == "jour":
-                return redirect("suivi:jour")
+                return redirect(url_jour(request.POST.get("date_service")))
             return redirect("suivi:actions_relais")
     ouvertes = ActionRelais.objects.filter(terminee_le__isnull=True).select_related("auteur")
     aujourd_hui = timezone.localdate()
@@ -148,7 +150,9 @@ def actions(request):
         "actions_en_retard": ouvertes.filter(echeance__lt=aujourd_hui),
         "actions_du_jour": ouvertes.filter(echeance=aujourd_hui),
         "actions_autres": ouvertes.filter(Q(echeance__isnull=True) | Q(echeance__gt=aujourd_hui)),
-        "retour_jour": request.GET.get("retour") == "jour" or request.POST.get("retour") == "jour"})
+        "retour_jour": request.GET.get("retour") == "jour" or request.POST.get("retour") == "jour",
+        "date_service": date_service(
+            request.POST.get("date_service") or request.GET.get("date_service"))})
 
 
 @require_http_methods(["POST"])
@@ -162,5 +166,5 @@ def terminer_action(request, pk):
             action.terminee_par = request.user
             action.save(update_fields=["terminee_le", "terminee_par"])
     if request.POST.get("retour") == "jour":
-        return redirect("suivi:jour")
+        return redirect(url_jour(request.POST.get("date_service")))
     return redirect("suivi:actions_relais")

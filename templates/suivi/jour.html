@@ -7,8 +7,8 @@
 <ul>
 {% if perms.personnes.add_personne and perms.personnes.view_personne %}<li><a href="{% url 'personnes:creer' %}">Accueillir une nouvelle personne</a></li>{% endif %}
 {% if perms.personnes.add_menage and perms.personnes.view_menage and perms.personnes.add_appartenance %}<li><a href="{% url 'suivi:creer' %}">Créer un ménage</a></li>{% endif %}
-{% if perms.personnes.view_actionrelais %}<li><a href="{% url 'suivi:actions_relais' %}?retour=jour">{% if perms.personnes.add_actionrelais %}Créer une action de relève{% else %}Consulter les actions de relève{% endif %}</a></li>{% endif %}
-{% if perms.personnes.view_transmission %}<li><a href="{% url 'suivi:cahier' %}?retour=jour">{% if perms.personnes.add_transmission %}Écrire une transmission{% else %}Consulter le cahier de liaison{% endif %}</a></li>{% endif %}
+{% if perms.personnes.view_actionrelais %}<li><a href="{% url 'suivi:actions_relais' %}?retour=jour{% if date_service %}&amp;date_service={{ date_service }}{% endif %}">{% if perms.personnes.add_actionrelais %}Créer une action de relève{% else %}Consulter les actions de relève{% endif %}</a></li>{% endif %}
+{% if perms.personnes.view_transmission %}<li><a href="{% url 'suivi:cahier' %}?retour=jour{% if date_service %}&amp;date_service={{ date_service }}{% endif %}">{% if perms.personnes.add_transmission %}Écrire une transmission{% else %}Consulter le cahier de liaison{% endif %}</a></li>{% endif %}
 </ul>
 </section>
 {% endif %}
@@ -19,7 +19,7 @@
 <ul>{% for transmission in transmissions_recentes %}
 <li><time datetime="{{ transmission.cree_le|date:'c' }}">{{ transmission.cree_le|date:'d/m/Y H:i' }}</time> — {{ transmission.contenu|linebreaksbr }}</li>
 {% empty %}<li>Aucune transmission enregistrée.</li>{% endfor %}</ul>
-<p><a href="{% url 'suivi:cahier' %}?retour=jour">Ouvrir le cahier de liaison{% if perms.personnes.add_transmission %} et transmettre une information{% endif %}</a></p>
+<p><a href="{% url 'suivi:cahier' %}?retour=jour{% if date_service %}&amp;date_service={{ date_service }}{% endif %}">Ouvrir le cahier de liaison{% if perms.personnes.add_transmission %} et transmettre une information{% endif %}</a></p>
 </section>
 {% endif %}
 {% if perms.personnes.view_actionrelais %}
@@ -28,7 +28,7 @@
 <h3>En retard ({{ actions_en_retard.count }})</h3><ul>{% for action in actions_en_retard %}<li>{{ action.libelle }} — échéance : {{ action.echeance|date:'d/m/Y' }}</li>{% empty %}<li>Aucune.</li>{% endfor %}</ul>
 <h3>À traiter aujourd’hui ({{ actions_du_jour.count }})</h3><ul>{% for action in actions_du_jour %}<li>{{ action.libelle }}</li>{% empty %}<li>Aucune.</li>{% endfor %}</ul>
 <h3>À venir ou sans échéance ({{ actions_autres.count }})</h3><ul>{% for action in actions_autres %}<li>{{ action.libelle }}{% if action.echeance %} — échéance : {{ action.echeance|date:'d/m/Y' }}{% endif %}</li>{% empty %}<li>Aucune.</li>{% endfor %}</ul>
-<p><a href="{% url 'suivi:actions_relais' %}?retour=jour">{% if perms.personnes.change_actionrelais %}Consulter et clôturer les actions de relève{% else %}Consulter les actions de relève{% endif %}</a></p></section>
+<p><a href="{% url 'suivi:actions_relais' %}?retour=jour{% if date_service %}&amp;date_service={{ date_service }}{% endif %}">{% if perms.personnes.change_actionrelais %}Consulter et clôturer les actions de relève{% else %}Consulter les actions de relève{% endif %}</a></p></section>
 {% endif %}
 {% if perms.personnes.view_menage %}<p><a href="{% url 'suivi:liste' %}">Ouvrir les ménages et accompagnements</a>{% if perms.personnes.view_accompagnement and perms.personnes.view_sejour and perms.personnes.view_repasdistribue %} · <a href="{% url 'statistiques' %}">Consulter les statistiques d’activité</a>{% endif %}</p>{% endif %}
 <h2 id="situation-date">Situation à la date choisie{% if date %} — {{ date|date:"d/m/Y" }}{% endif %}</h2>

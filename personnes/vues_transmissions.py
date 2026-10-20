@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 from .models import Transmission, NotePartagee, Personne, Accompagnement, Sejour
 from . import transmissions
+from .retour_service import date_service, url_jour
 
 
 class TexteForm(forms.Form):
@@ -24,7 +25,7 @@ def cahier(request):
     if request.method == "POST" and request.user.has_perm("personnes.add_transmission") and form.is_valid():
         transmissions.transmettre(request.user, form.cleaned_data["contenu"])
         if request.POST.get("retour") == "jour":
-            return redirect("suivi:jour")
+            return redirect(url_jour(request.POST.get("date_service")))
         return redirect("suivi:cahier")
     if request.method == "POST" and not request.user.has_perm("personnes.add_transmission"):
         from django.core.exceptions import PermissionDenied
@@ -32,7 +33,8 @@ def cahier(request):
     return render(request, "suivi/transmissions.html", {"titre": "Cahier de liaison",
         "form": form if request.user.has_perm("personnes.add_transmission") else None,
         "messages": Transmission.objects.select_related("auteur").prefetch_related("revisions__auteur"), "nature": "transmission",
-        "retour_jour": request.GET.get("retour") == "jour" or request.POST.get("retour") == "jour"})
+        "retour_jour": request.GET.get("retour") == "jour" or request.POST.get("retour") == "jour",
+        "date_service": date_service(request.POST.get("date_service") or request.GET.get("date_service"))})
 
 
 CIBLES = {"personne": (Personne, "view_personne"), "accompagnement": (Accompagnement, "view_accompagnement"), "sejour": (Sejour, "view_sejour")}
