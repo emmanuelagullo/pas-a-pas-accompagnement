@@ -15,16 +15,26 @@ import sys
 source=Path(__file__).resolve().parent.parent
 parser=argparse.ArgumentParser(description='Vérifier le lanceur sur des données fictives isolées.')
 parser.add_argument('--programme',type=Path,help='exécutable Linux à vérifier au lieu des sources')
+parser.add_argument('--arret-stdin', action='store_true', help='exercer aussi le relais Windows depuis Linux')
 args=parser.parse_args()
-if args.programme and os.name=='nt':
+arret_stdin = os.name == 'nt' or args.arret_stdin
+if args.programme and (os.name=='nt' or args.arret_stdin):
     parser.error('La fenêtre native Windows nécessite un essai graphique distinct.')
+# Sous Windows, terminate() tue le processus sans exécuter les finally.
+# Ce relais de test injecte le même KeyboardInterrupt que Ctrl+C, dans le
+# thread principal, sans dépendre de la console du runner GitHub.
+relais = ("import _thread, runpy, sys, threading; "
+    "threading.Thread(target=lambda: sys.stdin.readline() and _thread.interrupt_main(), daemon=True).start(); "
+    "sys.argv=sys.argv[1:]; runpy.run_path(sys.argv[0], run_name='__main__')")
 prefixe=[str(args.programme.resolve())] if args.programme else [sys.executable,str(source/'scripts/lancer-local.py')]
+if arret_stdin:
+    prefixe = [sys.executable, '-c', relais, str(source/'scripts/lancer-local.py')]
 with tempfile.TemporaryDirectory() as t:
     t=Path(t); paquet=t/'paquet'; log=t/'sortie.log'
     env={**os.environ,'PYTHONUNBUFFERED':'1','PYTHONIOENCODING':'utf-8','PYTHONUTF8':'1'}
     def start():
         sortie=log.open('w',encoding='utf-8')
-        p=subprocess.Popen([*prefixe,'--paquet',str(paquet),'--sans-fenetre'],cwd=source,env=env,stdout=sortie,stderr=subprocess.STDOUT)
+        p=subprocess.Popen([*prefixe,'--paquet',str(paquet),'--sans-fenetre'],cwd=source,env=env,stdout=sortie,stderr=subprocess.STDOUT,stdin=subprocess.PIPE if arret_stdin else None)
         for _ in range(200):
             texte=log.read_text(encoding='utf-8')
             match=re.search(r'Adresse locale : (http://127\.0\.0\.1:\d+/)',texte)
@@ -36,8 +46,8 @@ with tempfile.TemporaryDirectory() as t:
         p.terminate();p.wait();raise RuntimeError('Démarrage expiré : '+log.read_text(encoding='utf-8'))
     def stop(p,sortie):
         if p.poll() is None:
-            if os.name=='nt':
-                p.terminate()
+            if arret_stdin:
+                p.stdin.write(b'\n'); p.stdin.flush()
             else:
                 p.send_signal(signal.SIGINT)
         try:
@@ -45,9 +55,10 @@ with tempfile.TemporaryDirectory() as t:
         finally:
             if p.poll() is None:
                 p.kill();p.wait()
+            if p.stdin is not None:
+                p.stdin.close()
             sortie.close()
-        if os.name!='nt':
-            assert p.returncode==0,log.read_text(encoding='utf-8')
+        assert p.returncode==0,log.read_text(encoding='utf-8')
     cookies=http.cookiejar.CookieJar()
     client=urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cookies))
     def post(base,path,data):
