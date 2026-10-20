@@ -1,0 +1,3 @@
+{% extends "base.html" %}
+{% block titre %}Corriger une contribution{% endblock %}
+{% block contenu %}<h1>Corriger une contribution</h1><form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Enregistrer la correction</button></form>{% endblock %}

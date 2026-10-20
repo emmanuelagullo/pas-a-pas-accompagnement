@@ -4,9 +4,13 @@ from . import vues_repas
 from . import vues_hebergement as h
 from . import vues_social as social
 from . import vues_jour
+from . import vues_transmissions
 from . import vues_corrections
 app_name = "suivi"
 urlpatterns = [
+    path("liaison/", vues_transmissions.cahier, name="cahier"),
+    path("notes/<str:nature>/<uuid:pk>/", vues_transmissions.notes, name="notes"),
+    path("contributions/<str:nature>/<int:pk>/corriger/", vues_transmissions.corriger, name="corriger_contribution"),
     path("corrections/<str:nature>/<str:pk>/", vues_corrections.corriger, name="corriger_saisie"),
     path("accompagnements/<uuid:pk>/corrections/", vues_corrections.historique, name="corrections"),
     path("jour/", vues_jour.jour, name="jour"),

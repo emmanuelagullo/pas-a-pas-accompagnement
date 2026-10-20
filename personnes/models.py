@@ -312,3 +312,48 @@ class RevisionTexteSocial(models.Model):
 
     class Meta:
         ordering = ["enregistre_le", "pk"]
+
+
+class Transmission(models.Model):
+    """Message transversal d'équipe, distinct des dossiers individuels."""
+    contenu = models.TextField()
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    cree_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-cree_le", "-pk"]
+
+
+class NotePartagee(models.Model):
+    """Contribution libre liée à un seul objet métier."""
+    contenu = models.TextField()
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    cree_le = models.DateTimeField(auto_now_add=True)
+    personne = models.ForeignKey(Personne, on_delete=models.PROTECT, null=True, blank=True, related_name="notes")
+    accompagnement = models.ForeignKey(Accompagnement, on_delete=models.PROTECT, null=True, blank=True, related_name="notes")
+    sejour = models.ForeignKey(Sejour, on_delete=models.PROTECT, null=True, blank=True, related_name="notes")
+
+    class Meta:
+        ordering = ["-cree_le", "-pk"]
+        constraints = [models.CheckConstraint(
+            condition=(
+                models.Q(personne__isnull=False, accompagnement__isnull=True, sejour__isnull=True)
+                | models.Q(personne__isnull=True, accompagnement__isnull=False, sejour__isnull=True)
+                | models.Q(personne__isnull=True, accompagnement__isnull=True, sejour__isnull=False)
+            ), name="note_exactement_une_cible")]
+
+
+class RevisionContribution(models.Model):
+    transmission = models.ForeignKey(Transmission, on_delete=models.PROTECT, null=True, blank=True, related_name="revisions")
+    note = models.ForeignKey(NotePartagee, on_delete=models.PROTECT, null=True, blank=True, related_name="revisions")
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    date = models.DateTimeField(auto_now_add=True)
+    ancien_texte = models.TextField()
+    nouveau_texte = models.TextField()
+    motif = models.TextField()
+
+    class Meta:
+        ordering = ["date", "pk"]
+        constraints = [models.CheckConstraint(condition=(
+            models.Q(transmission__isnull=False, note__isnull=True)
+            | models.Q(transmission__isnull=True, note__isnull=False)), name="revision_une_cible")]
