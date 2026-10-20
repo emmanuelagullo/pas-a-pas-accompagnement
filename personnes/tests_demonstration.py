@@ -9,7 +9,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 from . import models as m, social, repas
-from .demonstration import generer
+from .demonstration import generer, preparer_jeu_public
 
 
 class DemonstrationTests(TestCase):
@@ -69,15 +69,18 @@ class DemonstrationTests(TestCase):
         self.assertFalse(get_user_model().objects.exists())
 
     @override_settings(MODE_LOCAL=True)
-    def test_installation_locale_opt_in_et_page_protegee(self):
+    def test_ancien_champ_ignore_et_espace_du_premier_patch_conserve(self):
         self.assertEqual(self.client.get(reverse('decouverte')).status_code, 302)
         reponse = self.client.post(reverse('installation_locale'), {'username': 'visiteur',
             'password1': 'Un-essai-prive-solide-2026!', 'password2': 'Un-essai-prive-solide-2026!', 'demonstration': 'on'})
-        self.assertRedirects(reponse, reverse('decouverte'))
+        self.assertRedirects(reponse, reverse('personnes:liste'))
         self.assertEqual(get_user_model().objects.count(), 1)
         u = get_user_model().objects.get()
         self.assertFalse(u.is_superuser or u.is_staff)
-        self.assertTrue(u.has_perm('personnes.add_repasdistribue'))
+        self.assertFalse(u.has_perm('personnes.add_repasdistribue'))
+        self.assertEqual(m.Personne.objects.count(), 0)
+        # État du premier patch : le jeu dans l’espace habituel reste utilisable.
+        generer(u)
         self.assertEqual(m.Personne.objects.count(), 5)
         self.assertContains(self.client.get(reverse('decouverte')), 'Les Passerelles')
         self.assertEqual(self.client.post(reverse('installation_locale'), {}).status_code, 404)
@@ -88,11 +91,22 @@ class DemonstrationTests(TestCase):
         accord = m.AccordRepas.objects.first()
         self.assertEqual(self.client.post(reverse('suivi:distribuer_repas', args=[accord.pk]), {}).status_code, 403)
 
-    @override_settings(MODE_LOCAL=True)
-    def test_echec_generation_annule_aussi_le_compte(self):
-        with patch('personnes.installation.generer', side_effect=RuntimeError('échec simulé')):
+    def test_echec_generation_annule_aussi_les_comptes_publics(self):
+        with patch('personnes.demonstration.generer', side_effect=RuntimeError('échec simulé')):
             with self.assertRaises(RuntimeError):
-                self.client.post(reverse('installation_locale'), {'username': 'visiteur',
-                    'password1': 'Un-essai-prive-solide-2026!', 'password2': 'Un-essai-prive-solide-2026!', 'demonstration': 'on'})
+                preparer_jeu_public()
         self.assertFalse(get_user_model().objects.exists())
         self.assertFalse(m.Personne.objects.exists())
+
+    @override_settings(OUTILS_COPIES_BUREAU=True, ESPACE_ESSAI=True)
+    def test_selecteur_bureau_avant_connexion_et_bandeau(self):
+        r = self.client.get(reverse('choisir_espace_local'))
+        self.assertContains(r, 'Revenir à mon espace habituel')
+        self.assertContains(r, 'data-espace="habituel"')
+        self.assertContains(r, 'Comptes du jeu de départ')
+        with override_settings(ESPACE_ESSAI=False):
+            self.assertContains(self.client.get(reverse('choisir_espace_local')), 'data-espace="essai"')
+        with override_settings(MODE_PWA=True):
+            self.assertEqual(self.client.get(reverse('choisir_espace_local')).status_code, 404)
+        with override_settings(OUTILS_COPIES_BUREAU=False):
+            self.assertEqual(self.client.get(reverse('choisir_espace_local')).status_code, 404)

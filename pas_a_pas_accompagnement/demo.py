@@ -18,6 +18,8 @@ class ProtegerComptePublic:
 
     def __call__(self, request):
         from django.http import HttpResponseForbidden
-        if request.path.startswith('/mon-compte/'):
+        from django.conf import settings
+        protege = getattr(settings, 'DEMONSTRATION_PUBLIQUE', False) or getattr(settings, 'ESPACE_ESSAI', False)
+        if protege and request.path_info.startswith('/mon-compte/'):
             return HttpResponseForbidden('Le compte public de démonstration ne peut pas être modifié.')
         return self.get_response(request)

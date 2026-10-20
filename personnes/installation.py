@@ -1,5 +1,4 @@
 """Premier compte local fictif : aucun rôle métier ni superutilisateur implicite."""
-from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model, login
 from django.contrib.auth.forms import UserCreationForm
@@ -9,13 +8,10 @@ from django.http import Http404
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
-from .demonstration import espace_metier_vide, generer
+from .demonstration import espace_metier_vide
 
 
 class PremierCompteForm(UserCreationForm):
-    demonstration = forms.BooleanField(required=False, label="Charger Les Passerelles, démonstration métier fictive",
-        help_text="Attribue à votre compte les droits explicites CHRS1–4 dans cet espace unique. Sans cette option : fiches de personnes seulement.")
-
     class Meta(UserCreationForm.Meta):
         model = get_user_model()
         fields = ["username"]
@@ -45,8 +41,6 @@ def installer(request):
             if len(permissions) != 2:
                 raise RuntimeError("Les permissions du premier compte sont absentes.")
             compte.user_permissions.set(permissions)
-            if formulaire.cleaned_data["demonstration"]:
-                generer(compte)
         login(request, compte, backend="django.contrib.auth.backends.ModelBackend")
-        return redirect("decouverte" if formulaire.cleaned_data["demonstration"] else "personnes:liste")
+        return redirect("personnes:liste")
     return render(request, "installation_locale.html", {"form": formulaire})

@@ -31,3 +31,14 @@ def health(request):
     if re.fullmatch(r"[a-f0-9]{40}", revision):
         result["commit"] = revision
     return JsonResponse(result)
+
+
+@require_safe
+def choisir_espace_local(request):
+    from django.conf import settings
+    from django.http import Http404
+    if not getattr(settings, 'OUTILS_COPIES_BUREAU', False) or getattr(settings, 'MODE_PWA', False):
+        raise Http404
+    return render(request, 'choisir_espace_local.html', {
+        'destination': 'habituel' if getattr(settings, 'ESPACE_ESSAI', False) else 'essai',
+    })

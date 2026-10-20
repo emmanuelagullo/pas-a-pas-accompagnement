@@ -1,15 +1,24 @@
 import {requestWorker} from './socle/transport.mjs';
 const TEST=__TEST__;
+const ESSAI=new URL(location.href).searchParams.get('essai')==='oui';
 const BASE=new URL('./',import.meta.url).pathname;
 const status=document.querySelector('#status'),frame=document.querySelector('#app'),notice=document.querySelector('#notice');
 let worker,candidate,ready=false,registration,occupations=0,operation=false,proprietaire=false;
+const changement=document.querySelector('#changer-espace');
+changement.textContent=ESSAI?'Revenir à mon espace habituel':'Essayer avec Les Passerelles';
+changement.href=ESSAI?BASE:BASE+'essai.html';
+document.querySelector('#espace').textContent=ESSAI?'Espace d’essai Les Passerelles — distinct de votre espace habituel. Vos essais sont conservés.':'Espace habituel de ce navigateur — données conservées sur cet appareil.';
+document.querySelector('#comptes-essai').hidden=!ESSAI;
+changement.onclick=e=>{
+ if(!proprietaire||operation||occupations||candidate){e.preventDefault();notice.textContent='Terminez ou annulez l’opération en cours et fermez les autres onglets avant de changer d’espace.';}
+};
 function boutons(){
   document.querySelector('#update').disabled=!ready||operation||occupations!==0||!!candidate;
   for(const id of ['export','recovery','restore-file'])document.getElementById(id).disabled=!proprietaire||operation||occupations!==0||!!candidate;
   for(const id of ['confirm','cancel'])document.getElementById(id).disabled=operation;
 }
 function arreter(message){ready=false;worker?.terminate();worker=null;frame.hidden=true;status.textContent=message;boutons();}
-function rpc(cible,message){return requestWorker(cible,message,{application:'Pas à Pas',onTimeout:()=>{
+function rpc(cible,message){return requestWorker(cible,{...message,essai:ESSAI},{application:'Pas à Pas',onTimeout:()=>{
   cible.terminate();if(cible===worker)arreter('Résultat incertain. Fermez puis rouvrez cette page.');
  }});}
 function nouveau(){

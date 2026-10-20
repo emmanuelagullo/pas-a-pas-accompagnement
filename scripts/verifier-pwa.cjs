@@ -62,33 +62,71 @@ const server=(tls?require('node:https'):http).createServer(options,(req,res)=>{
   assert.equal(fs.readFileSync(await pdf.path()).subarray(0,5).toString(),'%PDF-');
   await apres.getByRole('link',{name:'Retour aux personnes'}).click();
   await context.setOffline(false);
-  // Autre espace OPFS : premier démarrage avec le jeu métier, sans compte public.
-  const demoContext=await browser.newContext({ignoreHTTPSErrors:tls});
-  try{
-   const demo=await demoContext.newPage();await demo.goto(url);
-   const df=demo.frameLocator('#app');await df.locator('[name=username]').waitFor({timeout:120000});
-   await df.locator('[name=username]').fill('visiteur-metier');
-   await df.locator('[name=password1]').fill('Phrase-fictive-metier-privee-2026!');
-   await df.locator('[name=password2]').fill('Phrase-fictive-metier-privee-2026!');
-   await df.locator('[name=demonstration]').check();
-   await df.getByRole('button',{name:'Créer mon compte et commencer'}).click();
-   await df.getByRole('heading',{name:'Les Passerelles : découverte en cinq minutes'}).waitFor();
-   await df.getByRole('link',{name:'les ménages',exact:true}).click();
-   await df.getByRole('link',{name:'Alex — Les Passerelles (fictif)',exact:true}).click();
-   await df.getByRole('link',{name:/Déjeuner accordé du/}).click();
-   await df.getByRole('heading',{name:'Réalisation effective : 2 repas distribués'}).waitFor();
-   await demoContext.setOffline(true);await demo.reload();
-   await df.locator('[name=username]').waitFor({timeout:120000});
-   await df.locator('[name=username]').fill('visiteur-metier');
-   await df.locator('[name=password]').fill('Phrase-fictive-metier-privee-2026!');
-   await df.getByRole('button',{name:'Se connecter'}).click();
-   // Navigation interne : ne pas ouvrir directement la route virtuelle Django.
-   await df.getByRole('link',{name:'Ménages et accompagnements',exact:true}).click();
-   await df.getByRole('link',{name:'Alex — Les Passerelles (fictif)',exact:true}).click();
-   await df.getByRole('link',{name:/Déjeuner accordé du/}).click();
-   await df.getByRole('heading',{name:'Réalisation effective : 2 repas distribués'}).waitFor();
-   console.log('Les Passerelles : premier démarrage choisi, parcours métier et reprise hors ligne : OK');
-  }finally{await demoContext.close();}
+  // Même profil et origine : isoler l’essai de l’espace habituel déjà rempli.
+  await context.setOffline(true);
+  await page.locator('#changer-espace').click();
+  await page.waitForURL(u=>u.searchParams.get('essai')==='oui');
+  const df=page.frameLocator('#app');
+  await df.locator('[name=username]').waitFor({timeout:120000});
+  assert.equal(await df.locator('[name=password1]').count(),0);
+  await df.locator('[name=username]').fill('nadia');
+  await df.locator('[name=password]').fill('Demonstration-fictive-2026!');
+  await df.getByRole('button',{name:'Se connecter'}).click();
+  await df.getByRole('link',{name:'Découvrir le scénario fictif Les Passerelles'}).click();
+  await df.getByRole('heading',{name:'Les Passerelles : découverte en cinq minutes'}).waitFor();
+  await df.getByRole('link',{name:'les ménages',exact:true}).click();
+  await df.getByRole('link',{name:'Alex — Les Passerelles (fictif)',exact:true}).click();
+  await df.getByRole('link',{name:/Déjeuner accordé du/}).click();
+  await df.getByRole('heading',{name:'Réalisation effective : 2 repas distribués'}).waitFor();
+  await df.getByRole('link',{name:'Personnes',exact:true}).click();
+  await df.getByRole('link',{name:'Créer une personne'}).click();
+  await df.locator('[name=designation]').fill('Essai séparé conservé');
+  await df.getByRole('button',{name:'Enregistrer'}).click();
+  await df.getByRole('heading',{name:'Essai séparé conservé'}).waitFor();
+  await page.locator('summary').click();
+  const sauvegardeEssai=page.waitForEvent('download',{timeout:120000});
+  await page.locator('#export').click();const zipEssai=await (await sauvegardeEssai).path();
+  require('node:child_process').execFileSync(process.env.PWA_PYTHON||'python3',['-c',`import sys,zipfile,sqlite3,tempfile
+from pathlib import Path
+with zipfile.ZipFile(sys.argv[1]) as z,tempfile.TemporaryDirectory() as t:
+ z.extract('accompagnement.sqlite3',t)
+ with sqlite3.connect(Path(t)/'accompagnement.sqlite3') as db:
+  assert db.execute('SELECT count(*) FROM personnes_personne').fetchone()[0]==6
+  assert db.execute('SELECT count(*) FROM identites_utilisateur').fetchone()[0]==4
+`,zipEssai]);
+  await page.locator('#restore-file').setInputFiles(zipEssai);
+  await page.locator('#confirm').waitFor({state:'visible',timeout:120000});
+  const urlEssai=page.url();await page.locator('#changer-espace').click();assert.equal(page.url(),urlEssai);
+  await page.locator('#notice').filter({hasText:'Terminez ou annulez'}).waitFor();
+  await page.locator('#confirm').click();
+  await df.locator('[name=username]').waitFor({timeout:120000});
+  await df.locator('[name=username]').fill('nadia');
+  await df.locator('[name=password]').fill('Demonstration-fictive-2026!');
+  await df.getByRole('button',{name:'Se connecter'}).click();
+  await df.getByRole('link',{name:'Personnes',exact:true}).click();
+  await df.getByText('Essai séparé conservé',{exact:true}).waitFor();
+  async function retrouverHabituel(){
+   await page.locator('#changer-espace').click();await page.waitForURL(u=>!u.searchParams.has('essai'));
+   const f=page.frameLocator('#app');await f.locator('[name=username]').waitFor({timeout:120000});
+   await f.locator('[name=username]').fill('essai-pwa');
+   await f.locator('[name=password]').fill('Phrase fictive navigateur-854!');
+   await f.getByRole('button',{name:'Se connecter'}).click();
+   await f.getByRole('link',{name:'Personnes',exact:true}).click();
+   await f.getByText('Personne fictive conservée').waitFor();
+   assert.equal(await f.getByText('Essai séparé conservé',{exact:true}).count(),0);
+   assert.equal(await f.getByText('Alex (fictif)',{exact:true}).count(),0);
+  }
+  await retrouverHabituel();
+  await page.locator('#changer-espace').click();
+  await df.locator('[name=username]').waitFor({timeout:120000});
+  await df.locator('[name=username]').fill('nadia');
+  await df.locator('[name=password]').fill('Demonstration-fictive-2026!');
+  await df.getByRole('button',{name:'Se connecter'}).click();
+  await df.getByRole('link',{name:'Personnes',exact:true}).click();
+  await df.getByText('Essai séparé conservé',{exact:true}).waitFor();
+  await retrouverHabituel();
+  await context.setOffline(false);
+  console.log('Les Passerelles : essai OPFS distinct, retour au compte habituel et essais conservés hors ligne : OK');
   if(process.env.PWA_PRODUCTION==='oui'){
    assert.equal(await page.evaluate(()=>typeof window.pwaTest),'undefined');
    for(const nom of ['worker.js','shell.js']){

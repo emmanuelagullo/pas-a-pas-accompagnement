@@ -202,5 +202,8 @@ sessions de la source et vider seulement celles de la préparation restaurée.
 
 #SOC — démonstration métier : lire DEMONSTRATION.md. Le jeu est généré dans
 le produit via les services CHRS1–4. Aucun rôle professionnel fictif, aucun
-ZIP privé distribué, aucun reset ni nouvelle restauration. Garder le premier
-démarrage local vide par défaut et l’attribution des droits explicitement choisie.
+ZIP privé distribué, aucun reset ni nouvelle restauration. Garder l’espace
+habituel intact, y compris les jeux chargés par le premier patch ; le bouton
+d’essai ouvre un autre espace persistant (stockage -essai / dossier essai-fictif),
+avec retour au chemin habituel personnalisé. Réutiliser configurerEspace et les
+parcours de copie existants, sans nouveau format ni reset.

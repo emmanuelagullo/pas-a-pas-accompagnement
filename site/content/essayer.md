@@ -47,7 +47,10 @@ Les fichiers disponibles dépendent des releases effectivement publiées.
 Le premier démarrage demande de créer un compte local. Gardez le dossier de
 données et vos sauvegardes lors d’une mise à jour du programme.
 
-Dans les versions proposant **Charger Les Passerelles**, cochez cette option
-au premier démarrage d’un espace vide pour obtenir le jeu fictif et les droits
-CHRS1–4 annoncés. Votre compte garde les identifiants que vous choisissez ;
-aucun compte public n’est ajouté. Un espace déjà créé n’est pas remplacé.
+Dans les versions proposant **Essayer avec Les Passerelles**, ce lien ouvre
+un espace d’essai distinct, même si vous avez déjà créé votre espace habituel.
+Les comptes publics sont affichés. **Revenir à mon espace habituel** retrouve
+vos données ; vos essais restent conservés dans l’autre espace. Le programme
+ferme puis rouvre sa fenêtre après confirmation. Dans le navigateur, terminez
+vos saisies avant de changer d’espace et fermez les autres onglets.
+Les espaces créés avec l’ancien chargement initial restent conservés.

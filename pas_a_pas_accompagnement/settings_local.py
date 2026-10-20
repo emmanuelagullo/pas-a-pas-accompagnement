@@ -12,3 +12,6 @@ STORAGES = {
 }
 
 OUTILS_COPIES_BUREAU = True
+
+ESPACE_ESSAI = os.environ.get("ACCOMPAGNEMENT_ESPACE_ESSAI") == "oui"
+MIDDLEWARE.append("pas_a_pas_accompagnement.demo.ProtegerComptePublic")

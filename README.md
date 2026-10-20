@@ -14,7 +14,8 @@ d'audit. Ce prototype n'est pas une installation de production.
 ## Démonstration métier
 
 Le jeu fictif **Les Passerelles** est proposé sur le serveur jetable et,
-facultativement, au premier démarrage de la PWA et des programmes Linux/Windows.
+dans un espace d’essai distinct de la PWA et des programmes Linux/Windows,
+accessible même après la création de l’espace habituel.
 Voir [le parcours et les accès](DEMONSTRATION.md).
 
 ## Essayer depuis les sources

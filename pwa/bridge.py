@@ -37,7 +37,7 @@ def restore_file(nom, contenu):
     (DATA/nom).write_bytes(bytes(contenu))
 
 
-def initialize(origine,base="/"):
+def initialize(origine,base="/",essai=False,nouveau=False):
     global APPLICATION,ORIGINE,SCRIPT_NAME
     from pas_communs.navigateur.crypto import configure
     configure()
@@ -49,12 +49,14 @@ def initialize(origine,base="/"):
     if not (DATA/"secret-key").exists():
         (DATA/"secret-key").write_text(secrets.token_urlsafe(48))
     os.environ.update(DJANGO_SETTINGS_MODULE="pwa.settings",ACCOMPAGNEMENT_DONNEES=str(DATA),
-        ACCOMPAGNEMENT_2FA="desactive",PWA_BASE_PATH=base,PWA_HOST=urlsplit(origine).hostname,
+        ACCOMPAGNEMENT_2FA="desactive",ACCOMPAGNEMENT_ESPACE_ESSAI="oui" if essai else "non",PWA_BASE_PATH=base,PWA_HOST=urlsplit(origine).hostname,
         PWA_ORIGIN=origine,DJANGO_ALLOW_ASYNC_UNSAFE="true")
     from django.core.wsgi import get_wsgi_application
     from django.core.management import call_command
     from django.db.migrations.loader import MigrationLoader
     APPLICATION=get_wsgi_application()
+    from django.conf import settings
+    settings.ESPACE_ESSAI = bool(essai)
     if (DATA/BASE).exists():
         with closing(sqlite3.connect(DATA/BASE)) as db:
             if db.execute("PRAGMA quick_check").fetchone()[0]!="ok" or db.execute("PRAGMA foreign_key_check").fetchone():
@@ -64,6 +66,9 @@ def initialize(origine,base="/"):
                 if set(db.execute("SELECT app,name FROM django_migrations"))-connues:
                     raise ValueError("Version de données plus récente : ouverture refusée.")
     call_command("migrate",interactive=False,verbosity=0)
+    if essai and nouveau:
+        from personnes.demonstration import preparer_jeu_public
+        preparer_jeu_public()
     # Aucun cookie virtuel conservé entre les Workers ; pas de session réutilisée.
     from django.contrib.sessions.models import Session
     Session.objects.all().delete()
@@ -131,7 +136,7 @@ def export_zip():
     return sortie.getvalue()
 
 
-def prepare_zip(contenu, origine, base):
+def prepare_zip(contenu, origine, base, essai=False):
     import shutil
     import tempfile
     from pas_communs.paquets import preparer_restauration, ProfilPaquet
@@ -153,7 +158,7 @@ def prepare_zip(contenu, origine, base):
             date = preparation.date_sauvegarde
         finally:
             shutil.rmtree(preparation.etape, ignore_errors=True)
-    initialize(origine, base)  # contrôle migrations, puis migration dans la copie seulement
+    initialize(origine, base, essai=essai)  # contrôle migrations, puis migration dans la copie seulement
     from pas_a_pas_accompagnement.paquets import neutraliser_copie
     from django.db import connections
     connections.close_all()

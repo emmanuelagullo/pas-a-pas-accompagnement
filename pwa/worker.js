@@ -4,6 +4,7 @@ const TEST=__TEST__;
 const BASE=new URL('./',import.meta.url).pathname;
 const stockage=creerStockage({application:'pas-a-pas-accompagnement',database:'pas-accompagnement-pwa-v1',
   repertoire:'pas-accompagnement-pwa',base:'accompagnement.sqlite3'},BASE);
+let ESSAI=false;
 let python,pont,config,fatal=false,initialise=false,prepare=false,file=Promise.resolve();
 function appel(nom,...args){const f=pont[nom];try{return f(...args);}finally{f.destroy();}}
 function octets(nom,...args){const valeur=appel(nom,...args);try{return valeur.toJs();}finally{valeur.destroy();}}
@@ -38,10 +39,12 @@ async function lireEtat(secours=false){
 }
 async function traiter(message){
   if(fatal)throw new Error('Moteur interrompu. Fermez puis rouvrez l’application.');
+  if(!python){ESSAI=message.essai===true;stockage.configurerEspace(ESSAI);}
+  else if((message.essai===true)!==ESSAI)throw new Error('Changement d’espace dans un moteur ouvert interdit');
   if(message.kind==='init'){
     if(python)throw new Error('Moteur déjà ouvert');
-    await charger();await lireEtat();
-    appel('initialize',location.origin,BASE);
+    await charger();const etat=await lireEtat();
+    appel('initialize',location.origin,BASE,ESSAI,ESSAI&&!etat);
     await conserver();initialise=true;return {ready:true};
   }
   if(message.kind==='export'){
@@ -54,7 +57,7 @@ async function traiter(message){
     if(python)throw new Error('La vérification exige un moteur neuf');
     if(!message.body||message.body.byteLength>64*1024**2)throw new Error('ZIP supérieur à 64 Mio.');
     await charger();
-    const resultat=JSON.parse(appel('prepare_zip',message.body,location.origin,BASE));
+    const resultat=JSON.parse(appel('prepare_zip',message.body,location.origin,BASE,ESSAI));
     prepare=true;return resultat;
   }
   if(message.kind==='activate'){

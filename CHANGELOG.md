@@ -41,6 +41,10 @@
 
 ## À venir
 
+- #SOC : homogénéiser l’essai Les Passerelles avec Petits Pas : espace distinct
+  persistant, aller-retour PWA/bureau, comptes publics et conservation des espaces
+  créés avec le premier patch. Retirer le chargement du jeu dans le formulaire initial.
+
 - Correction des codes de secours concurrents sous PostgreSQL : conserver
   le filtre de consommation sur la ligne mise à jour. Test avec deux écritures
   effectivement bloquées sur le même code et reset concurrent ; aucun changement

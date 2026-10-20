@@ -77,3 +77,16 @@ def generer(compte, *, professionnels=None, reference=None):
     social.evenement(nadia, suivis['Thomas'], thomas, j(-10), 'Installation dans un logement autonome fictif.', source)
     social.bilan(nadia, suivis['Thomas'], j(-2), 'Bilan fictif : installation réalisée ; accompagnement maintenu pour les démarches et la formation.')
     return suivis
+
+
+@transaction.atomic
+def preparer_jeu_public():
+    """Comptes du jeu neuf : serveur jetable ou espace d’essai local distinct."""
+    from pas_a_pas_accompagnement.demo import IDENTIFIANT, MOT_DE_PASSE
+    if get_user_model().objects.exists() or not espace_metier_vide():
+        raise ValidationError('Base non vide : aucune donnée modifiée.')
+    compte = get_user_model().objects.create_user(IDENTIFIANT, password=MOT_DE_PASSE)
+    professionnels = {nom: get_user_model().objects.create_user(nom, password=MOT_DE_PASSE,
+        first_name=prenom) for nom, prenom in [('nadia', 'Nadia'), ('remi', 'Rémi'), ('camille', 'Camille')]}
+    autoriser(compte)
+    return generer(compte, professionnels=professionnels)

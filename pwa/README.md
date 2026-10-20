@@ -188,9 +188,13 @@ Chromium vérifie aussi ces médias et relations dans les copies exportées apr�
 restauration et secours. `scripts/jeu-technique-copies.py` est une sonde des bancs,
 jamais embarquée ni distribuée comme démonstration. Aucun rôle supplémentaire.
 
-## Jeu métier facultatif
+## Essayer Les Passerelles dans un espace distinct
 
-Au premier démarrage vide, cocher **Charger Les Passerelles** pour suivre
-[la découverte métier](../DEMONSTRATION.md). Le compte reste celui choisi par
-l’utilisateur ; aucun compte public, ZIP ni secret n’est embarqué. Les copies
-et restaurations conservent leurs parcours et règles habituels.
+**Essayer avec Les Passerelles** ouvre un stockage d’essai distinct, avec les
+comptes publics du jeu fictif. **Revenir à mon espace habituel** retrouve les
+données habituelles sans restauration. Vos essais restent conservés pour la
+prochaine ouverture. Le lien est accessible avant la création d’un compte.
+Voir [le parcours et la compatibilité du premier patch](../DEMONSTRATION.md).
+Les Workers de copie et de restauration sélectionnent le même espace que la
+coque ; le verrou d’ouverture reste commun aux deux espaces. Aucun effacement
+ni nouveau format de copie. Effacer les données du site peut supprimer les deux.

@@ -13,8 +13,8 @@ title: Premiers pas sur des données fictives
 
 ## Découvrir le métier avec Les Passerelles
 
-Si votre version propose le jeu, chargez-le au premier démarrage local, puis
-ouvrez **Découvrir le scénario fictif Les Passerelles** depuis l’accueil. Sur
+Si votre version propose **Essayer avec Les Passerelles**, ouvrez cet espace
+distinct avec les comptes publics affichés, puis choisissez **Découvrir le scénario fictif Les Passerelles** depuis l’accueil. Sur
 le serveur jetable qui intègre cette version, le jeu est déjà préparé.
 
 Consultez le ménage de Samira, Lina et Adam, puis l’accord de déjeuner d’Alex.
@@ -26,8 +26,9 @@ prestations explicites ; aucune représentation légale n’est modélisée.
 
 Les dates sont fixées par rapport au jour de génération et restent conservées
 dans vos copies. Ce jeu est entièrement fictif, dans un espace unique sans
-cloisonnement entre professionnels. Aucun chargement ni reset d’un espace
-existant n’est effectué depuis le guide.
+cloisonnement entre professionnels. **Revenir à mon espace habituel** retrouve vos données. Les essais sont
+conservés séparément, sans remise à zéro ; les espaces remplis avec l’ancien
+chargement initial ne sont pas déplacés ni supprimés.
 
 ## Conserver un essai local
 

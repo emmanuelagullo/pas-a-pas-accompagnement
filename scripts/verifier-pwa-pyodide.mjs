@@ -5,7 +5,7 @@ import path from 'node:path';
 const dossier=process.env.PWA_BUNDLE?pathToFileURL(path.resolve(process.env.PWA_BUNDLE)+path.sep):new URL('../dist/pwa/',import.meta.url),racine=fileURLToPath(dossier);
 const config=JSON.parse(fs.readFileSync(new URL('config.json',dossier)));
 const {loadPyodide}=await import(new URL('runtime/pyodide.mjs',dossier));
-async function moteur(fichiers={}){
+async function moteur(fichiers={},essai=false){
   const p=await loadPyodide({indexURL:racine+'runtime/'});
   const attendu=JSON.parse(fs.readFileSync(new URL('runtime/pyodide-lock.json',dossier),'utf8')).info.python;
   const effectif=p.runPython("import sys; sys.version.split()[0]");
@@ -17,7 +17,7 @@ async function moteur(fichiers={}){
   p.unpackArchive(new Uint8Array(fs.readFileSync(racine+'application.zip')),'zip',{extractDir:'/application'});
   p.runPython("import sys;sys.path.insert(0,'/application');from pwa import bridge as b");
   p.FS.mkdirTree('/data');for(const [nom,contenu] of Object.entries(fichiers)){p.FS.mkdirTree('/data/'+path.posix.dirname(nom));p.FS.writeFile('/data/'+nom,contenu);}
-  p.runPython("b.initialize('https://chrs-fictif.example','/chrs/')");
+  p.runPython(`b.initialize('https://chrs-fictif.example','/chrs/',essai=${essai?'True':'False'},nouveau=${essai&&Object.keys(fichiers).length===0?'True':'False'})`);
   p.runPython(`from django.conf import settings; assert settings.VERSION_APPLICATION == ${JSON.stringify(config.application_version)}`);
   return p;
 }
@@ -114,7 +114,7 @@ try{
  if(retour.runPython('signature()')!==signature)throw new Error('Aller-retour natif : relations altérées');
  retour.runPython("assert (b.DATA/'media/sonde/fictif.txt').read_bytes()==b'media fictif technique'; from django.contrib.sessions.models import Session; assert not Session.objects.exists()");
  // Jeu métier réel : premier démarrage facultatif dans un autre espace WASM.
- const demo=await moteur();
+ const demo=await moteur({},true);
  demo.runPython(`
 from django.test import Client
 from django.contrib.auth import get_user_model
@@ -123,23 +123,26 @@ from django.contrib.sessions.models import Session
 from io import StringIO
 from personnes.models import Personne,Sejour,AccordRepas,Menage
 c=Client(enforce_csrf_checks=True,HTTP_HOST='chrs-fictif.example',secure=True)
-r=c.get('/installer/',secure=True)
-assert r.status_code==200
-r=c.post('/installer/',{'username':'demo-privee','password1':'Phrase-fictive-metier-WASM-2026!',
- 'password2':'Phrase-fictive-metier-WASM-2026!','demonstration':'on',
- 'csrfmiddlewaretoken':c.cookies['pas_accompagnement_csrftoken'].value},secure=True,
- HTTP_ORIGIN='https://chrs-fictif.example')
-assert r.status_code==302,r.content
+assert c.get('/installer/',secure=True).status_code==404
+assert c.login(username='nadia',password='Demonstration-fictive-2026!')
 assert Personne.objects.count()==5 and Menage.objects.count()==3
-assert get_user_model().objects.count()==1
-assert not get_user_model().objects.get().is_superuser
+assert get_user_model().objects.count()==4
+assert not get_user_model().objects.filter(is_superuser=True).exists()
 assert Sejour.objects.filter(fin__isnull=True).count()==1
 assert c.get('/decouverte/',secure=True).status_code==200
-assert c.post('/installer/',{},secure=True).status_code in (403,404)
+assert c.get('/mon-compte/mot-de-passe/',secure=True).status_code==403
 sortie=StringIO();call_command('dumpdata','personnes','identites.Utilisateur',stdout=sortie)
 signature_demo=sortie.getvalue()
 `);
  const attenduDemo=demo.runPython('signature_demo');
+ const demoFichiers={};
+ for(const nom of Object.keys(JSON.parse(demo.runPython('b.inventory()')).files)){
+  const valeur=demo.globals.get('b').file_bytes(nom);try{demoFichiers[nom]=valeur.toJs();}finally{valeur.destroy();}
+ }
+ const demoReouverte=await moteur(demoFichiers,true);
+ demoReouverte.runPython("from io import StringIO; from django.core.management import call_command; sortie=StringIO(); call_command('dumpdata','personnes','identites.Utilisateur',stdout=sortie)");
+ if(JSON.stringify(JSON.parse(demoReouverte.runPython('sortie.getvalue()')))!==JSON.stringify(JSON.parse(attenduDemo)))throw new Error('Jeu recréé à la réouverture');
+ if(premier.runPython('signature()')!==signature)throw new Error('Espace habituel altéré par l’essai');
  const demoZip=demo.runPython('b.export_zip()');
  try{fs.writeFileSync(path.join(temporaire,'demo.zip'),demoZip.toJs());}finally{demoZip.destroy();}
  const demoNative=path.join(temporaire,'demo-native');
@@ -147,7 +150,7 @@ signature_demo=sortie.getvalue()
  const signatureNative=execFileSync(python,[manage,'dumpdata','personnes','identites.Utilisateur'],
    {env:{...env,ACCOMPAGNEMENT_DONNEES:demoNative},encoding:'utf8'});
  if(JSON.stringify(JSON.parse(attenduDemo))!==JSON.stringify(JSON.parse(signatureNative)))throw new Error('Jeu métier PWA → natif altéré');
- console.log('Les Passerelles : installation WASM facultative, droits, découverte et copie native : OK');
+ console.log('Les Passerelles : essai WASM distinct, réouverture conservée, droits et copie native : OK');
  // Ancien schéma pré-CHRS1 et pré-TOTP, réellement créé par ses migrations.
  const ancien=path.join(temporaire,'ancien');
  const codeAncien=`import os,django

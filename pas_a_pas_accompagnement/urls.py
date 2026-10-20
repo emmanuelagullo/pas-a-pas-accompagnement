@@ -1,6 +1,6 @@
 from django.contrib.auth.views import LogoutView
 from django.urls import include, path
-from .views import accueil, health
+from .views import accueil, health, choisir_espace_local
 from personnes.installation import installer
 from personnes.views import decouverte
 from identites import vues as identites
@@ -8,6 +8,7 @@ from identites import vues as identites
 from .copies_locales import copies
 
 urlpatterns = [
+    path("essai-local/", choisir_espace_local, name="choisir_espace_local"),
     path("decouverte/", decouverte, name="decouverte"),
     path("copies-locales/", copies, name="copies_locales"),
     path("menages/", include("personnes.urls_suivi")),

@@ -83,7 +83,7 @@ def construire(sortie,runtime_cache=None,wheels_cache=None,test=False):
                 info=ZipInfo(path.relative_to(ROOT).as_posix(),(2026,1,1,0,0,0));info.compress_type=ZIP_DEFLATED
                 archive.writestr(info,path.read_bytes())
     shutil.copytree(ROOT/"static",sortie/"static")
-    for nom in ["index.html","shell.js","worker.js","sw.js","manifest.webmanifest","icon.svg","icon-192.png","icon-512.png","telecharger.html"]:
+    for nom in ["index.html","essai.html","shell.js","worker.js","sw.js","manifest.webmanifest","icon.svg","icon-192.png","icon-512.png","telecharger.html"]:
         shutil.copyfile(ROOT/"pwa"/nom,sortie/nom)
     for nom in ["shell.js", "worker.js"]:
         p=sortie/nom;p.write_text(p.read_text().replace("__TEST__", "true" if test else "false"))

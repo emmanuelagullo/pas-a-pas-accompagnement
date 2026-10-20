@@ -13,3 +13,6 @@ X_FRAME_OPTIONS = "SAMEORIGIN"
 ALLOWED_HOSTS = [os.environ["PWA_HOST"]]
 CSRF_TRUSTED_ORIGINS = [os.environ["PWA_ORIGIN"]]
 DATABASES["default"]["OPTIONS"] = {"init_command":"PRAGMA journal_mode=DELETE"}
+
+ESPACE_ESSAI = os.environ.get("ACCOMPAGNEMENT_ESPACE_ESSAI") == "oui"
+MIDDLEWARE.append("pas_a_pas_accompagnement.demo.ProtegerComptePublic")

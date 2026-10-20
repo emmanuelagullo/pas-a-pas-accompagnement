@@ -73,5 +73,8 @@ if __name__ == "__main__":
 
 def contexte(request):
     from django.conf import settings
+    from .demo import MOT_DE_PASSE
     return {"version_application": settings.VERSION_APPLICATION,
+            "espace_essai": getattr(settings, "ESPACE_ESSAI", False),
+            "mot_de_passe_essai": MOT_DE_PASSE,
             "outils_copies_bureau": getattr(settings, "OUTILS_COPIES_BUREAU", False)}
