@@ -45,12 +45,12 @@ qualification-postgresql:
         DJANGO_TEST_VERSION: ['5.2.18', '6.1.1']
   services:
     - name: postgres:17-alpine
-      alias: postgres
+      alias: postgresql
   variables:
     POSTGRES_DB: postgres
     POSTGRES_USER: qualification
     POSTGRES_PASSWORD: fictif-ci-seulement
-    PGHOST: postgres
+    PGHOST: postgresql
     PGPORT: '5432'
     PGUSER: qualification
     PGPASSWORD: fictif-ci-seulement

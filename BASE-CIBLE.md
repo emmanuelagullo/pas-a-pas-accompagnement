@@ -18,7 +18,7 @@ Le cadrage fictif mono-espace de V0-METIER.md ne choisit pas le backend serveur.
 | Contrôle | SQLite maintenue | PostgreSQL 17 |
 | --- | --- | --- |
 | Environnement | Profils et lock actuels ; SQLite fichier pour la concurrence | Service jetable postgres:17-alpine, Python 3.12/3.13, Django 5.2 et 6.1 |
-| Dépendances | Profils serveur, PDF et 2FA explicites | Profil **requirements-tests-postgresql.txt distinct**, avec psycopg 3.3.6 épinglé ; aucune inclusion bureau/PWA |
+| Dépendances | Profils serveur, PDF et 2FA explicites | Profil **requirements-tests-postgresql.txt distinct**, avec psycopg[binary] 3.3.5 épinglé ; aucune inclusion bureau/PWA |
 | Réglages | Pas de changement du profil livré | Module de settings de tests uniquement, DB/host/port explicites, credentials fictifs CI et refus d'une base non CI |
 | Migrations | Prototype existant et anciennes copies | Base vide puis migrations ; contrôle makemigrations ; scénarios de données fictives |
 | Concurrence | Connexions distinctes, verrouillage occupé et refus propre | TransactionTestCase et connexions distinctes ; consommation TOTP/secours, reset concurrent, limites et transactions |
@@ -54,6 +54,8 @@ feront l'objet d'un cadrage d'exploitation distinct, annoncé avant tout réglag
 
 ## Exécuter la qualification
 
+La recette Django (`pas_communs.ci django --migrer --pip-check`) et le pilote
+binaire épinglé sont repris de Petits Pas ; la suite entière est exécutée.
 Le job `qualification-postgresql` utilise PostgreSQL 17 et le client 17 de
 Debian trixie, pour conserver la même version majeure pour dump et restauration.
 Il bloque la publication PWA avec les autres contrôles. Le script

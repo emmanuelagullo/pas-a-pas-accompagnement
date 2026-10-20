@@ -68,10 +68,13 @@ def verifier(utilisateur, saisie, *, revision=None, instant=None):
         return None
     code = totp.normaliser_code_secours(saisie)
     if code:
-        # La sous-requête sur la révision et l’UPDATE du code constituent une
-        # seule instruction : un reset concurrent ne valide pas l’ancien code.
-        accepte = CodeSecours.objects.filter(compte=ligne, compte__revision=ligne.revision,
-            compte__confirme_le__isnull=False, empreinte=totp.empreinte_code_secours(code),
+        # Garder utilise_le IS NULL sur la ligne UPDATE : une jointure directe
+        # ferait déplacer tous les filtres dans une sous-requête Django, dont
+        # le résultat peut être périmé après l’attente d’un verrou PostgreSQL.
+        comptes_actifs = DoubleFacteur.objects.filter(pk=ligne.pk,
+            revision=ligne.revision, confirme_le__isnull=False).values("pk")
+        accepte = CodeSecours.objects.filter(compte_id__in=comptes_actifs,
+            empreinte=totp.empreinte_code_secours(code),
             utilise_le__isnull=True).update(utilise_le=timezone.now())
         return Preuve(str(ligne.revision), True) if accepte else None
     pas = _pas(ligne, saisie, instant)

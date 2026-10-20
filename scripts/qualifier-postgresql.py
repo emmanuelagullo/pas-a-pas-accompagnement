@@ -57,11 +57,10 @@ def main():
                     print(version_client.strip(), flush=True)
                     if not re.search(r'\b17\.', version_client):
                         raise RuntimeError('La qualification exige les clients PostgreSQL 17.')
-                django('check')
-                django('migrate', '--noinput')
-                django('makemigrations', '--check', '--dry-run')
-                django('test', 'identites', 'personnes.tests', 'personnes.tests_pdf',
-                       'personnes.tests_postgresql', 'personnes.tests_suivi', 'personnes.tests_repas', 'personnes.tests_hebergement', 'personnes.tests_social', '--noinput')
+                # Même recette que la CI Django de Petits Pas : pas de second
+                # ordre de contrôles ni de sélection partielle des tests ici.
+                commande(sys.executable, '-m', 'pas_communs.ci', 'django',
+                         '--migrer', '--pip-check')
                 # Compte sans mot de passe utilisable, personne UUID et relation protégée.
                 django('shell', '-c', """
 from django.contrib.auth import get_user_model

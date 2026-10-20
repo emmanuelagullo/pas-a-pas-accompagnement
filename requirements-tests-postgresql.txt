@@ -1,3 +1,4 @@
 # Qualification jetable seulement : aucune inclusion serveur/bureau/PWA.
 # Avec requirements-serveur.txt et requirements-2fa.txt dans la matrice CI.
-psycopg==3.3.6
+# Même pilote binaire que le lock Petits Pas ; installation CI explicite.
+psycopg[binary]==3.3.5

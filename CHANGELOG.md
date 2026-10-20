@@ -30,6 +30,11 @@
 
 ## À venir
 
+- Correction des codes de secours concurrents sous PostgreSQL : conserver
+  le filtre de consommation sur la ligne mise à jour. Test avec deux écritures
+  effectivement bloquées sur le même code et reset concurrent ; aucun changement
+  de schéma, de clés, de codes existants ou de configuration de déploiement.
+
 - Canal PWA habituel réservé aux tags sans suffixe ; préversions construites et
   testées, promotion refusée. Publication manuelle de main conservée.
 - PostgreSQL 17 retenu pour le futur serveur CHRS : profil de tests explicite,

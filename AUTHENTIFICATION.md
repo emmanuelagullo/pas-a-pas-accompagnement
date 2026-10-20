@@ -187,3 +187,14 @@ y compris sur SQLite où les verrous de ligne ne sont pas disponibles.
 La CI serveur installe les dépendances crypto pour que ces tests ne soient pas
 ignorés. La CI bureau teste le profil sans crypto ; les essais graphiques
 Windows/GTK restent distincts de ces contrôles HTTP.
+
+### Régression PostgreSQL : secours à usage unique
+
+La CI PostgreSQL a révélé un double succès avec l’ancienne requête de
+consommation. Une jointure Django déplaçait le filtre `utilise_le IS NULL`
+dans une sous-requête, sans réévaluation utile après l’attente du verrou.
+Ce filtre reste désormais sur la ligne mise à jour ; une sous-requête explicite
+séparée contrôle la révision du facteur. Le test PostgreSQL attend que deux
+connexions soient bloquées sur le même code avant de libérer son verrou.
+Le reset concurrent est testé séparément. Les clés et codes existants sont
+conservés ; aucune migration n’est nécessaire.
