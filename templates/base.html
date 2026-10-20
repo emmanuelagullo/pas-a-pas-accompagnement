@@ -12,6 +12,7 @@
 {% if not demonstration_publique and not espace_essai %}<a href="{% url 'securite_compte' %}">Sécurité du compte</a>{% endif %}
 {% if perms.personnes.view_personne and not request.inscription_2fa_requise %}<a href="{% url 'personnes:liste' %}">Personnes</a>{% endif %}
 {% if perms.personnes.view_menage and perms.personnes.view_personne and not request.inscription_2fa_requise %}<a href="{% url 'suivi:liste' %}">Ménages et accompagnements</a>{% endif %}
+{% if perms.personnes.view_personne and perms.personnes.view_menage and perms.personnes.view_accompagnement and not request.inscription_2fa_requise %}<a href="{% url 'suivi:jour' %}">Travail du jour</a>{% endif %}
 <form method="post" action="{% url 'deconnexion' %}">{% csrf_token %}<button class="secondaire" type="submit">Se déconnecter</button></form>
 </nav>{% endif %}</header>
 {% if espace_essai %}<aside aria-label="Espace d’essai"><p><strong>Espace d’essai Les Passerelles</strong> — distinct de votre espace habituel. Données fictives uniquement. Vos essais sont conservés.</p>

@@ -551,3 +551,13 @@ La fiche d’accompagnement regroupe bénéficiaires, accords de repas, héberge
 et suivi social. Après une saisie, le retour reste dans la rubrique concernée.
 Les anciens liens et routes restent disponibles ; aucune migration ni nouveau
 droit n’est nécessaire.
+
+## CHRS6 — travail du jour
+
+Le menu Travail du jour regroupe les séjours, lieux et absences enregistrés à la
+date choisie, selon les droits. Les accords expirés avec séjour ouvert sont
+signalés sans déduire une présence physique. Les repas actifs peuvent être saisis
+par lot (500 lignes maximum) : renseigner seulement les distributions réalisées.
+Case vide : aucune écriture ; doublon, ligne invalide ou conflit : lot refusé.
+Aucune date future n’est acceptée pour une distribution. Les corrections restent
+accessibles depuis l’accord. Aucun nouveau droit ni migration pour cette tranche.

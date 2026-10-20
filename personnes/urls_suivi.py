@@ -3,8 +3,10 @@ from . import vues_suivi as vues
 from . import vues_repas
 from . import vues_hebergement as h
 from . import vues_social as social
+from . import vues_jour
 app_name = "suivi"
 urlpatterns = [
+    path("jour/", vues_jour.jour, name="jour"),
     path("accompagnements/<uuid:pk>/", vues.accompagnement, name="accompagnement"),
     path("accompagnements/<uuid:pk>/social/", social.detail, name="social"),
     path("accompagnements/<uuid:pk>/social/situation/<str:dimension>/", social.renseigner, name="situation_sociale"),

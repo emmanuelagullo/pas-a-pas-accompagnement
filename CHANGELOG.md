@@ -1,3 +1,8 @@
+## CHRS6 — travail du jour
+
+- Séjours, lieux et absences enregistrés à une date ; alertes d’accord expiré.
+- Distributions de repas par lot atomique, sans création automatique ni doublon.
+
 ## CHRS5 — fiche d’accompagnement
 
 - Navigation depuis les personnes et ménages, rubriques repas/hébergement/social.
