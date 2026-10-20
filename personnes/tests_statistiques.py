@@ -238,3 +238,41 @@ class QualificationStatistiquesTests(TestCase):
         lignes = evolution_mensuelle(debut, fin)
         self.assertEqual(bilan(debut, fin)['personnes_avec_sejour'], 1)
         self.assertEqual(sum(l['personnes_avec_sejour'] for l in lignes), 2)
+
+
+class ExplorationRepasTests(TestCase):
+    def setUp(self):
+        NavigationTests.setUp(self)
+
+    def test_regroupement_filtre_annulation_et_mois_vide(self):
+        from .statistiques import exploration_repas
+        from django.utils import timezone
+        accord = repas.accorder(self.u, self.a, [self.p], date(2026, 1, 1), None, 'dejeuner')
+        RepasDistribue.objects.create(accord=accord, beneficiaire=self.p,
+            date=date(2026, 1, 15), quantite=2, cree_par=self.u)
+        annule = RepasDistribue.objects.create(accord=accord, beneficiaire=self.p,
+            date=date(2026, 2, 1), quantite=3, cree_par=self.u, annule_le=timezone.now())
+        lignes = exploration_repas(date(2026, 1, 1), date(2026, 3, 1), service='dejeuner')
+        self.assertEqual([(x['mois'], x['quantite']) for x in lignes],
+                         [('2026-01', 2), ('2026-02', 0)])
+        self.assertIsNotNone(annule.pk)
+
+    def test_csv_filtre_et_permissions(self):
+        url = reverse('statistiques')
+        params = {'debut': '2026-01-01', 'fin': '2026-03-01',
+                  'rapport': 'exploration_repas', 'service': 'dejeuner'}
+        page = self.client.get(url, params)
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'Repas par mois et service')
+        export = self.client.get(url, {**params, 'format': 'csv'})
+        self.assertEqual(export.status_code, 200)
+        self.assertIn(b'mois,service,quantite_distribuee', export.content)
+        self.assertIn(b'2026-02,dejeuner,0', export.content)
+        self.u.user_permissions.clear()
+        self.assertEqual(self.client.get(url, {**params, 'format': 'csv'}).status_code, 403)
+
+    def test_periode_trop_longue_refusee_en_csv(self):
+        response = self.client.get(reverse('statistiques'), {
+            'debut': '2020-01-01', 'fin': '2026-01-01',
+            'rapport': 'exploration_repas', 'format': 'csv'})
+        self.assertEqual(response.status_code, 400)

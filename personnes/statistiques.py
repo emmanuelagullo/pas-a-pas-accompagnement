@@ -109,3 +109,40 @@ def evolution_mensuelle(debut, fin, *, maximum_mois=24):
                        'fin': borne, **chiffres})
         courant = borne
     return lignes
+
+
+def exploration_repas(debut, fin, *, service="", maximum_mois=24):
+    """Quantités réalisées par mois civil et service, jamais par personne.
+
+    Période [debut, fin[ ; annulations exclues. Les mois sans distribution
+    restent visibles. Même borne de 24 mois que l'évolution existante.
+    """
+    if fin <= debut:
+        raise ValueError("La fin doit être postérieure au début")
+    services = dict(AccordRepas.SERVICES)
+    if service and service not in services:
+        raise ValueError("Service inconnu")
+    dernier = fin - timedelta(days=1)
+    nombre = (dernier.year - debut.year) * 12 + dernier.month - debut.month + 1
+    if nombre > maximum_mois:
+        raise ValueError("Période trop longue pour l'exploration (24 mois maximum)")
+    from django.db.models.functions import TruncMonth
+    donnees = (RepasDistribue.objects
+               .filter(date__gte=debut, date__lt=fin, annule_le__isnull=True)
+               .annotate(mois=TruncMonth('date'))
+               .values('mois', 'accord__service')
+               .annotate(total=Sum('quantite')))
+    comptes = {(ligne['mois'].strftime('%Y-%m'), ligne['accord__service']): ligne['total']
+               for ligne in donnees}
+    colonnes = [(code, libelle) for code, libelle in AccordRepas.SERVICES
+                if not service or code == service]
+    lignes = []
+    courant = debut.replace(day=1)
+    while courant <= dernier:
+        mois = courant.strftime('%Y-%m')
+        for code, libelle in colonnes:
+            lignes.append({'mois': mois, 'service': code, 'libelle': libelle,
+                           'quantite': comptes.get((mois, code), 0)})
+        courant = courant.replace(year=courant.year + (courant.month == 12),
+                                  month=1 if courant.month == 12 else courant.month + 1)
+    return lignes

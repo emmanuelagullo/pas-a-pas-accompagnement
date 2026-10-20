@@ -8,7 +8,8 @@ from django.shortcuts import render
 from django.http import QueryDict
 from django.utils import timezone
 from django.views.decorators.http import require_GET
-from .statistiques import bilan, evolution_mensuelle, ventilation_repas
+from .statistiques import bilan, evolution_mensuelle, ventilation_repas, exploration_repas
+from .models import AccordRepas
 
 
 RAPPORTS = {
@@ -16,6 +17,7 @@ RAPPORTS = {
     'hebergement': 'Hébergement et nuitées',
     'repas': 'Repas distribués',
     'mensuel': 'Évolution mensuelle',
+    'exploration_repas': 'Explorer les repas par mois et service',
 }
 
 
@@ -70,7 +72,17 @@ def statistiques(request):
     rapport = request.GET.get('rapport', 'synthese')
     if rapport not in RAPPORTS:
         rapport = 'synthese'
+    service_choisi = request.GET.get('service', '')
+    if service_choisi not in dict(AccordRepas.SERVICES):
+        service_choisi = ''
     resultats = bilan(**formulaire.cleaned_data) if formulaire.is_valid() else None
+    exploration = []
+    erreur_exploration = ''
+    if resultats is not None and rapport == 'exploration_repas':
+        try:
+            exploration = exploration_repas(**formulaire.cleaned_data, service=service_choisi)
+        except ValueError as exc:
+            erreur_exploration = str(exc)
     evolution = []
     services = {}
     erreur_evolution = ''
@@ -84,7 +96,13 @@ def statistiques(request):
         reponse = HttpResponse(content_type='text/csv; charset=utf-8')
         reponse['Content-Disposition'] = 'attachment; filename="statistiques-chrs.csv"'
         writer = csv.writer(reponse)
-        if rapport == 'mensuel':
+        if rapport == 'exploration_repas':
+            if erreur_exploration:
+                return HttpResponse(erreur_exploration, status=400, content_type='text/plain; charset=utf-8')
+            writer.writerow(['mois', 'service', 'quantite_distribuee'])
+            for ligne in exploration:
+                writer.writerow([ligne['mois'], ligne['service'], ligne['quantite']])
+        elif rapport == 'mensuel':
             if erreur_evolution:
                 return HttpResponse(erreur_evolution, status=400, content_type='text/plain; charset=utf-8')
             colonnes = ('mois', 'debut', 'fin', 'admissions', 'sorties',
@@ -116,6 +134,8 @@ def statistiques(request):
     periode = formulaire.cleaned_data if formulaire.is_valid() else {}
     return render(request, 'suivi/statistiques.html', {
         'formulaire': formulaire, 'resultats': resultats,
+        'exploration': exploration, 'erreur_exploration': erreur_exploration,
+        'services_possibles': AccordRepas.SERVICES, 'service_choisi': service_choisi,
         'periodes': PERIODES, 'periode_choisie': periode_choisie,
         'comparaison': comparaison, 'comparer': request.GET.get('comparer') == '1',
         'rapport': rapport, 'rapports': RAPPORTS,

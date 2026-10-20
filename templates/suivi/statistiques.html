@@ -13,6 +13,10 @@
 <select id="rapport" name="rapport">
 {% for code, libelle in rapports.items %}<option value="{{ code }}" {% if code == rapport %}selected{% endif %}>{{ libelle }}</option>{% endfor %}
 </select>{{ formulaire.as_p }}
+<label for="service">Service de repas (rapport exploratoire)</label>
+<select id="service" name="service"><option value="">Tous les services</option>
+{% for code, libelle in services_possibles %}<option value="{{ code }}" {% if code == service_choisi %}selected{% endif %}>{{ libelle }}</option>{% endfor %}
+</select>
 <label><input type="checkbox" name="comparer" value="1" {% if comparer %}checked{% endif %}> Comparer avec la période précédente de même durée</label>
 <button type="submit">Calculer</button></form>
 {% if comparaison != None %}
@@ -25,7 +29,7 @@
 <tr><th scope="row">Repas distribués</th><td>{{ comparaison.repas_distribues }}</td><td>{{ resultats.repas_distribues }}</td></tr></tbody></table></section>
 {% endif %}
 {% if resultats != None %}
-<section class="carte"><h2>{% if rapport == 'hebergement' %}Hébergement{% elif rapport == 'repas' %}Repas{% elif rapport == 'mensuel' %}Évolution mensuelle{% else %}Activité pendant la période{% endif %}</h2>
+<section class="carte"><h2>{% if rapport == 'hebergement' %}Hébergement{% elif rapport == 'repas' %}Repas{% elif rapport == 'mensuel' %}Évolution mensuelle{% elif rapport == 'exploration_repas' %}Repas par mois et service{% else %}Activité pendant la période{% endif %}</h2>
 {% if rapport == 'synthese' or rapport == 'hebergement' %}
 <dl>
 {% if rapport == "synthese" %}<dt>Ménages accompagnés distincts</dt><dd>{{ resultats.menages_accompagnes }}</dd>
@@ -53,6 +57,7 @@
 <p>Les populations distinctes mensuelles ne sont pas additives : une personne peut être comptée sur plusieurs mois.</p>{% endif %}
 <form method="get">
 <input type="hidden" name="rapport" value="{{ rapport }}">
+<input type="hidden" name="service" value="{{ service_choisi }}">
 <input type="hidden" name="debut" value="{{ debut_iso }}">
 <input type="hidden" name="fin" value="{{ fin_iso }}">
 <button type="submit" name="format" value="csv">Exporter ce rapport (CSV)</button>
