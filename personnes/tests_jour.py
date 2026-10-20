@@ -41,6 +41,20 @@ class JourTests(TestCase):
         self.assertContains(self.client.post(self.url,donnees),'Aucune ligne du lot')
         self.assertFalse(RepasDistribue.objects.exists())
 
+    def test_actions_rapides_sans_separateur_orphelin(self):
+        reponse = self.client.get(self.url)
+        self.assertContains(reponse, reverse('suivi:creer'))
+        self.assertNotContains(reponse, 'Créer un ménage</a> ·')
+        self.assertContains(reponse, 'Actions rapides')
+
+    def test_actions_rapides_masquees_sans_droit(self):
+        # Le droit de consulter le travail du jour reste, sans droit de créer.
+        self.u.user_permissions.remove(*list(self.u.user_permissions.filter(
+            codename__in=['add_menage', 'add_appartenance', 'add_personne', 'view_transmission'])))
+        reponse = self.client.get(self.url)
+        self.assertEqual(reponse.status_code, 200)
+        self.assertNotContains(reponse, 'Actions rapides')
+
     def test_raccourcis_du_travail_du_jour_et_permissions(self):
         # Le raccourci général reste accessible sans hébergement actif.
         reponse = self.client.get(self.url)

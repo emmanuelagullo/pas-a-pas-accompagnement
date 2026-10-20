@@ -1,8 +1,14 @@
 {% extends "base.html" %}{% block contenu %}<h1>Travail du jour</h1>
 <form method="get">{{ date_form.as_p }}<button type="submit">Afficher</button></form>
+{% if perms.personnes.add_personne and perms.personnes.view_personne or perms.personnes.add_menage and perms.personnes.view_menage and perms.personnes.add_appartenance or perms.personnes.view_transmission %}
 <section class="carte" aria-label="Actions rapides"><h2>Actions rapides</h2>
-<p>{% if perms.personnes.add_personne and perms.personnes.view_personne %}<a href="{% url 'personnes:creer' %}">Accueillir une nouvelle personne</a> · {% endif %}{% if perms.personnes.add_menage and perms.personnes.view_menage %}<a href="{% url 'suivi:creer' %}">Créer un ménage</a> · {% endif %}{% if perms.personnes.view_transmission %}<a href="{% url 'suivi:cahier' %}">Transmettre une consigne à l’équipe</a>{% endif %}</p>
+<ul>
+{% if perms.personnes.add_personne and perms.personnes.view_personne %}<li><a href="{% url 'personnes:creer' %}">Accueillir une nouvelle personne</a></li>{% endif %}
+{% if perms.personnes.add_menage and perms.personnes.view_menage and perms.personnes.add_appartenance %}<li><a href="{% url 'suivi:creer' %}">Créer un ménage</a></li>{% endif %}
+{% if perms.personnes.view_transmission %}<li><a href="{% url 'suivi:cahier' %}">Consulter le cahier de liaison</a></li>{% endif %}
+</ul>
 </section>
+{% endif %}
 <p>Les dates reflètent les informations enregistrées. Un séjour ouvert ne prouve pas la présence physique.</p>
 {% if perms.personnes.view_accordhebergement and perms.personnes.view_sejour %}<section class="carte"><h2>Hébergement au {{ date }}</h2><ul>{% for ligne in hebergements %}<li><a href="{% url 'suivi:accord_hebergement' ligne.sejour.accord_id %}">{{ ligne.sejour.accord.accompagnement.menage }}</a> : {% for p in ligne.sejour.beneficiaires.all %}{{ p }} ; {% endfor %}
 <p>Actions sur le séjour :
