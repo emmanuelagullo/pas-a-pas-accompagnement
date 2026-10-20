@@ -111,3 +111,7 @@ sont pas encore implémentés. L'exploitation avec des dossiers réels n'est pas
 ## 0.1.0
 
 Premier prototype : création et consultation d'une personne fictive.
+
+- #SOC CHRS11 : exploration chronologique filtrable de l'accompagnement,
+  par bénéficiaire et dates d'effet, sans score ni nouveau stockage social ;
+  droits de lecture distincts selon les catégories de faits.

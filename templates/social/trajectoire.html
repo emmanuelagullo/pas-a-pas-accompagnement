@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block contenu %}
+<h1>Trajectoire d’accompagnement — {{ accompagnement.menage }}</h1>
+<p><a href="{% url 'suivi:social' accompagnement.pk %}">Situation et parcours sociaux</a></p>
+<p>Chronologie des faits enregistrés, et non évaluation ou score de la personne. Une absence de saisie ne signifie pas absence de progrès. Les dates de sortie sont exclues du séjour.</p>
+<form method="get">{{ form.as_p }}<button type="submit">Afficher la trajectoire</button></form>
+<h2>Éléments datés</h2>
+<ol>{% for ligne in lignes %}
+<li><strong>{{ ligne.date }} — {{ ligne.nature }}</strong>{% if ligne.beneficiaire %} — {{ ligne.beneficiaire }}{% endif %} : {{ ligne.texte }}
+<small>(enregistré le {{ ligne.enregistre }})</small></li>
+{% empty %}<li>Aucun élément pour cette sélection.</li>{% endfor %}</ol>
+<p>Les bilans concernant l’ensemble du ménage n’apparaissent que lorsque tous les bénéficiaires sont sélectionnés. Les prestations et contributions sont affichées selon les autorisations de consultation.</p>
+{% endblock %}

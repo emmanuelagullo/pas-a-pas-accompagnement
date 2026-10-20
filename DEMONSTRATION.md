@@ -172,3 +172,12 @@ existant, utiliser autoriser_chrs7 au terminal. Aucun reset n’est nécessaire.
 La fiche personne conduit à l’accompagnement. Le travail du jour permet la
 saisie explicite des repas. Les erreurs de dates ou de texte se corrigent avec
 motif et conservation de l’avant/après ; ne pas utiliser la suppression.
+
+## CHRS11 — Trajectoire datée
+
+Depuis « Situation et parcours sociaux », ouvrir « Explorer la trajectoire ».
+La chronologie est filtrable par bénéficiaire et par dates d'effet inclusives.
+Elle juxtapose les situations déclarées, événements, bilans de ménage, repas
+réalisés ou annulés et admissions/sorties, selon les droits de lecture.
+Elle ne produit ni score ni déduction automatique sur le progrès social.
+Les bilans de ménage sont masqués dans la sélection d'une personne.

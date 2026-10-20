@@ -5,6 +5,7 @@
 {% if perms.personnes.add_situationsociale %}<p>{% for code,nom in dimensions %}<a href="{% url 'suivi:situation_sociale' accompagnement.pk code %}">Renseigner {{ nom }}</a> {% endfor %}</p>{% endif %}
 {% if perms.personnes.add_evenementsocial and perms.personnes.view_evenementsocial %}<a href="{% url 'suivi:evenement_social' accompagnement.pk %}">Ajouter un événement</a>{% endif %}
 {% if perms.personnes.add_bilansocial and perms.personnes.view_bilansocial %}<a href="{% url 'suivi:bilan_social' accompagnement.pk %}">Ajouter un bilan court</a>{% endif %}
+<p><a href="{% url 'suivi:trajectoire' accompagnement.pk %}">Explorer la trajectoire (filtres par personne et période)</a></p>
 <h2>Historique par date d’effet</h2><ul>{% for ligne in histoire %}<li>{{ ligne.date }} — {{ ligne.type }} : {% with o=ligne.objet %}
 {% if ligne.type == "Situation" %}{{ o.beneficiaire }} — {{ o.get_dimension_display }} : {{ o.libelle_valeur }}, fin exclue {{ o.fin|default:"non renseignée" }}. Source : {{ o.source }}.
 {% if perms.personnes.change_situationsociale and perms.personnes.view_correctionperiode %}<a href="{% url 'suivi:corriger_saisie' 'situationsociale' o.pk %}">Corriger la date ou la source</a>{% endif %}

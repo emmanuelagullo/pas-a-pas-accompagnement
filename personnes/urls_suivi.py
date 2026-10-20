@@ -5,6 +5,7 @@ from . import vues_hebergement as h
 from . import vues_social as social
 from . import vues_jour
 from . import vues_transmissions
+from . import vues_trajectoire
 from . import vues_corrections
 app_name = "suivi"
 urlpatterns = [
@@ -16,6 +17,7 @@ urlpatterns = [
     path("jour/", vues_jour.jour, name="jour"),
     path("accompagnements/<uuid:pk>/", vues.accompagnement, name="accompagnement"),
     path("accompagnements/<uuid:pk>/social/", social.detail, name="social"),
+    path("accompagnements/<uuid:pk>/trajectoire/", vues_trajectoire.detail, name="trajectoire"),
     path("accompagnements/<uuid:pk>/social/situation/<str:dimension>/", social.renseigner, name="situation_sociale"),
     path("situations/<int:pk>/corriger/", social.corriger, name="corriger_situation"),
     path("accompagnements/<uuid:pk>/social/evenement/", social.ecrire, {"nature":"evenement"}, name="evenement_social"),
