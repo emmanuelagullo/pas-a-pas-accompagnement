@@ -270,3 +270,24 @@ contrôles proposés sans droit, informations manquantes et informations affich�
 sans nécessité. Sur petit écran, vérifier notamment le passage entre la relève
 actuelle et la situation à une date choisie. Ne corriger que les difficultés
 observées ; ne pas inventer un système de rôles ou de tâches supplémentaire.
+
+### CHRS14-02 — Recette navigateur par permissions
+
+Le job `captures-demonstration` exécute aussi `personnes.qualification_navigateur`
+avec Chromium et un serveur Django jetable. Trois profils fictifs sont recréés
+indépendamment : veilleur (lecture et saisie de transmission), équipe de journée
+(lecture et clôture d'actions), référent social (trajectoire sans accès implicite
+à la relève). Les contrôles portent sur les liens réellement rendus, les
+retours de navigation et les refus HTTP directs. Le format mobile (390 px) est
+utilisé pour détecter les problèmes grossiers de navigation ; **ce n'est pas**
+une validation ergonomique par des professionnels.
+
+Pour lancer cette recette avec Playwright/Chromium installés :
+
+```sh
+python3 manage.py test personnes.qualification_navigateur --noinput
+```
+
+Cette recette ne crée aucun compte dans la base persistante : Django utilise
+sa base de test et les données sont fictives. Elle complète, sans remplacer,
+les tests de permissions `personnes.tests_profils` et la recette humaine.
