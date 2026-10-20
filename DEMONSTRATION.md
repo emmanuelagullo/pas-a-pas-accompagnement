@@ -301,3 +301,7 @@ captures `exploration-repas.png` et `exploration-hebergement.png`.
 Le site Hugo reprend ces captures. Les tests Django vérifient les agrégats
 du scénario, indépendamment des dates civiles et des UUID. Les nuitées
 d'affectation restent théoriques, et les exports ne sont pas nominatifs.
+
+### Modèles personnels de rapports (CHRS16)
+
+Dans la démonstration jetable Les Passerelles, le parcours Chromium ouvre les statistiques des repas sur le mois courant, enregistre le modèle personnel « Repas du mois — démonstration », le rouvre et vérifie que la période relative est conservée et que le CSV reste disponible. La capture `modele-rapport.png` est produite dans les artefacts CI, sans ajout automatique à la galerie Hugo. Le modèle n’est créé que dans la base fictive jetable.

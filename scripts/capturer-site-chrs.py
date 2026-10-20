@@ -96,9 +96,24 @@ def main():
             if ('quantite_distribuee' if rapport == 'exploration_repas'
                     else 'nuitees_affectation_theoriques') not in entete:
                 raise RuntimeError('Colonnes CSV incorrectes : ' + rapport)
+        # CHRS16 : enregistrer et rouvrir un modèle relatif dans la base jetable.
+        page.goto(args.base_url + '/statistiques/?' + urlencode({
+            'periode': 'mois', 'rapport': 'exploration_repas'}))
+        page.get_by_role('heading', name='Repas par mois et service').wait_for()
+        page.locator('#nom_modele').fill('Repas du mois — démonstration')
+        page.get_by_role('button', name='Enregistrer cette configuration').click()
+        page.get_by_role('link', name='Repas du mois — démonstration').click()
+        page.get_by_role('heading', name='Repas par mois et service').wait_for()
+        if page.locator('select#periode').input_value() != 'mois':
+            raise RuntimeError('La période relative du modèle a été perdue')
+        page.screenshot(path=str(args.output / 'modele-rapport.png'), full_page=True)
+        with page.expect_download() as telechargement:
+            page.get_by_role('button', name='Exporter ce rapport (CSV)').click()
+        if not telechargement.value.suggested_filename.endswith('.csv'):
+            raise RuntimeError('Export du modèle de rapport absent')
         browser.close()
     for nom in ('connexion', 'travail-du-jour', 'statistiques', 'liaison',
-                'exploration-repas', 'exploration-hebergement'):
+                'exploration-repas', 'exploration-hebergement', 'modele-rapport'):
         chemin = args.output / (nom + '.png')
         if not chemin.is_file() or chemin.stat().st_size < 1000:
             raise RuntimeError('Capture manquante ou vide : ' + str(chemin))
