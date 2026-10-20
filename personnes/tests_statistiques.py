@@ -71,3 +71,37 @@ class StatistiquesTests(TestCase):
         self.assertIn(b'2026-01-02,2026-01-05', reponse.content)
         self.u.user_permissions.clear()
         self.assertEqual(self.client.get(url, params).status_code, 403)
+
+
+class VentilationsTests(TestCase):
+    def setUp(self):
+        NavigationTests.setUp(self)
+
+    def test_mois_partiels_et_frontiere(self):
+        from .statistiques import evolution_mensuelle
+        accord = AccordHebergement.objects.create(accompagnement=self.a,
+            debut=date(2026, 1, 30), cree_par=self.u)
+        accord.beneficiaires.add(self.p)
+        sejour = Sejour.objects.create(accord=accord, debut=date(2026, 1, 30),
+            fin=date(2026, 2, 3), cree_par=self.u)
+        sejour.beneficiaires.add(self.p)
+        lignes = evolution_mensuelle(date(2026, 1, 31), date(2026, 2, 2))
+        self.assertEqual([l['nuitees_theoriques'] for l in lignes], [1, 1])
+        self.assertEqual([l['admissions'] for l in lignes], [0, 0])
+        self.assertEqual([l['mois'] for l in lignes], ['2026-01', '2026-02'])
+
+    def test_services_distribues(self):
+        from .statistiques import ventilation_repas
+        from django.utils import timezone
+        accord = repas.accorder(self.u, self.a, [self.p], date(2026, 1, 1), None, 'dejeuner')
+        ligne = RepasDistribue.objects.create(accord=accord, beneficiaire=self.p,
+            date=date(2026, 1, 2), quantite=2, cree_par=self.u)
+        self.assertEqual(ventilation_repas(date(2026, 1, 1), date(2026, 2, 1))['dejeuner'], 2)
+        ligne.annule_le = timezone.now()
+        ligne.save(update_fields=['annule_le'])
+        self.assertEqual(ventilation_repas(date(2026, 1, 1), date(2026, 2, 1))['dejeuner'], 0)
+
+    def test_limite_de_mois(self):
+        from .statistiques import evolution_mensuelle
+        with self.assertRaises(ValueError):
+            evolution_mensuelle(date(2020, 1, 1), date(2026, 1, 1))

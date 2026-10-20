@@ -16,6 +16,17 @@
 <dt>Nuits hors absences déclarées (non assimilables à une présence)</dt><dd>{{ resultats.nuits_hors_absences_declarees }}</dd>
 <dt>Repas effectivement enregistrés (hors annulations)</dt><dd>{{ resultats.repas_distribues }}</dd>
 </dl>
+<h3>Repas distribués par service</h3>
+<dl><dt>Petits-déjeuners</dt><dd>{{ services.petit_dejeuner }}</dd>
+<dt>Déjeuners</dt><dd>{{ services.dejeuner }}</dd>
+<dt>Dîners</dt><dd>{{ services.diner }}</dd></dl>
+<h3>Évolution mensuelle</h3>
+{% if erreur_evolution %}<p>{{ erreur_evolution }}</p>{% else %}
+<table><caption>Les mois partiels sont limités à la période demandée</caption>
+<thead><tr><th scope="col">Mois</th><th scope="col">Admissions</th><th scope="col">Sorties</th><th scope="col">Nuitées théoriques</th><th scope="col">Repas distribués</th></tr></thead>
+<tbody>{% for ligne in evolution %}<tr><th scope="row">{{ ligne.mois }}</th><td>{{ ligne.admissions }}</td><td>{{ ligne.sorties }}</td><td>{{ ligne.nuitees_theoriques }}</td><td>{{ ligne.repas_distribues }}</td></tr>{% endfor %}</tbody></table>
+{% endif %}
+<p>Les populations distinctes mensuelles ne sont pas additives : une personne peut être comptée sur plusieurs mois.</p>
 <form method="get">
 <input type="hidden" name="debut" value="{{ debut_iso }}">
 <input type="hidden" name="fin" value="{{ fin_iso }}">

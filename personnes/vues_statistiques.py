@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import render
 from django.utils import timezone
 from django.views.decorators.http import require_GET
-from .statistiques import bilan
+from .statistiques import bilan, evolution_mensuelle, ventilation_repas
 
 
 class PeriodeStatistiquesForm(forms.Form):
@@ -30,6 +30,15 @@ def statistiques(request):
     initial = {'debut': aujourd_hui.replace(day=1), 'fin': aujourd_hui + timedelta(days=1)}
     formulaire = PeriodeStatistiquesForm(request.GET or None, initial=initial)
     resultats = bilan(**formulaire.cleaned_data) if formulaire.is_valid() else None
+    evolution = []
+    services = {}
+    erreur_evolution = ''
+    if resultats is not None:
+        services = ventilation_repas(**formulaire.cleaned_data)
+        try:
+            evolution = evolution_mensuelle(**formulaire.cleaned_data)
+        except ValueError as exc:
+            erreur_evolution = str(exc)
     if request.GET.get('format') == 'csv' and resultats is not None:
         reponse = HttpResponse(content_type='text/csv; charset=utf-8')
         reponse['Content-Disposition'] = 'attachment; filename="statistiques-chrs.csv"'
@@ -42,6 +51,7 @@ def statistiques(request):
     periode = formulaire.cleaned_data if formulaire.is_valid() else {}
     return render(request, 'suivi/statistiques.html', {
         'formulaire': formulaire, 'resultats': resultats,
+        'evolution': evolution, 'services': services, 'erreur_evolution': erreur_evolution,
         'debut_iso': periode['debut'].isoformat() if periode else '',
         'fin_iso': periode['fin'].isoformat() if periode else '',
     })

@@ -5,7 +5,7 @@ non une présence physique constatée. Les absences ne sont pas déduites.
 """
 from datetime import timedelta
 from django.db.models import Q, Sum
-from .models import Accompagnement, Sejour, RepasDistribue, Absence
+from .models import Accompagnement, Sejour, RepasDistribue, Absence, AccordRepas
 
 
 def chevauche(debut, fin):
@@ -72,3 +72,37 @@ def nuits_distinctes(debut, fin):
                     hors_absence.add(cle)
             jour += timedelta(days=1)
     return len(nuits), len(hors_absence)
+
+
+def ventilation_repas(debut, fin):
+    """Quantités effectivement distribuées, par service, hors annulations."""
+    if fin <= debut:
+        raise ValueError("La fin doit être postérieure au début")
+    resultats = {service: 0 for service, _ in AccordRepas.SERVICES}
+    lignes = (RepasDistribue.objects.filter(date__gte=debut, date__lt=fin,
+                                             annule_le__isnull=True)
+              .values('accord__service').annotate(total=Sum('quantite')))
+    for ligne in lignes:
+        resultats[ligne['accord__service']] = ligne['total']
+    return resultats
+
+
+def evolution_mensuelle(debut, fin, *, maximum_mois=24):
+    """Découpe [debut, fin[ en mois civils, sans sommer les populations distinctes."""
+    if fin <= debut:
+        raise ValueError("La fin doit être postérieure au début")
+    mois = (fin.year - debut.year) * 12 + fin.month - debut.month + 1
+    if mois > maximum_mois:
+        raise ValueError("Période trop longue pour la ventilation mensuelle (24 mois maximum)")
+    lignes = []
+    courant = debut
+    while courant < fin:
+        annee, mois_num = courant.year, courant.month
+        suivant = courant.replace(year=annee + (mois_num == 12),
+                                   month=1 if mois_num == 12 else mois_num + 1, day=1)
+        borne = min(suivant, fin)
+        chiffres = bilan(courant, borne)
+        lignes.append({'mois': courant.strftime('%Y-%m'), 'debut': courant,
+                       'fin': borne, **chiffres})
+        courant = borne
+    return lignes

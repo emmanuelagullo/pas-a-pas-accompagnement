@@ -38,3 +38,13 @@ permissions que la consultation. Les absences sont ici celles saisies dans
 l'application ; leur absence ne démontre pas une présence. Lorsque deux séjours
 se chevauchent et qu'un seul porte une absence, une nuit peut encore être
 comptée via l'autre séjour : il ne s'agit pas d'un relevé de présence.
+
+## Ventilations CHRS10
+
+La ventilation mensuelle découpe la période demandée en intersections avec
+les mois civils (24 mois maximum pour éviter un calcul coûteux). Admissions,
+sorties, nuitées et repas sont calculés sur chaque sous-période. Les populations
+distinctes ne doivent **jamais** être additionnées d'un mois à l'autre.
+
+Les repas par service totalisent uniquement les distributions non annulées
+(petit-déjeuner, déjeuner, dîner). Aucun accord non réalisé n'est compté.
