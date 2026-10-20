@@ -96,21 +96,57 @@ def main():
             if ('quantite_distribuee' if rapport == 'exploration_repas'
                     else 'nuitees_affectation_theoriques') not in entete:
                 raise RuntimeError('Colonnes CSV incorrectes : ' + rapport)
-        # CHRS16 : enregistrer et rouvrir un modèle relatif dans la base jetable.
+        # CHRS17 : recette navigateur complète, sans dépendre des valeurs chiffrées.
+        # Les filtres et les exports sont vérifiés sur la même base fictive.
         page.goto(args.base_url + '/statistiques/?' + urlencode({
-            'periode': 'mois', 'rapport': 'exploration_repas'}))
+            **bornes, 'rapport': 'exploration_repas', 'service': 'dejeuner',
+            'regroupement': 'categorie', 'comparer': '1'}))
         page.get_by_role('heading', name='Repas par mois et service').wait_for()
-        page.locator('#nom_modele').fill('Repas du mois — démonstration')
+        if page.locator('select#service').input_value() != 'dejeuner':
+            raise RuntimeError('Le filtre de service n’est pas appliqué')
+        if page.locator('select#regroupement').input_value() != 'categorie':
+            raise RuntimeError('Le regroupement n’est pas appliqué')
+        if not page.locator('input[name="comparer"][type="checkbox"]').is_checked():
+            raise RuntimeError('La comparaison n’est pas activée')
+        page.get_by_role('heading', name='Comparaison avec la période précédente').wait_for()
+        # Changer de période ne doit pas perdre les autres critères.
+        page.locator('select#periode').select_option('mois')
+        page.get_by_role('button', name='Appliquer').click()
+        page.get_by_role('heading', name='Repas par mois et service').wait_for()
+        if (page.locator('select#service').input_value() != 'dejeuner' or
+                page.locator('select#regroupement').input_value() != 'categorie' or
+                not page.locator('input[name="comparer"][type="checkbox"]').is_checked()):
+            raise RuntimeError('La période rapide a effacé les filtres ou la comparaison')
+        # Le scénario peut être relancé sur la même base : éviter les homonymes.
+        nom_modele = 'Repas du mois — recette navigateur'
+        page.locator('#nom_modele').fill(nom_modele)
         page.get_by_role('button', name='Enregistrer cette configuration').click()
-        page.get_by_role('link', name='Repas du mois — démonstration').click()
+        page.get_by_role('link', name=nom_modele).last.click()
         page.get_by_role('heading', name='Repas par mois et service').wait_for()
-        if page.locator('select#periode').input_value() != 'mois':
-            raise RuntimeError('La période relative du modèle a été perdue')
+        if (page.locator('select#periode').input_value() != 'mois' or
+                page.locator('select#service').input_value() != 'dejeuner' or
+                page.locator('select#regroupement').input_value() != 'categorie' or
+                not page.locator('input[name="comparer"][type="checkbox"]').is_checked()):
+            raise RuntimeError('Le modèle rouvert ne conserve pas ses critères')
+        page.get_by_text('Modèle affiché :').wait_for()
         page.screenshot(path=str(args.output / 'modele-rapport.png'), full_page=True)
         with page.expect_download() as telechargement:
             page.get_by_role('button', name='Exporter ce rapport (CSV)').click()
-        if not telechargement.value.suggested_filename.endswith('.csv'):
+        fichier = telechargement.value
+        if not fichier.suggested_filename.endswith('.csv'):
             raise RuntimeError('Export du modèle de rapport absent')
+        with open(fichier.path(), encoding='utf-8-sig') as entree:
+            entete = entree.readline()
+        if 'quantite_distribuee' not in entete or 'service' not in entete:
+            raise RuntimeError('L’export du modèle ne correspond pas au regroupement')
+        # Modifier le formulaire doit ouvrir une consultation indépendante.
+        page.locator('select#service').select_option('diner')
+        page.get_by_role('button', name='Calculer').click()
+        if page.locator('select#service').input_value() != 'diner':
+            raise RuntimeError('La modification du service n’est pas appliquée')
+        page.get_by_role('link', name=nom_modele).last.click()
+        if page.locator('select#service').input_value() != 'dejeuner':
+            raise RuntimeError('La consultation a modifié le modèle enregistré')
         browser.close()
     for nom in ('connexion', 'travail-du-jour', 'statistiques', 'liaison',
                 'exploration-repas', 'exploration-hebergement', 'modele-rapport'):
