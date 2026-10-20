@@ -154,3 +154,28 @@ class QualificationTransversaleTests(TestCase):
         for libelle in ("Action en retard fictive", "Transmission actuelle fictive"):
             self.assertNotContains(reponse, libelle)
         self.assertNotContains(reponse, "Relève actuelle —")
+
+
+class RepriseServiceTests(TestCase):
+    """Repères de relève, sans exposer de contrôles de clôture non autorisés."""
+
+    def setUp(self):
+        JourTests.setUp(self)
+
+    def test_priorites_et_cloture_selon_les_droits(self):
+        from .models import ActionRelais
+        from django.utils import timezone
+        from datetime import timedelta
+        consultation = Permission.objects.get(codename="view_actionrelais", content_type__app_label="personnes")
+        cloture = Permission.objects.get(codename="change_actionrelais", content_type__app_label="personnes")
+        self.u.user_permissions.add(consultation)
+        ActionRelais.objects.create(libelle="Relève urgente fictive", auteur=self.u, echeance=timezone.localdate()-timedelta(days=1))
+        reponse = self.client.get(self.url)
+        self.assertContains(reponse, "En retard (1)")
+        self.assertContains(reponse, "À traiter aujourd’hui (0)")
+        self.assertContains(reponse, "Relève urgente fictive")
+        self.assertNotContains(reponse, "Consulter et clôturer les actions")
+        self.u.user_permissions.add(cloture)
+        self.assertContains(self.client.get(self.url), "Consulter et clôturer les actions")
+        self.u.user_permissions.remove(consultation)
+        self.assertNotContains(self.client.get(self.url), "Relève urgente fictive")
