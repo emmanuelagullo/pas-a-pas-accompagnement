@@ -7,7 +7,7 @@ Disponible : connexion, accueil, liste des personnes, création d'une identité
 incomplète et consultation de sa fiche. Pas de modification ni suppression de
 fiche à ce stade. Les comptes professionnels sont distincts des personnes suivies.
 
-Non disponible : prestations, séjour, situation sociale,
+Non disponible : hébergement, transports, situation sociale,
 documents joints, invitations. Une PWA fictive est disponible sous #SOC5a ; voir ci-dessous. La date et l'auteur de création ne sont pas un journal
 d'audit. Ce prototype n'est pas une installation de production.
 
@@ -393,3 +393,33 @@ Vérification de reprise historique et aller-retour des relations CHRS1 :
 ```sh
 python scripts/verifier-chrs1-reprise.py
 ```
+
+## CHRS2 — repas accordés et distribués
+
+Après migration, l’attribution reste explicite :
+
+```sh
+python manage.py autoriser_chrs2 nom-utilisateur
+```
+
+Cette commande ajoute CHRS1 et CHRS2 au compte désigné ; aucune migration ne
+modifie les droits. Depuis un accompagnement, choisir « Accorder des repas » :
+bénéficiaires parmi ceux du suivi, service (petit déjeuner, déjeuner, dîner),
+période début inclus / fin exclue et prestataire facultatif, y compris extérieur.
+L’accord couvre chaque jour de la période et reste immuable dans cette tranche.
+Pas de plafond global ni de calendrier hebdomadaire dans cette V0.
+
+Ouvrir l’accord pour enregistrer les repas effectivement distribués : personne,
+date et quantité entière positive. Une distribution future, hors accord ou hors
+accompagnement est refusée. Une seule ligne active par accord/personne/jour ;
+la contrainte SQL protège aussi les insertions concurrentes. Des accords distincts
+peuvent se chevaucher : pas de dédoublonnage entre accords dans cette tranche.
+Le total exclut les lignes annulées. Une correction consiste à annuler avec motif
+puis saisir une nouvelle ligne ; rien n’est effacé. Le journal distingue date
+d’effet et enregistrement, avec auteur. Aucun repas n’est généré depuis l’accord.
+
+L’orientation 115/SIAO reste à porter par un futur objet dédié au suivi ; aucun
+champ dupliqué sur les repas ni synchronisation externe n’est ajouté ici.
+Clôturer un accompagnement ne modifie pas l’accord historique, mais interdit les
+réalisations après sa fin. La clôture est refusée si elle exclut des distributions
+actives déjà saisies. Les corrections rétrospectives restent possibles.

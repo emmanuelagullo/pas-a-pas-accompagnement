@@ -44,7 +44,7 @@ Ménages, appartenances, accompagnements et journal applicatif sont maintenant
 implémentés dans personnes. Attribution volontaire via autoriser_chrs1, sans
 modification des droits existants. Dates inclus/exclu ; bénéficiaires explicites
 figés à l’ouverture. Clôture conditionnelle ; pas de correction ou réouverture
-dans cette tranche. CHRS2–4 restent proposés, non implémentés.
+dans cette tranche. CHRS2 est livré ci-dessous ; CHRS3–4 restent proposés.
 
 ## Modèle minimal proposé
 
@@ -138,3 +138,15 @@ ou verrous propres à PostgreSQL. Le backend serveur est une décision distincte
 du mono-espace fictif ; bureau et PWA restent SQLite. La qualification doit
 exercer chaque garantie sur les deux backends concernés, pas la déduire de
 la validation de formulaire ou d'une CI scolaire.
+
+## CHRS2 livré — conventions
+
+Accord de repas immuable par accompagnement, service et bénéficiaires explicites.
+Début inclus, fin exclue, service quotidien ; pas de quota global dans cette V0.
+Réalisation par bénéficiaire/date avec quantité entière positive ; doublon actif
+refusé au niveau SQL dans un même accord. Annulation motivée et nouvelle saisie
+pour corriger ; total hors annulations et journal propre aux repas. Prestataire
+extérieur possible. Aucun droit automatique. Voir le parcours dans README.md.
+Les accords distincts peuvent se chevaucher ; ni réservation ni commandes ni
+consommation physique observée ne sont modélisées. L’orientation n’est pas
+collectée sur l’accord : elle reste réservée au futur parcours d’orientation.

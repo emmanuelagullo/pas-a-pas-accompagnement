@@ -1,3 +1,10 @@
+## CHRS2 — repas accordés et réalisation effective
+
+- Accords avec bénéficiaires, service, période et prestataire facultatif.
+- Distributions datées, total hors annulations et corrections motivées.
+- Permissions explicites, journal et refus SQL des doublons actifs par accord.
+- Reprise historique étendue aux accords et distributions, sans changer le socle.
+
 ## CHRS1 — ménages et accompagnements
 
 - Ménages, appartenances datées et accompagnements sans hébergement.

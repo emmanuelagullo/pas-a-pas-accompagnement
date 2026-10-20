@@ -84,3 +84,51 @@ class EvenementSuivi(models.Model):
 
     class Meta:
         ordering = ["enregistre_le", "pk"]
+
+
+class AccordRepas(Periode):
+    SERVICES = [("petit_dejeuner", "Petit déjeuner"), ("dejeuner", "Déjeuner"), ("diner", "Dîner")]
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    accompagnement = models.ForeignKey(Accompagnement, on_delete=models.PROTECT, related_name="accords_repas")
+    beneficiaires = models.ManyToManyField(Personne, related_name="accords_repas")
+    service = models.CharField("Service de repas", max_length=20, choices=SERVICES)
+    prestataire = models.CharField("Prestataire (facultatif)", max_length=160, blank=True)
+    cree_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    cree_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-debut", "id"]
+        verbose_name = "accord de repas"
+        constraints = [models.CheckConstraint(condition=models.Q(fin__isnull=True) | models.Q(fin__gt=models.F("debut")), name="accord_repas_periode_valide")]
+
+
+class RepasDistribue(models.Model):
+    accord = models.ForeignKey(AccordRepas, on_delete=models.PROTECT, related_name="realisations")
+    beneficiaire = models.ForeignKey(Personne, on_delete=models.PROTECT)
+    date = models.DateField("Date de distribution")
+    quantite = models.PositiveSmallIntegerField("Nombre de repas")
+    cree_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="repas_saisis")
+    cree_le = models.DateTimeField(auto_now_add=True)
+    annule_le = models.DateTimeField(null=True, editable=False)
+    annule_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True, related_name="repas_annules")
+    motif_annulation = models.CharField(max_length=240, blank=True)
+
+    class Meta:
+        ordering = ["-date", "-pk"]
+        verbose_name = "repas distribué"
+        constraints = [
+            models.CheckConstraint(condition=models.Q(quantite__gt=0), name="repas_quantite_positive"),
+            models.UniqueConstraint(fields=["accord", "beneficiaire", "date"], condition=models.Q(annule_le__isnull=True), name="repas_actif_unique"),
+        ]
+
+
+class OperationRepas(models.Model):
+    accord = models.ForeignKey(AccordRepas, on_delete=models.PROTECT, related_name="operations")
+    repas = models.ForeignKey(RepasDistribue, on_delete=models.PROTECT, null=True)
+    action = models.CharField(max_length=20, choices=[("accorde", "Repas accordés"), ("distribue", "Repas distribués"), ("annule", "Distribution annulée")])
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    enregistre_le = models.DateTimeField(auto_now_add=True)
+    date_effet = models.DateField()
+
+    class Meta:
+        ordering = ["enregistre_le", "pk"]

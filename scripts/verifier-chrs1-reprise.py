@@ -20,6 +20,8 @@ with tempfile.TemporaryDirectory() as t:
     cmd('migrate','--noinput')
     cmd('autoriser_chrs1','historique')
     cmd('shell','-c',"from personnes import suivi; from personnes.models import Personne; from django.contrib.auth import get_user_model; from datetime import date; u=get_user_model().objects.get(); p=Personne.objects.get(); m=suivi.creer_menage(u,'Ménage historique',[p],date(2026,1,1)); suivi.ouvrir(u,m,[p],date(2026,1,1))")
+    cmd('autoriser_chrs2','historique')
+    cmd('shell','-c',"from personnes import repas; from personnes.models import Accompagnement; from django.contrib.auth import get_user_model; from datetime import date; u=get_user_model().objects.get(); a=Accompagnement.objects.get(); p=a.beneficiaires.get(); accord=repas.accorder(u,a,[p],date(2026,1,1),date(2026,2,1),'dejeuner'); r=repas.distribuer(u,accord,p,date(2026,1,2),1); repas.annuler(u,r,'Erreur fictive'); repas.distribuer(u,accord,p,date(2026,1,2),2)")
     cmd('sauvegarder_paquet',str(racine/'nouvelle.zip'))
     cmd('restaurer_copie',str(racine/'nouvelle.zip'),str(racine/'restauree'))
     with sqlite3.connect(racine/'restauree'/'accompagnement.sqlite3') as c:
@@ -27,5 +29,8 @@ with tempfile.TemporaryDirectory() as t:
         assert c.execute('select password from identites_utilisateur').fetchone()==mot
         assert c.execute('select count(*) from personnes_accompagnement_beneficiaires').fetchone()==(1,)
         assert c.execute('select count(*) from personnes_evenementsuivi').fetchone()==(3,)
+        assert c.execute('select count(*) from personnes_accordrepas_beneficiaires').fetchone()==(1,)
+        assert c.execute('select count(*) from personnes_operationrepas').fetchone()==(4,)
+        assert c.execute('select sum(quantite) from personnes_repasdistribue where annule_le is null').fetchone()==(2,)
         assert c.execute('pragma foreign_key_check').fetchall()==[]
-    print('CHRS1 : migration historique, ancienne archive, UUID/mot de passe et nouvelles relations restaurées : OK')
+    print('CHRS1/2 : migration historique, ancienne archive, UUID/mot de passe et nouvelles relations restaurées : OK')

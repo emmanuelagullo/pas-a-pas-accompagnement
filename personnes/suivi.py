@@ -54,6 +54,10 @@ def clore(acteur, objet, fin):
         exiger(acteur, "view_accompagnement")
     if objet.fin is not None:
         raise ValidationError("Cette période est déjà close.")
+    if accompagnement:
+        from .models import RepasDistribue
+        if RepasDistribue.objects.filter(accord__accompagnement=objet, annule_le__isnull=True, date__gte=fin).exists():
+            raise ValidationError("Des repas distribués existent à cette date ou après. Corrigez-les avant de clôturer.")
     objet.fin = fin
     objet.full_clean()
     # UPDATE conditionnel : une clôture concurrente ne peut pas être écrasée.
