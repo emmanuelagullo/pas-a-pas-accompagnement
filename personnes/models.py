@@ -363,6 +363,7 @@ class RevisionContribution(models.Model):
 
 
 class ActionRelais(models.Model):
+    id = models.BigAutoField(primary_key=True)
     """Action explicite d'équipe, distincte d'une transmission informative."""
     libelle = models.CharField(max_length=240)
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="actions_relais_creees")
