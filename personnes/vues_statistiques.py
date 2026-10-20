@@ -27,6 +27,7 @@ PERIODES = {
     'mois_precedent': 'Mois précédent',
     'annee': 'Année en cours',
     'annee_precedente': 'Année précédente',
+    'douze_mois': 'Douze derniers mois glissants',
 }
 
 
@@ -40,6 +41,9 @@ def bornes_periode(code, aujourd_hui):
         return dernier.replace(day=1), premier_mois
     if code == 'annee':
         return date(aujourd_hui.year, 1, 1), aujourd_hui + timedelta(days=1)
+    if code == 'douze_mois':
+        mois = aujourd_hui.year * 12 + aujourd_hui.month - 12
+        return date(mois // 12, mois % 12 + 1, 1), aujourd_hui + timedelta(days=1)
     if code == 'annee_precedente':
         return date(aujourd_hui.year - 1, 1, 1), date(aujourd_hui.year, 1, 1)
     raise ValueError('Période prédéfinie inconnue')
@@ -58,11 +62,18 @@ class PeriodeStatistiquesForm(forms.Form):
 
 # Seuls les paramètres publics et validés sont conservés ; ni données nominatives,
 # ni export CSV, ni identifiants d'autres utilisateurs.
-PARAMETRES_MODELE = ('rapport', 'debut', 'fin', 'service', 'lieu', 'regroupement', 'comparer')
+PARAMETRES_MODELE = ('rapport', 'debut', 'fin', 'periode', 'service', 'lieu', 'regroupement', 'comparer')
 
 
 def parametres_modele(donnees):
-    periode = PeriodeStatistiquesForm(donnees)
+    code_periode = donnees.get('periode', '')
+    if code_periode and code_periode not in PERIODES:
+        raise ValueError('Période relative inconnue')
+    if code_periode:
+        debut, fin = bornes_periode(code_periode, timezone.localdate())
+        periode = PeriodeStatistiquesForm({'debut': debut.isoformat(), 'fin': fin.isoformat()})
+    else:
+        periode = PeriodeStatistiquesForm(donnees)
     if not periode.is_valid():
         raise ValueError('Période invalide')
     rapport = donnees.get('rapport', 'synthese')
@@ -87,6 +98,7 @@ def parametres_modele(donnees):
         'rapport': rapport,
         'debut': periode.cleaned_data['debut'].isoformat(),
         'fin': periode.cleaned_data['fin'].isoformat(),
+        'periode': code_periode,
         'service': service if rapport == 'exploration_repas' else '',
         'lieu': lieu if rapport == 'exploration_hebergement' else '',
         'regroupement': regroupement,

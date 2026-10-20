@@ -135,3 +135,7 @@ stocké dans le modèle ; la consultation recalcule les indicateurs avec les
 données et permissions actuelles. Les modèles ne sont pas partagés entre comptes.
 Les bornes sont fixes : un modèle enregistré pour janvier 2026 ne devient pas
 automatiquement « janvier prochain ». La suppression est explicite.
+
+### Modèles de rapports et périodes relatives (CHRS16)
+
+Un modèle personnel peut enregistrer une période fixe (bornes civiles) ou un code de période relative : mois courant, mois précédent, année courante, année précédente ou douze derniers mois glissants. Les bornes relatives sont résolues à chaque consultation, y compris pour le CSV ; elles ne sont pas des résultats mis en cache. La fin est toujours exclue. Les filtres et regroupements restent ceux de CHRS15. Les modèles ne sont pas partagés entre utilisateurs.
