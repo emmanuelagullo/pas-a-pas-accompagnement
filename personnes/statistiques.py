@@ -193,3 +193,36 @@ def exploration_affectations(debut, fin, *, lieu="", maximum_mois=24):
         courant = courant.replace(year=courant.year + (courant.month == 12),
                                   month=1 if courant.month == 12 else courant.month + 1)
     return lignes
+
+
+REGROUPEMENTS_EXPLORATION = (
+    ('mois_categorie', 'Détail par mois et catégorie'),
+    ('categorie', 'Total par catégorie'),
+    ('mois', 'Total par mois'),
+)
+
+
+def regrouper_exploration(lignes, *, regroupement='mois_categorie', categorie='service', mesure='quantite'):
+    """Regroupe les seules lignes agrégées ; ne recalcule aucun fait métier.
+
+    Les catégories sont identifiées par code (service) ou identifiant (lieu),
+    jamais par leur libellé qui peut être partagé par plusieurs lieux.
+    """
+    if regroupement not in dict(REGROUPEMENTS_EXPLORATION):
+        raise ValueError('Regroupement inconnu')
+    if regroupement == 'mois_categorie':
+        return lignes
+    cle_categorie = 'lieu_id' if categorie == 'lieu' else categorie
+    sommes = {}
+    for ligne in lignes:
+        cle = ligne['mois'] if regroupement == 'mois' else ligne[cle_categorie]
+        if cle not in sommes:
+            sommes[cle] = {'mois': ligne['mois'] if regroupement == 'mois' else '',
+                           categorie: ligne[categorie] if regroupement == 'categorie' else '',
+                           mesure: 0}
+            if categorie == 'service':
+                sommes[cle]['libelle'] = ligne.get('libelle', '') if regroupement == 'categorie' else ''
+            else:
+                sommes[cle]['lieu_id'] = ligne.get('lieu_id') if regroupement == 'categorie' else None
+        sommes[cle][mesure] += ligne[mesure]
+    return list(sommes.values())

@@ -110,3 +110,17 @@ Les absences déclarées ne sont pas soustraites de cet indicateur.
 L'exploration est bornée à 24 mois et ne produit aucune liste nominative.
 Pour une véritable mesure d'occupation, il faudrait une définition métier
 explicite des capacités, des chevauchements et des présences constatées.
+
+## Regroupements exploratoires (CHRS15-04)
+
+Les rapports de repas et d'affectations proposent trois vues : détail mois ×
+service/lieu (par défaut), total par service/lieu, ou total par mois. Les
+regroupements additionnent **les lignes agrégées du rapport de base** : ils
+ne modifient ni les filtres, ni les périodes, ni les règles de calcul. Les
+lieux sont regroupés par identifiant et non par libellé (deux lieux peuvent
+porter le même nom). Le CSV possède exactement les colonnes et les lignes
+de la vue choisie. Aucun résultat nominatif n'est ajouté.
+
+Les nuitées d'affectation peuvent rester doublonnées en cas d'affectations
+concomitantes : un total par lieu ou par mois ne doit pas être interprété
+comme un nombre de nuits distinctes ni comme un taux d'occupation.

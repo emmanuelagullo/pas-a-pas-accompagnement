@@ -323,3 +323,69 @@ class ExplorationHebergementTests(TestCase):
             'rapport': 'exploration_hebergement', 'format': 'csv',
             'debut': '2020-01-01', 'fin': '2026-01-01'})
         self.assertEqual(reponse.status_code, 400)
+
+
+class RegroupementsExplorationTests(TestCase):
+    def setUp(self):
+        NavigationTests.setUp(self)
+
+    def test_repas_regroupements_html_csv_et_annulations(self):
+        from django.utils import timezone
+        accord = repas.accorder(self.u, self.a, [self.p], date(2026, 1, 1), None, 'dejeuner')
+        for jour, quantite, annule in ((date(2026, 1, 31), 2, False),
+                                      (date(2026, 2, 1), 3, False),
+                                      (date(2026, 2, 2), 8, True)):
+            RepasDistribue.objects.create(accord=accord, beneficiaire=self.p,
+                date=jour, quantite=quantite, cree_par=self.u,
+                annule_le=timezone.now() if annule else None)
+        params = {'rapport': 'exploration_repas', 'debut': '2026-01-01', 'fin': '2026-03-01',
+                  'service': 'dejeuner'}
+        for regroupement, entete, ligne in (
+            ('mois_categorie', b'mois,service,quantite_distribuee', b'2026-02,dejeuner,3'),
+            ('categorie', b'service,quantite_distribuee', b'dejeuner,5'),
+            ('mois', b'mois,quantite_distribuee', b'2026-02,3'),
+        ):
+            with self.subTest(regroupement=regroupement):
+                page = self.client.get(reverse('statistiques'), {**params, 'regroupement': regroupement})
+                self.assertContains(page, 'Quantité distribuée')
+                self.assertContains(page, 'name="regroupement" value="' + regroupement + '"')
+                export = self.client.get(reverse('statistiques'),
+                    {**params, 'regroupement': regroupement, 'format': 'csv'})
+                self.assertEqual(export.status_code, 200)
+                self.assertIn(entete, export.content)
+                self.assertIn(ligne, export.content)
+                self.assertNotIn(b',8', export.content)
+
+    def test_hebergement_regroupement_lieux_homonymes(self):
+        from .models import Affectation, LieuHebergement
+        from .statistiques import exploration_affectations, regrouper_exploration
+        accord = AccordHebergement.objects.create(accompagnement=self.a,
+            debut=date(2026, 1, 1), cree_par=self.u)
+        accord.beneficiaires.add(self.p)
+        sejour = Sejour.objects.create(accord=accord, debut=date(2026, 1, 1),
+            fin=date(2026, 1, 3), cree_par=self.u)
+        sejour.beneficiaires.add(self.p)
+        for index in range(2):
+            lieu = LieuHebergement.objects.create(libelle='Même nom', cree_par=self.u)
+            Affectation.objects.create(sejour=sejour, lieu=lieu,
+                debut=date(2026, 1, 1), fin=date(2026, 1, 3))
+        lignes = exploration_affectations(date(2026, 1, 1), date(2026, 2, 1))
+        groupes = regrouper_exploration(lignes, regroupement='categorie',
+                                       categorie='lieu', mesure='nuitees')
+        self.assertEqual(len(groupes), 2)
+        self.assertEqual([ligne['nuitees'] for ligne in groupes], [2, 2])
+        reponse = self.client.get(reverse('statistiques'), {
+            'rapport': 'exploration_hebergement', 'regroupement': 'mois',
+            'debut': '2026-01-01', 'fin': '2026-02-01', 'format': 'csv'})
+        self.assertIn(b'mois,nuitees_affectation_theoriques', reponse.content)
+        self.assertIn(b'2026-01,4', reponse.content)
+
+    def test_regroupement_inconnu_et_permissions(self):
+        from .statistiques import regrouper_exploration
+        with self.assertRaises(ValueError):
+            regrouper_exploration([], regroupement='inconnu')
+        url = reverse('statistiques')
+        params = {'rapport': 'exploration_repas', 'regroupement': 'categorie',
+                  'debut': '2026-01-01', 'fin': '2026-02-01', 'format': 'csv'}
+        self.u.user_permissions.clear()
+        self.assertEqual(self.client.get(url, params).status_code, 403)

@@ -21,6 +21,10 @@
 <select id="lieu" name="lieu"><option value="">Tous les lieux</option>
 {% for item in lieux_possibles %}<option value="{{ item.pk }}" {% if lieu_choisi == item.pk|stringformat:"s" %}selected{% endif %}>{{ item.libelle }}</option>{% endfor %}
 </select>
+<label for="regroupement">Regroupement (rapports exploratoires)</label>
+<select id="regroupement" name="regroupement">
+{% for code, libelle in regroupements %}<option value="{{ code }}" {% if code == regroupement %}selected{% endif %}>{{ libelle }}</option>{% endfor %}
+</select>
 <label><input type="checkbox" name="comparer" value="1" {% if comparer %}checked{% endif %}> Comparer avec la période précédente de même durée</label>
 <button type="submit">Calculer</button></form>
 {% if comparaison != None %}
@@ -47,11 +51,18 @@
 <dt>Nuits hors absences déclarées (non assimilables à une présence)</dt><dd>{{ resultats.nuits_hors_absences_declarees }}</dd>
 {% if rapport == "synthese" %}<dt>Repas effectivement enregistrés (hors annulations)</dt><dd>{{ resultats.repas_distribues }}</dd>{% endif %}
 </dl>{% endif %}
+{% if rapport == "exploration_repas" %}
+<p>Quantités effectivement distribuées, hors annulations. Les mois sans distribution sont conservés.</p>
+{% if erreur_exploration %}<p role="alert">{{ erreur_exploration }}</p>{% else %}
+<table><thead><tr>{% if regroupement != 'categorie' %}<th scope="col">Mois</th>{% endif %}{% if regroupement != 'mois' %}<th scope="col">Service</th>{% endif %}<th scope="col">Quantité distribuée</th></tr></thead><tbody>
+{% for ligne in exploration %}<tr>{% if regroupement != 'categorie' %}<th scope="row">{{ ligne.mois }}</th>{% endif %}{% if regroupement != 'mois' %}<td>{{ ligne.libelle }}</td>{% endif %}<td>{{ ligne.quantite }}</td></tr>{% empty %}<tr><td colspan="3">Aucune distribution sur la période.</td></tr>{% endfor %}
+</tbody></table>{% endif %}
+{% endif %}
 {% if rapport == "exploration_hebergement" %}
 <p>Chaque nuit d’affectation compte pour chaque bénéficiaire du séjour. Les affectations concomitantes peuvent doubler une nuit ; les nuits sans affectation ne sont pas attribuées. Ce total n’est ni une présence constatée ni nécessairement égal aux nuitées théoriques de séjour.</p>
 {% if erreur_hebergement %}<p role="alert">{{ erreur_hebergement }}</p>{% else %}
-<table><thead><tr><th scope="col">Mois</th><th scope="col">Lieu</th><th scope="col">Nuitées d’affectation théoriques</th></tr></thead><tbody>
-{% for ligne in exploration_hebergement %}<tr><th scope="row">{{ ligne.mois }}</th><td>{{ ligne.lieu }}</td><td>{{ ligne.nuitees }}</td></tr>{% empty %}<tr><td colspan="3">Aucune affectation sur la période.</td></tr>{% endfor %}
+<table><thead><tr>{% if regroupement != 'categorie' %}<th scope="col">Mois</th>{% endif %}{% if regroupement != 'mois' %}<th scope="col">Lieu</th>{% endif %}<th scope="col">Nuitées d’affectation théoriques</th></tr></thead><tbody>
+{% for ligne in exploration_hebergement %}<tr>{% if regroupement != 'categorie' %}<th scope="row">{{ ligne.mois }}</th>{% endif %}{% if regroupement != 'mois' %}<td>{{ ligne.lieu }}</td>{% endif %}<td>{{ ligne.nuitees }}</td></tr>{% empty %}<tr><td colspan="3">Aucune affectation sur la période.</td></tr>{% endfor %}
 </tbody></table>{% endif %}
 {% endif %}
 {% if rapport == "synthese" or rapport == "repas" %}<h3>Repas distribués par service</h3>
@@ -70,6 +81,7 @@
 <input type="hidden" name="rapport" value="{{ rapport }}">
 <input type="hidden" name="service" value="{{ service_choisi }}">
 <input type="hidden" name="lieu" value="{{ lieu_choisi }}">
+<input type="hidden" name="regroupement" value="{{ regroupement }}">
 <input type="hidden" name="debut" value="{{ debut_iso }}">
 <input type="hidden" name="fin" value="{{ fin_iso }}">
 <button type="submit" name="format" value="csv">Exporter ce rapport (CSV)</button>
