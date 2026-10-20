@@ -105,3 +105,37 @@ class VentilationsTests(TestCase):
         from .statistiques import evolution_mensuelle
         with self.assertRaises(ValueError):
             evolution_mensuelle(date(2020, 1, 1), date(2026, 1, 1))
+
+
+class RapportsTests(TestCase):
+    def setUp(self):
+        NavigationTests.setUp(self)
+
+    def test_exports_par_rapport(self):
+        url = reverse('statistiques')
+        params = {'debut': '2026-01-01', 'fin': '2026-02-01', 'format': 'csv'}
+        for rapport, entete in (
+            ('synthese', b'indicateur,valeur'),
+            ('hebergement', b'indicateur,valeur'),
+            ('repas', b'service,quantite_distribuee'),
+            ('mensuel', b'mois,debut,fin,admissions'),
+        ):
+            with self.subTest(rapport=rapport):
+                reponse = self.client.get(url, {**params, 'rapport': rapport})
+                self.assertEqual(reponse.status_code, 200)
+                self.assertIn(entete, reponse.content)
+
+    def test_export_mensuel_trop_long_refuse(self):
+        reponse = self.client.get(reverse('statistiques'), {
+            'debut': '2020-01-01', 'fin': '2026-01-01',
+            'rapport': 'mensuel', 'format': 'csv'})
+        self.assertEqual(reponse.status_code, 400)
+
+    def test_rapport_inconnu_et_permissions(self):
+        url = reverse('statistiques')
+        reponse = self.client.get(url, {'rapport': 'inconnu',
+                                         'debut': '2026-01-01', 'fin': '2026-02-01'})
+        self.assertEqual(reponse.status_code, 200)
+        self.assertContains(reponse, 'Synthèse de l’activité')
+        self.u.user_permissions.clear()
+        self.assertEqual(self.client.get(url, {'rapport': 'repas', 'format': 'csv'}).status_code, 403)
