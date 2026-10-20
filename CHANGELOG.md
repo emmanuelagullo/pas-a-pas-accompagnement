@@ -1,3 +1,10 @@
+## CHRS3 — hébergement et séjours effectifs
+
+- Accords d’hébergement, admissions avec bénéficiaires explicites et lieux partenaires.
+- Affectations successives, absences sans sortie et clôtures transactionnelles.
+- Droits explicites, journal et contrôle des chevauchements au sein du séjour.
+- Reprise des sauvegardes étendue à l’hébergement ; socle inchangé.
+
 ## CHRS2 — repas accordés et réalisation effective
 
 - Accords avec bénéficiaires, service, période et prestataire facultatif.

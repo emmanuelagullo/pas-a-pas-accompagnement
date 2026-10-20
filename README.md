@@ -7,7 +7,7 @@ Disponible : connexion, accueil, liste des personnes, création d'une identité
 incomplète et consultation de sa fiche. Pas de modification ni suppression de
 fiche à ce stade. Les comptes professionnels sont distincts des personnes suivies.
 
-Non disponible : hébergement, transports, situation sociale,
+Non disponible : transports, situation sociale,
 documents joints, invitations. Une PWA fictive est disponible sous #SOC5a ; voir ci-dessous. La date et l'auteur de création ne sont pas un journal
 d'audit. Ce prototype n'est pas une installation de production.
 
@@ -423,3 +423,43 @@ champ dupliqué sur les repas ni synchronisation externe n’est ajouté ici.
 Clôturer un accompagnement ne modifie pas l’accord historique, mais interdit les
 réalisations après sa fin. La clôture est refusée si elle exclut des distributions
 actives déjà saisies. Les corrections rétrospectives restent possibles.
+
+## CHRS3 — hébergement accordé, séjours et affectations
+
+```sh
+python manage.py migrate
+python manage.py autoriser_chrs3 nom-utilisateur
+```
+
+L’attribution ajoute CHRS1 et CHRS3 uniquement, sans retirer les droits CHRS2
+éventuels. Aucun droit n’est attribué à la migration. Depuis un accompagnement,
+accorder un hébergement à des bénéficiaires explicites ; ouvrir l’accord puis
+saisir l’admission effective. Créer un lieu (chambre, appartement, hôtel, etc.),
+avec opérateur extérieur facultatif, puis ajouter une affectation au séjour.
+Pour changer de lieu, clôturer l’affectation ouverte puis en ajouter une autre
+à la même date. La période du séjour reste inchangée.
+
+Les périodes utilisent des dates civiles, début inclus et fin exclue : une
+période du 3 au 5 correspond aux nuits débutant les 3 et 4. La présence réelle
+n’est pas déduite de cette seule période : les absences sont enregistrées à
+part. Pas d’heures ni d’accueil entrée/sortie le même jour dans cette tranche.
+Affectations et absences concernent tous les bénéficiaires du séjour. Pour des
+parcours individuels distincts, créer des séjours distincts avec les personnes
+concernées. Les bénéficiaires ne sont pas recalculés depuis le ménage courant.
+
+Une absence laisse le séjour et l’affectation ouverts. La sortie clôture les
+périodes ouvertes à sa date, dans la même transaction et avec audit ; une
+période déjà enregistrée au-delà entraîne un refus, sans modification partielle.
+La clôture de l’accompagnement exige d’abord la clôture des séjours. Admission
+et périodes effectives ne peuvent commencer dans le futur ; une fin effective
+ne peut être future ni dépasser le séjour, l’accord ou l’accompagnement.
+Un séjour ouvert sous accord borné ne constitue pas une prolongation de droit.
+
+Les affectations d’un même séjour ne peuvent se chevaucher ; même règle pour
+ses absences. Les écritures sont sérialisées par séjour sur SQLite/PostgreSQL ;
+un conflit de stockage web est refusé, avec demande de recharger avant réessai.
+Absence et affectation peuvent se chevaucher : la place reste attribuée.
+Pas de contrôle global des capacités ni des doubles occupations entre séjours,
+pas de réservation, tarification ou calcul automatique des nuitées facturables.
+Les corrections/annulations des séjours ne sont pas encore proposées : aucune
+suppression, réouverture ou modification silencieuse de l’historique.

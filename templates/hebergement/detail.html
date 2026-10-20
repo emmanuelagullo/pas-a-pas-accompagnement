@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% block contenu %}<h1>Hébergement accordé et séjours effectifs</h1>
+<p>Accord du {{ accord.debut }} au {{ accord.fin|default:"— période ouverte" }} (fin exclue).</p>
+<p>Bénéficiaires : {% for p in accord.beneficiaires.all %}{{ p }} ; {% endfor %}</p>
+{% if perms.personnes.add_sejour %}<a href="{% url 'suivi:admettre' accord.pk %}">Enregistrer une admission</a>{% endif %}
+{% if perms.personnes.add_lieuhebergement and perms.personnes.view_lieuhebergement %}<a href="{% url 'suivi:creer_lieu' %}">Créer un lieu</a>{% endif %}
+{% for s in sejours %}<section class="carte"><h2>Séjour du {{ s.debut }} au {{ s.fin|default:"— en cours" }} (fin exclue)</h2>
+<p>{% for p in s.beneficiaires.all %}{{ p }} ; {% endfor %}</p>
+<p>Les affectations et absences concernent tous les bénéficiaires de ce séjour. Une absence ne libère pas automatiquement la place.</p>
+{% if perms.personnes.view_affectation and perms.personnes.view_lieuhebergement %}<h3>Affectations</h3><ul>{% for a in s.affectations.all %}<li>{{ a.lieu }} — {{ a.debut }} / {{ a.fin|default:"ouverte" }}{% if not a.fin and perms.personnes.change_affectation %} <a href="{% url 'suivi:clore_affectation' a.pk %}">Clôturer l’affectation</a>{% endif %}</li>{% empty %}<li>Aucune affectation.</li>{% endfor %}</ul>{% endif %}
+{% if perms.personnes.add_affectation and perms.personnes.view_affectation and perms.personnes.view_lieuhebergement %}<a href="{% url 'suivi:affecter' s.pk %}">Ajouter une affectation</a>{% endif %}
+{% if perms.personnes.view_absence %}<h3>Absences</h3><ul>{% for a in s.absences.all %}<li>{{ a.debut }} / {{ a.fin|default:"ouverte" }}{% if not a.fin and perms.personnes.change_absence %} <a href="{% url 'suivi:clore_absence' a.pk %}">Clôturer l’absence</a>{% endif %}</li>{% empty %}<li>Aucune absence.</li>{% endfor %}</ul>{% endif %}
+{% if perms.personnes.add_absence and perms.personnes.view_absence %}<a href="{% url 'suivi:absence' s.pk %}">Enregistrer une absence</a>{% endif %}
+{% if not s.fin and perms.personnes.change_sejour and perms.personnes.change_affectation and perms.personnes.change_absence %}<p><a href="{% url 'suivi:sortir' s.pk %}">Enregistrer la sortie</a> (clôture aussi les affectations et absences ouvertes).</p>{% endif %}</section>{% empty %}<p>Aucun séjour effectif.</p>{% endfor %}
+{% if perms.personnes.view_operationhebergement %}<h2>Journal</h2><ul>{% for o in operations %}<li>{{ o.action }} — effet {{ o.date_effet }}, enregistré {{ o.enregistre_le }} par {{ o.auteur }}</li>{% endfor %}</ul>{% endif %}
+<a href="{% url 'suivi:detail' accord.accompagnement.menage_id %}">Retour au ménage et aux accompagnements</a>{% endblock %}

@@ -44,7 +44,7 @@ Ménages, appartenances, accompagnements et journal applicatif sont maintenant
 implémentés dans personnes. Attribution volontaire via autoriser_chrs1, sans
 modification des droits existants. Dates inclus/exclu ; bénéficiaires explicites
 figés à l’ouverture. Clôture conditionnelle ; pas de correction ou réouverture
-dans cette tranche. CHRS2 est livré ci-dessous ; CHRS3–4 restent proposés.
+dans cette tranche. CHRS2 est livré ci-dessous ; CHRS3 est livré ; CHRS4 reste proposé.
 
 ## Modèle minimal proposé
 
@@ -150,3 +150,14 @@ extérieur possible. Aucun droit automatique. Voir le parcours dans README.md.
 Les accords distincts peuvent se chevaucher ; ni réservation ni commandes ni
 consommation physique observée ne sont modélisées. L’orientation n’est pas
 collectée sur l’accord : elle reste réservée au futur parcours d’orientation.
+
+## CHRS3 livré — conventions
+
+Hébergement accordé, bénéficiaires explicites et admission effective ; lieux
+internes ou partenaires, affectations successives et absences collectives au
+séjour. Dates civiles début inclus / fin exclue, sans heures ni séjour de durée
+nulle. Pas de capacité globale ni réservation. Chevauchements interdits dans
+un même séjour pour les périodes de même type ; mutation sérialisée par séjour.
+La sortie clôture atomiquement les périodes ouvertes et conserve les périodes
+historiques. Chaque opération est auditée ; aucune attribution automatique de
+droits. Voir README.md pour les limites et le parcours complet.

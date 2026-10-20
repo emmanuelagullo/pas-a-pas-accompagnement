@@ -132,3 +132,67 @@ class OperationRepas(models.Model):
 
     class Meta:
         ordering = ["enregistre_le", "pk"]
+
+
+class AccordHebergement(Periode):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    accompagnement = models.ForeignKey(Accompagnement, on_delete=models.PROTECT, related_name="accords_hebergement")
+    beneficiaires = models.ManyToManyField(Personne, related_name="accords_hebergement")
+    cree_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    cree_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.CheckConstraint(condition=models.Q(fin__isnull=True) | models.Q(fin__gt=models.F("debut")), name="accord_hebergement_periode")]
+
+
+class Sejour(Periode):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    accord = models.ForeignKey(AccordHebergement, on_delete=models.PROTECT, related_name="sejours")
+    beneficiaires = models.ManyToManyField(Personne, related_name="sejours")
+    revision = models.PositiveIntegerField(default=0, editable=False)
+    cree_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    cree_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.CheckConstraint(condition=models.Q(fin__isnull=True) | models.Q(fin__gt=models.F("debut")), name="sejour_periode")]
+
+
+class LieuHebergement(models.Model):
+    cree_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    cree_le = models.DateTimeField(auto_now_add=True)
+    libelle = models.CharField("Lieu / unité d’hébergement", max_length=160, validators=[RegexValidator(r"\S", "Indiquez un lieu.")])
+    partenaire = models.CharField("Opérateur extérieur (facultatif)", max_length=160, blank=True)
+
+    def __str__(self):
+        return self.libelle + (" — " + self.partenaire if self.partenaire else "")
+
+
+class Affectation(Periode):
+    sejour = models.ForeignKey(Sejour, on_delete=models.PROTECT, related_name="affectations")
+    lieu = models.ForeignKey(LieuHebergement, on_delete=models.PROTECT)
+
+    class Meta:
+        ordering = ["debut", "pk"]
+        constraints = [models.CheckConstraint(condition=models.Q(fin__isnull=True) | models.Q(fin__gt=models.F("debut")), name="affectation_periode")]
+
+
+class Absence(Periode):
+    sejour = models.ForeignKey(Sejour, on_delete=models.PROTECT, related_name="absences")
+
+    class Meta:
+        ordering = ["debut", "pk"]
+        constraints = [models.CheckConstraint(condition=models.Q(fin__isnull=True) | models.Q(fin__gt=models.F("debut")), name="absence_periode")]
+
+
+class OperationHebergement(models.Model):
+    accord = models.ForeignKey(AccordHebergement, on_delete=models.PROTECT, related_name="operations")
+    sejour = models.ForeignKey(Sejour, on_delete=models.PROTECT, null=True)
+    affectation = models.ForeignKey(Affectation, on_delete=models.PROTECT, null=True)
+    absence = models.ForeignKey(Absence, on_delete=models.PROTECT, null=True)
+    action = models.CharField(max_length=40)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    date_effet = models.DateField()
+    enregistre_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["enregistre_le", "pk"]

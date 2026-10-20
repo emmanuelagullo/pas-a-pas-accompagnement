@@ -1,6 +1,6 @@
 """Écritures CHRS1 : droits contrôlés et audit dans la même transaction."""
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.db import transaction
+from django.db import transaction, models
 from .models import Menage, Appartenance, Accompagnement, EvenementSuivi
 
 
@@ -55,7 +55,9 @@ def clore(acteur, objet, fin):
     if objet.fin is not None:
         raise ValidationError("Cette période est déjà close.")
     if accompagnement:
-        from .models import RepasDistribue
+        from .models import RepasDistribue, Sejour
+        if Sejour.objects.filter(accord__accompagnement=objet).filter(models.Q(fin__isnull=True) | models.Q(fin__gt=fin)).exists():
+            raise ValidationError("Clôturez d’abord les séjours au plus tard à la fin de l’accompagnement.")
         if RepasDistribue.objects.filter(accord__accompagnement=objet, annule_le__isnull=True, date__gte=fin).exists():
             raise ValidationError("Des repas distribués existent à cette date ou après. Corrigez-les avant de clôturer.")
     objet.fin = fin
