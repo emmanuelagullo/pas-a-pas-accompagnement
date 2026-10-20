@@ -1,5 +1,6 @@
 """CHRS9 : suggestions réversibles, sans création de prestations au GET."""
 from django.test import TestCase
+from django.contrib.auth.models import Permission
 from django.urls import reverse
 from .tests_hebergement import Donnees
 from .models import Sejour, Affectation, Absence
@@ -40,6 +41,7 @@ class ArriveeProgressive(Donnees, TestCase):
         self.client.force_login(self.u)
 
     def test_creer_personne_puis_proposer_menage_sans_le_creer(self):
+        self.u.user_permissions.add(Permission.objects.get(codename="add_personne", content_type__app_label="personnes"))
         from .models import Personne, Menage
         reponse = self.client.post(reverse("personnes:creer"), {"designation": "Accueil provisoire", "prenom": ""})
         personne = Personne.objects.get(designation="Accueil provisoire")

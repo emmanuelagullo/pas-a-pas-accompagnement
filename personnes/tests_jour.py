@@ -2,6 +2,7 @@ from datetime import date
 from django.urls import reverse
 from . import tests_navigation
 from django.test import TestCase
+from django.contrib.auth.models import Permission
 from . import repas
 from .models import RepasDistribue
 
@@ -43,7 +44,9 @@ class JourTests(TestCase):
     def test_raccourcis_du_travail_du_jour_et_permissions(self):
         # Le raccourci général reste accessible sans hébergement actif.
         reponse = self.client.get(self.url)
-        self.assertContains(reponse, reverse('personnes:creer'))
+        self.assertNotContains(reponse, reverse('personnes:creer'))
+        self.u.user_permissions.add(Permission.objects.get(codename='add_personne', content_type__app_label='personnes'))
+        self.assertContains(self.client.get(self.url), reverse('personnes:creer'))
         self.assertContains(reponse, reverse('suivi:creer'))
         # Le menu ne doit pas inventer d'opérations non autorisées.
         self.u.user_permissions.clear()
