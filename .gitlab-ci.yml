@@ -208,6 +208,9 @@ captures-demonstration:
         - site/**/*
         - scripts/verifier-site-public.py
         - scripts/capturer-site-chrs.py
+        - pas_a_pas_accompagnement/demo.py
+        - personnes/statistiques.py
+        - personnes/templates/**/*
     - when: never
 
 site-public:
@@ -244,6 +247,9 @@ pages:
         - site/**/*
         - scripts/verifier-site-public.py
         - scripts/capturer-site-chrs.py
+        - pas_a_pas_accompagnement/demo.py
+        - personnes/statistiques.py
+        - personnes/templates/**/*
     - when: never
   script:
     - python scripts/verifier-site-public.py --sortie site/public --base-url "$CI_PAGES_URL/"
