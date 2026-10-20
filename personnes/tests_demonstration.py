@@ -126,8 +126,8 @@ class DemonstrationStatistiquesTests(TestCase):
             'menages_accompagnes': 3, 'accompagnements': 3,
             'personnes_avec_sejour': 4, 'sejours': 2,
             'admissions': 2, 'sorties': 1,
-            'nuitees_theoriques': 156, 'nuits_distinctes': 156,
-            'nuits_hors_absences_declarees': 150, 'repas_distribues': 5,
+            'nuitees_theoriques': 159, 'nuits_distinctes': 159,
+            'nuits_hors_absences_declarees': 153, 'repas_distribues': 5,
         }.items():
             with self.subTest(indicateur=cle):
                 self.assertEqual(chiffres[cle], attendu)
@@ -148,12 +148,12 @@ class DemonstrationStatistiquesTests(TestCase):
                   'fin': (jour + timedelta(days=1)).isoformat()}
         page = self.client.get(reverse('statistiques'), params)
         self.assertEqual(page.status_code, 200)
-        self.assertContains(page, '156')
+        self.assertContains(page, '159')
         self.assertContains(self.client.get(reverse('personnes:liste')), 'Statistiques')
         export = self.client.get(reverse('statistiques'), {**params, 'format': 'csv'})
         self.assertEqual(export.status_code, 200)
         lignes = list(csv.reader(StringIO(export.content.decode('utf-8'))))
-        self.assertIn(['nuitees_theoriques', '156'], [ligne[-2:] for ligne in lignes])
+        self.assertIn(['nuitees_theoriques', '159'], [ligne[-2:] for ligne in lignes])
         compte.user_permissions.clear()
         compte = get_user_model().objects.get(pk=compte.pk)
         self.client.force_login(compte)

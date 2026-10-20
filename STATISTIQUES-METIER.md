@@ -84,9 +84,9 @@ de la présence effective.
 Sur la fenêtre civile `[date de référence - 60 jours, date de référence + 1 jour[`,
 le jeu fictif initial (avant toute saisie manuelle) doit donner : 3 ménages,
 3 accompagnements, 4 personnes ayant un séjour, 2 séjours, 2 admissions,
-1 sortie, 156 nuitées de séjour, 156 nuits distinctes, 150 nuits hors
+1 sortie, 159 nuitées de séjour, 159 nuits distinctes, 153 nuits hors
 absences déclarées et 5 repas distribués (2 déjeuners, 3 dîners).
-Les 6 nuits exclues correspondent à deux nuits d'absence pour trois personnes.
+Les 159 nuitées correspondent à 40 nuits pour trois bénéficiaires du premier séjour (120) et 39 nuits pour le bénéficiaire du second séjour (39). Les 6 nuits exclues correspondent à deux nuits d’absence pour trois personnes.
 Ces chiffres sont un **contrat de démonstration**, pas des données de référence
 pour les bilans réels. Ils sont vérifiés par `personnes.tests_demonstration.DemonstrationStatistiquesTests`.
 La navigation propose « Statistiques » uniquement aux comptes disposant des
