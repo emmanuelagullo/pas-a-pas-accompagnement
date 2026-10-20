@@ -73,4 +73,5 @@ if __name__ == "__main__":
 
 def contexte(request):
     from django.conf import settings
-    return {"version_application": settings.VERSION_APPLICATION}
+    return {"version_application": settings.VERSION_APPLICATION,
+            "outils_copies_bureau": getattr(settings, "OUTILS_COPIES_BUREAU", False)}

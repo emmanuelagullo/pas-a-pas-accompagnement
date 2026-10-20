@@ -21,13 +21,19 @@ COPIE=Path("/.pwa-chrs-sqlite-copy")
 
 
 def valide_nom(nom):
-    return nom in {BASE,"secret-key"}
+    from pas_communs.chemins import composants_portables
+    try:
+        parties = composants_portables(nom)
+    except ValueError:
+        return False
+    return nom in {BASE, "secret-key"} or (len(parties) > 1 and parties[0] == "media")
 
 
 def restore_file(nom, contenu):
     if not valide_nom(nom):
         raise ValueError("Fichier étranger au prototype CHRS")
     DATA.mkdir(exist_ok=True)
+    (DATA/nom).parent.mkdir(parents=True, exist_ok=True)
     (DATA/nom).write_bytes(bytes(contenu))
 
 
@@ -67,7 +73,12 @@ def inventory():
     with closing(sqlite3.connect(DATA/BASE)) as source,closing(sqlite3.connect(COPIE)) as cible:
         source.backup(cible)
     fichiers={}
-    for nom in [BASE,"secret-key"]:
+    noms = [BASE, "secret-key", *sorted(p.relative_to(DATA).as_posix() for p in (DATA/"media").rglob("*") if p.is_file())]
+    from pas_communs.chemins import verifier_arbre
+    verifier_arbre(noms)
+    if len(noms) + 1 > 5000 or sum((COPIE if n == BASE else DATA/n).stat().st_size for n in noms) > MAX_ZIP:
+        raise ValueError("État supérieur à 64 Mio ou 5 000 fichiers : copie navigateur refusée.")
+    for nom in noms:
         contenu=(COPIE if nom==BASE else DATA/nom).read_bytes()
         fichiers[nom]={"hash":hashlib.sha256(contenu).hexdigest(),"size":len(contenu)}
     return json.dumps({"files":fichiers,"bytes":sum(v["size"] for v in fichiers.values())})
@@ -109,15 +120,18 @@ MAX_ZIP = 64 * 1024**2
 def export_zip():
     from pas_communs.paquets import creer_sauvegarde
     from pas_a_pas_accompagnement.paquets import PROFIL
+    inventory()  # mêmes bornes pour export, restauration et persistance
     sortie = io.BytesIO()
     creer_sauvegarde(DATA, sortie, profil=PROFIL)
-    if sortie.tell() > MAX_ZIP:
+    from zipfile import ZipFile
+    with ZipFile(sortie) as archive:
+        taille = sum(e.file_size for e in archive.infolist())
+    if sortie.tell() > MAX_ZIP or taille > MAX_ZIP:
         raise ValueError("Copie supérieure à 64 Mio : export navigateur refusé.")
     return sortie.getvalue()
 
 
 def prepare_zip(contenu, origine, base):
-    from zipfile import ZipFile
     import shutil
     import tempfile
     from pas_communs.paquets import preparer_restauration, ProfilPaquet
@@ -127,13 +141,9 @@ def prepare_zip(contenu, origine, base):
     if not contenu or len(contenu) > MAX_ZIP:
         raise ValueError("Choisissez un ZIP de 64 Mio maximum.")
     source = io.BytesIO(contenu)
-    with ZipFile(source) as archive:
-        if set(archive.namelist()) != {BASE, "secret-key", "manifest.json"}:
-            raise ValueError("Ce prototype accepte uniquement la base CHRS et sa clé, sans médias.")
-    source.seek(0)
     with tempfile.TemporaryDirectory(prefix="pwa-copie-") as temp:
         preparation = preparer_restauration(source, Path(temp), profil=profil,
-            taille_max=MAX_ZIP + 65536, fichiers_max=3)
+            taille_max=MAX_ZIP, fichiers_max=5000)
         try:
             if (preparation.etape/BASE).stat().st_size > MAX_ZIP or (preparation.etape/"secret-key").stat().st_size > 65536:
                 raise ValueError("Fichier trop volumineux.")
@@ -144,11 +154,11 @@ def prepare_zip(contenu, origine, base):
         finally:
             shutil.rmtree(preparation.etape, ignore_errors=True)
     initialize(origine, base)  # contrôle migrations, puis migration dans la copie seulement
-    from django.db import connection
-    with connection.cursor() as curseur:
-        for table in ("django_session", "identites_limiteauthentification"):
-            curseur.execute(f'DELETE FROM "{table}"')
+    from pas_a_pas_accompagnement.paquets import neutraliser_copie
+    from django.db import connections
+    connections.close_all()
+    neutraliser_copie(DATA)
     from personnes.models import Personne
     from django.contrib.auth import get_user_model
     return json.dumps({"date":date, "personnes":Personne.objects.count(),
-        "comptes":get_user_model().objects.count()})
+        "comptes":get_user_model().objects.count(), "medias":preparation.nombre_medias})

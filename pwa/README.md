@@ -103,10 +103,10 @@ appareil fictif, comme les commandes locales de maintenance.
   migration de version ou restauration. Il ne remplace rien automatiquement.
   S'il n'existe pas ou est endommagé, l'export est refusé explicitement.
 
-La copie native et la copie navigateur sont interchangeables pour ce prototype
-sans médias. Limites : ZIP de 64 Mio, base de 64 Mio et clé de 64 Kio maximum,
-exactement trois fichiers avec le manifeste. Les ZIP scolaires, altérés,
-incomplets, avec médias ou migrations inconnues sont refusés. La vérification
+La copie native et la copie navigateur sont interchangeables pour ce prototype, médias compris. Limites : ZIP de 64 Mio, base de 64 Mio et clé de 64 Kio maximum,
+5 000 entrées au plus, manifeste compris, et contenu décompressé de 64 Mio maximum.
+Les médias sont conservés comme fichiers opaques, sans nouveau parcours métier.
+Les ZIP scolaires, altérés, incomplets ou avec migrations inconnues sont refusés. La vérification
 et les copies sont bornées mais utilisent de la mémoire WASM ; cela ne reprend
 pas les transferts de médias volumineux de Petits Pas.
 
@@ -179,3 +179,11 @@ du bundle normal vers le projet Pages dédié. La configuration est incluse depu
 main et le préparateur provient du commit source exact, comme pour Petits Pas. Les identités commit/tag/version sont dans config.json ; les bundles
 test restent impropres à la publication. La nouvelle page telecharger.html
 renvoie aux releases publiques des programmes et rappelle les limites fictives.
+
+## Harmonisation des copies (candidat socle 0.9.0)
+
+Le banc Pyodide exerce PWA → commande native → PWA avec un compte, une personne,
+un ménage, un accompagnement, des relations CHRS1–4 et un média fictif. Le banc
+Chromium vérifie aussi ces médias et relations dans les copies exportées après
+restauration et secours. `scripts/jeu-technique-copies.py` est une sonde des bancs,
+jamais embarquée ni distribuée comme démonstration. Aucun rôle supplémentaire.

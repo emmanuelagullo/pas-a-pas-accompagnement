@@ -70,7 +70,7 @@ document.querySelector('#restore-file').onchange=e=>{
   try{
    const r=await rpc(moteur,{kind:'prepare',body:new Uint8Array(await fichier.arrayBuffer())});
    candidate=moteur;document.querySelector('#preview').hidden=false;
-   document.querySelector('#summary').textContent=`Copie vérifiée : ${r.personnes} personne(s), ${r.comptes} compte(s). Date : ${r.date||'non indiquée'}.`;
+   document.querySelector('#summary').textContent=`Copie vérifiée : ${r.personnes} personne(s), ${r.comptes} compte(s), ${r.medias} média(s). Date : ${r.date||'non indiquée'}.`;
   }catch(error){moteur.terminate();throw error;}
  });
 };

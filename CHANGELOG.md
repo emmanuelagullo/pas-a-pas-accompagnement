@@ -1,3 +1,11 @@
+## À venir — copies locales communes
+
+- Parcours de sauvegarde/restauration du programme repris de Petits Pas :
+  vérification, annulation, confirmation, arrêt, état précédent et reconnexion.
+- Médias conservés dans les copies PWA et les échanges avec Linux/Windows,
+  dans les plafonds du prototype. Sonde technique CHRS1–4, sans démonstration métier.
+- Adoption candidate de pas-communs 0.9.0 après publication immuable de son wheel.
+
 ## CHRS4 — situation et parcours sociaux
 
 - Logement, emploi/formation et ressources déclarées par bénéficiaire et date.

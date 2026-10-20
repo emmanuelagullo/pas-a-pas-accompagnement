@@ -33,6 +33,7 @@ def verifier_distribution():
     call_command("check")
     get_wsgi_application()
     get_template("installation_locale.html")
+    get_template("copies_locales.html")
     get_template("personnes/liste.html")
     get_template("identites/securite.html")
     get_template("identites/mot_de_passe.html")
@@ -103,19 +104,49 @@ def main():
             bureau.proteger_avant_migration(paquet, nom_base=BASE)
         call_command("migrate", interactive=False, verbosity=0)
         call_command("collectstatic", interactive=False, verbosity=0)
-        with bureau.ServeurBureau(get_wsgi_application()) as serveur:
-            serveur.verifier_css("static/application.css")
-            if args.sans_fenetre:
-                print("Adresse locale : " + serveur.url, flush=True)
-                try:
-                    while True:
-                        time.sleep(.25)
-                except KeyboardInterrupt:
-                    pass
+        from pas_a_pas_accompagnement.paquets import restauration
+        from pas_communs.paquets import appliquer_restauration
+        from threading import RLock, Event
+        verrou = RLock()
+        redemarrer = Event()
+        fenetre = None
+
+        class CommandesFenetre:
+            def appliquer_et_redemarrer(self):
+                if restauration.attente() is None or fenetre is None:
+                    return False
+                redemarrer.set()
+                fenetre.destroy()
+                return True
+
+        try:
+            with bureau.ServeurBureau(get_wsgi_application(), verrou=verrou,
+                    ecritures_bloquees=lambda: restauration.attente() is not None) as serveur:
+                serveur.verifier_css("static/application.css")
+                if args.sans_fenetre:
+                    print("Adresse locale : " + serveur.url, flush=True)
+                    try:
+                        while True:
+                            time.sleep(.25)
+                    except KeyboardInterrupt:
+                        pass
+                else:
+                    fenetre = bureau.creer_fenetre(NOM, serveur.url, commandes=CommandesFenetre())
+                    import webview
+                    webview.start()
+        finally:
+            # Même ordre que Petits Pas : arrêt/attente HTTP, connexions, renommages.
+            if restauration.attente() is not None:
+                from django.db import connections
+                connections.close_all()
+                ancien = appliquer_restauration(paquet, restauration.attente())
+                print("Restauration appliquée ; état précédent conservé : " + str(ancien))
             else:
-                bureau.creer_fenetre(NOM, serveur.url)
-                import webview
-                webview.start()
+                restauration.annuler()
+    if redemarrer.is_set():
+        os.execv(sys.executable, [sys.executable, *sys.argv[1:]] if getattr(sys, "frozen", False)
+                 else [sys.executable, *sys.argv])
+
 
 
 def notifier(message):

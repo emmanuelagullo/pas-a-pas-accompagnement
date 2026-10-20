@@ -88,10 +88,15 @@ const server=(tls?require('node:https'):http).createServer(options,(req,res)=>{
 from pathlib import Path
 with zipfile.ZipFile(sys.argv[1]) as z,tempfile.TemporaryDirectory() as t:
  m=json.loads(z.read('manifest.json'));assert m['application']=='pas-a-pas-accompagnement'
+ assert z.read('media/fictif.txt')==b'media fictif technique'
  z.extract('accompagnement.sqlite3',t)
  with sqlite3.connect(Path(t)/'accompagnement.sqlite3') as db:
   assert db.execute('SELECT count(*) FROM personnes_personne').fetchone()[0]==int(sys.argv[2])
   assert db.execute('PRAGMA quick_check').fetchone()[0]=='ok'
+  assert db.execute('PRAGMA foreign_key_check').fetchone() is None
+  assert db.execute('SELECT count(*) FROM personnes_accompagnement_beneficiaires').fetchone()[0]==1
+  assert db.execute('SELECT count(*) FROM personnes_affectation').fetchone()[0]==1
+  assert db.execute('SELECT count(*) FROM personnes_situationsociale').fetchone()[0]==1
 `,fichier,String(nombre)]);
   }
   if(process.env.PWA_OLD_BUNDLE){
@@ -100,6 +105,8 @@ with zipfile.ZipFile(sys.argv[1]) as z,tempfile.TemporaryDirectory() as t:
    console.log('Transition réelle #SOC5a → #SOC5b : compte et personne conservés : OK');
   }
   await page.locator('summary').click();
+  await page.evaluate(code=>window.pwaTest({kind:'test-write',code}),
+   fs.readFileSync(path.join(__dirname,'jeu-technique-copies.py'),'utf8')+"\nfrom django.contrib.auth import get_user_model; preparer(get_user_model().objects.get()); from pathlib import Path; Path('/data/media').mkdir(exist_ok=True); Path('/data/media/fictif.txt').write_bytes(b'media fictif technique')");
   const copie=await telecharger('export');verifierZip(copie,1);
   // Variantes privées, jamais dans le bundle publié.
   const tmp=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'chrs-copies-fictives-'));

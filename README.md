@@ -510,3 +510,29 @@ aucune situation courante n’est affirmée. Les bilans et événements de fin d
 suivi doivent être datés du dernier jour inclus, pas de la borne de fin exclue.
 Les écritures sociales et la clôture sont sérialisées par accompagnement ; un
 conflit de stockage web est refusé et demande de recharger avant réessai.
+
+## Copies du programme et échanges PWA/Linux/Windows (#SOC)
+
+Avec le nouveau programme, ouvrir **Copies et restauration sur cet appareil**,
+y compris avant de créer un premier compte. Comme les outils de la coque PWA
+et les commandes de maintenance, cette page technique est réservée au propriétaire
+de l'appareil fictif ; elle ne crée pas de rôle professionnel ni de droit web
+serveur. Elle n'est exposée ni en serveur ni dans les vues Django PWA.
+
+Télécharger une sauvegarde, puis conserver le ZIP privé hors appareil. Pour
+restaurer : choisir le ZIP du même produit, vérifier date et nombre de médias,
+puis annuler ou confirmer. Après confirmation, les écritures sont bloquées.
+**Appliquer la restauration et redémarrer** ferme le serveur et ses connexions
+avant remplacement ; sinon fermer le programme puis le relancer. Le dossier
+précédent est conservé et son chemin apparaît à la réouverture. En mode
+`--sans-fenetre`, arrêter avec Ctrl+C après confirmation puis relancer.
+Une préparation non confirmée est supprimée à la fermeture sans remplacement.
+
+Les mêmes ZIP conservent les comptes, UUID, relations et médias entre PWA,
+Linux et Windows. Les sessions et compteurs sont supprimés de la copie restaurée,
+les facteurs TOTP restent bloquants en local et les clés TOTP serveur externes
+ne sont jamais ajoutées au ZIP. Les commandes conservent leur contrat de nouveau
+dossier seulement. Les limites PWA restent plus basses que celles des programmes :
+ZIP et contenu décompressé 64 Mio, 5 000 entrées, clé 64 Kio. Pas de chiffrement
+ni synchronisation. Un ZIP privé complet n'est pas un jeu public de démonstration.
+Cette adoption de pas-communs 0.9.0 doit attendre sa publication immuable.

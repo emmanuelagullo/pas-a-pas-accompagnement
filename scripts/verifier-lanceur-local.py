@@ -81,4 +81,49 @@ with tempfile.TemporaryDirectory() as t:
         assert 'Identité fictive SOC3' in client.open(base+'personnes/').read().decode()
     finally:
         stop(p,sortie)
+    # Le programme Linux/Windows emploie les mêmes vues et le même moteur.
+    p,sortie,base=start()
+    try:
+        client.open(base+'copies-locales/').read()
+        sauvegarde=post(base,'copies-locales/',{'action':'sauvegarder'}).read()
+        with post(base,'personnes/creer/',{'designation':'Après sauvegarde fictive'}) as r:
+            assert 'Après sauvegarde fictive' in r.read().decode()
+        def verifier_copie():
+            token=next(c.value for c in cookies if c.name=='pas_accompagnement_csrftoken')
+            frontiere='frontiere-copie-fictive'
+            contenu=(f'--{frontiere}\r\nContent-Disposition: form-data; name="csrfmiddlewaretoken"\r\n\r\n{token}\r\n'
+                f'--{frontiere}\r\nContent-Disposition: form-data; name="action"\r\n\r\nrestaurer\r\n'
+                f'--{frontiere}\r\nContent-Disposition: form-data; name="archive"; filename="copie.zip"\r\nContent-Type: application/zip\r\n\r\n').encode()+sauvegarde+f'\r\n--{frontiere}--\r\n'.encode()
+            req=urllib.request.Request(base+'copies-locales/',contenu,
+                {'Content-Type':'multipart/form-data; boundary='+frontiere})
+            assert 'Copie vérifiée' in client.open(req,timeout=10).read().decode()
+        verifier_copie()
+        post(base,'copies-locales/',{'action':'annuler'}).close()
+        assert 'Après sauvegarde fictive' in client.open(base+'personnes/').read().decode()
+        verifier_copie()
+        post(base,'copies-locales/',{'action':'confirmer'}).close()
+        try:
+            post(base,'personnes/creer/',{'designation':'Écriture interdite'})
+        except urllib.error.HTTPError as erreur:
+            assert erreur.code==423
+        else:
+            raise AssertionError('Écriture acceptée après confirmation')
+    finally:
+        stop(p,sortie)
+    import sqlite3
+    from contextlib import closing
+    with closing(sqlite3.connect(paquet/'accompagnement.sqlite3')) as db:
+        assert db.execute('SELECT count(*) FROM personnes_personne').fetchone()[0]==1
+        assert db.execute('SELECT count(*) FROM django_session').fetchone()[0]==0
+    anciens=list(t.glob('.paquet-avant-restauration-*'))
+    assert len(anciens)==1
+    with closing(sqlite3.connect(anciens[0]/'accompagnement.sqlite3')) as db:
+        assert db.execute('SELECT count(*) FROM personnes_personne').fetchone()[0]==2
+    p,sortie,base=start()
+    try:
+        assert 'Se connecter' in client.open(base+'personnes/').read().decode()
+        assert 'Restauration appliquée' in client.open(base+'copies-locales/').read().decode()
+    finally:
+        stop(p,sortie)
+    print('Lanceur : téléchargement, annulation intacte, confirmation, écritures bloquées, arrêt/remplacement, état précédent et reconnexion : OK')
     print('Lanceur CHRS : premier compte -> fiche -> second lancement refusé -> fermeture -> relance et persistance : OK')

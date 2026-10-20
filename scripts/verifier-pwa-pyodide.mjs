@@ -16,7 +16,7 @@ async function moteur(fichiers={}){
   await p.runPythonAsync(`import micropip\nawait micropip.install(${JSON.stringify(config.wheels.map(n=>'emfs:/tmp/'+n))})`);
   p.unpackArchive(new Uint8Array(fs.readFileSync(racine+'application.zip')),'zip',{extractDir:'/application'});
   p.runPython("import sys;sys.path.insert(0,'/application');from pwa import bridge as b");
-  p.FS.mkdirTree('/data');for(const [nom,contenu] of Object.entries(fichiers))p.FS.writeFile('/data/'+nom,contenu);
+  p.FS.mkdirTree('/data');for(const [nom,contenu] of Object.entries(fichiers)){p.FS.mkdirTree('/data/'+path.posix.dirname(nom));p.FS.writeFile('/data/'+nom,contenu);}
   p.runPython("b.initialize('https://chrs-fictif.example','/chrs/')");
   p.runPython(`from django.conf import settings; assert settings.VERSION_APPLICATION == ${JSON.stringify(config.application_version)}`);
   return p;
@@ -52,11 +52,25 @@ assert b.response_bytes().startswith(b'%PDF-')
 inventaire=json.loads(b.inventory())
 assert set(inventaire['files'])=={'accompagnement.sqlite3','secret-key'}
 `);
+// Jeu technique minimal CHRS1–4 et média opaque : aucun nouveau métier.
+const sonde=fs.readFileSync(new URL('./jeu-technique-copies.py',import.meta.url),'utf8');
+premier.runPython(sonde+`
+from django.contrib.auth import get_user_model
+preparer(get_user_model().objects.get())
+(DATA := b.DATA / 'media' / 'sonde').mkdir(parents=True)
+(DATA / 'fictif.txt').write_bytes(b'media fictif technique')
+signature_attendue=signature()
+`);
+const signature=premier.runPython('signature_attendue');
+const inventaire=JSON.parse(premier.runPython('b.inventory()'));
 const fichiers={};
-for(const nom of ['accompagnement.sqlite3','secret-key']){
+for(const nom of Object.keys(inventaire.files)){
   const f=premier.globals.get('b').file_bytes(nom);try{fichiers[nom]=f.toJs();}finally{f.destroy();}
 }
 const second=await moteur(fichiers);
+second.runPython(sonde);
+if(second.runPython('signature()')!==signature)throw new Error('Identités ou relations CHRS1–4 altérées');
+second.runPython("assert (b.DATA/'media/sonde/fictif.txt').read_bytes()==b'media fictif technique'");
 second.runPython(`
 import json,urllib.parse
 from django.contrib.auth import get_user_model
@@ -74,3 +88,66 @@ except ValueError as erreur:assert 'plus récente' in str(erreur)
 else:raise AssertionError('Migration inconnue acceptée')
 `);
 console.log('Pyodide CHRS : premier compte → personne → snapshot SQLite → nouveau moteur sans session → migration future refusée : OK');
+
+// PWA → CLI native → PWA, avec les mêmes octets de média et identités.
+const {execFileSync}=await import('node:child_process');
+const os=await import('node:os');
+const temporaire=fs.mkdtempSync(path.join(os.tmpdir(),'chrs-echanges-'));
+try{
+ const zip=path.join(temporaire,'pwa.zip');
+ const valeur=premier.runPython('b.export_zip()');
+ try{fs.writeFileSync(zip,valeur.toJs());}finally{valeur.destroy();}
+ const native=path.join(temporaire,'native');
+ const env={...process.env,ACCOMPAGNEMENT_DONNEES:path.join(temporaire,'operateur')};
+ const python=process.env.PWA_PYTHON||'python3';
+ const manage=fileURLToPath(new URL('../manage.py',import.meta.url));
+ execFileSync(python,[manage,'restaurer_copie',zip,native],{env});
+ execFileSync(python,[manage,'migrate','--noinput'],{env:{...env,ACCOMPAGNEMENT_DONNEES:native}});
+ execFileSync(python,[manage,'sauvegarder_paquet',path.join(temporaire,'native.zip')],{env:{...env,ACCOMPAGNEMENT_DONNEES:native}});
+ const retour=await moteur();
+ // moteur() initialise DATA : la préparation exige volontairement un Worker neuf.
+ retour.runPython("from django.db import connections; connections.close_all(); import shutil; shutil.rmtree(b.DATA)");
+ retour.globals.set('copie_native',new Uint8Array(fs.readFileSync(path.join(temporaire,'native.zip'))));
+ retour.runPython("b.prepare_zip(copie_native,'https://chrs-fictif.example','/chrs/')");
+ retour.runPython(sonde);
+ if(Buffer.from(retour.FS.readFile('/data/secret-key')).toString()!==Buffer.from(fichiers['secret-key']).toString())throw new Error('Clé locale modifiée');
+ if(retour.runPython('signature()')!==signature)throw new Error('Aller-retour natif : relations altérées');
+ retour.runPython("assert (b.DATA/'media/sonde/fictif.txt').read_bytes()==b'media fictif technique'; from django.contrib.sessions.models import Session; assert not Session.objects.exists()");
+ // Ancien schéma pré-CHRS1 et pré-TOTP, réellement créé par ses migrations.
+ const ancien=path.join(temporaire,'ancien');
+ const codeAncien=`import os,django
+os.environ.setdefault('DJANGO_SETTINGS_MODULE','pas_a_pas_accompagnement.settings')
+django.setup()
+from django.db import connection
+from django.db.migrations.executor import MigrationExecutor
+executor=MigrationExecutor(connection)
+cibles=[('personnes','0001_initial'),('identites','0001_initial')]
+executor.migrate(cibles)
+apps=executor.loader.project_state(cibles).apps
+u=apps.get_model('identites','Utilisateur').objects.create(username='ancien-fictif',password='!mot-fictif-inutilisable')
+apps.get_model('personnes','Personne').objects.create(id='11111111-2222-4333-8444-555555555555',designation='Ancienne personne fictive',cree_par_id=u.pk)
+from pas_communs.paquets import creer_sauvegarde,ProfilPaquet
+from pathlib import Path
+p=Path(os.environ['ACCOMPAGNEMENT_DONNEES'])
+(p/'media').mkdir();(p/'media'/'ancien.txt').write_bytes(b'ancien media fictif')
+creer_sauvegarde(p,p.parent/'ancien.zip',profil=ProfilPaquet('pas-a-pas-accompagnement','pas-a-pas-accompagnement-paquet','accompagnement.sqlite3'))
+`;
+ execFileSync(python,['-c',codeAncien],{cwd:path.dirname(manage),env:{...env,ACCOMPAGNEMENT_DONNEES:ancien}});
+ // Nouveau runtime sans état courant : seule la préparation est migrée.
+ const migration=await moteur();
+ migration.runPython("from django.db import connections; connections.close_all(); import shutil; shutil.rmtree(b.DATA)");
+ migration.globals.set('ancienne_copie',new Uint8Array(fs.readFileSync(path.join(temporaire,'ancien.zip'))));
+ migration.runPython("b.prepare_zip(ancienne_copie,'https://chrs-fictif.example','/chrs/')");
+ migration.runPython(`from personnes.models import Personne,Accompagnement
+from django.contrib.auth import get_user_model
+assert str(Personne.objects.get().pk)=='11111111-2222-4333-8444-555555555555'
+assert Personne.objects.get().cree_par_id==get_user_model().objects.get(username='ancien-fictif').pk
+assert not Accompagnement.objects.exists()
+assert (b.DATA/'media/ancien.txt').read_bytes()==b'ancien media fictif'
+from django.db.migrations.executor import MigrationExecutor
+from django.db import connection
+assert not MigrationExecutor(connection).migration_plan(MigrationExecutor(connection).loader.graph.leaf_nodes())
+`);
+ console.log('Ancienne copie pré-CHRS1/pré-TOTP : migrations connues, identité et média conservés : OK');
+ console.log('Échanges PWA ↔ natif : CHRS1–4, identités, permissions, média et reconnexion : OK');
+}finally{fs.rmSync(temporaire,{recursive:true,force:true});}

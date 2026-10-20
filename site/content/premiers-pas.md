@@ -13,9 +13,22 @@ title: Premiers pas sur des données fictives
 
 ## Conserver un essai local
 
-Dans la PWA, utilisez **Télécharger une sauvegarde**, puis conservez le ZIP à
-part et vérifiez son ouverture avant de compter sur lui. Ce ZIP contient les
-données de votre espace : il ne doit pas être publié dans un dépôt.
+Dans la PWA ou le programme Linux/Windows, ouvrez **Copies et restauration sur
+cet appareil**, puis **Télécharger une sauvegarde**. Conservez le ZIP à part et
+vérifiez son téléchargement. Il contient toute la base, les comptes, la clé et
+les médias sans chiffrement : gardez-le privé, hors de cet appareil.
+
+Pour reprendre le même espace dans une autre version locale de Pas à Pas,
+choisissez le ZIP, vérifiez les détails, puis annulez ou confirmez le remplacement.
+Dans le programme, appliquez la restauration et redémarrez, ou fermez puis relancez.
+Dans la PWA, l’application se recharge après confirmation. Reconnectez-vous avec
+un compte de la copie. L’état avant remplacement reste disponible ; il ne remplace
+pas le ZIP extérieur. La PWA accepte des copies de 64 Mio maximum, contenu
+décompressé compris. Les archives Petits Pas sont refusées.
+
+Ces outils appartiennent au propriétaire de l’appareil fictif, sans nouveau rôle
+professionnel. Un ZIP privé complet ne doit pas être distribué comme démonstration.
+Ce parcours demande les nouvelles versions ; les anciennes gardent leurs limites.
 
 L’export PDF est un document de consultation, pas une sauvegarde permettant
 la restauration. Sa présentation dans le navigateur peut différer de celle du

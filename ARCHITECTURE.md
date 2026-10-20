@@ -173,3 +173,12 @@ projet distant n'est créé par le code.
 Le futur backend serveur est cadré dans [BASE-CIBLE.md](BASE-CIBLE.md) :
 PostgreSQL retenu, avec qualification CI distincte de SQLite,
 sans modification du profil serveur actuel.
+
+## Harmonisation des copies (#SOC, candidat 0.9.0)
+
+Le programme reprend le parcours Petits Pas avec RestaurationLocale du socle,
+arrêt HTTP, close_all puis renommages avec copie précédente. La PWA accepte
+les médias au format existant et conserve ses plafonds mémoire ; ses Workers
+séparés et sa confirmation OPFS ne changent pas. Les tables à neutraliser
+restent une politique applicative. Lire la section Copies du README et
+SAUVEGARDES.md du socle. Aucun modèle, rôle ou migration métier n'est ajouté.

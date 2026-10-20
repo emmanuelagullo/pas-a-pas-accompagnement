@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block contenu %}
+<h1>Copies et restauration sur cet appareil</h1>
+<p>Outils techniques du propriétaire de cet appareil fictif. Le ZIP privé contient toute la base, les comptes, mots de passe hachés, clé et médias. Il n’est pas chiffré. Conservez une copie hors appareil.</p>
+<p>Une sauvegarde privée complète ne doit pas être distribuée comme jeu de démonstration.</p>
+{% if resultat %}<p role="status">Restauration appliquée. État précédent conservé : {{ resultat.ancien }}. Connectez-vous avec un compte de la copie.</p>{% endif %}
+{% if confirmee %}
+<p role="status">Restauration confirmée. Les nouvelles écritures sont bloquées. Fermez le programme puis relancez-le, ou utilisez le bouton ci-dessous.</p>
+<button id="redemarrer" type="button" onclick="if(window.pywebview){window.pywebview.api.appliquer_et_redemarrer();}">Appliquer la restauration et redémarrer</button>
+{% else %}
+<form method="post">{% csrf_token %}<button name="action" value="sauvegarder">Télécharger une sauvegarde</button></form>
+<p>Un ZIP préparé ne prouve pas que vous l’avez conservé. Vérifiez le téléchargement.</p>
+{% if preparation %}
+<h2>Copie vérifiée</h2>
+<p>Date : {{ preparation.date_sauvegarde|default:"non indiquée" }}. Médias : {{ preparation.nombre_medias }}.</p>
+<p>À remplacer : {{ paquet }}. État actuel conservé : {{ preparation.ancien }}.</p>
+<p>Les comptes et relations seront conservés ; une reconnexion sera nécessaire. Un compte protégé par le double facteur reste bloqué en local.</p>
+<form method="post">{% csrf_token %}<button name="action" value="annuler">Annuler</button> <button name="action" value="confirmer">Remplacer cet espace par la copie vérifiée</button></form>
+{% else %}
+<form method="post" enctype="multipart/form-data">{% csrf_token %}
+<label for="archive">ZIP privé de Pas à Pas (PWA, Linux ou Windows)</label>
+<input id="archive" name="archive" type="file" accept=".zip" required>
+<button name="action" value="restaurer">Vérifier une copie à restaurer</button></form>
+{% endif %}{% endif %}
+{% endblock %}
