@@ -43,3 +43,46 @@ class ModelesRapportsTests(TestCase):
             with self.subTest(modification=modification):
                 self.assertEqual(self.client.post(url, {**self.parametres, **modification}).status_code, 400)
         self.assertEqual(ModeleRapport.objects.count(), 0)
+
+    def test_periode_relative_recalculee_et_csv(self):
+        from datetime import date
+        from unittest.mock import patch
+        from django.utils import timezone
+        from .vues_statistiques import bornes_periode
+        self.assertEqual(bornes_periode('mois_precedent', date(2026, 1, 10)),
+                         (date(2025, 12, 1), date(2026, 1, 1)))
+        self.assertEqual(bornes_periode('douze_mois', date(2026, 2, 10)),
+                         (date(2025, 3, 1), date(2026, 2, 11)))
+        self.assertEqual(bornes_periode('douze_mois', date(2026, 1, 10)),
+                         (date(2025, 2, 1), date(2026, 1, 11)))
+        with patch('personnes.vues_statistiques.timezone.localdate', return_value=date(2026, 1, 10)):
+            self.assertEqual(self.client.post(reverse('statistiques_modele_ajouter'),
+                                              {**self.parametres, 'periode': 'mois_precedent'}).status_code, 302)
+        modele = ModeleRapport.objects.get()
+        self.assertEqual(modele.parametres['periode'], 'mois_precedent')
+        with patch('personnes.vues_statistiques.timezone.localdate', return_value=date(2026, 2, 10)):
+            page = self.client.get(reverse('statistiques'), {'modele': modele.pk})
+            self.assertEqual(page.status_code, 200)
+            self.assertContains(page, '2026-01-01')
+            self.assertContains(page, '2026-02-01')
+            export = self.client.get(reverse('statistiques'), {'modele': modele.pk, 'format': 'csv'})
+            self.assertEqual(export.status_code, 200)
+            self.assertIn('quantite_distribuee', export.content.decode())
+
+    def test_periode_relative_inconnue_refusee(self):
+        self.assertEqual(self.client.post(reverse('statistiques_modele_ajouter'),
+                                          {**self.parametres, 'periode': 'inventee'}).status_code, 400)
+        self.assertFalse(ModeleRapport.objects.exists())
+
+    def test_modele_autre_utilisateur_avec_permissions(self):
+        from django.contrib.auth.models import Permission
+        self.client.post(reverse('statistiques_modele_ajouter'), self.parametres)
+        modele = ModeleRapport.objects.get()
+        autre = get_user_model().objects.create_user(username='autre_stat_autorise', password='test')
+        autre.user_permissions.add(*Permission.objects.filter(
+            content_type__app_label='personnes', codename__in=(
+                'view_accompagnement', 'view_sejour', 'view_repasdistribue')))
+        self.client.force_login(autre)
+        self.assertEqual(self.client.get(reverse('statistiques'), {'modele': modele.pk}).status_code, 404)
+        self.assertEqual(self.client.get(reverse('statistiques'), {'modele': modele.pk, 'format': 'csv'}).status_code, 404)
+        self.assertEqual(self.client.post(reverse('statistiques_modele_supprimer', args=[modele.pk])).status_code, 404)
