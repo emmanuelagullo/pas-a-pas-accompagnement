@@ -276,3 +276,50 @@ class ExplorationRepasTests(TestCase):
             'debut': '2020-01-01', 'fin': '2026-01-01',
             'rapport': 'exploration_repas', 'format': 'csv'})
         self.assertEqual(response.status_code, 400)
+
+class ExplorationHebergementTests(TestCase):
+    def setUp(self):
+        NavigationTests.setUp(self)
+
+    def test_affectations_mois_partiels_et_concomitance(self):
+        from .models import Affectation, LieuHebergement
+        from .statistiques import exploration_affectations
+        accord = AccordHebergement.objects.create(
+            accompagnement=self.a, debut=date(2026, 1, 1), cree_par=self.u)
+        accord.beneficiaires.add(self.p)
+        sejour = Sejour.objects.create(accord=accord, debut=date(2026, 1, 30),
+                                      fin=date(2026, 2, 3), cree_par=self.u)
+        sejour.beneficiaires.add(self.p)
+        lieu = LieuHebergement.objects.create(libelle='Site A', cree_par=self.u)
+        autre = LieuHebergement.objects.create(libelle='Site B', cree_par=self.u)
+        Affectation.objects.create(sejour=sejour, lieu=lieu,
+                                   debut=date(2026, 1, 30), fin=date(2026, 2, 3))
+        Affectation.objects.create(sejour=sejour, lieu=autre,
+                                   debut=date(2026, 2, 1), fin=date(2026, 2, 2))
+        lignes = exploration_affectations(date(2026, 1, 31), date(2026, 2, 2))
+        self.assertEqual([(l['mois'], l['lieu'], l['nuitees']) for l in lignes],
+                         [('2026-01', 'Site A', 1), ('2026-01', 'Site B', 0),
+                          ('2026-02', 'Site A', 1), ('2026-02', 'Site B', 1)])
+        self.assertEqual(sum(l['nuitees'] for l in lignes), 3)
+        self.assertEqual(bilan(date(2026, 1, 31), date(2026, 2, 2))['nuitees_theoriques'], 2)
+        filtre = exploration_affectations(date(2026, 1, 31), date(2026, 2, 2), lieu=str(lieu.pk))
+        self.assertEqual([l['nuitees'] for l in filtre], [1, 1])
+
+    def test_export_et_droits(self):
+        url = reverse('statistiques')
+        params = {'rapport': 'exploration_hebergement', 'debut': '2026-01-01',
+                  'fin': '2026-02-01'}
+        page = self.client.get(url, params)
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'Nuitées d’affectation par mois et lieu')
+        export = self.client.get(url, {**params, 'format': 'csv'})
+        self.assertEqual(export.status_code, 200)
+        self.assertIn(b'mois,lieu,nuitees_affectation_theoriques', export.content)
+        self.u.user_permissions.clear()
+        self.assertEqual(self.client.get(url, {**params, 'format': 'csv'}).status_code, 403)
+
+    def test_periode_trop_longue(self):
+        reponse = self.client.get(reverse('statistiques'), {
+            'rapport': 'exploration_hebergement', 'format': 'csv',
+            'debut': '2020-01-01', 'fin': '2026-01-01'})
+        self.assertEqual(reponse.status_code, 400)

@@ -91,3 +91,22 @@ Ces chiffres sont un **contrat de démonstration**, pas des données de référe
 pour les bilans réels. Ils sont vérifiés par `personnes.tests_demonstration.DemonstrationStatistiquesTests`.
 La navigation propose « Statistiques » uniquement aux comptes disposant des
 trois permissions de consultation nécessaires ; les exports sont également protégés.
+
+## Exploration des affectations (CHRS15)
+
+Le rapport « Explorer les nuitées par mois et lieu » compte, pour chaque
+bénéficiaire d'un séjour, les dates civiles couvertes simultanément par le
+séjour et une affectation dans un lieu. La période est [début, fin[ et les
+mois partiels sont conservés. Un filtre facultatif permet de choisir un lieu ;
+le CSV reprend exactement les lignes visibles.
+
+**Attention :** ces nuitées d'affectation sont *théoriques*. Une affectation
+ne prouve pas la présence physique. Des affectations concomitantes peuvent
+compter plusieurs fois la même nuit pour une personne ; des nuits de séjour
+sans affectation ne sont pas attribuées à un lieu. Le total ne doit donc pas
+être présenté comme égal aux nuitées de séjour, ni comme un taux d'occupation.
+Les absences déclarées ne sont pas soustraites de cet indicateur.
+
+L'exploration est bornée à 24 mois et ne produit aucune liste nominative.
+Pour une véritable mesure d'occupation, il faudrait une définition métier
+explicite des capacités, des chevauchements et des présences constatées.
