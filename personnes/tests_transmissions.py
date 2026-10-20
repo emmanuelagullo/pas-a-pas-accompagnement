@@ -51,7 +51,7 @@ class TransmissionsTests(TestCase):
         note = transmissions.noter(self.u, "Version initiale", personne=self.p)
         url = reverse("suivi:corriger_contribution", args=["note", note.pk])
         self.assertEqual(self.client.get(url).status_code, 200)
-        self.assertEqual(self.client.post(url, {"contenu": "Version corrigée", "motif": "Rectification factuelle"}).status_code, 302)
+        self.assertEqual(self.client.post(url, {"contenu": "Version corrigée", "motif": "Rectification factuelle", "texte_attendu": "Version initiale"}).status_code, 302)
         note.refresh_from_db()
         self.assertEqual(note.contenu, "Version corrigée")
         revision = RevisionContribution.objects.get(note=note)
@@ -66,3 +66,25 @@ class TransmissionsTests(TestCase):
             content_type__app_label="personnes", codename__in=["view_notepartagee", "change_notepartagee"]))
         self.client.force_login(compte)
         self.assertEqual(self.client.get(reverse("suivi:corriger_contribution", args=["note", note.pk])).status_code, 403)
+
+    def test_correction_concurrente_refuse_une_version_perimee(self):
+        self.client.force_login(self.u)
+        note = transmissions.noter(self.u, "Texte initial", personne=self.p)
+        url = reverse("suivi:corriger_contribution", args=["note", note.pk])
+        self.assertContains(self.client.get(url), 'name="texte_attendu"', html=False)
+        transmissions.rectifier(self.u, note, "Modification intermédiaire", "Correction préalable")
+        reponse = self.client.post(url, {"contenu": "Écrasement", "motif": "Correction tardive",
+                                         "texte_attendu": "Texte initial"})
+        self.assertEqual(reponse.status_code, 409)
+        note.refresh_from_db()
+        self.assertEqual(note.contenu, "Modification intermédiaire")
+        self.assertEqual(RevisionContribution.objects.filter(note=note).count(), 1)
+
+    def test_historique_visible_dans_la_fiche(self):
+        self.client.force_login(self.u)
+        note = transmissions.noter(self.u, "Avant", personne=self.p)
+        transmissions.rectifier(self.u, note, "Après", "Rectification documentée")
+        reponse = self.client.get(reverse("suivi:notes", args=["personne", self.p.pk]))
+        self.assertContains(reponse, "Rectification documentée")
+        self.assertContains(reponse, "Avant")
+        self.assertContains(reponse, "Après")

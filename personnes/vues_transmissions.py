@@ -1,4 +1,5 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
@@ -11,6 +12,7 @@ class TexteForm(forms.Form):
 
 
 class CorrectionForm(TexteForm):
+    texte_attendu = forms.CharField(widget=forms.HiddenInput)
     motif = forms.CharField(label="Motif de correction", widget=forms.Textarea(attrs={"rows": 2}))
 
 
@@ -27,7 +29,7 @@ def cahier(request):
         raise PermissionDenied
     return render(request, "suivi/transmissions.html", {"titre": "Cahier de liaison",
         "form": form if request.user.has_perm("personnes.add_transmission") else None,
-        "messages": Transmission.objects.select_related("auteur"), "nature": "transmission"})
+        "messages": Transmission.objects.select_related("auteur").prefetch_related("revisions__auteur"), "nature": "transmission"})
 
 
 CIBLES = {"personne": (Personne, "view_personne"), "accompagnement": (Accompagnement, "view_accompagnement"), "sejour": (Sejour, "view_sejour")}
@@ -55,7 +57,7 @@ def notes(request, nature, pk):
             return redirect("suivi:notes", nature=nature, pk=pk)
     return render(request, "suivi/transmissions.html", {"titre": "Notes partagées",
         "form": form if request.user.has_perm("personnes.add_notepartagee") else None,
-        "messages": NotePartagee.objects.filter(**{nature: cible}).select_related("auteur"), "nature": "note"})
+        "messages": NotePartagee.objects.filter(**{nature: cible}).select_related("auteur").prefetch_related("revisions__auteur"), "nature": "note"})
 
 
 @login_required
@@ -76,9 +78,14 @@ def corriger(request, nature, pk):
         if not request.user.has_perm("personnes.view_" + type(cible).__name__.lower()):
             from django.core.exceptions import PermissionDenied
             raise PermissionDenied
-    form = CorrectionForm(request.POST or None, initial={"contenu": contribution.contenu})
+    form = CorrectionForm(request.POST or None, initial={"contenu": contribution.contenu, "texte_attendu": contribution.contenu})
     if request.method == "POST" and form.is_valid():
-        transmissions.rectifier(request.user, contribution, form.cleaned_data["contenu"], form.cleaned_data["motif"])
+        try:
+            transmissions.rectifier(request.user, contribution, form.cleaned_data["contenu"],
+                                     form.cleaned_data["motif"], texte_attendu=form.cleaned_data["texte_attendu"])
+        except ValidationError as erreur:
+            form.add_error(None, erreur)
+            return render(request, "suivi/corriger_transmission.html", {"form": form}, status=409)
         if nature == "transmission":
             return redirect("suivi:cahier")
         cible_nature = next(n for n in CIBLES if getattr(contribution, n + "_id") is not None)

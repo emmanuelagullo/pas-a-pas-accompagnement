@@ -5,5 +5,6 @@
 {% if form %}<section class="carte"><h2>Nouvelle contribution</h2><form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Enregistrer</button></form></section>{% endif %}
 <section class="carte"><h2>Historique</h2><ol>{% for message in messages %}<li><p>{{ message.contenu|linebreaksbr }}</p><small>{{ message.cree_le|date:"j/m/Y H:i" }} — {{ message.auteur }}</small>
 {% if nature == 'transmission' %}{% if perms.personnes.change_transmission %}<a href="{% url 'suivi:corriger_contribution' 'transmission' message.pk %}">Corriger</a>{% endif %}
-{% else %}{% if perms.personnes.change_notepartagee %}<a href="{% url 'suivi:corriger_contribution' 'note' message.pk %}">Corriger</a>{% endif %}{% endif %}</li>{% empty %}<li>Aucune contribution.</li>{% endfor %}</ol></section>
+{% else %}{% if perms.personnes.change_notepartagee %}<a href="{% url 'suivi:corriger_contribution' 'note' message.pk %}">Corriger</a>{% endif %}{% endif %}
+{% if message.revisions.all %}<details><summary>Corrections</summary><ol>{% for revision in message.revisions.all %}<li><small>{{ revision.date|date:"j/m/Y H:i" }} — {{ revision.auteur }} — Motif : {{ revision.motif }}</small><p>Avant : {{ revision.ancien_texte|linebreaksbr }}</p><p>Après : {{ revision.nouveau_texte|linebreaksbr }}</p></li>{% endfor %}</ol></details>{% endif %}</li>{% empty %}<li>Aucune contribution.</li>{% endfor %}</ol></section>
 {% endblock %}

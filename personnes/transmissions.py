@@ -35,7 +35,7 @@ def noter(auteur, contenu, *, personne=None, accompagnement=None, sejour=None):
 
 
 @transaction.atomic
-def rectifier(auteur, contribution, nouveau_texte, motif):
+def rectifier(auteur, contribution, nouveau_texte, motif, *, texte_attendu=None):
     """Correction conservant chaque version, sous verrou transactionnel."""
     from .models import RevisionContribution
     modele = "transmission" if isinstance(contribution, Transmission) else "notepartagee"
@@ -45,6 +45,8 @@ def rectifier(auteur, contribution, nouveau_texte, motif):
         _droit(auteur, "view", type(cible).__name__.lower())
     nouveau_texte, motif = _texte(nouveau_texte), _texte(motif)
     objet = type(contribution).objects.select_for_update().get(pk=contribution.pk)
+    if texte_attendu is not None and objet.contenu != texte_attendu:
+        raise ValidationError("Cette contribution a été modifiée entre-temps. Rechargez-la avant de corriger.")
     if objet.contenu == nouveau_texte:
         raise ValidationError("La correction doit modifier le texte.")
     revision = RevisionContribution.objects.create(
