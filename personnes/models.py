@@ -364,6 +364,7 @@ class RevisionContribution(models.Model):
 
 class ModeleRapport(models.Model):
     """Configuration privée de statistiques, jamais une copie des résultats."""
+    id = models.BigAutoField(primary_key=True)
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='modeles_rapports')
     nom = models.CharField(max_length=100)
     parametres = models.JSONField(default=dict)
