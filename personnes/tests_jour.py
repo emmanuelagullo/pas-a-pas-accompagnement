@@ -67,6 +67,9 @@ class JourTests(TestCase):
         self.assertEqual(self.client.get(self.url).status_code, 403)
 
     def test_relais_transmissions_et_confidentialite(self):
+        # Le profil de navigation ne reçoit pas automatiquement le droit CHRS8.
+        droit = Permission.objects.get(codename="view_transmission", content_type__app_label="personnes")
+        self.u.user_permissions.add(droit)
         message = Transmission.objects.create(auteur=self.u, contenu="Relais de nuit fictif")
         self.assertContains(self.client.get(self.url), message.contenu)
         self.u.user_permissions.remove(*list(self.u.user_permissions.filter(codename="view_transmission")))
