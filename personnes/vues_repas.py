@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.utils import timezone
 from django.db.models import Sum
 from django.urls import reverse
 from django.shortcuts import get_object_or_404, render
@@ -14,7 +15,9 @@ from . import repas
 def accorder(request, pk):
     repas.droit(request.user, "add_accordrepas")
     suivi = get_object_or_404(Accompagnement, pk=pk)
-    form = AccordForm(request.POST or None, accompagnement=suivi)
+    form = AccordForm(request.POST or None, accompagnement=suivi,
+        initial={"debut": max(suivi.debut, timezone.localdate()),
+                 "beneficiaires": list(suivi.beneficiaires.values_list("pk", flat=True))})
     return traiter(request, form, "Accorder des repas", lambda **d: repas.accorder(request.user, suivi, **d), suivi.menage, retour=lambda accord: reverse("suivi:accord_repas", args=[accord.pk]))
 
 
@@ -35,7 +38,9 @@ def distribuer(request, pk):
     repas.droit(request.user, "add_repasdistribue")
     repas.droit(request.user, "view_repasdistribue")
     accord = get_object_or_404(AccordRepas, pk=pk)
-    form = DistributionForm(request.POST or None, accord=accord)
+    form = DistributionForm(request.POST or None, accord=accord,
+        initial={"date": accord.debut if accord.fin and timezone.localdate() >= accord.fin else max(accord.debut, timezone.localdate()),
+                 "beneficiaire": accord.beneficiaires.first() if accord.beneficiaires.count() == 1 else None})
     return traiter(request, form, "Enregistrer des repas distribués", lambda **d: repas.distribuer(request.user, accord, **d), accord.accompagnement.menage, retour=reverse("suivi:accord_repas", args=[accord.pk]))
 
 

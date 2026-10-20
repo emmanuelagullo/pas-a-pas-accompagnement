@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.db import OperationalError
+from django.utils import timezone
 from django.urls import reverse
 from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponse
@@ -22,7 +23,8 @@ def traiter_hebergement(*args, **kwargs):
 def accorder(request, pk):
     h.droit(request.user, "add_accordhebergement")
     a = get_object_or_404(Accompagnement, pk=pk)
-    form = AccordForm(request.POST or None, beneficiaires=a.beneficiaires.all())
+    form = AccordForm(request.POST or None, beneficiaires=a.beneficiaires.all(),
+        initial={"debut": timezone.localdate(), "beneficiaires": list(a.beneficiaires.values_list("pk", flat=True))})
     return traiter_hebergement(request, form, "Accorder un hébergement", lambda **d:h.accorder(request.user,a,**d), a.menage, retour=lambda accord: reverse("suivi:accord_hebergement", args=[accord.pk]))
 
 
@@ -41,7 +43,9 @@ def detail(request, pk):
 def admettre(request, pk):
     h.droit(request.user,"add_sejour")
     a=get_object_or_404(AccordHebergement,pk=pk)
-    return traiter_hebergement(request,AdmissionForm(request.POST or None,beneficiaires=a.beneficiaires.all()),"Enregistrer une admission effective",lambda **d:h.admettre(request.user,a,**d),a.accompagnement.menage, retour=reverse("suivi:accord_hebergement", args=[a.pk]))
+    return traiter_hebergement(request,AdmissionForm(request.POST or None,beneficiaires=a.beneficiaires.all(),
+        initial={"debut": a.debut if a.fin and timezone.localdate() >= a.fin else max(a.debut, timezone.localdate()),
+                 "beneficiaires": list(a.beneficiaires.values_list("pk", flat=True))}),"Enregistrer une admission effective",lambda **d:h.admettre(request.user,a,**d),a.accompagnement.menage, retour=reverse("suivi:accord_hebergement", args=[a.pk]))
 
 
 @require_http_methods(["GET", "POST"])
@@ -50,7 +54,8 @@ def periode(request, pk, absence=False):
     h.droit(request.user,"add_absence" if absence else "add_affectation")
     if not absence: h.exiger(request.user,"view_lieuhebergement")
     s=get_object_or_404(Sejour,pk=pk)
-    form=(PeriodeForm if absence else AffectationForm)(request.POST or None)
+    form=(PeriodeForm if absence else AffectationForm)(request.POST or None,
+        initial={"debut": max(s.debut, timezone.localdate())})
     return traiter_hebergement(request,form,"Enregistrer une absence de tous les bénéficiaires" if absence else "Affecter tous les bénéficiaires à un lieu",lambda **d:h.ajouter_periode(request.user,s,absence=absence,**d),s.accord.accompagnement.menage, retour=reverse("suivi:accord_hebergement", args=[s.accord_id]))
 
 
