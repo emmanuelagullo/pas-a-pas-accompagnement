@@ -1,4 +1,5 @@
 """Travail du jour : lecture filtrée par droits et distributions explicites."""
+from datetime import timedelta
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
@@ -93,6 +94,16 @@ def jour(request):
     # Les dernières transmissions restent accessibles indépendamment de la date métier.
     transmissions_recentes = (list(Transmission.objects.select_related("auteur")[:8])
                              if request.user.has_perm("personnes.view_transmission") else [])
-    return render(request,"suivi/jour.html",{"transmissions_recentes": transmissions_recentes,"date_form":date_form,"date":date,"hebergements":hebergements,
+    # Les échéances affichées sont celles des accords connus, pas des obligations
+    # ou des tâches générées automatiquement. Les fins sont exclusives.
+    echeances = []
+    if date and request.user.has_perms(["personnes.view_accordhebergement", "personnes.view_sejour"]):
+        for ligne in hebergements:
+            fin = ligne["sejour"].accord.fin
+            if fin and date <= fin <= date + timedelta(days=7):
+                echeances.append({"menage": ligne["sejour"].accord.accompagnement.menage,
+                                  "accord": ligne["sejour"].accord, "fin": fin})
+    return render(request,"suivi/jour.html",{"transmissions_recentes": transmissions_recentes,
+        "echeances": echeances,"date_form":date_form,"date":date,"hebergements":hebergements,
         "lignes":list(zip(lignes,formset)) if not trop else [],"formset":formset,"erreur":erreur,
         "lecture_repas":lecture_repas,"ecriture":ecriture and date and date<=timezone.localdate(),"trop":trop})

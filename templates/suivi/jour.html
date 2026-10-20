@@ -29,6 +29,14 @@
 {% if ligne.lieux != None %}{% for a in ligne.lieux %}<p>Lieu : {{ a.lieu }}</p>{% empty %}<p>Aucun lieu affecté à cette date.</p>{% endfor %}{% endif %}
 {% if perms.personnes.view_notepartagee %}<p><a href="{% url 'suivi:notes' 'sejour' ligne.sejour.pk %}">Notes du séjour</a></p>{% endif %}
 {% if ligne.absences %}<p>Absence enregistrée pour les bénéficiaires du séjour.</p>{% endif %}{% if ligne.accord_expire %}<p>La période accordée est terminée ; le séjour reste ouvert. À vérifier.</p>{% endif %}</li>{% empty %}<li>Aucun séjour enregistré pour cette date.</li>{% endfor %}</ul></section>{% endif %}
+{% if perms.personnes.view_accordhebergement and perms.personnes.view_sejour %}
+<section class="carte" aria-labelledby="echeances-hebergement">
+<h2 id="echeances-hebergement">Échéances d'hébergement</h2>
+<p>Accords liés à un séjour en cours arrivant à échéance dans les sept jours suivant la date affichée. La date de fin est exclusive ; aucune prolongation n'est présumée.</p>
+<ul>{% for ligne in echeances %}<li><a href="{% url 'suivi:accord_hebergement' ligne.accord.pk %}">{{ ligne.menage }}</a> — fin de l'accord le {{ ligne.fin|date:'d/m/Y' }} (exclu)</li>
+{% empty %}<li>Aucune échéance d'accord identifiée dans cette fenêtre.</li>{% endfor %}</ul>
+</section>
+{% endif %}
 {% if lecture_repas %}<section class="carte"><h2>Repas au {{ date }}</h2><p>Saisir uniquement ce qui a été distribué. Une case vide ne crée aucune réalisation. Les lignes déjà enregistrées se corrigent depuis leur accord.</p>
 {% if erreur %}<p class="errorlist" role="alert">{{ erreur }}</p>{% endif %}{{ formset.non_form_errors }}
 {% if trop %}<p>Plus de 500 lignes : utilisez les fiches des accords pour saisir les distributions.</p>{% else %}
