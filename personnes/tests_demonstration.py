@@ -159,3 +159,41 @@ class DemonstrationStatistiquesTests(TestCase):
         self.client.force_login(compte)
         self.assertEqual(self.client.get(reverse('statistiques'), params).status_code, 403)
         self.assertEqual(self.client.get(reverse('statistiques'), {**params, 'format': 'csv'}).status_code, 403)
+
+    def test_explorations_fictives_et_csv_par_categorie(self):
+        import csv
+        from io import StringIO
+        from .statistiques import exploration_repas, exploration_affectations, regrouper_exploration
+        jour = timezone.localdate()
+        compte = get_user_model().objects.create_user('essai-exploration')
+        generer(compte, reference=jour)
+        debut, fin = jour - timedelta(days=60), jour + timedelta(days=1)
+        repas = regrouper_exploration(exploration_repas(debut, fin),
+                                      regroupement='categorie', categorie='service', mesure='quantite')
+        self.assertEqual({ligne['service']: ligne['quantite'] for ligne in repas},
+                         {'dejeuner': 2, 'diner': 3})
+        affectations = regrouper_exploration(exploration_affectations(debut, fin),
+                                            regroupement='categorie', categorie='lieu', mesure='nuitees')
+        self.assertEqual(sum(ligne['nuitees'] for ligne in affectations), 159)
+        self.assertEqual(len(affectations), 2)
+        self.client.force_login(compte)
+        params = {'debut': debut.isoformat(), 'fin': fin.isoformat(),
+                  'regroupement': 'categorie'}
+        for rapport, colonne, attendu in (
+            ('exploration_repas', 'quantite_distribuee', 5),
+            ('exploration_hebergement', 'nuitees_affectation_theoriques', 159),
+        ):
+            with self.subTest(rapport=rapport):
+                page = self.client.get(reverse('statistiques'), {**params, 'rapport': rapport})
+                self.assertEqual(page.status_code, 200)
+                export = self.client.get(reverse('statistiques'),
+                                         {**params, 'rapport': rapport, 'format': 'csv'})
+                self.assertEqual(export.status_code, 200)
+                lignes = list(csv.DictReader(StringIO(export.content.decode('utf-8'))))
+                self.assertEqual(sum(int(ligne[colonne]) for ligne in lignes), attendu)
+                self.assertNotIn('personne', export.content.decode('utf-8').lower())
+        compte.user_permissions.clear()
+        compte = get_user_model().objects.get(pk=compte.pk)
+        self.client.force_login(compte)
+        self.assertEqual(self.client.get(reverse('statistiques'),
+                                         {**params, 'rapport': 'exploration_repas', 'format': 'csv'}).status_code, 403)

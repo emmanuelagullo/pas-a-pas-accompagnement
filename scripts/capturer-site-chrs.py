@@ -64,8 +64,41 @@ def main():
             if page.locator('main').count() != 1:
                 raise RuntimeError('Page sans contenu principal : ' + url)
             page.screenshot(path=str(args.output / (slug + '.png')))
+        # CHRS15 : qualification des deux explorations sur la base fictive.
+        # La période inclut le scénario même lorsque les dates franchissent une année.
+        from datetime import date, timedelta
+        from urllib.parse import urlencode
+        # Le serveur jetable et le navigateur partagent la même date civile locale.
+        jour = date.today()
+        bornes = {'debut': (jour - timedelta(days=60)).isoformat(),
+                  'fin': (jour + timedelta(days=1)).isoformat()}
+        for slug, rapport, titre, mesure in (
+            ('exploration-repas', 'exploration_repas', 'Repas par mois et service', 'Quantité distribuée'),
+            ('exploration-hebergement', 'exploration_hebergement', 'Nuitées d’affectation par mois et lieu', 'Nuitées d’affectation théoriques'),
+        ):
+            params = {**bornes, 'rapport': rapport, 'regroupement': 'categorie'}
+            page.goto(args.base_url + '/statistiques/?' + urlencode(params))
+            page.get_by_role('heading', name=titre).wait_for()
+            tableau = page.locator('section.carte table').last
+            tableau.get_by_role('columnheader', name=mesure).wait_for()
+            if tableau.locator('tbody tr').count() < 1:
+                raise RuntimeError('Exploration sans ligne : ' + rapport)
+            if page.locator('[role="alert"]').count():
+                raise RuntimeError('Erreur dans le rapport : ' + rapport)
+            page.screenshot(path=str(args.output / (slug + '.png')), full_page=True)
+            with page.expect_download() as telechargement:
+                page.get_by_role('button', name='Exporter ce rapport (CSV)').click()
+            fichier = telechargement.value
+            if not fichier.suggested_filename.endswith('.csv'):
+                raise RuntimeError('Export CSV manquant : ' + rapport)
+            with open(fichier.path(), encoding='utf-8-sig') as entree:
+                entete = entree.readline()
+            if ('quantite_distribuee' if rapport == 'exploration_repas'
+                    else 'nuitees_affectation_theoriques') not in entete:
+                raise RuntimeError('Colonnes CSV incorrectes : ' + rapport)
         browser.close()
-    for nom in ('connexion', 'travail-du-jour', 'statistiques', 'liaison'):
+    for nom in ('connexion', 'travail-du-jour', 'statistiques', 'liaison',
+                'exploration-repas', 'exploration-hebergement'):
         chemin = args.output / (nom + '.png')
         if not chemin.is_file() or chemin.stat().st_size < 1000:
             raise RuntimeError('Capture manquante ou vide : ' + str(chemin))

@@ -7,7 +7,7 @@ fiche: true
 Depuis la navigation, ouvrir **Statistiques** avec un compte autorisé. Choisir
 une période rapide ou renseigner un début **inclus** et une fin **exclue**.
 Sélectionner ensuite le rapport : **Synthèse**, **Hébergement**, **Repas** ou
-**Évolution mensuelle**. Le bouton **Exporter ce rapport (CSV)** télécharge les
+**Évolution mensuelle**, **Explorer les repas par mois et service** ou **Explorer les nuitées par mois et lieu**. Les explorations proposent trois regroupements (mois et catégorie, catégorie seule, mois seul) et un filtre de service ou de lieu. Le bouton **Exporter ce rapport (CSV)** télécharge les
 valeurs du rapport affiché, sans identité nominative.
 
 ## Lire les chiffres sans les confondre
@@ -41,3 +41,7 @@ Consulter le [parcours Les Passerelles](../decouvrir-passerelles/) puis le
 [travail du jour](../travail-du-jour/) pour comprendre l'origine des chiffres.
 Ces indicateurs ne constituent pas un bilan réglementaire validé pour des
 dossiers réels.
+
+## Explorer le scénario Les Passerelles
+
+Sur la période J−60 à J+1, sélectionner « Explorer les repas par mois et service » et « Total par catégorie » : le jeu initial comprend 2 déjeuners et 3 dîners effectivement distribués. Le rapport des nuitées par lieu présente les affectations théoriques, sans déduction des absences et sans preuve de présence physique. Les résultats sont agrégés, non nominatifs. Les captures publiques illustrent ces deux regroupements ; elles sont régénérées en CI sur une base jetable.

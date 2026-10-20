@@ -291,3 +291,13 @@ python3 manage.py test personnes.qualification_navigateur --noinput
 Cette recette ne crée aucun compte dans la base persistante : Django utilise
 sa base de test et les données sont fictives. Elle complète, sans remplacer,
 les tests de permissions `personnes.tests_profils` et la recette humaine.
+
+## Qualification CHRS15 — Explorations statistiques
+
+Le parcours navigateur de `scripts/capturer-site-chrs.py` ouvre les deux explorations
+sur la période J−60 à J+1, sélectionne le regroupement par catégorie,
+vérifie les colonnes du tableau et le téléchargement CSV, puis génère les
+captures `exploration-repas.png` et `exploration-hebergement.png`.
+Le site Hugo reprend ces captures. Les tests Django vérifient les agrégats
+du scénario, indépendamment des dates civiles et des UUID. Les nuitées
+d'affectation restent théoriques, et les exports ne sont pas nominatifs.

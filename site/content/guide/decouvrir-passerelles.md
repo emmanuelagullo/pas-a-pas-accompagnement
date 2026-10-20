@@ -44,10 +44,11 @@ aussi des [corrections tracées](../corriger-saisie/) avec les droits nécessair
 6. **Relève d’équipe** : ouvrir le [cahier de liaison et les notes partagées](../transmissions/). Comparer une transmission générale et une note liée à Alex ou Thomas.
 7. **Accueil** : découvrir la [création progressive d’une fiche](../accueil-progressif/) et les actions rapides du travail du jour.
 8. **Bilan** : ouvrir les [statistiques](../statistiques/) sur la période du scénario et comparer hébergement, absences et repas effectivement distribués.
+9. **Exploration statistique** : sélectionner « Explorer les repas par mois et service », puis « Total par catégorie » pour retrouver les deux déjeuners d’Alex et les trois dîners de la famille. Passer ensuite à « Explorer les nuitées par mois et lieu » pour distinguer l’unité interne et l’appartement relais. Exporter chaque rapport en CSV : les mêmes regroupements sont conservés. Les nuitées d’affectation ne mesurent pas la présence réelle.
 
 La [fiche Trajectoire sociale](../trajectoire-sociale/) approfondit le parcours de Thomas.
 
-Les étapes 6 à 8 sont un prolongement de la visite initiale de cinq minutes ; elles supposent une version de l’application intégrant CHRS8 à CHRS10.
+Les étapes 6 à 9 sont un prolongement de la visite initiale de cinq minutes ; elles supposent une version de l’application intégrant CHRS8 à CHRS10.
 
 ## Captures du parcours
 
