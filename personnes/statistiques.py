@@ -5,7 +5,7 @@ non une présence physique constatée. Les absences ne sont pas déduites.
 """
 from datetime import timedelta
 from django.db.models import Q, Sum
-from .models import Accompagnement, Sejour, RepasDistribue, Absence, AccordRepas
+from .models import Accompagnement, Sejour, RepasDistribue, Absence, AccordRepas, Affectation
 
 
 def chevauche(debut, fin):
@@ -143,6 +143,53 @@ def exploration_repas(debut, fin, *, service="", maximum_mois=24):
         for code, libelle in colonnes:
             lignes.append({'mois': mois, 'service': code, 'libelle': libelle,
                            'quantite': comptes.get((mois, code), 0)})
+        courant = courant.replace(year=courant.year + (courant.month == 12),
+                                  month=1 if courant.month == 12 else courant.month + 1)
+    return lignes
+
+
+def exploration_affectations(debut, fin, *, lieu="", maximum_mois=24):
+    """Nuitées d'affectation théoriques par mois et lieu, non dédoublonnées.
+
+    Une affectation est comptée par bénéficiaire de son séjour et par nuit
+    civile. Une nuit avec deux affectations est comptée deux fois ; une nuit
+    sans affectation n'est pas attribuée. Ce n'est pas une mesure d'occupation
+    effective ni une ventilation réconciliable avec les nuitées de séjour.
+    """
+    if fin <= debut:
+        raise ValueError("La fin doit être postérieure au début")
+    dernier = fin - timedelta(days=1)
+    nombre = (dernier.year - debut.year) * 12 + dernier.month - debut.month + 1
+    if nombre > maximum_mois:
+        raise ValueError("Période trop longue pour l'exploration (24 mois maximum)")
+    if lieu and not str(lieu).isdigit():
+        raise ValueError("Lieu inconnu")
+    affectations = (Affectation.objects.filter(chevauche(debut, fin))
+                    .select_related('lieu', 'sejour')
+                    .prefetch_related('sejour__beneficiaires')
+                    .order_by('lieu__libelle', 'pk'))
+    comptes = {}
+    lieux = {}
+    for affectation in affectations:
+        if lieu and str(affectation.lieu_id) != str(lieu):
+            continue
+        lieux[affectation.lieu_id] = affectation.lieu.libelle
+        sejour = affectation.sejour
+        debut_effectif = max(debut, affectation.debut, sejour.debut)
+        fin_effective = min(fin, affectation.fin or fin, sejour.fin or fin)
+        effectif = sejour.beneficiaires.count()
+        jour = debut_effectif
+        while jour < fin_effective:
+            cle = (jour.strftime('%Y-%m'), affectation.lieu_id)
+            comptes[cle] = comptes.get(cle, 0) + effectif
+            jour += timedelta(days=1)
+    lignes = []
+    courant = debut.replace(day=1)
+    while courant <= dernier:
+        mois = courant.strftime('%Y-%m')
+        for identifiant, libelle in sorted(lieux.items(), key=lambda x: (x[1], x[0])):
+            lignes.append({'mois': mois, 'lieu': libelle, 'lieu_id': identifiant,
+                           'nuitees': comptes.get((mois, identifiant), 0)})
         courant = courant.replace(year=courant.year + (courant.month == 12),
                                   month=1 if courant.month == 12 else courant.month + 1)
     return lignes

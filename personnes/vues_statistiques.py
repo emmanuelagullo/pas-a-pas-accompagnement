@@ -8,8 +8,8 @@ from django.shortcuts import render
 from django.http import QueryDict
 from django.utils import timezone
 from django.views.decorators.http import require_GET
-from .statistiques import bilan, evolution_mensuelle, ventilation_repas, exploration_repas
-from .models import AccordRepas
+from .statistiques import bilan, evolution_mensuelle, ventilation_repas, exploration_repas, exploration_affectations
+from .models import AccordRepas, LieuHebergement
 
 
 RAPPORTS = {
@@ -18,6 +18,7 @@ RAPPORTS = {
     'repas': 'Repas distribués',
     'mensuel': 'Évolution mensuelle',
     'exploration_repas': 'Explorer les repas par mois et service',
+    'exploration_hebergement': 'Explorer les nuitées par mois et lieu',
 }
 
 
@@ -76,6 +77,18 @@ def statistiques(request):
     if service_choisi not in dict(AccordRepas.SERVICES):
         service_choisi = ''
     resultats = bilan(**formulaire.cleaned_data) if formulaire.is_valid() else None
+    lieu_choisi = request.GET.get('lieu', '')
+    lieux_possibles = list(LieuHebergement.objects.order_by('libelle', 'pk'))
+    if lieu_choisi and not any(str(l.pk) == lieu_choisi for l in lieux_possibles):
+        lieu_choisi = ''
+    exploration_hebergement = []
+    erreur_hebergement = ''
+    if resultats is not None and rapport == 'exploration_hebergement':
+        try:
+            exploration_hebergement = exploration_affectations(
+                **formulaire.cleaned_data, lieu=lieu_choisi)
+        except ValueError as exc:
+            erreur_hebergement = str(exc)
     exploration = []
     erreur_exploration = ''
     if resultats is not None and rapport == 'exploration_repas':
@@ -96,7 +109,13 @@ def statistiques(request):
         reponse = HttpResponse(content_type='text/csv; charset=utf-8')
         reponse['Content-Disposition'] = 'attachment; filename="statistiques-chrs.csv"'
         writer = csv.writer(reponse)
-        if rapport == 'exploration_repas':
+        if rapport == 'exploration_hebergement':
+            if erreur_hebergement:
+                return HttpResponse(erreur_hebergement, status=400, content_type='text/plain; charset=utf-8')
+            writer.writerow(['mois', 'lieu', 'nuitees_affectation_theoriques'])
+            for ligne in exploration_hebergement:
+                writer.writerow([ligne['mois'], ligne['lieu'], ligne['nuitees']])
+        elif rapport == 'exploration_repas':
             if erreur_exploration:
                 return HttpResponse(erreur_exploration, status=400, content_type='text/plain; charset=utf-8')
             writer.writerow(['mois', 'service', 'quantite_distribuee'])
@@ -134,6 +153,9 @@ def statistiques(request):
     periode = formulaire.cleaned_data if formulaire.is_valid() else {}
     return render(request, 'suivi/statistiques.html', {
         'formulaire': formulaire, 'resultats': resultats,
+        'exploration_hebergement': exploration_hebergement,
+        'erreur_hebergement': erreur_hebergement,
+        'lieux_possibles': lieux_possibles, 'lieu_choisi': lieu_choisi,
         'exploration': exploration, 'erreur_exploration': erreur_exploration,
         'services_possibles': AccordRepas.SERVICES, 'service_choisi': service_choisi,
         'periodes': PERIODES, 'periode_choisie': periode_choisie,

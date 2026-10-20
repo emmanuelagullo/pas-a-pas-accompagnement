@@ -17,6 +17,10 @@
 <select id="service" name="service"><option value="">Tous les services</option>
 {% for code, libelle in services_possibles %}<option value="{{ code }}" {% if code == service_choisi %}selected{% endif %}>{{ libelle }}</option>{% endfor %}
 </select>
+<label for="lieu">Lieu (exploration des affectations)</label>
+<select id="lieu" name="lieu"><option value="">Tous les lieux</option>
+{% for item in lieux_possibles %}<option value="{{ item.pk }}" {% if lieu_choisi == item.pk|stringformat:"s" %}selected{% endif %}>{{ item.libelle }}</option>{% endfor %}
+</select>
 <label><input type="checkbox" name="comparer" value="1" {% if comparer %}checked{% endif %}> Comparer avec la période précédente de même durée</label>
 <button type="submit">Calculer</button></form>
 {% if comparaison != None %}
@@ -29,7 +33,7 @@
 <tr><th scope="row">Repas distribués</th><td>{{ comparaison.repas_distribues }}</td><td>{{ resultats.repas_distribues }}</td></tr></tbody></table></section>
 {% endif %}
 {% if resultats != None %}
-<section class="carte"><h2>{% if rapport == 'hebergement' %}Hébergement{% elif rapport == 'repas' %}Repas{% elif rapport == 'mensuel' %}Évolution mensuelle{% elif rapport == 'exploration_repas' %}Repas par mois et service{% else %}Activité pendant la période{% endif %}</h2>
+<section class="carte"><h2>{% if rapport == 'hebergement' %}Hébergement{% elif rapport == 'repas' %}Repas{% elif rapport == 'mensuel' %}Évolution mensuelle{% elif rapport == 'exploration_repas' %}Repas par mois et service{% elif rapport == 'exploration_hebergement' %}Nuitées d’affectation par mois et lieu{% else %}Activité pendant la période{% endif %}</h2>
 {% if rapport == 'synthese' or rapport == 'hebergement' %}
 <dl>
 {% if rapport == "synthese" %}<dt>Ménages accompagnés distincts</dt><dd>{{ resultats.menages_accompagnes }}</dd>
@@ -43,6 +47,13 @@
 <dt>Nuits hors absences déclarées (non assimilables à une présence)</dt><dd>{{ resultats.nuits_hors_absences_declarees }}</dd>
 {% if rapport == "synthese" %}<dt>Repas effectivement enregistrés (hors annulations)</dt><dd>{{ resultats.repas_distribues }}</dd>{% endif %}
 </dl>{% endif %}
+{% if rapport == "exploration_hebergement" %}
+<p>Chaque nuit d’affectation compte pour chaque bénéficiaire du séjour. Les affectations concomitantes peuvent doubler une nuit ; les nuits sans affectation ne sont pas attribuées. Ce total n’est ni une présence constatée ni nécessairement égal aux nuitées théoriques de séjour.</p>
+{% if erreur_hebergement %}<p role="alert">{{ erreur_hebergement }}</p>{% else %}
+<table><thead><tr><th scope="col">Mois</th><th scope="col">Lieu</th><th scope="col">Nuitées d’affectation théoriques</th></tr></thead><tbody>
+{% for ligne in exploration_hebergement %}<tr><th scope="row">{{ ligne.mois }}</th><td>{{ ligne.lieu }}</td><td>{{ ligne.nuitees }}</td></tr>{% empty %}<tr><td colspan="3">Aucune affectation sur la période.</td></tr>{% endfor %}
+</tbody></table>{% endif %}
+{% endif %}
 {% if rapport == "synthese" or rapport == "repas" %}<h3>Repas distribués par service</h3>
 <dl><dt>Petits-déjeuners</dt><dd>{{ services.petit_dejeuner }}</dd>
 <dt>Déjeuners</dt><dd>{{ services.dejeuner }}</dd>
@@ -58,6 +69,7 @@
 <form method="get">
 <input type="hidden" name="rapport" value="{{ rapport }}">
 <input type="hidden" name="service" value="{{ service_choisi }}">
+<input type="hidden" name="lieu" value="{{ lieu_choisi }}">
 <input type="hidden" name="debut" value="{{ debut_iso }}">
 <input type="hidden" name="fin" value="{{ fin_iso }}">
 <button type="submit" name="format" value="csv">Exporter ce rapport (CSV)</button>
