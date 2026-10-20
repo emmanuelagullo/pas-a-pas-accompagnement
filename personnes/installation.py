@@ -9,10 +9,13 @@ from django.http import Http404
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
-from .models import Personne
+from .demonstration import espace_metier_vide, generer
 
 
 class PremierCompteForm(UserCreationForm):
+    demonstration = forms.BooleanField(required=False, label="Charger Les Passerelles, démonstration métier fictive",
+        help_text="Attribue à votre compte les droits explicites CHRS1–4 dans cet espace unique. Sans cette option : fiches de personnes seulement.")
+
     class Meta(UserCreationForm.Meta):
         model = get_user_model()
         fields = ["username"]
@@ -21,7 +24,7 @@ class PremierCompteForm(UserCreationForm):
 
 def disponible():
     return (getattr(settings, "MODE_LOCAL", False)
-        and not get_user_model().objects.exists() and not Personne.objects.exists())
+        and not get_user_model().objects.exists() and espace_metier_vide())
 
 
 @sensitive_post_parameters()
@@ -42,6 +45,8 @@ def installer(request):
             if len(permissions) != 2:
                 raise RuntimeError("Les permissions du premier compte sont absentes.")
             compte.user_permissions.set(permissions)
+            if formulaire.cleaned_data["demonstration"]:
+                generer(compte)
         login(request, compte, backend="django.contrib.auth.backends.ModelBackend")
-        return redirect("personnes:liste")
+        return redirect("decouverte" if formulaire.cleaned_data["demonstration"] else "personnes:liste")
     return render(request, "installation_locale.html", {"form": formulaire})

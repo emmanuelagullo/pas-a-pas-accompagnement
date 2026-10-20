@@ -1,5 +1,8 @@
 ## À venir — copies locales communes
 
+- #SOC : démonstration métier fictive Les Passerelles, parcours CHRS1–4 guidé,
+  serveur jetable et chargement facultatif au premier démarrage PWA/bureau.
+
 - Parcours de sauvegarde/restauration du programme repris de Petits Pas :
   vérification, annulation, confirmation, arrêt, état précédent et reconnexion.
 - Médias conservés dans les copies PWA et les échanges avec Linux/Windows,

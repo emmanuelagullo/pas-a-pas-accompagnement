@@ -3,5 +3,6 @@
 {% block contenu %}<section class="carte etroite"><h1>Préparer mon espace d’essai</h1>
 <p>Choisissez un nom d’utilisateur et un mot de passe pour retrouver vos personnes fictives.</p>
 <p>Conservez ces identifiants. Ce compte pourra consulter et créer les fiches de cet espace.</p>
+<p>Le jeu Les Passerelles est facultatif et ne pourra être chargé ici qu’au premier démarrage. Aucun compte public n’est ajouté.</p>
 <form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Créer mon compte et commencer</button></form>
 </section>{% endblock %}

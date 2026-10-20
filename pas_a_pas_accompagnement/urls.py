@@ -2,11 +2,13 @@ from django.contrib.auth.views import LogoutView
 from django.urls import include, path
 from .views import accueil, health
 from personnes.installation import installer
+from personnes.views import decouverte
 from identites import vues as identites
 
 from .copies_locales import copies
 
 urlpatterns = [
+    path("decouverte/", decouverte, name="decouverte"),
     path("copies-locales/", copies, name="copies_locales"),
     path("menages/", include("personnes.urls_suivi")),
     path("installer/", installer, name="installation_locale"),

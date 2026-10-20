@@ -33,6 +33,7 @@ def verifier_distribution():
     call_command("check")
     get_wsgi_application()
     get_template("installation_locale.html")
+    get_template("decouverte.html")
     get_template("copies_locales.html")
     get_template("personnes/liste.html")
     get_template("identites/securite.html")

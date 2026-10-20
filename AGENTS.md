@@ -199,3 +199,8 @@ par le préparateur Pages. La publication de main reste manuelle.
 Lire SAUVEGARDES.md dans pas-communs. Les ZIP restent privés, complets et propres
 au produit ; ne pas les transformer en démonstration distribuable. Conserver les
 sessions de la source et vider seulement celles de la préparation restaurée.
+
+#SOC — démonstration métier : lire DEMONSTRATION.md. Le jeu est généré dans
+le produit via les services CHRS1–4. Aucun rôle professionnel fictif, aucun
+ZIP privé distribué, aucun reset ni nouvelle restauration. Garder le premier
+démarrage local vide par défaut et l’attribution des droits explicitement choisie.

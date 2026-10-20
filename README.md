@@ -11,6 +11,12 @@ Non disponible : transports,
 documents joints, invitations. Une PWA fictive est disponible sous #SOC5a ; voir ci-dessous. La date et l'auteur de création ne sont pas un journal
 d'audit. Ce prototype n'est pas une installation de production.
 
+## Démonstration métier
+
+Le jeu fictif **Les Passerelles** est proposé sur le serveur jetable et,
+facultativement, au premier démarrage de la PWA et des programmes Linux/Windows.
+Voir [le parcours et les accès](DEMONSTRATION.md).
+
 ## Essayer depuis les sources
 
 Python 3.12 ou 3.13 recommandé. Aucun PostgreSQL, Node ou module Petits Pas requis.

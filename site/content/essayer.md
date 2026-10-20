@@ -11,6 +11,11 @@ La page de connexion indique les identifiants publics. Les essais sont visibles
 par les autres visiteurs et disparaissent au redémarrage du service. Cette
 version n’est pas un espace de travail privé.
 
+La version intégrant **Les Passerelles** propose un scénario de découverte
+depuis l’accueil : ménages, repas, séjours et situations sociales datées.
+Nadia, Rémi et Camille illustrent des fonctions professionnelles ; leurs
+comptes publics ont les mêmes droits, sans administration ni cloisonnement.
+
 ## Créer un espace dans le navigateur
 
 [Ouvrir l’application navigateur](https://pas-a-pas-accompagnement.gitlabpages.inria.fr/pas-a-pas-accompagnement-pwa/).
@@ -41,3 +46,8 @@ empreintes ; ne prenez pas le ZIP des sources pour un programme installé.
 Les fichiers disponibles dépendent des releases effectivement publiées.
 Le premier démarrage demande de créer un compte local. Gardez le dossier de
 données et vos sauvegardes lors d’une mise à jour du programme.
+
+Dans les versions proposant **Charger Les Passerelles**, cochez cette option
+au premier démarrage d’un espace vide pour obtenir le jeu fictif et les droits
+CHRS1–4 annoncés. Votre compte garde les identifiants que vous choisissez ;
+aucun compte public n’est ajouté. Un espace déjà créé n’est pas remplacé.

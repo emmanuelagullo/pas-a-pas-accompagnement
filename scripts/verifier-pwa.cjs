@@ -62,6 +62,33 @@ const server=(tls?require('node:https'):http).createServer(options,(req,res)=>{
   assert.equal(fs.readFileSync(await pdf.path()).subarray(0,5).toString(),'%PDF-');
   await apres.getByRole('link',{name:'Retour aux personnes'}).click();
   await context.setOffline(false);
+  // Autre espace OPFS : premier démarrage avec le jeu métier, sans compte public.
+  const demoContext=await browser.newContext({ignoreHTTPSErrors:tls});
+  try{
+   const demo=await demoContext.newPage();await demo.goto(url);
+   const df=demo.frameLocator('#app');await df.locator('[name=username]').waitFor({timeout:120000});
+   await df.locator('[name=username]').fill('visiteur-metier');
+   await df.locator('[name=password1]').fill('Phrase-fictive-metier-privee-2026!');
+   await df.locator('[name=password2]').fill('Phrase-fictive-metier-privee-2026!');
+   await df.locator('[name=demonstration]').check();
+   await df.getByRole('button',{name:'Créer mon compte et commencer'}).click();
+   await df.getByRole('heading',{name:'Les Passerelles : découverte en cinq minutes'}).waitFor();
+   await df.getByRole('link',{name:'les ménages',exact:true}).click();
+   await df.getByRole('link',{name:'Alex — Les Passerelles (fictif)',exact:true}).click();
+   await df.getByRole('link',{name:/Déjeuner accordé du/}).click();
+   await df.getByRole('heading',{name:'Réalisation effective : 2 repas distribués'}).waitFor();
+   await demoContext.setOffline(true);await demo.reload();
+   await df.locator('[name=username]').waitFor({timeout:120000});
+   await df.locator('[name=username]').fill('visiteur-metier');
+   await df.locator('[name=password]').fill('Phrase-fictive-metier-privee-2026!');
+   await df.getByRole('button',{name:'Se connecter'}).click();
+   // Navigation interne : ne pas ouvrir directement la route virtuelle Django.
+   await df.getByRole('link',{name:'Ménages et accompagnements',exact:true}).click();
+   await df.getByRole('link',{name:'Alex — Les Passerelles (fictif)',exact:true}).click();
+   await df.getByRole('link',{name:/Déjeuner accordé du/}).click();
+   await df.getByRole('heading',{name:'Réalisation effective : 2 repas distribués'}).waitFor();
+   console.log('Les Passerelles : premier démarrage choisi, parcours métier et reprise hors ligne : OK');
+  }finally{await demoContext.close();}
   if(process.env.PWA_PRODUCTION==='oui'){
    assert.equal(await page.evaluate(()=>typeof window.pwaTest),'undefined');
    for(const nom of ['worker.js','shell.js']){

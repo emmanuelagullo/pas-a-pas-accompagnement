@@ -4,7 +4,7 @@
 
 | Canal | Construction / contrôle | Activation |
 | --- | --- | --- |
-| Démonstration serveur | start-render.sh, espace SQLite neuf, clé neuve, compte public essai et fiche fictive ; banc de redémarrage HTTP | Créer un service web ; hôte et HTTPS automatiques sur Render |
+| Démonstration serveur | start-render.sh, espace SQLite neuf, clé neuve, comptes publics et jeu Les Passerelles (voir DEMONSTRATION.md) ; banc de redémarrage HTTP | Créer un service web ; hôte et HTTPS automatiques sur Render |
 | Espace fictif persistant | start-persistent.sh, SQLite mono-processus, sauvegarde avant migration, aucun compte automatique ; banc de persistance/restauration | Dossier privé persistant, arrêt du service, variables et premier compte explicites |
 | PWA | Même job GitLab : vrais Pyodide/Chromium, racine et préfixe, bundle normal puis manifeste | Projet Pages distinct ; automatique sur tag, manuel sur main |
 | Programmes | GitHub Windows/Linux, tests, construction, version embarquée et manifestes | Automatique après construction de tag réussie ; reprise manuelle publier-programmes ou CLI gh |
@@ -61,7 +61,8 @@ purge des anciens dossiers. Ne pas utiliser ce profil sur un volume durable
 sans prévoir cette purge. Aucune commande ne réinitialise une base arbitraire.
 
 La connexion affiche **essai / Demonstration-fictive-2026!** : ce sont des
-identifiants publics donnant uniquement lecture/création de fiches fictives.
+identifiants publics donnant les droits explicites CHRS1–4 et création de fiches fictives.
+Les comptes nadia, remi et camille proposent les mêmes droits ; voir [DEMONSTRATION.md](DEMONSTRATION.md).
 La démonstration est partagée, visible par les autres visiteurs et jetable.
 Les écrans de modification du compte public sont bloqués côté serveur pour
 qu’un visiteur ne change pas le mot de passe utilisé par les suivants.

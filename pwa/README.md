@@ -187,3 +187,10 @@ un ménage, un accompagnement, des relations CHRS1–4 et un média fictif. Le b
 Chromium vérifie aussi ces médias et relations dans les copies exportées après
 restauration et secours. `scripts/jeu-technique-copies.py` est une sonde des bancs,
 jamais embarquée ni distribuée comme démonstration. Aucun rôle supplémentaire.
+
+## Jeu métier facultatif
+
+Au premier démarrage vide, cocher **Charger Les Passerelles** pour suivre
+[la découverte métier](../DEMONSTRATION.md). Le compte reste celui choisi par
+l’utilisateur ; aucun compte public, ZIP ni secret n’est embarqué. Les copies
+et restaurations conservent leurs parcours et règles habituels.

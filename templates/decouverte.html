@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block titre %}Découvrir Les Passerelles — Pas à Pas{% endblock %}
+{% block contenu %}
+<h1>Les Passerelles : découverte en cinq minutes</h1>
+<p>CHRS, personnes et lieux entièrement fictifs. Ce guide décrit le jeu facultatif chargé au premier démarrage local ou par la préparation du serveur jetable. Il ne charge ni ne remplace aucune donnée.</p>
+<p>Nadia illustre l’accompagnement social, Rémi l’accueil et l’hébergement, Camille la restauration. Ce sont des fonctions narratives : les comptes publics ont les mêmes permissions explicites CHRS1–4, sans administration. En local, vous utilisez votre propre compte. Un espace unique : aucun cloisonnement professionnel ou entre établissements.</p>
+<ol>
+<li><strong>Consulter un ménage.</strong> Dans <a href="{% url 'suivi:liste' %}">les ménages</a>, ouvrir « Samira, Lina et Adam ». Consulter les trois fiches et les bénéficiaires du suivi. Les enfants bénéficient explicitement de l’hébergement et des repas ; aucune représentation légale n’est modélisée.</li>
+<li><strong>Distinguer accord et réalisation.</strong> Ouvrir le ménage d’Alex puis son accord de déjeuner. L’accord est ouvert, deux repas sont déjà distribués ; aucun hébergement n’est associé à ce suivi.</li>
+<li><strong>Essayer une écriture.</strong> Depuis cet accord, choisir Enregistrer une distribution, sélectionner Alex, la date du jour et la quantité 1. Le repas du jour est laissé libre lors de la génération. Sur le serveur partagé, un autre visiteur peut l’avoir déjà saisi : consulter l’historique avant d’agir.</li>
+<li><strong>Comprendre le séjour.</strong> Revenir au ménage de Samira et consulter l’accord d’hébergement : deux affectations successives, d’abord à l’unité A, puis dans un lieu partenaire. Une absence close de deux jours ne clôt pas le séjour. Les périodes ont un début inclus et une fin exclue.</li>
+<li><strong>Lire une situation datée.</strong> Chez Thomas, comparer le séjour terminé et l’accompagnement toujours ouvert. Ouvrir Situation et parcours sociaux ; comparer le logement avant et après la sortie, puis lire l’événement et le bilan. La transition de logement est renseignée explicitement, pas déduite automatiquement de la sortie.</li>
+</ol>
+<p>Pour poursuivre : ajouter un événement fictif ou un bilan chez Thomas. Les dates historiques sont calculées par rapport au jour de génération ; les copies conservées ne sont jamais redatées à leur ouverture. Utiliser une date comprise dans l’accompagnement.</p>
+<p>Sur le serveur public, les modifications sont partagées et perdues à la recréation du service. PWA et programmes : l’espace persiste ; utiliser les outils habituels de sauvegarde et restauration. Une copie ZIP contient vos comptes et secrets : elle reste privée. Ce guide n’ajoute aucune remise à zéro.</p>
+{% endblock %}

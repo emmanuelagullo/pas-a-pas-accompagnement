@@ -54,3 +54,10 @@ def fiche_pdf(request, pk):
     response['Cache-Control'] = 'private, no-store'
     response['X-Content-Type-Options'] = 'nosniff'
     return response
+
+
+@require_safe
+@login_required
+@permission_required(("personnes.view_personne", "personnes.view_menage", "personnes.view_accompagnement"), raise_exception=True)
+def decouverte(request):
+    return render(request, "decouverte.html")
