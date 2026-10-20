@@ -171,7 +171,7 @@ class DemonstrationStatistiquesTests(TestCase):
         repas = regrouper_exploration(exploration_repas(debut, fin),
                                       regroupement='categorie', categorie='service', mesure='quantite')
         self.assertEqual({ligne['service']: ligne['quantite'] for ligne in repas},
-                         {'dejeuner': 2, 'diner': 3})
+                         {'petit_dejeuner': 0, 'dejeuner': 2, 'diner': 3})
         affectations = regrouper_exploration(exploration_affectations(debut, fin),
                                             regroupement='categorie', categorie='lieu', mesure='nuitees')
         self.assertEqual(sum(ligne['nuitees'] for ligne in affectations), 159)
