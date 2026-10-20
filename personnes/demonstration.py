@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.db import transaction
 from django.utils import timezone
-from . import models as m, suivi, repas, hebergement as h, social
+from . import models as m, suivi, repas, hebergement as h, social, transmissions
 
 
 def espace_metier_vide():
@@ -18,6 +18,9 @@ def espace_metier_vide():
 def autoriser(compte):
     call_command('autoriser_chrs7', compte.username, stdout=StringIO())
     compte.user_permissions.add(Permission.objects.get(content_type__app_label='personnes', codename='add_personne'))
+    compte.user_permissions.add(*Permission.objects.filter(content_type__app_label='personnes', codename__in=(
+        'view_transmission', 'add_transmission', 'change_transmission',
+        'view_notepartagee', 'add_notepartagee', 'change_notepartagee')))
     # Les commandes rechargent le compte ; ne pas conserver un cache de droits.
     return get_user_model().objects.get(pk=compte.pk)
 
@@ -76,6 +79,9 @@ def generer(compte, *, professionnels=None, reference=None):
         social.renseigner(nadia, suivis['Thomas'], thomas, dimension, valeur, j(delta), source)
     social.evenement(nadia, suivis['Thomas'], thomas, j(-10), 'Installation dans un logement autonome fictif.', source)
     social.bilan(nadia, suivis['Thomas'], j(-2), 'Bilan fictif : installation réalisée ; accompagnement maintenu pour les démarches et la formation.')
+    transmissions.transmettre(remi, 'Relève fictive : vérifier les arrivées et les repas du jour.')
+    transmissions.noter(nadia, 'Point fictif à reprendre lors du prochain entretien.', accompagnement=suivis['Alex'])
+    transmissions.noter(remi, 'Retour fictif à confirmer avec la personne.', personne=thomas)
     return suivis
 
 

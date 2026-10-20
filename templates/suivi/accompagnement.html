@@ -1,6 +1,7 @@
 {% extends "base.html" %}{% block contenu %}
 <p><a href="{% url 'suivi:detail' accompagnement.menage_id %}">Ménage {{ accompagnement.menage }}</a></p>
 <h1>Accompagnement — {{ accompagnement.menage }}</h1>
+{% if perms.personnes.view_notepartagee %}<p><a href="{% url 'suivi:notes' 'accompagnement' accompagnement.pk %}">Notes partagées de cet accompagnement</a></p>{% endif %}
 <p>{% include "suivi/periode.html" with periode=accompagnement %}. Service d’essai.</p>
 <section class="carte"><h2>Bénéficiaires</h2><ul>{% for p in accompagnement.beneficiaires.all %}<li><a href="{% url 'personnes:detail' p.pk %}">{{ p }}</a></li>{% endfor %}</ul><p>Ces personnes restent liées à cet accompagnement même si la composition du ménage change.</p></section>
 {% if perms.personnes.view_accordrepas and perms.personnes.view_repasdistribue %}<section class="carte"><h2>Repas</h2><ul>{% for accord in accords_repas %}<li><a href="{% url 'suivi:accord_repas' accord.pk %}">{{ accord.get_service_display }}</a> — {% include "suivi/periode.html" with periode=accord %}</li>{% empty %}<li>Aucun repas accordé.</li>{% endfor %}</ul>{% if perms.personnes.add_accordrepas %}<a href="{% url 'suivi:accorder_repas' accompagnement.pk %}">Accorder des repas</a>{% endif %}</section>{% endif %}
