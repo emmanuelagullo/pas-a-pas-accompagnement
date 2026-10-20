@@ -2,7 +2,8 @@
 {% block titre %}{{ titre }} — Pas à Pas{% endblock %}
 {% block contenu %}
 <h1>{{ titre }}</h1>
-{% if form %}<section class="carte"><h2>Nouvelle contribution</h2><form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Enregistrer</button></form></section>{% endif %}
+{% if nature == "transmission" %}<p><a href="{% url 'suivi:jour' %}">Retour au travail du jour</a></p>{% endif %}
+{% if form %}<section class="carte"><h2>Nouvelle contribution</h2><form method="post">{% csrf_token %}{% if retour_jour %}<input type="hidden" name="retour" value="jour">{% endif %}{{ form.as_p }}<button type="submit">Enregistrer</button></form></section>{% endif %}
 <section class="carte"><h2>Historique</h2><ol>{% for message in messages %}<li><p>{{ message.contenu|linebreaksbr }}</p><small>{{ message.cree_le|date:"j/m/Y H:i" }} — {{ message.auteur }}</small>
 {% if nature == 'transmission' %}{% if perms.personnes.change_transmission %}<a href="{% url 'suivi:corriger_contribution' 'transmission' message.pk %}">Corriger</a>{% endif %}
 {% else %}{% if perms.personnes.change_notepartagee %}<a href="{% url 'suivi:corriger_contribution' 'note' message.pk %}">Corriger</a>{% endif %}{% endif %}

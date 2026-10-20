@@ -1,7 +1,7 @@
 {% extends "base.html" %}{% block contenu %}
 <h1>Actions de relève</h1><p><a href="{% url 'suivi:jour' %}">Retour au travail du jour</a></p>
 <p>Actions explicites, distinctes des transmissions. Ne pas y inscrire de données sociales sensibles ou de détails de dossiers individuels.</p>
-{% if form %}<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Ajouter une action</button></form>{% endif %}
+{% if form %}<form method="post">{% csrf_token %}{% if retour_jour %}<input type="hidden" name="retour" value="jour">{% endif %}{{ form.as_p }}<button type="submit">Ajouter une action</button></form>{% endif %}
 <h2>En retard</h2>{% include "suivi/_liste_actions.html" with actions=actions_en_retard %}
 <h2>À traiter aujourd’hui</h2>{% include "suivi/_liste_actions.html" with actions=actions_du_jour %}
 <h2>À venir ou sans échéance</h2>{% include "suivi/_liste_actions.html" with actions=actions_autres %}

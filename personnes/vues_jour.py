@@ -139,13 +139,16 @@ def actions(request):
             action = form.save(commit=False)
             action.auteur = request.user
             action.save()
+            if request.POST.get("retour") == "jour":
+                return redirect("suivi:jour")
             return redirect("suivi:actions_relais")
     ouvertes = ActionRelais.objects.filter(terminee_le__isnull=True).select_related("auteur")
     aujourd_hui = timezone.localdate()
     return render(request, "suivi/actions_relais.html", {"form": form,
         "actions_en_retard": ouvertes.filter(echeance__lt=aujourd_hui),
         "actions_du_jour": ouvertes.filter(echeance=aujourd_hui),
-        "actions_autres": ouvertes.filter(Q(echeance__isnull=True) | Q(echeance__gt=aujourd_hui))})
+        "actions_autres": ouvertes.filter(Q(echeance__isnull=True) | Q(echeance__gt=aujourd_hui)),
+        "retour_jour": request.GET.get("retour") == "jour" or request.POST.get("retour") == "jour"})
 
 
 @require_http_methods(["POST"])
@@ -158,4 +161,6 @@ def terminer_action(request, pk):
             action.terminee_le = timezone.now()
             action.terminee_par = request.user
             action.save(update_fields=["terminee_le", "terminee_par"])
+    if request.POST.get("retour") == "jour":
+        return redirect("suivi:jour")
     return redirect("suivi:actions_relais")

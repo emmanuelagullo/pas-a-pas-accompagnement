@@ -7,8 +7,8 @@
 <ul>
 {% if perms.personnes.add_personne and perms.personnes.view_personne %}<li><a href="{% url 'personnes:creer' %}">Accueillir une nouvelle personne</a></li>{% endif %}
 {% if perms.personnes.add_menage and perms.personnes.view_menage and perms.personnes.add_appartenance %}<li><a href="{% url 'suivi:creer' %}">Créer un ménage</a></li>{% endif %}
-{% if perms.personnes.view_actionrelais %}<li><a href="{% url 'suivi:actions_relais' %}">{% if perms.personnes.add_actionrelais %}Créer une action de relève{% else %}Consulter les actions de relève{% endif %}</a></li>{% endif %}
-{% if perms.personnes.view_transmission %}<li><a href="{% url 'suivi:cahier' %}">{% if perms.personnes.add_transmission %}Écrire une transmission{% else %}Consulter le cahier de liaison{% endif %}</a></li>{% endif %}
+{% if perms.personnes.view_actionrelais %}<li><a href="{% url 'suivi:actions_relais' %}?retour=jour">{% if perms.personnes.add_actionrelais %}Créer une action de relève{% else %}Consulter les actions de relève{% endif %}</a></li>{% endif %}
+{% if perms.personnes.view_transmission %}<li><a href="{% url 'suivi:cahier' %}?retour=jour">{% if perms.personnes.add_transmission %}Écrire une transmission{% else %}Consulter le cahier de liaison{% endif %}</a></li>{% endif %}
 </ul>
 </section>
 {% endif %}
@@ -19,7 +19,7 @@
 <ul>{% for transmission in transmissions_recentes %}
 <li><time datetime="{{ transmission.cree_le|date:'c' }}">{{ transmission.cree_le|date:'d/m/Y H:i' }}</time> — {{ transmission.contenu|linebreaksbr }}</li>
 {% empty %}<li>Aucune transmission enregistrée.</li>{% endfor %}</ul>
-<p><a href="{% url 'suivi:cahier' %}">Ouvrir le cahier de liaison{% if perms.personnes.add_transmission %} et transmettre une information{% endif %}</a></p>
+<p><a href="{% url 'suivi:cahier' %}?retour=jour">Ouvrir le cahier de liaison{% if perms.personnes.add_transmission %} et transmettre une information{% endif %}</a></p>
 </section>
 {% endif %}
 {% if perms.personnes.view_actionrelais %}
@@ -28,7 +28,7 @@
 <h3>En retard</h3><ul>{% for action in actions_en_retard %}<li>{{ action.libelle }} — échéance : {{ action.echeance|date:'d/m/Y' }}</li>{% empty %}<li>Aucune.</li>{% endfor %}</ul>
 <h3>À traiter aujourd’hui</h3><ul>{% for action in actions_du_jour %}<li>{{ action.libelle }}</li>{% empty %}<li>Aucune.</li>{% endfor %}</ul>
 <h3>À venir ou sans échéance</h3><ul>{% for action in actions_autres %}<li>{{ action.libelle }}{% if action.echeance %} — échéance : {{ action.echeance|date:'d/m/Y' }}{% endif %}</li>{% empty %}<li>Aucune.</li>{% endfor %}</ul>
-<p><a href="{% url 'suivi:actions_relais' %}">Consulter et gérer les actions de relève</a></p></section>
+<p><a href="{% url 'suivi:actions_relais' %}?retour=jour">Consulter et gérer les actions de relève</a></p></section>
 {% endif %}
 <h2 id="situation-date">Situation à la date choisie</h2>
 <p>Les dates reflètent les informations enregistrées. Un séjour ouvert ne prouve pas la présence physique.</p>

@@ -23,13 +23,16 @@ def cahier(request):
     form = TexteForm(request.POST or None)
     if request.method == "POST" and request.user.has_perm("personnes.add_transmission") and form.is_valid():
         transmissions.transmettre(request.user, form.cleaned_data["contenu"])
+        if request.POST.get("retour") == "jour":
+            return redirect("suivi:jour")
         return redirect("suivi:cahier")
     if request.method == "POST" and not request.user.has_perm("personnes.add_transmission"):
         from django.core.exceptions import PermissionDenied
         raise PermissionDenied
     return render(request, "suivi/transmissions.html", {"titre": "Cahier de liaison",
         "form": form if request.user.has_perm("personnes.add_transmission") else None,
-        "messages": Transmission.objects.select_related("auteur").prefetch_related("revisions__auteur"), "nature": "transmission"})
+        "messages": Transmission.objects.select_related("auteur").prefetch_related("revisions__auteur"), "nature": "transmission",
+        "retour_jour": request.GET.get("retour") == "jour" or request.POST.get("retour") == "jour"})
 
 
 CIBLES = {"personne": (Personne, "view_personne"), "accompagnement": (Accompagnement, "view_accompagnement"), "sejour": (Sejour, "view_sejour")}
