@@ -215,6 +215,14 @@ captures-demonstration:
         - pas_a_pas_accompagnement/demo.py
         - personnes/statistiques.py
         - personnes/templates/**/*
+        - start-render.sh
+        - requirements-serveur.txt
+        - requirements-2fa.txt
+        - pas_a_pas_accompagnement/**/*
+        - personnes/**/*
+        - identites/**/*
+        - templates/**/*
+        - static/**/*
     - when: never
 
 site-public:
@@ -254,6 +262,14 @@ pages:
         - pas_a_pas_accompagnement/demo.py
         - personnes/statistiques.py
         - personnes/templates/**/*
+        - start-render.sh
+        - requirements-serveur.txt
+        - requirements-2fa.txt
+        - pas_a_pas_accompagnement/**/*
+        - personnes/**/*
+        - identites/**/*
+        - templates/**/*
+        - static/**/*
     - when: never
   script:
     - python scripts/verifier-site-public.py --sortie site/public --base-url "$CI_PAGES_URL/"
