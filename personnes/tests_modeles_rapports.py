@@ -86,3 +86,18 @@ class ModelesRapportsTests(TestCase):
         self.assertEqual(self.client.get(reverse('statistiques'), {'modele': modele.pk}).status_code, 404)
         self.assertEqual(self.client.get(reverse('statistiques'), {'modele': modele.pk, 'format': 'csv'}).status_code, 404)
         self.assertEqual(self.client.post(reverse('statistiques_modele_supprimer', args=[modele.pk])).status_code, 404)
+
+    def test_navigation_filtres_et_modele_actif(self):
+        self.client.post(reverse('statistiques_modele_ajouter'), self.parametres)
+        modele = ModeleRapport.objects.get()
+        page = self.client.get(reverse('statistiques'), {'modele': modele.pk})
+        self.assertContains(page, 'Modèle affiché')
+        self.assertContains(page, '(affiché)')
+        self.assertContains(page, 'value="dejeuner"')
+        page = self.client.get(reverse('statistiques'), {
+            'rapport': 'exploration_repas', 'periode': 'mois_precedent',
+            'service': 'dejeuner', 'regroupement': 'categorie', 'comparer': '1',
+        })
+        self.assertContains(page, 'name="service" value="dejeuner"')
+        self.assertContains(page, 'name="regroupement" value="categorie"')
+        self.assertContains(page, 'name="comparer" value="1"')

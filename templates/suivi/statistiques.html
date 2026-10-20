@@ -4,9 +4,13 @@
 <p>Les indicateurs portent sur la période civile choisie, début inclus et fin exclue.</p>
 <section class="carte"><h2>Mes modèles de rapports</h2>
 <p>Un modèle peut conserver une période fixe ou une période relative recalculée à chaque ouverture. Les modèles sont personnels et mémorisent les filtres, pas les résultats. Les chiffres sont recalculés à chaque consultation.</p>
-<ul>{% for modele in modeles_rapports %}<li><a href="{% url 'statistiques' %}?modele={{ modele.pk }}">{{ modele.nom }}</a>
+<ul>{% for modele in modeles_rapports %}<li><a href="{% url 'statistiques' %}?modele={{ modele.pk }}">{{ modele.nom }}</a>{% if modele_actif.pk == modele.pk %} <strong>(affiché)</strong>{% endif %}
 <form method="post" action="{% url 'statistiques_modele_supprimer' modele.pk %}" style="display:inline">{% csrf_token %}<button type="submit">Supprimer</button></form></li>{% empty %}<li>Aucun modèle enregistré.</li>{% endfor %}</ul></section>
 <form method="get" aria-label="Périodes prédéfinies">
+<input type="hidden" name="service" value="{{ service_choisi }}">
+<input type="hidden" name="lieu" value="{{ lieu_choisi }}">
+<input type="hidden" name="regroupement" value="{{ regroupement }}">
+{% if comparer %}<input type="hidden" name="comparer" value="1">{% endif %}
 <label for="periode">Période rapide</label>
 <select id="periode" name="periode">
 <option value="">Choisir une période</option>
@@ -31,6 +35,7 @@
 </select>
 <label><input type="checkbox" name="comparer" value="1" {% if comparer %}checked{% endif %}> Comparer avec la période précédente de même durée</label>
 <button type="submit">Calculer</button></form>
+{% if modele_actif %}<p>Modèle affiché : <strong>{{ modele_actif.nom }}</strong>. Toute modification des filtres crée une consultation indépendante ; le modèle enregistré reste inchangé.</p>{% endif %}
 {% if resultats != None %}<form method="post" action="{% url 'statistiques_modele_ajouter' %}">
 {% csrf_token %}<label for="nom_modele">Nom du modèle</label><input id="nom_modele" name="nom" maxlength="100" required>
 <input type="hidden" name="rapport" value="{{ rapport }}"><input type="hidden" name="debut" value="{{ debut_iso }}"><input type="hidden" name="fin" value="{{ fin_iso }}">
@@ -94,6 +99,7 @@
 <input type="hidden" name="regroupement" value="{{ regroupement }}">
 <input type="hidden" name="debut" value="{{ debut_iso }}">
 <input type="hidden" name="fin" value="{{ fin_iso }}">
+{% if comparer %}<input type="hidden" name="comparer" value="1">{% endif %}
 {% if periode_choisie %}<input type="hidden" name="periode" value="{{ periode_choisie }}">{% endif %}
 <button type="submit" name="format" value="csv">Exporter ce rapport (CSV)</button>
 </form></section>

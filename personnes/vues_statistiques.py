@@ -246,6 +246,7 @@ def statistiques(request):
     return render(request, 'suivi/statistiques.html', {
         'formulaire': formulaire, 'resultats': resultats,
         'modeles_rapports': ModeleRapport.objects.filter(auteur=request.user),
+        'modele_actif': modele,
         'regroupement': regroupement, 'regroupements': REGROUPEMENTS_EXPLORATION,
         'exploration_hebergement': exploration_hebergement,
         'erreur_hebergement': erreur_hebergement,
