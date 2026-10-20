@@ -1,3 +1,4 @@
+import uuid
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import ValidationError
 from django.db.models import Q
@@ -6,7 +7,7 @@ from django.urls import reverse
 from django.contrib import messages
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods, require_safe
-from .models import Menage, Appartenance, Accompagnement, CorrectionPeriode
+from .models import Personne, Menage, Appartenance, Accompagnement, CorrectionPeriode
 from .forms_suivi import MenageForm, AppartenanceForm, AccompagnementForm, ClotureForm
 from . import suivi
 
@@ -44,11 +45,26 @@ def traiter(request, formulaire, titre, action, menage=None, retour=None):
     return render(request, "suivi/form.html", {"form": formulaire, "titre": titre, "menage": menage, "retour": retour if isinstance(retour, str) else None})
 
 
+def _uuid_valide(valeur):
+    try:
+        uuid.UUID(valeur)
+        return True
+    except (ValueError, TypeError, AttributeError):
+        return False
+
+
 @require_http_methods(["GET", "POST"])
 @login_required
 @permission_required(("personnes.view_personne", "personnes.view_menage", "personnes.add_menage", "personnes.add_appartenance"), raise_exception=True)
 def creer(request):
-    return traiter(request, MenageForm(request.POST or None), "Créer un ménage", lambda **donnees: suivi.creer_menage(request.user, **donnees))
+    initial = {}
+    if request.method == "GET":
+        personne = request.GET.get("personne", "")
+        if _uuid_valide(personne) and Personne.objects.filter(pk=personne).exists():
+            initial["personnes"] = [personne]
+        initial["debut"] = timezone.localdate()
+    formulaire = MenageForm(request.POST if request.method == "POST" else None, initial=initial)
+    return traiter(request, formulaire, "Créer un ménage", lambda **donnees: suivi.creer_menage(request.user, **donnees))
 
 
 @require_http_methods(["GET", "POST"])

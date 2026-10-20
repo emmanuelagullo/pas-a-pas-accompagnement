@@ -2,6 +2,7 @@
 {% block titre %}Créer une personne — Pas à Pas{% endblock %}
 {% block contenu %}<p><a href="{% url 'personnes:liste' %}">Retour aux personnes</a></p>
 <section class="carte"><h1>Créer une personne</h1>
+<p>Pour une arrivée imprévue, un identifiant provisoire suffit. Le prénom peut rester vide. Le ménage et les prestations pourront être renseignés ensuite.</p>
 <form method="post">{% csrf_token %}{{ form.as_p }}
 <button type="submit">Enregistrer la personne</button>
 <a href="{% url 'personnes:liste' %}">Annuler</a></form></section>{% endblock %}
