@@ -20,3 +20,29 @@ Le lot est limité à 500 lignes ; au-delà, utiliser les fiches des accords.
 Pour rectifier une distribution existante, ouvrir son accord, annuler avec un
 motif puis saisir la bonne distribution. Une absence n’entraîne ni sortie du
 séjour ni libération automatique d’une place. La page ne gère pas les capacités.
+
+## Relève entre équipes
+
+Le **cahier de liaison** présente les dernières transmissions, indépendamment de
+la date métier consultée. Il ne transforme pas les messages en tâches. Une
+transmission ne prouve ni qu'une action est nécessaire ni qu'elle a été réalisée.
+
+La section **Actions explicitement en attente** présente les actions créées
+volontairement par l'équipe. Une échéance peut être indiquée, mais aucune n'est
+calculée à partir d'une situation sociale. Le bouton **Marquer comme réalisée**
+clôt une action sans supprimer son historique. Les droits de consultation,
+création et clôture sont indépendants. Éviter les informations sociales sensibles
+dans ces actions transversales : utiliser les notes liées au dossier lorsque
+cela est nécessaire et autorisé.
+
+### Exemple de relève matin — journée — nuit
+
+1. **Matin** : consulter les transmissions et les actions encore ouvertes ;
+   vérifier les accords d'hébergement dont la fin approche.
+2. **Journée** : enregistrer uniquement les repas effectivement distribués ;
+   créer une action explicite si une intervention reste à faire.
+3. **Nuit** : lire les informations nécessaires à la permanence, transmettre
+   les faits nouveaux et clôturer seulement les actions réellement réalisées.
+
+Les dates de fin d'accord sont exclusives. Un accord arrivant à échéance
+n'entraîne ni renouvellement automatique ni création d'une action.

@@ -190,3 +190,13 @@ Elle juxtapose les situations déclarées, événements, bilans de ménage, repa
 réalisés ou annulés et admissions/sorties, selon les droits de lecture.
 Elle ne produit ni score ni déduction automatique sur le progrès social.
 Les bilans de ménage sont masqués dans la sélection d'une personne.
+
+## Relève quotidienne (CHRS12)
+
+Parcours à essayer avec les comptes fictifs habilités : ouvrir **Travail du
+jour**, consulter les transmissions, vérifier les fins proches d'accords et
+les repas, puis créer volontairement une action de relève si une intervention
+reste à effectuer. Revenir avec un autre compte disposant du droit de clôture
+pour marquer l'action comme réalisée. Une transmission informative ne crée
+aucune action. Les notes sociales de Thomas ne sont pas reprises dans la
+liste transversale : leur consultation reste soumise aux droits du dossier.

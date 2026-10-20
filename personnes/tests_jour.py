@@ -77,3 +77,31 @@ class JourTests(TestCase):
         self.assertEqual(reponse.status_code, 200)
         self.assertNotContains(reponse, message.contenu)
         self.assertNotContains(reponse, "Relais entre équipes")
+
+    def test_actions_relais_permissions_et_cloture(self):
+        from .models import ActionRelais
+        from django.utils import timezone
+        from django.contrib.auth import get_user_model
+        consulter = Permission.objects.get(codename="view_actionrelais", content_type__app_label="personnes")
+        creer = Permission.objects.get(codename="add_actionrelais", content_type__app_label="personnes")
+        terminer = Permission.objects.get(codename="change_actionrelais", content_type__app_label="personnes")
+        url = reverse("suivi:actions_relais")
+        self.assertEqual(self.client.get(url).status_code, 403)
+        self.u.user_permissions.add(consulter)
+        self.assertEqual(self.client.get(url).status_code, 200)
+        self.assertEqual(self.client.post(url, {"libelle": "Vérifier le relais"}).status_code, 403)
+        self.u.user_permissions.add(creer)
+        self.assertRedirects(self.client.post(url, {"libelle": "Vérifier le relais", "echeance": ""}), url)
+        action = ActionRelais.objects.get()
+        self.assertContains(self.client.get(self.url), "Vérifier le relais")
+        fin = reverse("suivi:terminer_action_relais", args=[action.pk])
+        self.assertEqual(self.client.get(fin).status_code, 405)
+        self.assertEqual(self.client.post(fin).status_code, 403)
+        self.u.user_permissions.add(terminer)
+        self.assertRedirects(self.client.post(fin), url)
+        action.refresh_from_db()
+        self.assertIsNotNone(action.terminee_le)
+        self.assertEqual(action.terminee_par, self.u)
+        self.assertNotContains(self.client.get(self.url), "Vérifier le relais")
+        self.u.user_permissions.remove(consulter)
+        self.assertNotContains(self.client.get(self.url), "Actions explicitement en attente")
