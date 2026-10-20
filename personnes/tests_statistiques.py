@@ -21,7 +21,9 @@ class StatistiquesTests(TestCase):
         resultat = bilan(date(2026, 1, 2), date(2026, 1, 5))
         self.assertEqual(resultat['personnes_avec_sejour'], 1)
         self.assertEqual(resultat['sejours'], 2)
-        self.assertEqual(resultat['nuitees_theoriques'], 5)
+        # Deux séjours contribuent chacun deux nuits sur [2, 5[.
+        # La nuit commune du 3 janvier est comptée deux fois par définition.
+        self.assertEqual(resultat['nuitees_theoriques'], 4)
         self.assertEqual(resultat['admissions'], 1)
         self.assertEqual(resultat['sorties'], 1)
         self.assertEqual(resultat['menages_accompagnes'], 1)
