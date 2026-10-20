@@ -3,6 +3,7 @@
 <p>Les dates reflètent les informations enregistrées. Un séjour ouvert ne prouve pas la présence physique.</p>
 {% if perms.personnes.view_accordhebergement and perms.personnes.view_sejour %}<section class="carte"><h2>Hébergement au {{ date }}</h2><ul>{% for ligne in hebergements %}<li><a href="{% url 'suivi:accord_hebergement' ligne.sejour.accord_id %}">{{ ligne.sejour.accord.accompagnement.menage }}</a> : {% for p in ligne.sejour.beneficiaires.all %}{{ p }} ; {% endfor %}
 {% if ligne.lieux != None %}{% for a in ligne.lieux %}<p>Lieu : {{ a.lieu }}</p>{% empty %}<p>Aucun lieu affecté à cette date.</p>{% endfor %}{% endif %}
+{% if perms.personnes.view_notepartagee %}<p><a href="{% url 'suivi:notes' 'sejour' ligne.sejour.pk %}">Notes du séjour</a></p>{% endif %}
 {% if ligne.absences %}<p>Absence enregistrée pour les bénéficiaires du séjour.</p>{% endif %}{% if ligne.accord_expire %}<p>La période accordée est terminée ; le séjour reste ouvert. À vérifier.</p>{% endif %}</li>{% empty %}<li>Aucun séjour enregistré pour cette date.</li>{% endfor %}</ul></section>{% endif %}
 {% if lecture_repas %}<section class="carte"><h2>Repas au {{ date }}</h2><p>Saisir uniquement ce qui a été distribué. Une case vide ne crée aucune réalisation. Les lignes déjà enregistrées se corrigent depuis leur accord.</p>
 {% if erreur %}<p class="errorlist" role="alert">{{ erreur }}</p>{% endif %}{{ formset.non_form_errors }}

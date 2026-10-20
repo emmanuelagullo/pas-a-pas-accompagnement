@@ -45,3 +45,24 @@ class TransmissionsTests(TestCase):
         self.assertEqual(self.client.get(cible).status_code, 403)
         with self.assertRaises(PermissionDenied):
             transmissions.transmettre(autre, "Refus")
+
+    def test_correction_parcours_et_historique(self):
+        self.client.force_login(self.u)
+        note = transmissions.noter(self.u, "Version initiale", personne=self.p)
+        url = reverse("suivi:corriger_contribution", args=["note", note.pk])
+        self.assertEqual(self.client.get(url).status_code, 200)
+        self.assertEqual(self.client.post(url, {"contenu": "Version corrigée", "motif": "Rectification factuelle"}).status_code, 302)
+        note.refresh_from_db()
+        self.assertEqual(note.contenu, "Version corrigée")
+        revision = RevisionContribution.objects.get(note=note)
+        self.assertEqual(revision.ancien_texte, "Version initiale")
+        self.assertEqual(revision.nouveau_texte, "Version corrigée")
+        self.assertEqual(revision.motif, "Rectification factuelle")
+
+    def test_correction_interdite_sans_droit_sur_la_cible(self):
+        note = transmissions.noter(self.u, "Texte", personne=self.p)
+        compte = get_user_model().objects.create_user("correcteur-sans-cible")
+        compte.user_permissions.add(*Permission.objects.filter(
+            content_type__app_label="personnes", codename__in=["view_notepartagee", "change_notepartagee"]))
+        self.client.force_login(compte)
+        self.assertEqual(self.client.get(reverse("suivi:corriger_contribution", args=["note", note.pk])).status_code, 403)
