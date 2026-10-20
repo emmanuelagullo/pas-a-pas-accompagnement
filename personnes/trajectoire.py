@@ -38,3 +38,23 @@ def construire(accompagnement, acteur, beneficiaire=None, debut=None, fin=None):
                 if s.fin:
                     ajouter(s.fin, s.cree_le, 'Sortie', 'Fin du séjour (date exclue)', p)
     return sorted(lignes, key=lambda l: (l['date'], l['enregistre'], l['nature'], str(l['beneficiaire'])))
+
+
+def comparer(accompagnement, beneficiaire, date_initiale, date_finale):
+    """Deux instantanés descriptifs, sans classement ni inférence de progression."""
+    personnes = ([beneficiaire] if beneficiaire else list(accompagnement.beneficiaires.all()))
+    situations = list(SituationSociale.objects.filter(
+        accompagnement=accompagnement, debut__lte=date_finale,
+        beneficiaire__in=personnes).order_by('debut'))
+
+    def valeur(personne, dimension, date):
+        for situation in reversed(situations):
+            if (situation.beneficiaire_id == personne.pk and situation.dimension == dimension
+                    and situation.debut <= date and (situation.fin is None or date < situation.fin)):
+                return situation.libelle_valeur
+        return 'Non renseigné'
+
+    return [dict(beneficiaire=personne, dimension=libelle,
+                 initial=valeur(personne, code, date_initiale),
+                 final=valeur(personne, code, date_finale))
+            for personne in personnes for code, libelle in SituationSociale.DIMENSIONS]

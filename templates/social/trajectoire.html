@@ -4,6 +4,13 @@
 <p><a href="{% url 'suivi:social' accompagnement.pk %}">Situation et parcours sociaux</a></p>
 <p>Chronologie des faits enregistrés, et non évaluation ou score de la personne. Une absence de saisie ne signifie pas absence de progrès. Les dates de sortie sont exclues du séjour.</p>
 <form method="get">{{ form.as_p }}<button type="submit">Afficher la trajectoire</button></form>
+{% if comparaison %}
+<h2>Situations aux bornes de la période</h2>
+<p>Comparaison descriptive des déclarations enregistrées à chaque date, sans jugement de progression. « Non renseigné » ne signifie pas absence de situation.</p>
+<table><thead><tr><th scope="col">Bénéficiaire</th><th scope="col">Dimension</th><th scope="col">Au début</th><th scope="col">À la fin</th></tr></thead><tbody>
+{% for ligne in comparaison %}<tr><th scope="row">{{ ligne.beneficiaire }}</th><td>{{ ligne.dimension }}</td><td>{{ ligne.initial }}</td><td>{{ ligne.final }}</td></tr>{% endfor %}
+</tbody></table>
+{% endif %}
 <h2>Éléments datés</h2>
 <ol>{% for ligne in lignes %}
 <li><strong>{{ ligne.date }} — {{ ligne.nature }}</strong>{% if ligne.beneficiaire %} — {{ ligne.beneficiaire }}{% endif %} : {{ ligne.texte }}

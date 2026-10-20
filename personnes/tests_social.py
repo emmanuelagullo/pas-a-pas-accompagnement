@@ -139,39 +139,6 @@ class TrajectoireTests(TestCase):
         reponse = self.client.get(url, {'beneficiaire': str(self.p.pk), 'debut': '2026-02-01', 'fin': '2026-02-01'})
         self.assertContains(reponse, 'Événement fictif')
         self.assertNotContains(reponse, 'Bilan collectif fictif')
-        self.assertNotContains(reponse, 'sans emploi')
-        self.assertContains(self.client.get(url, {'fin': '2026-01-01', 'debut': '2026-02-01'}), 'La fin ne peut pas précéder')
-        self.assertContains(self.client.get(url, {'beneficiaire': 'inconnu'}), 'Sélectionnez un choix valide')
-
-    def test_droits_sur_la_trajectoire(self):
-        social.evenement(self.u, self.a, self.p, date(2026, 2, 1), 'Événement réservé', 'Source fictive')
-        self.client.force_login(self.u)
-        url = reverse('suivi:trajectoire', args=[self.a.pk])
-        self.assertContains(self.client.get(url), 'Événement réservé')
-        permission = Permission.objects.get(content_type__app_label='personnes', codename='view_evenementsocial')
-        self.u.user_permissions.remove(permission)
-        self.u = get_user_model().objects.get(pk=self.u.pk)
-        self.client.force_login(self.u)
-        self.assertNotContains(self.client.get(url), 'Événement réservé')
-        nu = get_user_model().objects.create_user('sans-trajectoire')
-        self.client.force_login(nu)
-        self.assertEqual(self.client.get(url).status_code, 403)
-
-class TrajectoireTests(TestCase):
-    setUp = SocialTests.setUp
-    renseigner = SocialTests.renseigner
-    """La trajectoire respecte le périmètre d'un suivi et les droits de lecture."""
-
-    def test_filtrage_et_separation_des_dates(self):
-        self.renseigner('sans_emploi', date(2026, 1, 1))
-        social.evenement(self.u, self.a, self.p, date(2026, 2, 1), 'Événement fictif', 'Source fictive')
-        social.bilan(self.u, self.a, date(2026, 2, 2), 'Bilan collectif fictif')
-        self.client.force_login(self.u)
-        url = reverse('suivi:trajectoire', args=[self.a.pk])
-        self.assertContains(self.client.get(url), 'Bilan collectif fictif')
-        reponse = self.client.get(url, {'beneficiaire': str(self.p.pk), 'debut': '2026-02-01', 'fin': '2026-02-01'})
-        self.assertContains(reponse, 'Événement fictif')
-        self.assertNotContains(reponse, 'Bilan collectif fictif')
         self.assertNotContains(reponse, 'Sans emploi')
         self.assertContains(self.client.get(url, {'fin': '2026-01-01', 'debut': '2026-02-01'}), 'La fin ne peut pas précéder')
         self.assertContains(self.client.get(url, {'beneficiaire': 'inconnu'}), 'Sélectionnez un choix valide')
@@ -189,3 +156,15 @@ class TrajectoireTests(TestCase):
         nu = get_user_model().objects.create_user('sans-trajectoire')
         self.client.force_login(nu)
         self.assertEqual(self.client.get(url).status_code, 403)
+
+    def test_comparaison_datee_sans_inference(self):
+        self.renseigner('sans_emploi', date(2026, 1, 1))
+        self.renseigner('formation', date(2026, 2, 1))
+        self.client.force_login(self.u)
+        url = reverse('suivi:trajectoire', args=[self.a.pk])
+        reponse = self.client.get(url, {'debut': '2026-01-15', 'fin': '2026-02-02'})
+        self.assertContains(reponse, 'Sans emploi')
+        self.assertContains(reponse, 'En formation')
+        self.assertContains(reponse, 'Non renseigné')
+        reponse = self.client.get(url, {'debut': '2026-01-15', 'fin': '2026-01-20'})
+        self.assertNotContains(reponse, 'En formation')
