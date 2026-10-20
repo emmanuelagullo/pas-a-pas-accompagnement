@@ -1,7 +1,15 @@
 {% extends "base.html" %}{% block contenu %}<h1>Travail du jour</h1>
 <form method="get">{{ date_form.as_p }}<button type="submit">Afficher</button></form>
+<section class="carte" aria-label="Actions rapides"><h2>Actions rapides</h2>
+<p>{% if perms.personnes.add_personne and perms.personnes.view_personne %}<a href="{% url 'personnes:creer' %}">Accueillir une nouvelle personne</a> · {% endif %}{% if perms.personnes.add_menage and perms.personnes.view_menage %}<a href="{% url 'suivi:creer' %}">Créer un ménage</a> · {% endif %}{% if perms.personnes.view_transmission %}<a href="{% url 'suivi:cahier' %}">Transmettre une consigne à l’équipe</a>{% endif %}</p>
+</section>
 <p>Les dates reflètent les informations enregistrées. Un séjour ouvert ne prouve pas la présence physique.</p>
 {% if perms.personnes.view_accordhebergement and perms.personnes.view_sejour %}<section class="carte"><h2>Hébergement au {{ date }}</h2><ul>{% for ligne in hebergements %}<li><a href="{% url 'suivi:accord_hebergement' ligne.sejour.accord_id %}">{{ ligne.sejour.accord.accompagnement.menage }}</a> : {% for p in ligne.sejour.beneficiaires.all %}{{ p }} ; {% endfor %}
+<p>Actions sur le séjour :
+{% if perms.personnes.add_affectation and perms.personnes.view_lieuhebergement %}<a href="{% url 'suivi:affecter' ligne.sejour.pk %}">Affecter un lieu</a> · {% endif %}
+{% if perms.personnes.add_absence %}<a href="{% url 'suivi:absence' ligne.sejour.pk %}">Signaler une absence</a> · {% endif %}
+{% if perms.personnes.change_sejour %}<a href="{% url 'suivi:sortir' ligne.sejour.pk %}">Enregistrer la sortie</a>{% endif %}
+</p>
 {% if ligne.lieux != None %}{% for a in ligne.lieux %}<p>Lieu : {{ a.lieu }}</p>{% empty %}<p>Aucun lieu affecté à cette date.</p>{% endfor %}{% endif %}
 {% if perms.personnes.view_notepartagee %}<p><a href="{% url 'suivi:notes' 'sejour' ligne.sejour.pk %}">Notes du séjour</a></p>{% endif %}
 {% if ligne.absences %}<p>Absence enregistrée pour les bénéficiaires du séjour.</p>{% endif %}{% if ligne.accord_expire %}<p>La période accordée est terminée ; le séjour reste ouvert. À vérifier.</p>{% endif %}</li>{% empty %}<li>Aucun séjour enregistré pour cette date.</li>{% endfor %}</ul></section>{% endif %}

@@ -39,3 +39,12 @@ class JourTests(TestCase):
             'repas-1-accord':str(self.accord.pk),'repas-1-beneficiaire':str(self.p.pk),'repas-1-quantite':'1'})
         self.assertContains(self.client.post(self.url,donnees),'Aucune ligne du lot')
         self.assertFalse(RepasDistribue.objects.exists())
+
+    def test_raccourcis_du_travail_du_jour_et_permissions(self):
+        # Le raccourci général reste accessible sans hébergement actif.
+        reponse = self.client.get(self.url)
+        self.assertContains(reponse, reverse('personnes:creer'))
+        self.assertContains(reponse, reverse('suivi:creer'))
+        # Le menu ne doit pas inventer d'opérations non autorisées.
+        self.u.user_permissions.clear()
+        self.assertEqual(self.client.get(self.url).status_code, 403)
