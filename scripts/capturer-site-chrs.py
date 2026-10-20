@@ -45,6 +45,16 @@ def main():
         page.locator('input[name="password"]').fill(MOT_DE_PASSE)
         page.get_by_role('button', name='Se connecter').click()
         page.get_by_role('link', name='Statistiques').wait_for()
+        # Qualification visuelle du parcours de relève, sur données fictives.
+        # Vérifier les deux temporalités et les accès avant de capturer la page.
+        page.goto(args.base_url + '/menages/jour/')
+        page.get_by_role('heading', name='Travail du jour', level=1).wait_for()
+        page.get_by_role('heading', name='Relève actuelle — transmissions récentes').wait_for()
+        page.get_by_role('heading', name='Relève actuelle — actions explicitement en attente').wait_for()
+        page.locator('#situation-date').wait_for()
+        page.get_by_role('link', name='Écrire une transmission').wait_for()
+        page.get_by_role('link', name='Consulter les statistiques d’activité').wait_for()
+        page.screenshot(path=str(args.output / 'travail-du-jour.png'), full_page=True)
         for slug, url, titre in (
             ('statistiques', '/statistiques/', "Statistiques d’activité"),
             ('liaison', '/menages/liaison/', 'Cahier de liaison'),
@@ -55,7 +65,7 @@ def main():
                 raise RuntimeError('Page sans contenu principal : ' + url)
             page.screenshot(path=str(args.output / (slug + '.png')))
         browser.close()
-    for nom in ('connexion', 'statistiques', 'liaison'):
+    for nom in ('connexion', 'travail-du-jour', 'statistiques', 'liaison'):
         chemin = args.output / (nom + '.png')
         if not chemin.is_file() or chemin.stat().st_size < 1000:
             raise RuntimeError('Capture manquante ou vide : ' + str(chemin))

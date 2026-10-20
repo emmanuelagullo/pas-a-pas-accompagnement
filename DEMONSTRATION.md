@@ -226,3 +226,19 @@ Parcours de recette avec des profils fictifs distincts :
 
 Les captures Hugo ne constituent pas à elles seules un test de confidentialité :
 la recette doit aussi vérifier les réponses HTTP et les textes absents.
+
+## Qualification ergonomique CHRS13 — captures et parcours
+
+La CI `captures-demonstration` ouvre le serveur jetable Les Passerelles et
+contrôle, dans Chromium, les titres de la relève, la séparation avec la date
+métier et les accès à la transmission et aux statistiques. Elle produit
+`travail-du-jour.png` en complément du cahier de liaison et des statistiques.
+La galerie Hugo affiche ces captures fictives.
+
+Cette vérification confirme la présence et la navigation des repères, **pas**
+leur facilité d'utilisation par un veilleur ni les droits de profils distincts :
+les comptes de démonstration partagent actuellement les mêmes permissions.
+Le jeu fictif nouvellement généré reçoit explicitement les droits de relève ;
+les comptes et espaces existants ne sont pas modifiés.
+Une recette humaine sur petit écran, avec les profils réels prévus, reste
+nécessaire avant de qualifier l'ergonomie ou la confidentialité en situation.

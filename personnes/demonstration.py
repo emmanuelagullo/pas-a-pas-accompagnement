@@ -20,6 +20,7 @@ def autoriser(compte):
     compte.user_permissions.add(Permission.objects.get(content_type__app_label='personnes', codename='add_personne'))
     compte.user_permissions.add(*Permission.objects.filter(content_type__app_label='personnes', codename__in=(
         'view_transmission', 'add_transmission', 'change_transmission',
+        'view_actionrelais', 'add_actionrelais', 'change_actionrelais',
         'view_notepartagee', 'add_notepartagee', 'change_notepartagee')))
     # Les commandes rechargent le compte ; ne pas conserver un cache de droits.
     return get_user_model().objects.get(pk=compte.pk)
