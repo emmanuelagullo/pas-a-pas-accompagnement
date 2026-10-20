@@ -31,7 +31,7 @@ class Filtres(forms.Form):
 def detail(request, pk):
     social.droit(request.user, 'view_situationsociale')
     accompagnement = get_object_or_404(Accompagnement.objects.select_related('menage'), pk=pk)
-    form = Filtres(request.GET or None, accompagnement=accompagnement)
+    form = Filtres(request.GET, accompagnement=accompagnement)
     lignes = []
     if form.is_valid():
         selection = form.cleaned_data['beneficiaire']
