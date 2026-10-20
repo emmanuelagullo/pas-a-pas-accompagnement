@@ -13,6 +13,8 @@ fin est absente ou postérieure au début de consultation.
 | Admissions | Nombre de débuts de séjour dans la période |
 | Sorties | Nombre de fins de séjour dans la période (fin exclue) |
 | Nuitées théoriques | Pour chaque séjour, jours d'intersection × nombre de bénéficiaires explicitement rattachés ; puis somme |
+| Nuits distinctes | Union des nuits civiles couvertes par au moins un séjour, par identifiant de personne ; une nuit simultanée ne compte qu’une fois |
+| Nuits hors absences déclarées | Union des nuits de séjour non couvertes par une absence déclarée pour le séjour concerné ; ne prouve pas une présence effective |
 | Repas distribués | Somme des quantités enregistrées dans la période, hors distributions annulées |
 
 **Limites importantes** : les nuitées sont des nuitées théoriques d'hébergement,
@@ -29,3 +31,10 @@ et ne doivent pas servir à classer les équipes.
 
 L'accès à la page nécessite les permissions de lecture sur les accompagnements,
 les séjours et les distributions. Aucun droit nouveau n'est accordé par défaut.
+
+Export CSV : mêmes indicateurs et même période que la page, avec noms de clés
+stables. Aucune donnée individuelle n'est exportée. L'accès exige les mêmes
+permissions que la consultation. Les absences sont ici celles saisies dans
+l'application ; leur absence ne démontre pas une présence. Lorsque deux séjours
+se chevauchent et qu'un seul porte une absence, une nuit peut encore être
+comptée via l'autre séjour : il ne s'agit pas d'un relevé de présence.

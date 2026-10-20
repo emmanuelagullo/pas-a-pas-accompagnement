@@ -1,6 +1,8 @@
 """Consultation des statistiques agrégées CHRS10."""
 from datetime import timedelta
+import csv
 from django import forms
+from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import render
 from django.utils import timezone
@@ -28,4 +30,18 @@ def statistiques(request):
     initial = {'debut': aujourd_hui.replace(day=1), 'fin': aujourd_hui + timedelta(days=1)}
     formulaire = PeriodeStatistiquesForm(request.GET or None, initial=initial)
     resultats = bilan(**formulaire.cleaned_data) if formulaire.is_valid() else None
-    return render(request, 'suivi/statistiques.html', {'formulaire': formulaire, 'resultats': resultats})
+    if request.GET.get('format') == 'csv' and resultats is not None:
+        reponse = HttpResponse(content_type='text/csv; charset=utf-8')
+        reponse['Content-Disposition'] = 'attachment; filename="statistiques-chrs.csv"'
+        writer = csv.writer(reponse)
+        writer.writerow(['debut_inclus', 'fin_exclue', 'indicateur', 'valeur'])
+        for indicateur, valeur in resultats.items():
+            writer.writerow([formulaire.cleaned_data['debut'].isoformat(),
+                             formulaire.cleaned_data['fin'].isoformat(), indicateur, valeur])
+        return reponse
+    periode = formulaire.cleaned_data if formulaire.is_valid() else {}
+    return render(request, 'suivi/statistiques.html', {
+        'formulaire': formulaire, 'resultats': resultats,
+        'debut_iso': periode['debut'].isoformat() if periode else '',
+        'fin_iso': periode['fin'].isoformat() if periode else '',
+    })

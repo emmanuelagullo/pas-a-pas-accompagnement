@@ -43,3 +43,31 @@ class StatistiquesTests(TestCase):
     def test_periode_invalide(self):
         with self.assertRaises(ValueError):
             bilan(date(2026, 1, 2), date(2026, 1, 2))
+
+    def test_nuits_distinctes_et_absences(self):
+        from .models import Absence
+        accord = AccordHebergement.objects.create(
+            accompagnement=self.a, debut=date(2026, 1, 1), cree_par=self.u)
+        accord.beneficiaires.add(self.p)
+        for debut, fin in [(date(2026, 1, 1), date(2026, 1, 4)),
+                           (date(2026, 1, 3), date(2026, 1, 6))]:
+            sejour = Sejour.objects.create(accord=accord, debut=debut, fin=fin, cree_par=self.u)
+            sejour.beneficiaires.add(self.p)
+            if debut.day == 1:
+                Absence.objects.create(sejour=sejour, debut=date(2026, 1, 2),
+                                       fin=date(2026, 1, 3))
+        resultat = bilan(date(2026, 1, 2), date(2026, 1, 5))
+        self.assertEqual(resultat['nuitees_theoriques'], 4)
+        self.assertEqual(resultat['nuits_distinctes'], 3)
+        self.assertEqual(resultat['nuits_hors_absences_declarees'], 2)
+
+    def test_export_csv_et_permissions(self):
+        url = reverse('statistiques')
+        params = {'debut': '2026-01-02', 'fin': '2026-01-05', 'format': 'csv'}
+        reponse = self.client.get(url, params)
+        self.assertEqual(reponse.status_code, 200)
+        self.assertIn('text/csv', reponse['Content-Type'])
+        self.assertIn(b'nuits_distinctes', reponse.content)
+        self.assertIn(b'2026-01-02,2026-01-05', reponse.content)
+        self.u.user_permissions.clear()
+        self.assertEqual(self.client.get(url, params).status_code, 403)

@@ -5,7 +5,7 @@ non une présence physique constatée. Les absences ne sont pas déduites.
 """
 from datetime import timedelta
 from django.db.models import Q, Sum
-from .models import Accompagnement, Sejour, RepasDistribue
+from .models import Accompagnement, Sejour, RepasDistribue, Absence
 
 
 def chevauche(debut, fin):
@@ -29,6 +29,7 @@ def bilan(debut, fin):
     for sejour in sejours.prefetch_related('beneficiaires').only('debut', 'fin'):
         jours = (min(sejour.fin or fin, fin) - max(sejour.debut, debut)).days
         nuitees += jours * sejour.beneficiaires.count()
+    nuits_uniques, nuits_hors_absence = nuits_distinctes(debut, fin)
     distributions = RepasDistribue.objects.filter(date__gte=debut, date__lt=fin, annule_le__isnull=True)
     return {
         'menages_accompagnes': menages,
@@ -38,5 +39,36 @@ def bilan(debut, fin):
         'admissions': admissions,
         'sorties': sorties,
         'nuitees_theoriques': nuitees,
+        'nuits_distinctes': nuits_uniques,
+        'nuits_hors_absences_declarees': nuits_hors_absence,
         'repas_distribues': distributions.aggregate(total=Sum('quantite'))['total'] or 0,
     }
+
+
+def nuits_distinctes(debut, fin):
+    """Nuits par personne sans doublon de séjours, et hors absences déclarées.
+
+    Ces résultats ne prouvent PAS une présence physique : une absence non saisie
+    n'est pas déductible. Une nuit correspond à la date civile de son début.
+    """
+    if fin <= debut:
+        raise ValueError("La fin doit être postérieure au début")
+    nuits = set()
+    hors_absence = set()
+    sejours = (Sejour.objects.filter(chevauche(debut, fin))
+               .prefetch_related('beneficiaires', 'absences'))
+    for sejour in sejours:
+        personnes = [p.pk for p in sejour.beneficiaires.all()]
+        debut_effectif = max(debut, sejour.debut)
+        fin_effective = min(fin, sejour.fin or fin)
+        absences = [(max(a.debut, debut_effectif), min(a.fin or fin_effective, fin_effective))
+                    for a in sejour.absences.all()]
+        jour = debut_effectif
+        while jour < fin_effective:
+            for identifiant in personnes:
+                cle = (identifiant, jour)
+                nuits.add(cle)
+                if not any(a <= jour < b for a, b in absences):
+                    hors_absence.add(cle)
+            jour += timedelta(days=1)
+    return len(nuits), len(hors_absence)

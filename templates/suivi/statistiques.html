@@ -12,8 +12,15 @@
 <dt>Admissions (début de séjour)</dt><dd>{{ resultats.admissions }}</dd>
 <dt>Sorties (fin de séjour)</dt><dd>{{ resultats.sorties }}</dd>
 <dt>Nuitées théoriques de séjour, par bénéficiaire</dt><dd>{{ resultats.nuitees_theoriques }}</dd>
+<dt>Nuits distinctes par personne (sans doublon de séjour)</dt><dd>{{ resultats.nuits_distinctes }}</dd>
+<dt>Nuits hors absences déclarées (non assimilables à une présence)</dt><dd>{{ resultats.nuits_hors_absences_declarees }}</dd>
 <dt>Repas effectivement enregistrés (hors annulations)</dt><dd>{{ resultats.repas_distribues }}</dd>
-</dl></section>
-<p>Attention : les nuitées ne prouvent pas une présence physique. Les absences ne sont pas soustraites et les séjours simultanés peuvent être comptés plusieurs fois. Les repas accordés ne sont pas des repas distribués.</p>
+</dl>
+<form method="get">
+<input type="hidden" name="debut" value="{{ debut_iso }}">
+<input type="hidden" name="fin" value="{{ fin_iso }}">
+<button type="submit" name="format" value="csv">Exporter les indicateurs (CSV)</button>
+</form></section>
+<p>Attention : les nuitées ne prouvent pas une présence physique. Les nuitées théoriques ne déduisent pas les absences et les séjours simultanés peuvent être comptés plusieurs fois. Les nuits hors absences déclarées ne prouvent pas non plus une présence effective. Les repas accordés ne sont pas des repas distribués.</p>
 {% endif %}
 {% endblock %}
