@@ -139,3 +139,30 @@ class RapportsTests(TestCase):
         self.assertContains(reponse, 'Synthèse de l’activité')
         self.u.user_permissions.clear()
         self.assertEqual(self.client.get(url, {'rapport': 'repas', 'format': 'csv'}).status_code, 403)
+
+class PeriodesRapportsTests(TestCase):
+    def setUp(self):
+        NavigationTests.setUp(self)
+
+    def test_bornes_periodes_annee_bissextile(self):
+        from .vues_statistiques import bornes_periode
+        self.assertEqual(bornes_periode('mois_precedent', date(2024, 3, 15)),
+                         (date(2024, 2, 1), date(2024, 3, 1)))
+        self.assertEqual(bornes_periode('annee_precedente', date(2026, 3, 15)),
+                         (date(2025, 1, 1), date(2026, 1, 1)))
+
+    def test_periode_rapide_et_comparaison(self):
+        from unittest.mock import patch
+        with patch('personnes.vues_statistiques.timezone.localdate', return_value=date(2026, 3, 15)):
+            reponse = self.client.get(reverse('statistiques'), {
+                'periode': 'mois_precedent', 'comparer': '1', 'rapport': 'hebergement'})
+        self.assertEqual(reponse.status_code, 200)
+        self.assertContains(reponse, 'Comparaison avec la période précédente')
+        self.assertContains(reponse, '2026-02-01')
+        self.assertContains(reponse, '2026-03-01')
+
+    def test_periode_inconnue_ne_remplace_pas_dates_saisies(self):
+        reponse = self.client.get(reverse('statistiques'), {
+            'periode': 'inconnue', 'debut': '2026-01-02', 'fin': '2026-01-05'})
+        self.assertEqual(reponse.status_code, 200)
+        self.assertContains(reponse, '2026-01-02')

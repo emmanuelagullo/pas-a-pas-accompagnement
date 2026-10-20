@@ -1,10 +1,28 @@
 {% extends "base.html" %}{% block contenu %}
 <h1>Statistiques d’activité</h1>
 <p>Les indicateurs portent sur la période civile choisie, début inclus et fin exclue.</p>
+<form method="get" aria-label="Périodes prédéfinies">
+<label for="periode">Période rapide</label>
+<select id="periode" name="periode">
+<option value="">Choisir une période</option>
+{% for code, libelle in periodes.items %}<option value="{{ code }}" {% if periode_choisie == code %}selected{% endif %}>{{ libelle }}</option>{% endfor %}
+</select><input type="hidden" name="rapport" value="{{ rapport }}">
+<button type="submit">Appliquer</button></form>
 <form method="get"><label for="rapport">Rapport</label>
 <select id="rapport" name="rapport">
 {% for code, libelle in rapports.items %}<option value="{{ code }}" {% if code == rapport %}selected{% endif %}>{{ libelle }}</option>{% endfor %}
-</select>{{ formulaire.as_p }}<button type="submit">Calculer</button></form>
+</select>{{ formulaire.as_p }}
+<label><input type="checkbox" name="comparer" value="1" {% if comparer %}checked{% endif %}> Comparer avec la période précédente de même durée</label>
+<button type="submit">Calculer</button></form>
+{% if comparaison != None %}
+<section class="carte"><h2>Comparaison avec la période précédente</h2>
+<p>La période précédente a exactement la même durée en jours. Les effectifs distincts ne sont pas additionnables.</p>
+<table><thead><tr><th scope="col">Indicateur</th><th scope="col">Période précédente</th><th scope="col">Période choisie</th></tr></thead>
+<tbody><tr><th scope="row">Admissions</th><td>{{ comparaison.admissions }}</td><td>{{ resultats.admissions }}</td></tr>
+<tr><th scope="row">Sorties</th><td>{{ comparaison.sorties }}</td><td>{{ resultats.sorties }}</td></tr>
+<tr><th scope="row">Nuitées théoriques</th><td>{{ comparaison.nuitees_theoriques }}</td><td>{{ resultats.nuitees_theoriques }}</td></tr>
+<tr><th scope="row">Repas distribués</th><td>{{ comparaison.repas_distribues }}</td><td>{{ resultats.repas_distribues }}</td></tr></tbody></table></section>
+{% endif %}
 {% if resultats != None %}
 <section class="carte"><h2>{% if rapport == 'hebergement' %}Hébergement{% elif rapport == 'repas' %}Repas{% elif rapport == 'mensuel' %}Évolution mensuelle{% else %}Activité pendant la période{% endif %}</h2>
 {% if rapport == 'synthese' or rapport == 'hebergement' %}

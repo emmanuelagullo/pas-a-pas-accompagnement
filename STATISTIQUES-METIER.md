@@ -48,3 +48,17 @@ distinctes ne doivent **jamais** être additionnées d'un mois à l'autre.
 
 Les repas par service totalisent uniquement les distributions non annulées
 (petit-déjeuner, déjeuner, dîner). Aucun accord non réalisé n'est compté.
+
+## Périodes rapides et comparaison (CHRS10-06)
+
+Les raccourcis « mois en cours » et « année en cours » s'arrêtent au lendemain
+civil de la date du jour : aucune donnée future n'est supposée. Les périodes
+précédentes correspondent aux mois et années civils complets. Les bornes restent
+semi-ouvertes. Les dates manuelles restent disponibles.
+
+La comparaison facultative porte sur l'intervalle immédiatement antérieur de
+**même nombre de jours**, pas nécessairement sur le même mois de l'année
+précédente. Elle juxtapose les chiffres bruts, sans présenter de variation en
+pourcentage lorsque la base est nulle. Les personnes distinctes ne sont jamais
+additionnées entre périodes. L'export CSV reste celui de la période choisie ;
+la comparaison est une aide de lecture à l'écran.

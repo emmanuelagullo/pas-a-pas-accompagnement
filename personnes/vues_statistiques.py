@@ -1,5 +1,5 @@
 """Consultation des statistiques agrégées CHRS10."""
-from datetime import timedelta
+from datetime import timedelta, date
 import csv
 from django import forms
 from django.http import HttpResponse
@@ -17,6 +17,29 @@ RAPPORTS = {
     'repas': 'Repas distribués',
     'mensuel': 'Évolution mensuelle',
 }
+
+
+PERIODES = {
+    'mois': 'Mois en cours',
+    'mois_precedent': 'Mois précédent',
+    'annee': 'Année en cours',
+    'annee_precedente': 'Année précédente',
+}
+
+
+def bornes_periode(code, aujourd_hui):
+    """Bornes civiles [début, fin[, sans dépendance à la date du serveur SQL."""
+    premier_mois = aujourd_hui.replace(day=1)
+    if code == 'mois':
+        return premier_mois, aujourd_hui + timedelta(days=1)
+    if code == 'mois_precedent':
+        dernier = premier_mois - timedelta(days=1)
+        return dernier.replace(day=1), premier_mois
+    if code == 'annee':
+        return date(aujourd_hui.year, 1, 1), aujourd_hui + timedelta(days=1)
+    if code == 'annee_precedente':
+        return date(aujourd_hui.year - 1, 1, 1), date(aujourd_hui.year, 1, 1)
+    raise ValueError('Période prédéfinie inconnue')
 
 
 class PeriodeStatistiquesForm(forms.Form):
@@ -37,7 +60,13 @@ class PeriodeStatistiquesForm(forms.Form):
 def statistiques(request):
     aujourd_hui = timezone.localdate()
     initial = {'debut': aujourd_hui.replace(day=1), 'fin': aujourd_hui + timedelta(days=1)}
-    formulaire = PeriodeStatistiquesForm(request.GET or None, initial=initial)
+    periode_choisie = request.GET.get('periode', '')
+    if periode_choisie in PERIODES:
+        debut, fin = bornes_periode(periode_choisie, aujourd_hui)
+        formulaire = PeriodeStatistiquesForm({'debut': debut.isoformat(), 'fin': fin.isoformat()})
+    else:
+        formulaire = PeriodeStatistiquesForm(request.GET or None, initial=initial)
+
     rapport = request.GET.get('rapport', 'synthese')
     if rapport not in RAPPORTS:
         rapport = 'synthese'
@@ -79,9 +108,16 @@ def statistiques(request):
                 writer.writerow([formulaire.cleaned_data['debut'].isoformat(),
                                  formulaire.cleaned_data['fin'].isoformat(), indicateur, valeur])
         return reponse
+    comparaison = None
+    if resultats is not None and request.GET.get('comparer') == '1':
+        duree = formulaire.cleaned_data['fin'] - formulaire.cleaned_data['debut']
+        comparaison = bilan(formulaire.cleaned_data['debut'] - duree,
+                            formulaire.cleaned_data['debut'])
     periode = formulaire.cleaned_data if formulaire.is_valid() else {}
     return render(request, 'suivi/statistiques.html', {
         'formulaire': formulaire, 'resultats': resultats,
+        'periodes': PERIODES, 'periode_choisie': periode_choisie,
+        'comparaison': comparaison, 'comparer': request.GET.get('comparer') == '1',
         'rapport': rapport, 'rapports': RAPPORTS,
         'evolution': evolution, 'services': services, 'erreur_evolution': erreur_evolution,
         'debut_iso': periode['debut'].isoformat() if periode else '',
