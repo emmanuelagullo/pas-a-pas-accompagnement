@@ -1,6 +1,7 @@
 {% extends "base.html" %}{% block contenu %}
 <p><a href="{% url 'suivi:detail' accompagnement.menage_id %}">Ménage {{ accompagnement.menage }}</a></p>
 <h1>Accompagnement — {{ accompagnement.menage }}</h1>
+{% if perms.personnes.add_accordhebergement and perms.personnes.add_sejour and perms.personnes.view_accordhebergement and perms.personnes.view_sejour %}<p><a class="bouton" href="{% url 'suivi:admission_guidee' accompagnement.pk %}">Accorder et enregistrer une admission</a></p>{% endif %}
 <p><a href="{% url 'suivi:resume' accompagnement.pk %}">Ouvrir le résumé imprimable</a></p>
 {% if perms.personnes.view_notepartagee %}<p><a href="{% url 'suivi:notes' 'accompagnement' accompagnement.pk %}">Notes partagées de cet accompagnement</a></p>{% endif %}
 <p>{% include "suivi/periode.html" with periode=accompagnement %}. Service d’essai.</p>

@@ -717,3 +717,23 @@ Les corrections de valeur sociale vérifient également un jeton d’état sign�
 L’ajout d’une appartenance déjà présente avec la même personne, le même ménage
 et les mêmes bornes est refusé. Aucun ancien doublon n’est supprimé et aucune
 interdiction générale d’appartenir à plusieurs ménages n’est introduite.
+
+
+## CHRS25-09 — admission guidée depuis l’accompagnement
+
+Le lien « Accorder et enregistrer une admission » réunit dans un formulaire
+explicite un nouvel accord d’hébergement, une admission par bénéficiaire choisi
+et, facultativement, leur première affectation. Les dates de l’accord et de
+l’admission restent distinctes. Toutes les écritures et leurs journaux réussissent
+ensemble ou sont annulés ; un formulaire périmé ou rejoué est refusé.
+
+Le lieu n’est proposé qu’avec les droits d’affectation ; il reste possible de
+saisir l’admission seule. Les droits existants sont contrôlés côté serveur.
+Aucune prestation de repas, aucun droit de compte ni prolongation ne sont créés.
+Pour une autorisation déjà enregistrée, ouvrir l’accord existant et utiliser son
+admission dédiée : ce formulaire crée explicitement un nouvel accord.
+
+La personne, le ménage et le suivi se créent par les étapes existantes. Cette
+entrée guidée raccourcit la partie hébergement sans regrouper ces identités dans
+un assistant à état ni les recréer automatiquement. Les anciennes données et
+les parcours séparés restent disponibles. Pas de migration ni dépendance nouvelle.

@@ -1,0 +1,38 @@
+"""Admission guidée : services existants, sous une transaction commune."""
+from django.core import signing
+from django.core.exceptions import ValidationError
+from . import hebergement as h
+from .social import verrouiller
+from .verrous_metier import serialiser
+
+
+def etat(accompagnement, revision=None):
+    return [str(accompagnement.pk), accompagnement.revision_sociale if revision is None else revision,
+        str(accompagnement.debut), str(accompagnement.fin),
+        sorted(str(pk) for pk in accompagnement.beneficiaires.values_list('pk', flat=True))]
+
+
+def jeton(accompagnement):
+    return signing.dumps(etat(accompagnement), salt='chrs25-admission')
+
+
+@serialiser('accompagnement')
+def accueillir(acteur, accompagnement, beneficiaires, debut, fin, admission, attendu, lieu=None):
+    h.droit(acteur, 'add_accordhebergement')
+    h.exiger(acteur, 'add_sejour')
+    if lieu is not None:
+        h.exiger(acteur, 'add_affectation', 'view_affectation', 'view_lieuhebergement')
+    a = verrouiller(accompagnement)
+    try:
+        precedent = signing.loads(attendu, salt='chrs25-admission', max_age=86400)
+    except signing.BadSignature as exc:
+        raise ValidationError('Le formulaire a expiré. Rechargez l’accompagnement.') from exc
+    if precedent != etat(a, a.revision_sociale - 1):
+        raise ValidationError('Cet accompagnement a changé. Rechargez le formulaire avant une nouvelle admission.')
+    beneficiaires = list(beneficiaires)
+    accord = h.accorder(acteur, a, beneficiaires, debut, fin)
+    sejours = h.admettre_individuellement(acteur, accord, beneficiaires, admission)
+    if lieu is not None:
+        for sejour in sejours:
+            h.ajouter_periode(acteur, sejour, admission, None, lieu)
+    return accord
