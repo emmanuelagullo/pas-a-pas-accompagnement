@@ -748,3 +748,12 @@ Les recettes Chromium de `personnes.qualification_navigateur` couvrent aussi les
 nouveaux parcours d’admission, d’information et de rétrospective, les actions
 collectives et le résumé imprimable. Elles sont appelées par la CI existante,
 sans nouvelle bibliothèque ni changement de profil d’installation.
+
+## CHRS25-10 — accorder plusieurs services de repas
+
+Le formulaire dédié permet de choisir explicitement plusieurs services, les
+mêmes bénéficiaires, dates et prestataire. Il crée un accord distinct par service,
+sous une transaction commune et avec leurs journaux habituels. Aucun repas n’est
+distribué automatiquement. Une erreur annule tout le lot ; le jeton signé refuse
+un formulaire périmé ou rejoué. Les accords par service et leurs corrections
+restent accessibles séparément. Aucun plafond ni droit nouveau n’est introduit.

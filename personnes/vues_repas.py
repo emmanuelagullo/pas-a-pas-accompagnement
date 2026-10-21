@@ -55,3 +55,18 @@ def annuler(request, pk):
     repas.droit(request.user, "view_repasdistribue")
     objet = get_object_or_404(RepasDistribue.objects.select_related("accord__accompagnement__menage"), pk=pk)
     return traiter(request, AnnulationForm(request.POST or None), "Annuler une distribution", lambda **d: repas.annuler(request.user, objet, **d), objet.accord.accompagnement.menage, retour=reverse("suivi:accord_repas", args=[objet.accord_id]))
+
+
+@require_http_methods(['GET', 'POST'])
+@login_required
+def accorder_services(request, pk):
+    from .forms_repas import ServicesForm
+    from .vues_hebergement import traiter_hebergement
+    repas.droit(request.user, 'add_accordrepas')
+    a = get_object_or_404(Accompagnement, pk=pk)
+    form = ServicesForm(request.POST if request.method == 'POST' else None, accompagnement=a,
+        initial={'debut': max(a.debut, timezone.localdate()), 'attendu': repas.jeton_services(a),
+                 'beneficiaires': list(a.beneficiaires.values_list('pk', flat=True))})
+    return traiter_hebergement(request, form, 'Accorder plusieurs services de repas — aucune distribution automatique',
+        lambda **d: repas.accorder_services(request.user, a, **d), a.menage,
+        retour=reverse('suivi:accompagnement', args=[a.pk]))

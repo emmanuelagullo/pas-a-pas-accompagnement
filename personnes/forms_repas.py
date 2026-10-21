@@ -30,3 +30,16 @@ class DistributionForm(forms.Form):
 
 class AnnulationForm(forms.Form):
     motif = forms.CharField(label="Motif de l’annulation", max_length=240)
+
+
+class ServicesForm(forms.Form):
+    beneficiaires = forms.ModelMultipleChoiceField(Personne.objects.none(), widget=forms.CheckboxSelectMultiple)
+    services = forms.MultipleChoiceField(label='Services à accorder', choices=AccordRepas.SERVICES, widget=forms.CheckboxSelectMultiple)
+    debut = forms.DateField(label='Début inclus', widget=forms.DateInput(format='%Y-%m-%d', attrs=DATE))
+    fin = forms.DateField(label='Fin exclue — facultative', required=False, widget=forms.DateInput(format='%Y-%m-%d', attrs=DATE))
+    prestataire = forms.CharField(label='Prestataire — facultatif', max_length=160, required=False)
+    attendu = forms.CharField(widget=forms.HiddenInput)
+
+    def __init__(self, *args, accompagnement, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['beneficiaires'].queryset = accompagnement.beneficiaires.all()

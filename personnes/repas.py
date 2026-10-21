@@ -88,3 +88,31 @@ def avertissements(realisations):
             alertes.append(f'{r.beneficiaire} — {r.date:%d/%m/%Y} : plusieurs distributions pour le même service sous des accords différents. Vérifiez le cumul.')
         vus.add(cle)
     return alertes
+
+
+def jeton_services(accompagnement):
+    from django.core import signing
+    return signing.dumps([str(accompagnement.pk), accompagnement.revision_sociale,
+        str(accompagnement.debut), str(accompagnement.fin),
+        sorted(str(pk) for pk in accompagnement.beneficiaires.values_list('pk', flat=True))], salt='chrs25-services-repas')
+
+
+@serialiser('accompagnement')
+def accorder_services(acteur, accompagnement, beneficiaires, debut, fin, services, attendu, prestataire=''):
+    from django.core import signing
+    from .social import verrouiller
+    droit(acteur, 'add_accordrepas')
+    a = verrouiller(accompagnement)
+    try:
+        precedent = signing.loads(attendu, salt='chrs25-services-repas', max_age=86400)
+    except signing.BadSignature as exc:
+        raise ValidationError('Le formulaire a expiré. Rechargez l’accompagnement.') from exc
+    etat = [str(a.pk), a.revision_sociale - 1, str(a.debut), str(a.fin),
+        sorted(str(pk) for pk in a.beneficiaires.values_list('pk', flat=True))]
+    if precedent != etat:
+        raise ValidationError('Cet accompagnement a changé. Rechargez le formulaire.')
+    services = list(services)
+    if not services or len(set(services)) != len(services) or not set(services).issubset(dict(AccordRepas.SERVICES)):
+        raise ValidationError('Sélectionnez des services distincts parmi ceux proposés.')
+    beneficiaires = list(beneficiaires)
+    return [accorder(acteur, a, beneficiaires, debut, fin, service, prestataire) for service in services]
