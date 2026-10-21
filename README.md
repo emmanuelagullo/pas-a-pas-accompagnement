@@ -672,3 +672,14 @@ début du suivi ; il est identifié comme antérieur dans l’historique et la
 trajectoire. Sa correction motivée peut également porter sur une date antérieure.
 Les bilans, situations et prestations conservent leurs bornes habituelles.
 Aucun événement n’est déduit en situation, admission ou prestation.
+
+
+## CHRS25-07 — alertes repas
+
+Le travail du jour signale plusieurs accords actifs pour la même personne et le
+même service. Après distribution, les cumuls entre accords et les quantités
+supérieures à un sont signalés sans interdiction globale. Une distribution annulée
+ne participe pas au cumul. Les quantités restent des repas effectivement distribués
+à cette personne pour ce service ; les statistiques additionnent ces quantités,
+pas des personnes uniques. Les doublons sous un même accord restent refusés,
+les lots restent atomiques et une case vide ne distribue rien.

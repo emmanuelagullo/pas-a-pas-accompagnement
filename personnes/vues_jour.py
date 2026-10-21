@@ -1,5 +1,6 @@
 """Travail du jour : lecture filtrée par droits et distributions explicites."""
 from datetime import timedelta
+from collections import Counter
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
@@ -53,6 +54,9 @@ def jour(request):
                 cle = (accord.pk, personne.pk)
                 actifs_ids.add(cle)
                 lignes.append({"accord": accord, "personne": personne, "distribution": existants.get(cle)})
+    accords_par_service = Counter((l['personne'].pk, l['accord'].service) for l in lignes)
+    for ligne in lignes:
+        ligne['plusieurs_accords'] = accords_par_service[(ligne['personne'].pk, ligne['accord'].service)] > 1
     # Pas de troncature silencieuse d’un lot trop grand.
     trop = len(lignes) > 500
     initial = [{"accord": l["accord"].pk, "beneficiaire": l["personne"].pk} for l in lignes] if not trop else []
@@ -70,18 +74,21 @@ def jour(request):
                 if not demandes:
                     raise ValidationError("Renseignez au moins une quantité effectivement distribuée.")
                 vus = set()
+                realisations = []
                 with transaction.atomic():
                     for d in sorted(demandes,key=lambda x:(str(x["accord"].accompagnement.menage_id),str(x["accord"].pk),str(x["beneficiaire"].pk))):
                         cle=(d["accord"].pk,d["beneficiaire"].pk)
                         if cle not in actifs_ids or cle in vus:
                             raise ValidationError("La sélection est invalide ou contient un doublon. Rechargez la page.")
                         vus.add(cle)
-                        repas.distribuer(request.user,d["accord"],d["beneficiaire"],date,d["quantite"])
+                        realisations.append(repas.distribuer(request.user,d["accord"],d["beneficiaire"],date,d["quantite"]))
             except ValidationError as exc:
                 erreur = "Aucune ligne du lot n’a été enregistrée. " + " ".join(exc.messages)
             except OperationalError:
                 erreur = "Écriture non confirmée. Rechargez le travail du jour avant de réessayer."
             else:
+                for alerte in repas.avertissements(realisations):
+                    messages.warning(request, alerte)
                 messages.success(request, f"{len(demandes)} distribution(s) enregistrée(s).")
                 return redirect(reverse("suivi:jour")+"?date="+date.isoformat())
     hebergements = []

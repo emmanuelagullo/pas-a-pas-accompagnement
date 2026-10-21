@@ -20,7 +20,8 @@ class AccordForm(forms.ModelForm):
 class DistributionForm(forms.Form):
     beneficiaire = forms.ModelChoiceField(Personne.objects.none())
     date = forms.DateField(widget=forms.DateInput(format="%Y-%m-%d", attrs=DATE))
-    quantite = forms.IntegerField(label="Nombre de repas distribués", min_value=1, max_value=32767, initial=1)
+    quantite = forms.IntegerField(label="Nombre de repas distribués", min_value=1, max_value=32767, initial=1,
+        help_text="Quantité réellement distribuée à cette personne pour ce service. Les statistiques additionnent les quantités, pas les personnes.")
 
     def __init__(self, *args, accord, **kwargs):
         super().__init__(*args, **kwargs)

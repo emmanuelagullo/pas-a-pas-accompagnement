@@ -66,3 +66,25 @@ def annuler(acteur, repas, motif):
     if RepasDistribue.objects.filter(pk=repas.pk, annule_le__isnull=True).update(annule_le=timezone.now(), annule_par=acteur, motif_annulation=motif) != 1:
         raise ValidationError("Cette distribution est déjà annulée.")
     OperationRepas.objects.create(accord=repas.accord, repas=repas, action="annule", auteur=acteur, date_effet=repas.date)
+
+
+def avertissements(realisations):
+    """Signaler les cumuls sans transformer une alerte en interdiction globale."""
+    from django.db.models import Count
+    realisations = list(realisations)
+    if not realisations:
+        return []
+    groupes = RepasDistribue.objects.filter(annule_le__isnull=True,
+        beneficiaire_id__in={r.beneficiaire_id for r in realisations},
+        date__in={r.date for r in realisations}).values('beneficiaire_id', 'date', 'accord__service').annotate(nombre=Count('pk'))
+    cumuls = {(g['beneficiaire_id'], g['date'], g['accord__service']) for g in groupes if g['nombre'] > 1}
+    alertes = []
+    vus = set()
+    for r in realisations:
+        cle = (r.beneficiaire_id, r.date, r.accord.service)
+        if r.quantite > 1:
+            alertes.append(f'{r.beneficiaire} — {r.date:%d/%m/%Y} : quantité supérieure à un pour ce service. Vérifiez la quantité effectivement distribuée.')
+        if cle in cumuls and cle not in vus:
+            alertes.append(f'{r.beneficiaire} — {r.date:%d/%m/%Y} : plusieurs distributions pour le même service sous des accords différents. Vérifiez le cumul.')
+        vus.add(cle)
+    return alertes

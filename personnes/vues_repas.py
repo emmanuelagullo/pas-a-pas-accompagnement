@@ -29,6 +29,7 @@ def detail(request, pk):
     realisations = accord.realisations.select_related("beneficiaire", "annule_par")
     total = realisations.filter(annule_le__isnull=True).aggregate(total=Sum("quantite"))["total"] or 0
     return render(request, "repas/detail.html", {"accord": accord, "realisations": realisations, "total": total,
+        "avertissements": repas.avertissements(realisations.filter(annule_le__isnull=True)),
         "operations": accord.operations.select_related("auteur") if request.user.has_perm("personnes.view_operationrepas") else []})
 
 
@@ -41,7 +42,10 @@ def distribuer(request, pk):
     form = DistributionForm(request.POST or None, accord=accord,
         initial={"date": accord.debut if accord.fin and timezone.localdate() >= accord.fin else max(accord.debut, timezone.localdate()),
                  "beneficiaire": accord.beneficiaires.first() if accord.beneficiaires.count() == 1 else None})
-    return traiter(request, form, "Enregistrer des repas distribués", lambda **d: repas.distribuer(request.user, accord, **d), accord.accompagnement.menage, retour=reverse("suivi:accord_repas", args=[accord.pk]))
+    def enregistrer(**donnees):
+        realise = repas.distribuer(request.user, accord, **donnees)
+        return realise
+    return traiter(request, form, "Enregistrer des repas distribués", enregistrer, accord.accompagnement.menage, retour=reverse("suivi:accord_repas", args=[accord.pk]))
 
 
 @require_http_methods(["GET", "POST"])

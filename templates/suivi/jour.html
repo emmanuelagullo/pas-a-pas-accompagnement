@@ -50,10 +50,10 @@
 {% empty %}<li>Aucune échéance d'accord identifiée dans cette fenêtre.</li>{% endfor %}</ul>
 </section>
 {% endif %}
-{% if lecture_repas %}<section class="carte" id="repas-du-jour"><h2>Repas au {{ date }}</h2><p>Saisir uniquement ce qui a été distribué. Une case vide ne crée aucune réalisation. Les lignes déjà enregistrées se corrigent depuis leur accord.</p>
+{% if lecture_repas %}<section class="carte" id="repas-du-jour"><h2>Repas au {{ date }}</h2><p>Saisir uniquement ce qui a été distribué. Les statistiques additionnent les quantités, pas les personnes. Vérifiez toute quantité supérieure à un. Une case vide ne crée aucune réalisation. Les lignes déjà enregistrées se corrigent depuis leur accord.</p>
 {% if erreur %}<p class="errorlist" role="alert">{{ erreur }}</p>{% endif %}{{ formset.non_form_errors }}
 {% if trop %}<p>Plus de 500 lignes : utilisez les fiches des accords pour saisir les distributions.</p>{% else %}
 <form method="post">{% csrf_token %}{{ formset.management_form }}<ul>{% for ligne,formulaire in lignes %}<li><a href="{% url 'suivi:accord_repas' ligne.accord.pk %}">{{ ligne.accord.get_service_display }} — {{ ligne.accord.accompagnement.menage }}</a> — {{ ligne.personne }}
 {{ formulaire.accord }}{{ formulaire.beneficiaire }}{{ formulaire.non_field_errors }}{{ formulaire.accord.errors }}{{ formulaire.beneficiaire.errors }}
-{% if ligne.distribution %}<p>Déjà enregistré : {{ ligne.distribution.quantite }} repas.</p>{% elif ecriture %}{{ formulaire.quantite.errors }}{{ formulaire.quantite.label_tag }}{{ formulaire.quantite }}{% else %}<p>Aucune distribution enregistrée.</p>{% endif %}</li>{% empty %}<li>Aucun accord de repas actif à cette date.</li>{% endfor %}</ul>
+{% if ligne.plusieurs_accords %}<p>Plusieurs accords actifs pour cette personne et ce service : vérifiez le cumul avant de saisir.</p>{% endif %}{% if ligne.distribution %}<p>Déjà enregistré : {{ ligne.distribution.quantite }} repas.</p>{% elif ecriture %}{{ formulaire.quantite.errors }}{{ formulaire.quantite.label_tag }}{{ formulaire.quantite }}{% else %}<p>Aucune distribution enregistrée.</p>{% endif %}</li>{% empty %}<li>Aucun accord de repas actif à cette date.</li>{% endfor %}</ul>
 {% if ecriture and lignes %}<button type="submit">Enregistrer les distributions renseignées</button>{% endif %}</form>{% endif %}</section>{% endif %}{% endblock %}
