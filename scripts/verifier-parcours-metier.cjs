@@ -3,7 +3,7 @@ module.exports = async function verifierParcoursMetier(app) {
   await app.getByRole('link', {name:'Dossiers', exact:true}).click();
   await app.getByLabel('Nom, prénom ou libellé du dossier', {exact:true}).fill('Thomas');
   await app.getByText('Résultats actualisés.', {exact:true}).waitFor();
-  await app.locator('#resultats-dossiers a[href*="/dossiers/menage/"]').first().click();
+  await app.locator('#resultats-dossiers ul.resultats-dossiers').getByRole('link', {name:/Thomas — Les Passerelles \(fictif\)/}).click();
   await app.getByRole('heading', {name:/Dossier — Thomas/}).waitFor();
   await app.locator('nav[aria-label="Dossiers liés"] a').first().click();
   await app.getByRole('link', {name:/Revenir au ménage/}).click();
