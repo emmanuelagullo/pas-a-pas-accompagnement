@@ -1,4 +1,5 @@
 ---
+categorie_guide: accueillir
 title: "Accueillir progressivement une personne"
 description: "Commencer par la fiche utile sans imposer tout le dossier d’emblée."
 fiche: true

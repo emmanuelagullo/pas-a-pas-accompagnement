@@ -1,4 +1,5 @@
 ---
+categorie_guide: accompagner
 fiche: true
 title: "Lire une trajectoire d’accompagnement"
 description: "Comparer les situations datées et retrouver les faits, sans score social."

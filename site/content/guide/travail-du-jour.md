@@ -1,4 +1,5 @@
 ---
+categorie_guide: quotidien
 fiche: true
 title: "Préparer le travail du jour"
 description: "Retrouver les séjours et saisir les repas effectivement distribués."

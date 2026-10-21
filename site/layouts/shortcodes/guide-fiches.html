@@ -1,0 +1,76 @@
+{{- $guide := .Page -}}
+{{- $categories := slice
+  (dict "id" "demarrer" "nom" "Découvrir et démarrer")
+  (dict "id" "accueillir" "nom" "Accueillir une personne")
+  (dict "id" "accompagner" "nom" "Suivre un accompagnement")
+  (dict "id" "quotidien" "nom" "Travailler au quotidien")
+  (dict "id" "analyser" "nom" "Analyser l’activité")
+-}}
+<section class="guide-exploration" aria-label="Rechercher une fiche du guide">
+  <label for="guide-recherche">Rechercher une fiche</label>
+  <input id="guide-recherche" type="search" placeholder="Ex. repas, ménage, transmission…" autocomplete="off">
+  <fieldset class="guide-filtres">
+    <legend>Parcourir par catégorie</legend>
+    <label><input type="radio" name="guide-categorie" value="" checked> Toutes</label>
+    {{- range $categories }}
+    <label><input type="radio" name="guide-categorie" value="{{ .id }}"> {{ .nom }}</label>
+    {{- end }}
+  </fieldset>
+  <p class="guide-compteur" aria-live="polite"></p>
+  <div class="guide-cartes">
+    {{- range $guide.RegularPages.ByTitle }}
+      {{- if .Params.fiche }}
+        {{- $category := .Params.categorie_guide | default "demarrer" -}}
+        {{- $label := $category -}}
+        {{- range $categories }}{{ if eq .id $category }}{{ $label = .nom }}{{ end }}{{ end -}}
+        <a class="guide-carte" href="{{ .RelPermalink }}" data-categorie="{{ $category }}">
+          <span class="guide-carte-categorie">{{ $label }}</span>
+          <strong>{{ .Title }}</strong>
+          {{ with .Description }}<span>{{ . }}</span>{{ end }}
+        </a>
+      {{- end }}
+    {{- end }}
+  </div>
+  <p class="guide-vide" hidden>Aucune fiche ne correspond à cette recherche.</p>
+</section>
+<style>
+.guide-exploration{margin:1.5rem 0 2rem}
+.guide-exploration>label{display:block;font-weight:700;margin-bottom:.4rem}
+#guide-recherche{width:100%;max-width:42rem;padding:.75rem;border:1px solid #777;border-radius:.4rem;font:inherit}
+.guide-filtres{border:0;padding:1rem 0;margin:0;display:flex;flex-wrap:wrap;gap:.5rem 1rem}
+.guide-filtres legend{font-weight:700;padding:0}
+.guide-filtres label{display:inline-flex;align-items:center;gap:.25rem;cursor:pointer}
+.guide-compteur{margin:.3rem 0 1rem}
+.guide-cartes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,17rem),1fr));gap:.85rem}
+.guide-carte{display:flex;flex-direction:column;gap:.4rem;padding:1rem;border:1px solid #a9b6c4;border-radius:.55rem;text-decoration:none;color:inherit;background:transparent}
+.guide-carte:hover,.guide-carte:focus-visible{outline:2px solid #304e78;outline-offset:1px}
+.guide-carte strong{color:#304e78;text-decoration:underline;text-underline-offset:.15em}
+.guide-carte-categorie{font-size:.85em;opacity:.8}
+.guide-carte[hidden],.guide-vide[hidden]{display:none}
+</style>
+<script>
+(() => {
+  const root = document.querySelector('.guide-exploration');
+  if (!root) return;
+  const search = root.querySelector('#guide-recherche');
+  const cards = [...root.querySelectorAll('.guide-carte')];
+  const count = root.querySelector('.guide-compteur');
+  const empty = root.querySelector('.guide-vide');
+  const normalize = value => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const update = () => {
+    const query = normalize(search.value.trim());
+    const category = root.querySelector('input[name="guide-categorie"]:checked').value;
+    let visible = 0;
+    for (const card of cards) {
+      const matches = (!category || card.dataset.categorie === category) && normalize(card.textContent).includes(query);
+      card.hidden = !matches;
+      if (matches) visible++;
+    }
+    count.textContent = `${visible} fiche${visible > 1 ? 's' : ''} sur ${cards.length}`;
+    empty.hidden = visible !== 0;
+  };
+  search.addEventListener('input', update);
+  root.querySelectorAll('input[name="guide-categorie"]').forEach(input => input.addEventListener('change', update));
+  update();
+})();
+</script>

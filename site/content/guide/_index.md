@@ -1,22 +1,17 @@
 ---
 title: "Guide pratique"
-description: "Des fiches courtes pour découvrir le prototype fictif."
+description: "Trouver rapidement une fiche pour accomplir une tâche dans Pas à Pas."
 liste_auto: false
 ---
 
-Partez de la tâche que vous souhaitez accomplir.
+Ce guide part d’une tâche concrète : **« Je voudrais faire… »**. Chaque fiche
+indique les étapes utiles dans le prototype et les précautions à connaître.
 
-- [Découvrir Les Passerelles en cinq minutes](decouvrir-passerelles/).
-- [Essayer puis retrouver son espace habituel](espaces-locaux/).
-- [Créer une fiche et conserver un essai](../premiers-pas/).
-- [Retrouver un accompagnement](accompagnement/).
-- [Préparer le travail du jour](travail-du-jour/).
-- [Accueillir progressivement une personne](accueil-progressif/).
-- [Transmettre une information à l’équipe](transmissions/).
-- [Lire les statistiques d’activité](statistiques/).
-- [Lire une trajectoire d’accompagnement](trajectoire-sociale/).
-- [Corriger une erreur de saisie](corriger-saisie/).
-- [Comprendre les comptes et permissions](../roles/).
+{{< guide-fiches >}}
 
-La disponibilité dépend de la version installée ou publiée. Les fiches décrivent
-le code actuel, sans qualifier l’usage de dossiers réels.
+Pour commencer, consultez aussi [Démarrer]({{< relref "/demarrer/" >}})
+ou [les rôles et permissions]({{< relref "/roles/" >}}).
+
+Les fonctionnalités et leur disponibilité dépendent de la version utilisée.
+Ces fiches concernent le prototype et les données fictives, pas un déploiement
+avec des dossiers réels.

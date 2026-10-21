@@ -1,4 +1,5 @@
 ---
+categorie_guide: analyser
 title: "Lire les statistiques d’activité"
 description: "Choisir une période, comprendre les indicateurs et exporter un bilan."
 fiche: true

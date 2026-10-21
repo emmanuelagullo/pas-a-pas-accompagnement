@@ -1,4 +1,5 @@
 ---
+categorie_guide: demarrer
 fiche: true
 title: "Découvrir Les Passerelles en cinq minutes"
 description: "Suivre trois situations pour comprendre les distinctions métier."

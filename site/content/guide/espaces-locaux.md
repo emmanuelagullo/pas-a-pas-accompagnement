@@ -1,4 +1,5 @@
 ---
+categorie_guide: demarrer
 fiche: true
 title: "Essayer et retrouver son espace habituel"
 description: "Deux espaces distincts dans la PWA et les programmes récents."
