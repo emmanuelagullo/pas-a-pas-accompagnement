@@ -15,7 +15,7 @@
 - Navigation depuis les personnes et ménages, rubriques repas/hébergement/social.
 - Retour contextuel après écriture et message de confirmation.
 
-## À venir — copies locales communes
+## Historique des travaux — copies locales communes
 
 - #SOC : démonstration métier fictive Les Passerelles, parcours CHRS1–4 guidé,
   serveur jetable et chargement facultatif au premier démarrage PWA/bureau.
@@ -57,6 +57,31 @@
 # Historique
 
 ## À venir
+
+Aucune modification annoncée depuis 0.3.0.
+
+## 0.3.0 — 2026-10-21
+
+Évolution du prototype fictif Pas à Pas — Accompagnement : parcours CHRS
+élargis, pilotage de l'activité et guide public réorganisé. Cette version
+reste réservée aux **données fictives** : elle ne qualifie pas l'exploitation
+de dossiers réels ni un déploiement en production.
+
+- Hébergement : cycle admission, affectations successives, absences, retour
+  et sortie ; navigation et vérifications de cohérence renforcées.
+- Dossiers personne et ménage : rattachement à un ménage existant sans
+  ressaisie de la personne, navigation et contrôles des permissions.
+- Travail quotidien : transmissions, actions de relais et retours contextuels
+  conservant la date consultée.
+- Statistiques : indicateurs d'hébergement et de repas, périodes et comparaisons,
+  exports CSV, rapports enregistrés et filtres plus lisibles.
+- Guide Hugo : fiches cliquables, recherche par mots-clés, catégories croisées
+  et suggestions de fiches apparentées.
+- Qualification : recettes Django et Chromium élargies ; traitement des
+  fichiers statiques et accès ORM des tests navigateur corrigés ; test de
+  concurrence SQLite fiabilisé sans assouplir la règle de non-chevauchement.
+- Socle partagé pas-communs 0.8.0 et publication des candidats sans promotion
+  automatique de la PWA stable.
 
 - #SOC : homogénéiser l’essai Les Passerelles avec Petits Pas : espace distinct
   persistant, aller-retour PWA/bureau, comptes publics et conservation des espaces

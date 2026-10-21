@@ -14,6 +14,39 @@ La version adoptée est fixée par requirements-communs.txt (0.8.0 publiée au
 20 octobre 2026). Les numéros SOC6b/SOC6c ci-dessous décrivent l'historique. La structure
 suit ses profils et promotions, avec les adaptateurs du produit CHRS.
 
+## Préparer la version 0.3.0 (CHRS23)
+
+La section `0.3.0` de `CHANGELOG.md` est préparée ; la date doit correspondre
+à la publication effective si elle est décalée. Aucun tag n'est créé par cette
+préparation. Ne publier que depuis un `main` synchronisé sur GitLab Inria et
+GitHub, avec un arbre de travail propre et le même commit sur les deux forges.
+
+Avant le premier tag :
+
+1. Valider `python3 manage.py check`, `python3 manage.py makemigrations
+   --check --dry-run`, `python3 manage.py test` et les tests de publication
+   (`python3 -m unittest discover -s scripts -p 'test_publication*.py'`).
+2. Confirmer les CI de `main` : notamment `captures-demonstration` (recettes
+   Chromium hébergement et dossiers), PostgreSQL, PWA, programmes et site Hugo.
+   Les tests Django locaux ne remplacent pas ces qualifications.
+3. Vérifier manuellement `/guide/` : cartes, recherche accentuée, filtres,
+   navigation clavier, liens des fiches et affichage mobile. Vérifier le
+   scénario fictif Les Passerelles et les sauvegardes/restaurations entre
+   navigateur et programmes. Ne jamais utiliser de données réelles.
+4. Vérifier `git remote -v`, `git status --short`, `git rev-parse HEAD`, puis
+   s'assurer que les deux miroirs ont exactement ce commit avant les tags.
+
+Créer un **tag annoté** `0.3.0-rc.1` et le pousser sur les deux forges ;
+attendre la qualification des artefacts candidats. Une préversion ne doit pas
+remplacer la PWA stable. En cas de correction, commiter sur `main`, requalifier,
+puis créer `0.3.0-rc.2` sans déplacer les tags déjà publiés.
+
+Une fois la candidate validée, créer le tag annoté `0.3.0` sur le commit
+retenu et le pousser sur les deux forges. Vérifier la release GitHub, les
+archives Windows/Linux, la version embarquée, les manifestes, la PWA et le
+site public. Les déploiements serveur sont indépendants. Ne pas présenter
+cette version comme apte à héberger des dossiers réels.
+
 ## Ordre de mise en route
 
 1. Appliquer SOC6c après SOC6b, SOC7a, le correctif des tags Inria et le
