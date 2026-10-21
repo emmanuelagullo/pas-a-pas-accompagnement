@@ -67,7 +67,11 @@ def terminer(request, pk, nature):
     objet=get_object_or_404(modele,pk=pk)
     s=objet if nature=="sejour" else objet.sejour
     action=h.sortir if nature=="sejour" else h.terminer_periode
-    return traiter_hebergement(request,ClotureForm(request.POST or None),"Enregistrer la sortie" if nature=="sejour" else "Clôturer la période",lambda **d:action(request.user,objet,**d),s.accord.accompagnement.menage, retour=reverse("suivi:accord_hebergement", args=[s.accord_id]))
+    # La fin est exclue : proposer aujourd'hui seulement si la période a
+    # commencé avant aujourd'hui. Une clôture le jour du début est invalide.
+    debut = objet.debut
+    initial = {"fin": timezone.localdate()} if debut < timezone.localdate() else {}
+    return traiter_hebergement(request,ClotureForm(request.POST or None, initial=initial),"Enregistrer la sortie" if nature=="sejour" else "Clôturer la période",lambda **d:action(request.user,objet,**d),s.accord.accompagnement.menage, retour=reverse("suivi:accord_hebergement", args=[s.accord_id]))
 
 
 @require_http_methods(["GET", "POST"])
