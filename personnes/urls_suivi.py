@@ -11,8 +11,11 @@ from . import vues_jour
 from . import vues_transmissions
 from . import vues_trajectoire
 from . import vues_corrections
+from . import vues_accords
 app_name = "suivi"
 urlpatterns = [
+    path("accords/<str:nature>/<uuid:pk>/prolonger/", vues_accords.decider, {"action": "prolonger"}, name="prolonger_accord"),
+    path("accords/<str:nature>/<uuid:pk>/annuler/", vues_accords.decider, {"action": "annuler"}, name="annuler_accord"),
     path("accompagnements/<uuid:pk>/repas/services/", vues_repas.accorder_services, name="accorder_services_repas"),
     path("accompagnements/<uuid:pk>/accueillir/", vues_admission.accueillir, name="admission_guidee"),
     path("accompagnements/<uuid:pk>/resume/", vues_resume.resume, name="resume"),

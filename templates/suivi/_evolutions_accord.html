@@ -1,0 +1,4 @@
+{% if perms.personnes.view_evolutionaccord %}<section class="carte"><h2>Décisions sur l’accord</h2><ol>{% for evolution in evolutions %}<li>
+<strong>{{ evolution.get_action_display }}</strong> — enregistré le {{ evolution.enregistre_le|date:"d/m/Y H:i" }} par {{ evolution.auteur }}.
+{% if evolution.action == 'prolongation' %}<p>Fin exclue avant : {{ evolution.ancienne_fin|date:"d/m/Y"|default:"non prévue" }} ; après : {{ evolution.nouvelle_fin|date:"d/m/Y"|default:"non prévue" }}.</p>{% endif %}
+<p>Motif : {{ evolution.motif }}.</p></li>{% empty %}<li>Aucune décision enregistrée.</li>{% endfor %}</ol></section>{% endif %}

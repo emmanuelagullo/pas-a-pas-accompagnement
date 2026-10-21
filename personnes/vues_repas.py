@@ -29,6 +29,8 @@ def detail(request, pk):
     realisations = accord.realisations.select_related("beneficiaire", "annule_par")
     total = realisations.filter(annule_le__isnull=True).aggregate(total=Sum("quantite"))["total"] or 0
     return render(request, "repas/detail.html", {**dossier.lire(request, accord.accompagnement), "accord": accord, "realisations": realisations, "total": total,
+        "annulation_possible": not realisations.exists(),
+        "evolutions": accord.evolutions.select_related("auteur") if request.user.has_perm("personnes.view_evolutionaccord") else [],
         "avertissements": repas.avertissements(realisations.filter(annule_le__isnull=True)),
         "operations": accord.operations.select_related("auteur") if request.user.has_perm("personnes.view_operationrepas") else []})
 
@@ -39,6 +41,9 @@ def distribuer(request, pk):
     repas.droit(request.user, "add_repasdistribue")
     repas.droit(request.user, "view_repasdistribue")
     accord = get_object_or_404(AccordRepas, pk=pk)
+    if accord.annule_le is not None:
+        from django.http import HttpResponse
+        return HttpResponse('Cet accord est annulé ; aucune nouvelle réalisation ne peut lui être rattachée.', status=409)
     form = DistributionForm(request.POST or None, accord=accord,
         initial={"date": accord.debut if accord.fin and timezone.localdate() >= accord.fin else max(accord.debut, timezone.localdate()),
                  "beneficiaire": accord.beneficiaires.first() if accord.beneficiaires.count() == 1 else None})

@@ -1,3 +1,12 @@
+## BD3 — décisions sur les accords
+
+- Prolongation motivée des accords d’hébergement et de repas : nouvelle fin
+  exclue ou période ouverte, sans admission ni distribution implicite.
+- Annulation tracée d’un accord erroné sans séjour ni distribution rattachée ;
+  conservation des données et du journal d’origine, refus des nouvelles réalisations.
+- Droits dédiés attribués volontairement, migration additive et décisions
+  conservées dans les copies locales ; aucun droit ajouté aux comptes existants.
+
 ## BD1–BD2 — dossier et navigation
 
 - Dossier d’accompagnement : tous les séjours et périodes de repas, sélection

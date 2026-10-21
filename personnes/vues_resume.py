@@ -17,7 +17,7 @@ def resume(request, pk):
     lecture_sejours = request.user.has_perms(['personnes.view_accordhebergement', 'personnes.view_sejour'])
     return render(request, 'suivi/resume.html', {**dossier.lire(request, a), 'accompagnement': a, 'edite_le': timezone.localtime(),
         'information': a.informations.select_related('auteur').first() if request.user.has_perm('personnes.view_informationsaccompagnement') else None,
-        'accords_repas': a.accords_repas.prefetch_related('beneficiaires') if lecture_repas else [],
+        'accords_repas': a.accords_repas.filter(annule_le__isnull=True).prefetch_related('beneficiaires') if lecture_repas else [],
         'sejours': Sejour.objects.filter(accord__accompagnement=a).select_related('accord').prefetch_related(
             'beneficiaires', 'affectations__lieu', 'absences') if lecture_sejours else [],
         'lecture_repas': lecture_repas, 'lecture_sejours': lecture_sejours})

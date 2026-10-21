@@ -35,7 +35,10 @@ def droits(acteur, nature):
 def etat(objet):
     if isinstance(objet,(m.EvenementSocial,m.BilanSocial)):
         return [str(objet.date_effet),objet.texte,getattr(objet,'source','')]
-    return [str(objet.debut),str(objet.fin),getattr(objet,'source','')]
+    resultat = [str(objet.debut),str(objet.fin),getattr(objet,'source','')]
+    if isinstance(objet, (m.AccordRepas, m.AccordHebergement)):
+        resultat += [objet.revision, str(objet.annule_le)]
+    return resultat
 
 
 def jeton(objet):
@@ -63,7 +66,7 @@ def incluse(parent,debut,fin=None,point=False):
 def dates_dependantes(a):
     # Les accords peuvent conserver une période historique plus large après
     # clôture du suivi ; les réalisations doivent toujours rester dans le suivi.
-    for accord in list(a.accords_repas.all())+list(a.accords_hebergement.all()):
+    for accord in list(a.accords_repas.filter(annule_le__isnull=True))+list(a.accords_hebergement.filter(annule_le__isnull=True)):
         if accord.debut<a.debut:raise ValidationError('Un accord commence avant le nouvel accompagnement.')
     for r in m.RepasDistribue.objects.filter(accord__accompagnement=a,annule_le__isnull=True):
         incluse(a,r.date,point=True)
@@ -122,6 +125,10 @@ def periode(acteur,objet,debut,fin,motif,attendu,source=None):
     objet=type(objet).objects.get(pk=objet.pk)
     verifier_jeton(objet,attendu)
     motif=motif_valide(motif)
+    accord = isinstance(objet, (m.AccordRepas, m.AccordHebergement))
+    if accord:
+        from .accords import exiger_actif
+        exiger_actif(objet)
     ancien=(objet.debut,objet.fin,getattr(objet,'source',''))
     if (objet.fin is None)!=(fin is None):
         raise ValidationError('Utilisez la clôture dédiée. La correction ne ferme ni ne rouvre une période.')
@@ -140,7 +147,9 @@ def periode(acteur,objet,debut,fin,motif,attendu,source=None):
             precedent.fin=debut;precedent.full_clean();precedent.save(update_fields=['fin'])
             enregistrer(acteur,precedent,avant,motif)
     valider(objet)
-    objet.save(update_fields=['debut','fin']+(['source'] if nature=='situationsociale' else []))
+    if accord:
+        objet.revision += 1
+    objet.save(update_fields=['debut','fin']+(['source'] if nature=='situationsociale' else [])+(['revision'] if accord else []))
     enregistrer(acteur,objet,ancien,motif)
     return objet
 

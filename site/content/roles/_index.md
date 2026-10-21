@@ -23,3 +23,8 @@ Le code technique utilise des permissions distinctes pour les actes métier :
 [voir les sources et le cadrage](../conception/).
 
 Les habilitations nécessaires aux dossiers réels restent à définir et qualifier.
+
+Les décisions de prolongation et d’annulation d’un accord exigent des droits
+spécifiques, en plus des droits de consultation. Ils ne sont pas ajoutés aux
+comptes existants lors d’une mise à jour. Les nouveaux jeux fictifs Les Passerelles
+les attribuent explicitement ; les anciens espaces d’essai restent inchangés.

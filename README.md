@@ -825,3 +825,37 @@ habituels accessibles, sans redirection arbitraire.
 Les prolongations dédiées et annulations d’accords ne font pas partie de ce lot.
 Les corrections d’erreurs et annulations de distributions existantes restent
 tracées. Le jeu Les Passerelles et les anciens séjours collectifs sont conservés.
+
+## BD3 — prolongation et annulation des accords
+
+La migration `0012_evolutions_accords_bd3` ajoute l’état d’annulation, une
+révision de chaque accord et `EvolutionAccord`. Les UUID, dates, bénéficiaires,
+réalisations et journaux existants restent conservés ; aucun compte n’est habilité
+par la migration. Appliquer `python3 manage.py migrate` avant d’ouvrir l’application.
+
+Une prolongation étend une fin existante, éventuellement vers une période ouverte,
+sans interruption, sans nouvelle admission ni distribution. Une fin déjà ouverte
+ne se prolonge pas. La fin de l’accompagnement reste une limite ; aucun suivi n’est
+rouvert. Les motifs et anciennes/nouvelles fins sont conservés dans le journal des
+décisions, distinct de celui des corrections d’erreur.
+
+L’annulation d’un accord saisi par erreur ne supprime rien. Elle exige qu’aucun
+séjour ni aucune distribution, même terminé ou annulée, n’ait été rattaché à
+l’accord. Elle interdit les nouvelles réalisations et les corrections de dates
+sur cet accord. L’historique reste consultable. Les accords de repas annulés sortent des
+propositions de distribution et du résumé courant, mais restent dans le dossier.
+Une sortie effective et une annulation de distribution gardent leurs parcours
+propres. L’annulation d’un séjour comportant des opérations n’est pas ajoutée.
+
+Attribution **volontaire** des cinq permissions de décision/lecture du journal :
+`python3 manage.py autoriser_bd3 IDENTIFIANT`. Cette commande ne crée aucun compte,
+ne confère ni administration ni suppression et n’ajoute pas les droits de
+consultation métier préalables. Un compte déjà habilité CHRS1–7 reste donc sans
+BD3 tant qu’on ne l’habilite pas explicitement. Les nouveaux jeux Les Passerelles
+reçoivent ces droits ; les espaces existants ne sont ni réinitialisés ni modifiés.
+
+Les deux formulaires demandent motif et confirmation, vérifient un état signé et
+reviennent à la sélection du dossier si elle a été transmise. Les décisions prennent
+le verrou du ménage avant de recharger l’accord et ses dépendances ; elles sont
+atomiques avec leur journal. Les copies natives conservent ces états et décisions.
+Pas de dépendance ni modification du socle, du stockage PWA ou des profils serveur/bureau.

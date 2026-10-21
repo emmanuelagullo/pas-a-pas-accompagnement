@@ -65,6 +65,8 @@ def accorder(acteur, accompagnement, beneficiaires, debut, fin):
 def admettre(acteur, accord, beneficiaires, debut):
     droit(acteur, "add_sejour")
     accord = AccordHebergement.objects.select_related("accompagnement").get(pk=accord.pk)
+    from .accords import exiger_actif
+    exiger_actif(accord)
     ids = {p.pk for p in beneficiaires}
     if not ids or not ids.issubset(set(accord.beneficiaires.values_list("pk", flat=True))):
         raise ValidationError("Sélectionnez des bénéficiaires de cet accord.")

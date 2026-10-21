@@ -305,3 +305,14 @@ d'affectation restent théoriques, et les exports ne sont pas nominatifs.
 ### Modèles personnels de rapports (CHRS16)
 
 Dans la démonstration jetable Les Passerelles, le parcours Chromium ouvre les statistiques des repas sur le mois courant, enregistre le modèle personnel « Repas du mois — démonstration », le rouvre et vérifie que la période relative est conservée et que le CSV reste disponible. La capture `modele-rapport.png` est produite dans les artefacts CI, sans ajout automatique à la galerie Hugo. Le modèle n’est créé que dans la base fictive jetable.
+
+## BD3 — décisions sur les accords
+
+Les nouveaux jeux attribuent volontairement les décisions BD3 aux comptes fictifs.
+Les anciens jeux sont conservés, sans extension automatique des permissions ;
+`python3 manage.py autoriser_bd3 IDENTIFIANT` permet une attribution explicite.
+Les accords ouverts du jeu initial ne se prolongent pas : pour essayer une
+prolongation, créer un accord fictif avec une fin prévue. Pour essayer une
+annulation, utiliser un accord sans admission ni distribution. Vérifier ensuite
+sa présence dans l’historique et son absence des propositions de distribution.
+Le parcours PWA CHRS5–7 reste indépendant de ces nouvelles décisions.

@@ -17,6 +17,7 @@ def espace_metier_vide():
 
 def autoriser(compte):
     call_command('autoriser_chrs7', compte.username, stdout=StringIO())
+    call_command('autoriser_bd3', compte.username, stdout=StringIO())
     compte.user_permissions.add(Permission.objects.get(content_type__app_label='personnes', codename='add_personne'))
     compte.user_permissions.add(*Permission.objects.filter(content_type__app_label='personnes', codename__in=(
         'view_transmission', 'add_transmission', 'change_transmission',

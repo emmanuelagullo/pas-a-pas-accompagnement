@@ -54,6 +54,8 @@ def detail(request, pk):
     actions_collectives = any(request.user.has_perms(["personnes." + d for d in droits]) for _, droits in ACTIONS.values())
     return render(request,"hebergement/detail.html", {**contexte_jour(request), **dossier.lire(request, accord.accompagnement), "accord":accord, "actions_collectives": actions_collectives,
         "aujourdhui": timezone.localdate(),
+        "annulation_possible": not accord.sejours.exists(),
+        "evolutions": accord.evolutions.select_related("auteur") if request.user.has_perm("personnes.view_evolutionaccord") else [],
         "sejours":accord.sejours.prefetch_related("beneficiaires", "affectations__lieu", "absences").order_by("debut"),
         "operations":accord.operations.select_related("auteur") if request.user.has_perm("personnes.view_operationhebergement") else []})
 
@@ -63,6 +65,9 @@ def detail(request, pk):
 def admettre(request, pk):
     h.droit(request.user,"add_sejour")
     a=get_object_or_404(AccordHebergement,pk=pk)
+    if a.annule_le is not None:
+        from django.http import HttpResponse
+        return HttpResponse('Cet accord est annulé ; aucune nouvelle réalisation ne peut lui être rattachée.', status=409)
     return traiter_hebergement(request,AdmissionForm(request.POST or None,beneficiaires=a.beneficiaires.all(),
         initial={"debut": a.debut if a.fin and timezone.localdate() >= a.fin else max(a.debut, timezone.localdate()),
                  "beneficiaires": list(a.beneficiaires.values_list("pk", flat=True))}),"Enregistrer une admission — un séjour distinct par personne sélectionnée",lambda **d:h.admettre_individuellement(request.user,a,**d),a.accompagnement.menage, accompagnement=a.accompagnement, retour=reverse("suivi:accord_hebergement", args=[a.pk]))

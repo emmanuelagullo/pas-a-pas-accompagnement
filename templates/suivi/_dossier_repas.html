@@ -4,12 +4,15 @@
 {% if accords_repas %}<form method="get" action="#repas">{% include "suivi/_contexte_dossier.html" %}{% if selection_sejour %}<input type="hidden" name="sejour" value="{{ selection_sejour.pk }}">{% endif %}
 <fieldset><legend>Choisir une période de repas</legend><ul class="dossier-lignes">{% for accord in accords_repas %}
 <li{% if accord.pk == selection_repas.pk %} class="selectionnee"{% endif %}><label><input type="radio" name="repas" value="{{ accord.pk }}"{% if accord.pk == selection_repas.pk %} checked{% endif %}>
-<strong>{{ accord.get_service_display }} — {% if accord.debut > aujourdhui %}À venir{% elif accord.fin and accord.fin <= aujourdhui %}Terminé{% else %}Accord en cours{% endif %}</strong>
+<strong>{{ accord.get_service_display }} — {% if accord.annule_le %}Annulé{% elif accord.debut > aujourdhui %}À venir{% elif accord.fin and accord.fin <= aujourdhui %}Terminé{% else %}Accord en cours{% endif %}</strong>
 <span class="dossier-detail">{% include "suivi/periode.html" with periode=accord %}</span>
 <span class="dossier-detail">{% for p in accord.beneficiaires.all %}{{ p }}{% if not forloop.last %} ; {% endif %}{% endfor %}</span></label></li>{% endfor %}</ul></fieldset><button type="submit" class="secondaire">Afficher les actions de la période choisie</button></form>
 {% with accord=selection_repas %}<div class="dossier-actions"><h3>{{ accord.get_service_display }} sélectionné — du {{ accord.debut|date:"d/m/Y" }}</h3>
 <p>Bénéficiaires : {% for p in accord.beneficiaires.all %}{{ p }}{% if not forloop.last %} ; {% endif %}{% endfor %}.</p>
 <nav aria-label="Actions de la période de repas sélectionnée"><a href="{% dossier_url 'suivi:accord_repas' accord.pk %}">Ouvrir l’accord et les distributions</a>
-{% if perms.personnes.add_repasdistribue %}<a href="{% dossier_url 'suivi:distribuer_repas' accord.pk %}">Enregistrer une distribution</a>{% endif %}
-{% if perms.personnes.change_accordrepas and perms.personnes.view_correctionperiode %}<a href="{% dossier_url 'suivi:corriger_saisie' 'accordrepas' accord.pk %}">Corriger les dates de l’accord</a>{% endif %}</nav></div>{% endwith %}
+{% if not accord.annule_le and perms.personnes.add_repasdistribue %}<a href="{% dossier_url 'suivi:distribuer_repas' accord.pk %}">Enregistrer une distribution</a>{% endif %}
+{% if not accord.annule_le and perms.personnes.change_accordrepas and perms.personnes.view_correctionperiode %}<a href="{% dossier_url 'suivi:corriger_saisie' 'accordrepas' accord.pk %}">Corriger les dates de l’accord</a>{% endif %}</nav>
+{% if not accord.annule_le and perms.personnes.view_evolutionaccord and perms.personnes.prolonger_accordrepas and accord.fin %}<p><a href="{% dossier_url 'suivi:prolonger_accord' 'repas' accord.pk %}">Prolonger l’accord de repas</a></p>{% endif %}
+{% if accord.annule_le %}<p>Accord annulé : {{ accord.motif_annulation }}. Consulter l’accord pour son historique.</p>{% elif perms.personnes.view_evolutionaccord and perms.personnes.annuler_accordrepas %}<p>Pour annuler une saisie erronée, ouvrir l’accord et vérifier ses réalisations.</p>{% endif %}
+</div>{% endwith %}
 {% else %}<p>Aucun repas accordé.</p>{% endif %}</section>

@@ -20,7 +20,7 @@ def contexte(request, a):
     sejours, accords_h, accords_r = [], [], []
     lieux = droits.has_perms(['personnes.view_affectation', 'personnes.view_lieuhebergement'])
     if lecture_h:
-        accords_h = list(a.accords_hebergement.prefetch_related('beneficiaires').order_by('-debut', 'pk'))
+        accords_h = list(a.accords_hebergement.select_related('annule_par').prefetch_related('beneficiaires').order_by('-debut', 'pk'))
         qs = Sejour.objects.filter(accord__accompagnement=a).select_related('accord').prefetch_related('beneficiaires')
         if lieux:
             qs = qs.prefetch_related(Prefetch('affectations', queryset=Affectation.objects.select_related('lieu').order_by('-debut', '-pk'), to_attr='lieux_dossier'))
@@ -34,7 +34,8 @@ def contexte(request, a):
         avec_sejour = {s.accord_id for s in sejours}
         accords_h = [accord for accord in accords_h if accord.pk not in avec_sejour]
     if lecture_r:
-        accords_r = list(a.accords_repas.prefetch_related('beneficiaires').order_by('-debut', 'pk'))
+        accords_r = list(a.accords_repas.select_related('annule_par').prefetch_related('beneficiaires').order_by('-debut', 'pk'))
+    accords_r.sort(key=lambda accord: (accord.annule_le is not None, -accord.debut.toordinal(), str(accord.pk)))
     selection_h = choisir(sejours, request.GET.get('sejour', anciennes.get('sejour', '')))
     selection_r = choisir(accords_r, request.GET.get('repas', anciennes.get('repas', '')))
     navigation = dossier.creer(request, a, selection_h, selection_r)

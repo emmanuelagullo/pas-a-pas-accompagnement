@@ -27,10 +27,26 @@ le formulaire et ce retour disponibles. Les écrans ouverts hors du dossier
 conservent leur fonctionnement habituel. La recherche des ménages et sa page
 restent accessibles par le lien de retour à la recherche.
 
-Les prolongations dédiées et annulations d’accords ne sont pas encore proposées
-par ce parcours. Pour une erreur, utiliser la correction motivée disponible ;
-une distribution erronée peut être annulée depuis son accord. Une sortie réelle
-reste une sortie, sans suppression du séjour.
+Selon les droits attribués, **Prolonger l’accord de repas** ou
+**Prolonger l’accord d’hébergement** ouvre une décision motivée : choisir une
+nouvelle fin exclue, ou laisser vide pour une période ouverte. Un accord déjà
+sans fin prévue ne se prolonge pas. La décision étend la même période sans
+interruption ; elle ne crée aucune admission ni distribution et ne rouvre pas
+l’accompagnement. Pour un accueil séparé, créer un nouvel accord.
+
+Depuis le détail d’un accord sans séjour ni distribution, **Annuler l’accord
+saisi par erreur** demande un motif et une confirmation. L’accord reste visible
+comme annulé. L’annulation est refusée dès qu’un séjour ou une distribution,
+même terminé ou annulée, lui est rattaché. Les accords annulés ne figurent plus
+dans les repas à distribuer du travail du jour ni dans le résumé des repas
+accordés. Une erreur sur une réalisation se traite dans son parcours propre ;
+une sortie réelle reste une sortie, sans suppression du séjour.
+
+Le détail de l’accord présente **Décisions sur l’accord**, avec auteur,
+horodatage, motif et anciennes/nouvelles fins pour chaque prolongation.
+Les corrections motivées restent distinctes d’une nouvelle décision. Les vues
+présentent le dernier état connu de l’accord ; elles ne reconstruisent pas
+l’autorisation telle qu’elle était connue à une ancienne date de saisie.
 
 Les périodes commencent à la date indiquée et s’arrêtent avant la date de fin.
 Du 1er au 3 novembre correspond ainsi aux journées ou nuits des 1er et 2.

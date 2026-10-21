@@ -1,4 +1,4 @@
-"""CHRS2 : accords immuables et réalisations annulables, droits explicites."""
+"""CHRS2 : accords et réalisations, décisions BD3 tracées et droits explicites."""
 from .verrous_metier import serialiser
 from django.core.exceptions import ValidationError
 from django.db import transaction, IntegrityError
@@ -35,6 +35,8 @@ def distribuer(acteur, accord, beneficiaire, date, quantite):
     droit(acteur, "add_repasdistribue")
     exiger(acteur, "view_repasdistribue")
     accord = AccordRepas.objects.select_related("accompagnement").get(pk=accord.pk)
+    from .accords import exiger_actif
+    exiger_actif(accord)
     if not accord.beneficiaires.filter(pk=beneficiaire.pk).exists():
         raise ValidationError("Cette personne ne bénéficie pas de cet accord.")
     if date < accord.debut or (accord.fin and date >= accord.fin):

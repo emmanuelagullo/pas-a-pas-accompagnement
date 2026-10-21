@@ -226,3 +226,24 @@ Chaque vue ne propage ce contexte qu’après vérification contre sa cible rée
 Les écritures et leurs verrous/journaux/jetons restent dans les services actuels.
 Le contexte de navigation n’est jamais transmis aux arguments des services.
 Aucune modification des profils serveur, bureau, PWA ou du socle partagé.
+
+## BD3 — décisions d'accord
+
+`personnes.accords` sépare prolongation d’autorisation et correction d’erreur.
+`EvolutionAccord` porte un seul accord typé (repas ou hébergement), le motif,
+l’auteur, l’horodatage et les fins avant/après. Les marqueurs d’annulation sont
+cohérents par contrainte SQL. Les anciens journaux ne sont pas réécrits.
+
+Les décisions, corrections d’accord, admissions et distributions se sérialisent
+sur le même ménage. L’état signé contient la révision d’accord, ses bornes,
+bénéficiaires, bornes du suivi et nombre de réalisations. Les corrections
+incrémentent aussi la révision pour refuser un ancien formulaire après un
+aller-retour de dates. L’annulation refuse toute réalisation liée, même annulée ;
+l’admission et la distribution rechargent et refusent un accord annulé dans leur
+transaction métier. Aucune lecture préalable seule ne sert de garantie concurrente.
+
+Les statistiques restent fondées sur les réalisations. Un accord annulable n’en
+a aucune ; les rapports n’ont donc aucune quantité à retrancher. Le travail du
+jour et le résumé courant filtrent les accords de repas annulés. Les listes du
+dossier et les détails les conservent avec un état explicite. Les anciennes fins
+sont journalisées, sans annoncer une reconstruction des droits à une date passée.

@@ -153,6 +153,10 @@ class EvenementSuivi(models.Model):
 
 
 class AccordRepas(Periode):
+    revision = models.PositiveIntegerField(default=0, editable=False)
+    annule_le = models.DateTimeField(null=True, blank=True, editable=False)
+    annule_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True, related_name='+', editable=False)
+    motif_annulation = models.CharField(max_length=240, blank=True, editable=False)
     SERVICES = [("petit_dejeuner", "Petit déjeuner"), ("dejeuner", "Déjeuner"), ("diner", "Dîner")]
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     accompagnement = models.ForeignKey(Accompagnement, on_delete=models.PROTECT, related_name="accords_repas")
@@ -163,9 +167,16 @@ class AccordRepas(Periode):
     cree_le = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        permissions = [
+            ('prolonger_accordrepas', 'Prolonger un accord de repas'),
+            ('annuler_accordrepas', 'Annuler un accord saisi par erreur'),
+        ]
         ordering = ["-debut", "id"]
         verbose_name = "accord de repas"
-        constraints = [models.CheckConstraint(condition=models.Q(fin__isnull=True) | models.Q(fin__gt=models.F("debut")), name="accord_repas_periode_valide")]
+        constraints = [models.CheckConstraint(condition=(
+            models.Q(annule_le__isnull=True, annule_par__isnull=True, motif_annulation='') |
+            (models.Q(annule_le__isnull=False, annule_par__isnull=False) & ~models.Q(motif_annulation=''))),
+            name='accord_repas_annulation_coherente'), models.CheckConstraint(condition=models.Q(fin__isnull=True) | models.Q(fin__gt=models.F("debut")), name="accord_repas_periode_valide")]
 
 
 class RepasDistribue(models.Model):
@@ -201,6 +212,10 @@ class OperationRepas(models.Model):
 
 
 class AccordHebergement(Periode):
+    revision = models.PositiveIntegerField(default=0, editable=False)
+    annule_le = models.DateTimeField(null=True, blank=True, editable=False)
+    annule_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True, related_name='+', editable=False)
+    motif_annulation = models.CharField(max_length=240, blank=True, editable=False)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     accompagnement = models.ForeignKey(Accompagnement, on_delete=models.PROTECT, related_name="accords_hebergement")
     beneficiaires = models.ManyToManyField(Personne, related_name="accords_hebergement")
@@ -208,7 +223,34 @@ class AccordHebergement(Periode):
     cree_le = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        constraints = [models.CheckConstraint(condition=models.Q(fin__isnull=True) | models.Q(fin__gt=models.F("debut")), name="accord_hebergement_periode")]
+        permissions = [
+            ('prolonger_accordhebergement', 'Prolonger un accord d’hébergement'),
+            ('annuler_accordhebergement', 'Annuler un accord saisi par erreur'),
+        ]
+        constraints = [models.CheckConstraint(condition=(
+            models.Q(annule_le__isnull=True, annule_par__isnull=True, motif_annulation='') |
+            (models.Q(annule_le__isnull=False, annule_par__isnull=False) & ~models.Q(motif_annulation=''))),
+            name='accord_hebergement_annulation_coherente'), models.CheckConstraint(condition=models.Q(fin__isnull=True) | models.Q(fin__gt=models.F("debut")), name="accord_hebergement_periode")]
+
+
+class EvolutionAccord(models.Model):
+    """Décision datée, distincte de la correction d'une erreur de saisie."""
+    accord_repas = models.ForeignKey(AccordRepas, on_delete=models.PROTECT, null=True, blank=True, related_name='evolutions')
+    accord_hebergement = models.ForeignKey(AccordHebergement, on_delete=models.PROTECT, null=True, blank=True, related_name='evolutions')
+    action = models.CharField(max_length=20, choices=[('prolongation', 'Accord prolongé'), ('annulation', 'Accord annulé')])
+    ancienne_fin = models.DateField(null=True, blank=True)
+    nouvelle_fin = models.DateField(null=True, blank=True)
+    motif = models.CharField(max_length=240)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    enregistre_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['enregistre_le', 'pk']
+        default_permissions = ('view',)
+        constraints = [models.CheckConstraint(condition=(
+            models.Q(accord_repas__isnull=False, accord_hebergement__isnull=True) |
+            models.Q(accord_repas__isnull=True, accord_hebergement__isnull=False)),
+            name='evolution_accord_cible_unique')]
 
 
 class Sejour(Periode):

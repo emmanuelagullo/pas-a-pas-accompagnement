@@ -46,7 +46,7 @@ def jour(request):
     lignes = []
     actifs_ids = set()
     if date and lecture_repas:
-        accords = actifs(AccordRepas.objects.select_related("accompagnement__menage").prefetch_related("beneficiaires"), date)
+        accords = actifs(AccordRepas.objects.filter(annule_le__isnull=True).select_related("accompagnement__menage").prefetch_related("beneficiaires"), date)
         accords = accords.filter(accompagnement__debut__lte=date).filter(Q(accompagnement__fin__isnull=True)|Q(accompagnement__fin__gt=date))
         existants = {(r.accord_id,r.beneficiaire_id): r for r in RepasDistribue.objects.filter(date=date,annule_le__isnull=True,accord__in=accords).select_related("beneficiaire")}
         for accord in accords.order_by("service", "pk"):

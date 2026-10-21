@@ -35,6 +35,9 @@ def corriger(request,nature,pk):
     if nature not in registre:raise Http404
     c.droits(request.user,nature)
     objet=get_object_or_404(registre[nature],pk=pk)
+    if getattr(objet, 'annule_le', None) is not None:
+        from django.http import HttpResponse
+        return HttpResponse('Cet accord est annulé ; ses dates restent conservées dans l’historique.', status=409)
     a=c.suivi_de(objet)
     retour=reverse('suivi:accompagnement',args=[a.pk]) if a else reverse('suivi:detail',args=[objet.menage_id])
     if nature in c.TEXTES:

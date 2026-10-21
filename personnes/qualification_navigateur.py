@@ -410,3 +410,33 @@ class NouveauxParcoursNavigateur(StaticLiveServerTestCase):
         page.get_by_role('link', name='Annuler et revenir', exact=True).click()
         self.assertTrue(page.locator('input[name="sejour"][value="' + str(self.s.pk) + '"]').is_checked())
         self.assertTrue(page.locator('input[name="repas"][value="' + str(accord_repas.pk) + '"]').is_checked())
+
+    def test_bd3_prolongation_annulation_et_selection_conservee(self):
+        from datetime import date
+        from io import StringIO
+        from django.core.management import call_command
+        from . import repas
+        from .models import EvolutionAccord
+        call_command('autoriser_bd3', self.u.username, stdout=StringIO())
+        self.u = type(self.u).objects.get(pk=self.u.pk)
+        accord = repas.accorder(self.u, self.a, [self.p], date(2026, 1, 1), date(2026, 2, 1), 'dejeuner')
+        page = self.navigateur()
+        page.goto(self.live_server_url + reverse('suivi:accompagnement', args=[self.a.pk]))
+        page.get_by_role('link', name='Prolonger l’accord de repas', exact=True).click()
+        page.locator('input[name="fin"]').fill('2026-03-01')
+        page.locator('textarea[name="motif"]').fill('Décision fictive de prolongation')
+        page.locator('input[name="confirmer"]').check()
+        page.get_by_role('button', name='Enregistrer', exact=True).click()
+        page.get_by_role('heading', name='Dossier — ' + self.m.libelle, exact=True).wait_for()
+        self.assertTrue(page.locator('input[name="repas"][value="' + str(accord.pk) + '"]').is_checked())
+        page.get_by_role('link', name='Ouvrir l’accord et les distributions', exact=True).click()
+        page.get_by_role('heading', name='Décisions sur l’accord', exact=True).wait_for()
+        page.get_by_text('Décision fictive de prolongation', exact=False).wait_for()
+        page.get_by_role('link', name='Annuler l’accord saisi par erreur', exact=True).click()
+        page.locator('textarea[name="motif"]').fill('Accord fictif créé par erreur')
+        page.locator('input[name="confirmer"]').check()
+        page.get_by_role('button', name='Enregistrer', exact=True).click()
+        page.get_by_role('heading', name='Dossier — ' + self.m.libelle, exact=True).wait_for()
+        self.assertTrue(page.locator('input[name="repas"][value="' + str(accord.pk) + '"]').is_checked())
+        self.assertEqual(page.get_by_role('link', name='Enregistrer une distribution', exact=True).count(), 0)
+        self.assertEqual(verifier_hors_boucle_playwright(lambda: EvolutionAccord.objects.count()), 2)

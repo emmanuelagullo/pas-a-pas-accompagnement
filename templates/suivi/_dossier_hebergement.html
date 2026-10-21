@@ -19,14 +19,16 @@
 <nav aria-label="Actions du séjour sélectionné">
 <a href="{% dossier_url 'suivi:accord_hebergement' s.accord_id %}#sejour-{{ s.pk }}">Ouvrir le séjour et son accord</a>
 {% if perms.personnes.change_sejour and perms.personnes.view_correctionperiode %}<a href="{% dossier_url 'suivi:corriger_saisie' 'sejour' s.pk %}">Corriger les dates du séjour</a>{% endif %}
-{% if perms.personnes.change_accordhebergement and perms.personnes.view_correctionperiode %}<a href="{% dossier_url 'suivi:corriger_saisie' 'accordhebergement' s.accord_id %}">Corriger les dates de l’accord</a>{% endif %}
+{% if not s.accord.annule_le and perms.personnes.change_accordhebergement and perms.personnes.view_correctionperiode %}<a href="{% dossier_url 'suivi:corriger_saisie' 'accordhebergement' s.accord_id %}">Corriger les dates de l’accord</a>{% endif %}
 {% if not s.fin %}
 {% if s.lieu_ouvert and perms.personnes.change_affectation and perms.personnes.add_affectation and lecture_lieux %}<a href="{% dossier_url 'suivi:changer_lieu' s.lieu_ouvert.pk %}">Changer de lieu</a>{% elif not s.lieu_ouvert and perms.personnes.add_affectation and lecture_lieux %}<a href="{% dossier_url 'suivi:affecter' s.pk %}">Affecter un lieu</a>{% endif %}
 {% if perms.personnes.view_absence %}{% if s.absence_ouverte and perms.personnes.change_absence %}<a href="{% dossier_url 'suivi:clore_absence' s.absence_ouverte.pk %}">Enregistrer le retour d’absence</a>{% elif not s.absence_ouverte and perms.personnes.add_absence %}<a href="{% dossier_url 'suivi:absence' s.pk %}">Enregistrer une absence</a>{% endif %}{% endif %}
 {% if perms.personnes.change_sejour and perms.personnes.change_affectation and perms.personnes.change_absence %}<a href="{% dossier_url 'suivi:sortir' s.pk %}">Enregistrer la sortie</a>{% endif %}
 {% endif %}
 {% if perms.personnes.view_notepartagee %}<a href="{% dossier_url 'suivi:notes' 'sejour' s.pk %}">Notes du séjour</a>{% endif %}
-</nav></div>{% endwith %}
+</nav>
+{% if not s.accord.annule_le and perms.personnes.view_evolutionaccord and perms.personnes.prolonger_accordhebergement and s.accord.fin %}<p><a href="{% dossier_url 'suivi:prolonger_accord' 'hebergement' s.accord_id %}">Prolonger l’accord d’hébergement</a></p>{% endif %}
+</div>{% endwith %}
 {% else %}<p>Aucun séjour effectif enregistré.</p>{% endif %}
-{% if accords_sans_sejour %}<h3>Accords sans séjour enregistré</h3><ul>{% for accord in accords_sans_sejour %}<li><a href="{% dossier_url 'suivi:accord_hebergement' accord.pk %}">Accord d’hébergement</a> — {% include "suivi/periode.html" with periode=accord %}.</li>{% endfor %}</ul>{% endif %}
+{% if accords_sans_sejour %}<h3>Accords sans séjour enregistré</h3><ul>{% for accord in accords_sans_sejour %}<li><a href="{% dossier_url 'suivi:accord_hebergement' accord.pk %}">{% if accord.annule_le %}Accord annulé{% else %}Accord d’hébergement{% endif %}</a> — {% include "suivi/periode.html" with periode=accord %}.</li>{% endfor %}</ul>{% endif %}
 </section>

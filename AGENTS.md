@@ -226,3 +226,14 @@ Toute nouvelle écriture liée doit respecter cet ordre. Vérifier les refus,
 rollback, stale forms, concurrence et reprise ZIP des nouveaux journaux.
 La démonstration existante reste intacte ; seuls les jeux nouvellement générés
 reçoivent CHRS1–7. Ne pas rouvrir le socle pour ces parcours strictement métier.
+
+# BD3 — décisions d'accord
+
+Lire les sections BD3 de README.md et ARCHITECTURE.md. Ne pas assimiler une
+prolongation à une correction ni une annulation à une sortie. Les droits BD3
+sont dédiés, attribués volontairement par autoriser_bd3 ; aucune attribution en
+migration ni à la réouverture d’un ancien jeu. Les accords annulés restent
+consultables mais ne reçoivent plus d’admission/distribution/correction. Toute
+nouvelle écriture liée doit recharger l’état sous le verrou commun de ménage.
+Préserver la révision des accords, leurs décisions et les anciens journaux dans
+les copies ; tester dépendances, conflits, migration et reprise ZIP.

@@ -1,10 +1,11 @@
 {% extends "base.html" %}{% load dossier %}{% block contenu %}{% include "suivi/_retour_dossier.html" %}<h1>Hébergement accordé et séjours effectifs</h1>{% if retour_jour %}<p><a href="{% dossier_url 'suivi:jour' %}{% if date_service %}?date={{ date_service }}{% endif %}">Retour au travail du jour</a></p>{% endif %}<p><a href="{% dossier_url 'suivi:accompagnement' accord.accompagnement_id %}">Retour à l’accompagnement</a></p>
-{% if actions_collectives %}<p><a href="{% dossier_url 'suivi:selection_sejours' accord.pk %}">Agir sur plusieurs séjours : lieu, absence, retour ou sortie</a></p>{% endif %}
+{% if not accord.annule_le and actions_collectives %}<p><a href="{% dossier_url 'suivi:selection_sejours' accord.pk %}">Agir sur plusieurs séjours : lieu, absence, retour ou sortie</a></p>{% endif %}
+{% include "suivi/_decisions_accord.html" with nature_accord="hebergement" %}
 <p>Accord du {{ accord.debut }} au {{ accord.fin|default:"— période ouverte" }} (fin exclue).</p>
 <p>Bénéficiaires : {% for p in accord.beneficiaires.all %}{{ p }} ; {% endfor %}</p>
-{% if perms.personnes.add_sejour %}<a href="{% dossier_url 'suivi:admettre' accord.pk %}">Enregistrer une admission</a>{% endif %}
-{% if perms.personnes.add_lieuhebergement and perms.personnes.view_lieuhebergement %}<a href="{% dossier_url 'suivi:creer_lieu' accord=accord.pk %}">Créer un lieu</a>{% endif %}
-{% if perms.personnes.change_accordhebergement and perms.personnes.view_correctionperiode %}<p><a href="{% dossier_url 'suivi:corriger_saisie' 'accordhebergement' accord.pk %}">Corriger les dates de l’accord</a></p>{% endif %}
+{% if not accord.annule_le and perms.personnes.add_sejour %}<a href="{% dossier_url 'suivi:admettre' accord.pk %}">Enregistrer une admission</a>{% endif %}
+{% if not accord.annule_le and perms.personnes.add_lieuhebergement and perms.personnes.view_lieuhebergement %}<a href="{% dossier_url 'suivi:creer_lieu' accord=accord.pk %}">Créer un lieu</a>{% endif %}
+{% if not accord.annule_le and perms.personnes.change_accordhebergement and perms.personnes.view_correctionperiode %}<p><a href="{% dossier_url 'suivi:corriger_saisie' 'accordhebergement' accord.pk %}">Corriger les dates de l’accord</a></p>{% endif %}
 {% for s in sejours %}<section class="carte" id="sejour-{{ s.pk }}"><h2>Séjour du {{ s.debut }} au {{ s.fin|default:"— en cours" }} (fin exclue)</h2>
 {% if accord.fin %}{% if s.fin and s.fin > accord.fin or not s.fin and aujourdhui >= accord.fin %}<p role="status">Ce séjour dépasse la fin de l’accord. Les faits enregistrés ne prolongent pas l’autorisation d’hébergement.</p>{% endif %}{% endif %}
 <p>{% for p in s.beneficiaires.all %}{{ p }} ; {% endfor %}</p>
@@ -16,4 +17,4 @@
 {% if not s.fin and perms.personnes.add_absence and perms.personnes.view_absence %}<a href="{% dossier_url 'suivi:absence' s.pk %}{% if retour_jour %}?retour=jour{% if date_service %}&amp;date_service={{ date_service }}{% endif %}{% endif %}">Enregistrer une absence</a>{% endif %}
 {% if not s.fin and perms.personnes.change_sejour and perms.personnes.change_affectation and perms.personnes.change_absence %}<p><a href="{% dossier_url 'suivi:sortir' s.pk %}{% if retour_jour %}?retour=jour{% if date_service %}&amp;date_service={{ date_service }}{% endif %}{% endif %}">Enregistrer la sortie</a> (clôture aussi les affectations et absences ouvertes).</p>{% endif %}</section>{% empty %}<p>Aucun séjour effectif.</p>{% endfor %}
 {% if perms.personnes.view_operationhebergement %}<h2>Journal</h2><ul>{% for o in operations %}<li>{{ o.action }} — effet {{ o.date_effet }}, enregistré {{ o.enregistre_le }} par {{ o.auteur }}</li>{% endfor %}</ul>{% endif %}
-<a href="{% dossier_url 'suivi:detail' accord.accompagnement.menage_id %}">Retour au ménage et aux accompagnements</a>{% endblock %}
+<a href="{% dossier_url 'suivi:detail' accord.accompagnement.menage_id %}">Retour au ménage et aux accompagnements</a>{% include "suivi/_evolutions_accord.html" %}{% endblock %}

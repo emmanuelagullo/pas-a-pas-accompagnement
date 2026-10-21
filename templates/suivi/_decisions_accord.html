@@ -1,0 +1,14 @@
+{% load dossier %}
+{% if accord.annule_le %}
+<p role="status"><strong>Accord annulé le {{ accord.annule_le|date:"d/m/Y H:i" }} par {{ accord.annule_par }}.</strong> Motif : {{ accord.motif_annulation }}. L’historique reste conservé ; aucune nouvelle réalisation n’est autorisée.</p>
+{% elif perms.personnes.view_evolutionaccord %}
+<nav aria-label="Décisions sur l’accord">
+{% if nature_accord == 'repas' %}
+{% if perms.personnes.prolonger_accordrepas and accord.fin %}<a href="{% dossier_url 'suivi:prolonger_accord' 'repas' accord.pk %}">Prolonger l’accord de repas</a>{% endif %}
+{% if perms.personnes.annuler_accordrepas and perms.personnes.view_repasdistribue %}{% if annulation_possible %}<a href="{% dossier_url 'suivi:annuler_accord' 'repas' accord.pk %}">Annuler l’accord saisi par erreur</a>{% else %}<span>Annulation indisponible : des distributions sont rattachées à cet accord.</span>{% endif %}{% endif %}
+{% else %}
+{% if perms.personnes.prolonger_accordhebergement and accord.fin %}<a href="{% dossier_url 'suivi:prolonger_accord' 'hebergement' accord.pk %}">Prolonger l’accord d’hébergement</a>{% endif %}
+{% if perms.personnes.annuler_accordhebergement and perms.personnes.view_sejour %}{% if annulation_possible %}<a href="{% dossier_url 'suivi:annuler_accord' 'hebergement' accord.pk %}">Annuler l’accord saisi par erreur</a>{% else %}<span>Annulation indisponible : des séjours sont rattachés à cet accord.</span>{% endif %}{% endif %}
+{% endif %}
+</nav>
+{% endif %}
