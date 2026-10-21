@@ -443,8 +443,9 @@ L’attribution ajoute CHRS1 et CHRS3 uniquement, sans retirer les droits CHRS2
 accorder un hébergement à des bénéficiaires explicites ; ouvrir l’accord puis
 saisir l’admission effective. Créer un lieu (chambre, appartement, hôtel, etc.),
 avec opérateur extérieur facultatif, puis ajouter une affectation au séjour.
-Pour changer de lieu, clôturer l’affectation ouverte puis en ajouter une autre
-à la même date. La période du séjour reste inchangée.
+Le lien « Changer de lieu » ferme l’affectation ouverte et ouvre la suivante
+à la même date dans une transaction unique. Un conflit ou formulaire périmé
+ne laisse pas de clôture partielle. La période du séjour reste inchangée.
 
 Les périodes utilisent des dates civiles, début inclus et fin exclue : une
 période du 3 au 5 correspond aux nuits débutant les 3 et 4. La présence réelle

@@ -93,3 +93,17 @@ def lieu(request):
         h.creer_lieu(request.user,**form.cleaned_data)
         return redirect("suivi:liste")
     return render(request,"suivi/form.html",{"form":form,"titre":"Créer un lieu d’hébergement"})
+
+
+@require_http_methods(["GET", "POST"])
+@login_required
+def changer_lieu(request, pk):
+    from .corrections import jeton
+    from .forms_hebergement import ChangementLieuForm
+    h.droit(request.user, "change_affectation")
+    h.exiger(request.user, "add_affectation", "view_affectation", "view_lieuhebergement")
+    objet = get_object_or_404(Affectation.objects.select_related("sejour__accord__accompagnement"), pk=pk)
+    form = ChangementLieuForm(request.POST or None, initial={"debut": timezone.localdate(), "attendu": jeton(objet)})
+    return traiter_hebergement(request, form, "Changer de lieu pour tous les bénéficiaires du séjour",
+        lambda **d: h.changer_lieu(request.user, objet, **d), objet.sejour.accord.accompagnement.menage,
+        retour=retour_hebergement(request, objet.sejour.accord_id))

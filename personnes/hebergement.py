@@ -149,3 +149,20 @@ def sortir(acteur, sejour, fin):
                     sejour=sejour, **({"absence": objet} if modele is Absence else {"affectation": objet}))
     sejour.fin = fin; sejour.save(update_fields=["fin"])
     audit(acteur, sejour.accord, "Sortie effective", fin, sejour=sejour)
+
+
+@serialiser("objet")
+@transaction.atomic
+def changer_lieu(acteur, objet, debut, lieu, attendu):
+    """Fermer l’affectation affichée et ouvrir la suivante, ou ne rien écrire."""
+    from .corrections import verifier_jeton
+    droit(acteur, "change_affectation")
+    exiger(acteur, "add_affectation", "view_affectation", "view_lieuhebergement")
+    objet = Affectation.objects.select_related("sejour__accord__accompagnement").get(pk=objet.pk)
+    verifier_jeton(objet, attendu)
+    if objet.fin is not None:
+        raise ValidationError("Cette affectation est déjà close. Rechargez le séjour.")
+    if objet.lieu_id == lieu.pk:
+        raise ValidationError("Choisissez un autre lieu.")
+    terminer_periode(acteur, objet, debut)
+    return ajouter_periode(acteur, objet.sejour, debut, None, lieu)

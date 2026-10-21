@@ -34,3 +34,9 @@ class LieuForm(forms.ModelForm):
     class Meta:
         model = LieuHebergement
         fields = ["libelle", "partenaire"]
+
+
+class ChangementLieuForm(forms.Form):
+    debut = date_champ("Date du changement de lieu")
+    lieu = forms.ModelChoiceField(LieuHebergement.objects.all(), label="Nouveau lieu")
+    attendu = forms.CharField(widget=forms.HiddenInput)

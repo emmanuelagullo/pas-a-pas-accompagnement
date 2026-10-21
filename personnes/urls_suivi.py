@@ -31,6 +31,7 @@ urlpatterns = [
     path("sejours/<uuid:pk>/affecter/", h.periode, name="affecter"),
     path("sejours/<uuid:pk>/absence/", h.periode, {"absence":True}, name="absence"),
     path("sejours/<uuid:pk>/sortir/", h.terminer, {"nature":"sejour"}, name="sortir"),
+    path("affectations/<int:pk>/changer-lieu/", h.changer_lieu, name="changer_lieu"),
     path("affectations/<int:pk>/clore/", h.terminer, {"nature":"affectation"}, name="clore_affectation"),
     path("absences/<int:pk>/clore/", h.terminer, {"nature":"absence"}, name="clore_absence"),
     path("accompagnements/<uuid:pk>/repas/accorder/", vues_repas.accorder, name="accorder_repas"),
