@@ -10,9 +10,12 @@ from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 from .statistiques import bilan, evolution_mensuelle, ventilation_repas, exploration_repas, exploration_affectations, regrouper_exploration, REGROUPEMENTS_EXPLORATION
 from .models import AccordRepas, LieuHebergement, ModeleRapport
+from . import rapports_metier as metier
 
 
 RAPPORTS = {
+    'mouvements': 'Mouvements et durées des séjours sortis',
+    'ages': 'Âges calculables et précision des naissances',
     'synthese': 'Synthèse de l’activité',
     'hebergement': 'Hébergement et nuitées',
     'repas': 'Repas distribués',
@@ -102,7 +105,7 @@ def parametres_modele(donnees):
         'service': service if rapport == 'exploration_repas' else '',
         'lieu': lieu if rapport == 'exploration_hebergement' else '',
         'regroupement': regroupement,
-        'comparer': '1' if donnees.get('comparer') == '1' else '',
+        'comparer': '1' if donnees.get('comparer') == '1' and rapport != 'ages' else '',
     }
 
 
@@ -155,12 +158,21 @@ def statistiques(request):
     rapport = selection.get('rapport', 'synthese')
     if rapport not in RAPPORTS:
         rapport = 'synthese'
+    if rapport == 'ages' and not request.user.has_perm('personnes.view_personne'):
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied
+    lecture_lieux = request.user.has_perms(['personnes.view_affectation', 'personnes.view_lieuhebergement'])
+    if rapport == 'exploration_hebergement' and not lecture_lieux:
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied
     service_choisi = selection.get('service', '')
     if service_choisi not in dict(AccordRepas.SERVICES):
         service_choisi = ''
-    resultats = bilan(**formulaire.cleaned_data) if formulaire.is_valid() else None
+    resultats = None
+    if formulaire.is_valid():
+        resultats = {} if rapport in ('mouvements', 'ages') else bilan(**formulaire.cleaned_data)
     lieu_choisi = selection.get('lieu', '')
-    lieux_possibles = list(LieuHebergement.objects.order_by('libelle', 'pk'))
+    lieux_possibles = list(LieuHebergement.objects.order_by('libelle', 'pk')) if lecture_lieux else []
     if lieu_choisi and not any(str(l.pk) == lieu_choisi for l in lieux_possibles):
         lieu_choisi = ''
     regroupement = selection.get('regroupement', 'mois_categorie')
@@ -187,17 +199,30 @@ def statistiques(request):
     evolution = []
     services = {}
     erreur_evolution = ''
-    if resultats is not None:
+    if resultats is not None and rapport not in ('mouvements', 'ages'):
         services = ventilation_repas(**formulaire.cleaned_data)
         try:
             evolution = evolution_mensuelle(**formulaire.cleaned_data)
         except ValueError as exc:
             erreur_evolution = str(exc)
+    mouvements = metier.mouvements(**formulaire.cleaned_data) if resultats is not None and rapport == 'mouvements' else None
+    ages = metier.ages(**formulaire.cleaned_data) if resultats is not None and rapport == 'ages' else None
     if request.GET.get('format') == 'csv' and resultats is not None:
         reponse = HttpResponse(content_type='text/csv; charset=utf-8')
         reponse['Content-Disposition'] = 'attachment; filename="statistiques-chrs.csv"'
         writer = csv.writer(reponse)
-        if rapport == 'exploration_hebergement':
+        if rapport == 'mouvements':
+            writer.writerow(['debut_inclus', 'fin_exclue', 'indicateur', 'valeur'])
+            for code, valeur in mouvements.items():
+                writer.writerow([formulaire.cleaned_data['debut'].isoformat(), formulaire.cleaned_data['fin'].isoformat(), code, valeur])
+        elif rapport == 'ages':
+            reference, comptes, qualite = ages
+            writer.writerow(['debut_inclus', 'fin_exclue', 'date_reference', 'nature', 'valeur', 'effectif'])
+            for code, compte in sorted(comptes.items()):
+                writer.writerow([formulaire.cleaned_data['debut'].isoformat(), formulaire.cleaned_data['fin'].isoformat(), reference.isoformat(), 'age_exact', code, compte])
+            for code, compte in qualite.items():
+                writer.writerow([formulaire.cleaned_data['debut'].isoformat(), formulaire.cleaned_data['fin'].isoformat(), reference.isoformat(), 'naissance', code, compte])
+        elif rapport == 'exploration_hebergement':
             if erreur_hebergement:
                 return HttpResponse(erreur_hebergement, status=400, content_type='text/plain; charset=utf-8')
             colonnes = (['mois', 'lieu'] if regroupement == 'mois_categorie' else
@@ -238,10 +263,19 @@ def statistiques(request):
                                  formulaire.cleaned_data['fin'].isoformat(), indicateur, valeur])
         return reponse
     comparaison = None
-    if resultats is not None and selection.get('comparer') == '1':
+    mouvements_precedents = None
+    erreur_comparaison = ''
+    if resultats is not None and selection.get('comparer') == '1' and rapport != 'ages':
         duree = formulaire.cleaned_data['fin'] - formulaire.cleaned_data['debut']
-        comparaison = bilan(formulaire.cleaned_data['debut'] - duree,
-                            formulaire.cleaned_data['debut'])
+        try:
+            precedent = formulaire.cleaned_data['debut'] - duree
+        except OverflowError:
+            erreur_comparaison = 'La période précédente dépasserait les dates disponibles. La période choisie reste affichée.'
+        else:
+            if rapport == 'mouvements':
+                mouvements_precedents = metier.mouvements(precedent, formulaire.cleaned_data['debut'])
+            else:
+                comparaison = bilan(precedent, formulaire.cleaned_data['debut'])
     periode = formulaire.cleaned_data if formulaire.is_valid() else {}
     return render(request, 'suivi/statistiques.html', {
         'formulaire': formulaire, 'resultats': resultats,
@@ -254,8 +288,13 @@ def statistiques(request):
         'exploration': exploration, 'erreur_exploration': erreur_exploration,
         'services_possibles': AccordRepas.SERVICES, 'service_choisi': service_choisi,
         'periodes': PERIODES, 'periode_choisie': periode_choisie,
-        'comparaison': comparaison, 'comparer': selection.get('comparer') == '1',
-        'rapport': rapport, 'rapports': RAPPORTS,
+        'erreur_comparaison': erreur_comparaison, 'comparaison': comparaison, 'comparer': selection.get('comparer') == '1' and rapport != 'ages',
+        'rapport': rapport, 'rapports': {code: label for code, label in RAPPORTS.items() if (code != 'ages' or request.user.has_perm('personnes.view_personne')) and (code != 'exploration_hebergement' or lecture_lieux)},
+        'mouvements': [(code, metier.LIBELLES_MOUVEMENTS[code], valeur) for code, valeur in (mouvements or {}).items()],
+        'mouvements_comparaison': [(metier.LIBELLES_MOUVEMENTS[code], mouvements_precedents[code], valeur) for code, valeur in (mouvements or {}).items()] if mouvements_precedents is not None else [],
+        'age_reference': ages[0] if ages else None,
+        'ages': sorted(ages[1].items()) if ages else [],
+        'naissances': [(metier.LIBELLES_NAISSANCES[code], valeur) for code, valeur in ages[2].items()] if ages else [],
         'evolution': evolution, 'services': services, 'erreur_evolution': erreur_evolution,
         'debut_iso': periode['debut'].isoformat() if periode else '',
         'fin_iso': periode['fin'].isoformat() if periode else '',

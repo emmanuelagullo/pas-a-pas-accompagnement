@@ -757,3 +757,39 @@ sous une transaction commune et avec leurs journaux habituels. Aucun repas n’e
 distribué automatiquement. Une erreur annule tout le lot ; le jeton signé refuse
 un formulaire périmé ou rejoué. Les accords par service et leurs corrections
 restent accessibles séparément. Aucun plafond ni droit nouveau n’est introduit.
+
+## CHRS25-11 — mouvements, durées et âges calculables
+
+Deux rapports supplémentaires sont disponibles, avec export CSV et modèles
+personnels. Les indicateurs historiques et leurs formats CSV restent inchangés.
+
+« Mouvements et durées » distingue le nombre de séjours, leurs bénéficiaires
+comptés par séjour et les personnes distinctes sur la période. Un retour en séjour
+peut donc compter plusieurs admissions pour une même personne. Les durées sont
+celles des séjours sortis pendant la période, depuis leur début réel jusqu’à
+leur fin exclue, sans pondération par bénéficiaire ni déduction d’absence.
+Un séjour commencé avant la période contribue à sa durée complète. Sans sortie,
+minimum, maximum et moyenne restent non calculables, pas zéro. La moyenne est
+arrondie à une décimale (demi vers le haut). La pondération par séjour dépend de leur représentation
+individuelle ou collective ; les nuits par personne des rapports existants
+restent distinctes. La comparaison reprend une période précédente de même durée.
+
+« Âges calculables » utilise les personnes distinctes bénéficiaires d’un séjour
+chevauchant la période. L’âge révolu est calculé au dernier jour inclus à partir
+d’une date de naissance exacte et de l’identité connue actuellement, pas de
+l’état des connaissances à cette date. Pour un 29 février, le changement d’âge
+intervient le 1er mars d’une année non bissextile : convention arithmétique de ce
+rapport descriptif, sans qualification juridique. Les années seules, dates
+estimées et naissances inconnues restent comptées séparément sans âge inventé.
+Une naissance postérieure à la référence est également isolée. Aucun seuil
+adulte/mineur, tranche d’âge normative ou score n’est ajouté. Ce rapport exige
+`view_personne` en plus des droits statistiques existants ; il ne compare pas
+automatiquement des populations d’âges différents entre deux périodes.
+
+Ces rapports ne reconstruisent ni la présence physique ni les provenances et
+orientations historiques à partir de la dernière version du projet de suivi.
+Ils ne déclenchent pas les calculs de nuitées dont ils n’ont pas besoin.
+
+La consultation des lieux et de leurs nuitées exige les droits de lecture des
+lieux et des affectations. Sans eux, aucun nom de lieu n’est proposé et l’accès
+direct au rapport ou à son export est refusé, même depuis un modèle enregistré.

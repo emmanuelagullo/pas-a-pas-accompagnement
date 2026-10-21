@@ -33,7 +33,7 @@
 <select id="regroupement" name="regroupement">
 {% for code, libelle in regroupements %}<option value="{{ code }}" {% if code == regroupement %}selected{% endif %}>{{ libelle }}</option>{% endfor %}
 </select>
-<label><input type="checkbox" name="comparer" value="1" {% if comparer %}checked{% endif %}> Comparer avec la période précédente de même durée</label>
+{% if rapport != "ages" %}<label><input type="checkbox" name="comparer" value="1" {% if comparer %}checked{% endif %}> Comparer avec la période précédente de même durée</label>{% endif %}
 <button type="submit">Calculer</button></form>
 {% if modele_actif %}<p>Modèle affiché : <strong>{{ modele_actif.nom }}</strong>. Toute modification des filtres crée une consultation indépendante ; le modèle enregistré reste inchangé.</p>{% endif %}
 {% if resultats != None %}<form method="post" action="{% url 'statistiques_modele_ajouter' %}">
@@ -42,6 +42,7 @@
 <input type="hidden" name="service" value="{{ service_choisi }}"><input type="hidden" name="lieu" value="{{ lieu_choisi }}">
 <input type="hidden" name="regroupement" value="{{ regroupement }}">{% if periode_choisie %}<input type="hidden" name="periode" value="{{ periode_choisie }}">{% endif %}{% if comparer %}<input type="hidden" name="comparer" value="1">{% endif %}
 <button type="submit">Enregistrer cette configuration</button></form>{% endif %}
+{% if erreur_comparaison %}<p role="alert">{{ erreur_comparaison }}</p>{% endif %}
 {% if comparaison != None %}
 <section class="carte"><h2>Comparaison avec la période précédente</h2>
 <p>La période précédente a exactement la même durée en jours. Les effectifs distincts ne sont pas additionnables.</p>
@@ -53,6 +54,14 @@
 {% endif %}
 {% if resultats != None %}
 <section class="carte"><h2>{% if rapport == 'hebergement' %}Hébergement{% elif rapport == 'repas' %}Repas{% elif rapport == 'mensuel' %}Évolution mensuelle{% elif rapport == 'exploration_repas' %}Repas par mois et service{% elif rapport == 'exploration_hebergement' %}Nuitées d’affectation par mois et lieu{% else %}Activité pendant la période{% endif %}</h2>
+{% if rapport == 'mouvements' %}<h3>Mouvements et durées</h3><p>Une admission ou sortie de séjour collectif compte un séjour mais plusieurs bénéficiaires. Les personnes distinctes sont dédoublonnées sur toute la période. Les bénéficiaires comptés par séjour peuvent revenir plusieurs fois.</p>
+<p>Les durées concernent uniquement les séjours dont la fin se situe dans la période choisie. Elles couvrent leur durée complète en nuits civiles, y compris avant le début de la période, sans déduire les absences et sans multiplier par les bénéficiaires. Elles ne prouvent pas une présence physique. Sans sortie, les durées minimum, maximum et moyenne ne sont pas calculables.</p>
+<dl>{% for code,libelle,valeur in mouvements %}<dt>{{ libelle }}</dt><dd>{{ valeur|default_if_none:"Non calculable" }}</dd>{% endfor %}</dl>
+{% if mouvements_comparaison %}<table><caption>Période précédente de même durée</caption><thead><tr><th>Indicateur</th><th>Précédente</th><th>Choisie</th></tr></thead><tbody>{% for libelle,avant,apres in mouvements_comparaison %}<tr><th scope="row">{{ libelle }}</th><td>{{ avant|default_if_none:"Non calculable" }}</td><td>{{ apres|default_if_none:"Non calculable" }}</td></tr>{% endfor %}</tbody></table>{% endif %}{% endif %}
+{% if rapport == 'ages' %}<h3>Âges calculables au {{ age_reference|date:"d/m/Y" }}</h3>
+<p>Population : personnes distinctes bénéficiaires d’un séjour chevauchant la période. Âge au dernier jour inclus de la période, d’après les identités connues actuellement ; ce n’est pas l’état des connaissances à cette date. Les dates et années estimées ou partielles sont comptées séparément, sans âge inventé. Un âge n’indique pas une présence à la date de référence.</p>
+<table><thead><tr><th scope="col">Âge révolu — date exacte</th><th scope="col">Personnes</th></tr></thead><tbody>{% for age,effectif in ages %}<tr><th scope="row">{{ age }} ans</th><td>{{ effectif }}</td></tr>{% empty %}<tr><td colspan="2">Aucun âge calculable.</td></tr>{% endfor %}</tbody></table>
+<dl>{% for libelle,effectif in naissances %}<dt>{{ libelle }}</dt><dd>{{ effectif }}</dd>{% endfor %}</dl>{% endif %}
 {% if rapport == 'synthese' or rapport == 'hebergement' %}
 <dl>
 {% if rapport == "synthese" %}<dt>Ménages accompagnés distincts</dt><dd>{{ resultats.menages_accompagnes }}</dd>

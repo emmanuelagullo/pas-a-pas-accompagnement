@@ -350,3 +350,33 @@ class NouveauxParcoursNavigateur(StaticLiveServerTestCase):
         page.emulate_media(media='print')
         self.assertFalse(page.locator('nav').is_visible())
         self.assertTrue(page.get_by_role('heading', name='Résumé d’accompagnement', exact=False).is_visible())
+
+    def test_repas_plusieurs_services_sans_distribution(self):
+        from .models import AccordRepas, RepasDistribue
+        page = self.navigateur()
+        page.goto(self.live_server_url + reverse('suivi:accompagnement', args=[self.a.pk]))
+        page.get_by_role('link', name='Accorder plusieurs services en une saisie', exact=True).click()
+        page.locator('input[name="services"][value="dejeuner"]').check()
+        page.locator('input[name="services"][value="diner"]').check()
+        page.locator('input[name="debut"]').fill('2026-01-01')
+        page.locator('input[name="fin"]').fill('2026-02-01')
+        page.get_by_role('button', name='Enregistrer', exact=True).click()
+        page.get_by_role('heading', name='Accompagnement — ' + self.m.libelle, exact=True).wait_for()
+        def verifier():
+            return (sorted(AccordRepas.objects.values_list('service', flat=True)), RepasDistribue.objects.count())
+        self.assertEqual(verifier_hors_boucle_playwright(verifier), (['dejeuner', 'diner'], 0))
+
+    def test_rapports_mouvements_et_naissances_incompletes(self):
+        page = self.navigateur()
+        page.goto(self.live_server_url + reverse('statistiques'))
+        page.locator('select[name="rapport"]').select_option('mouvements')
+        page.locator('input[type="date"][name="debut"]').fill('2026-01-01')
+        page.locator('input[type="date"][name="fin"]').fill('2026-02-01')
+        page.get_by_role('button', name='Calculer', exact=True).click()
+        page.get_by_role('heading', name='Mouvements et durées', exact=True).wait_for()
+        self.assertIn('Non calculable', page.locator('main').inner_text())
+        page.locator('select[name="rapport"]').select_option('ages')
+        page.get_by_role('button', name='Calculer', exact=True).click()
+        page.get_by_role('heading', name='Âges calculables au 31/01/2026', exact=True).wait_for()
+        self.assertIn('Aucun âge calculable', page.locator('main').inner_text())
+        self.assertIn('Naissance non renseignée', page.locator('main').inner_text())
