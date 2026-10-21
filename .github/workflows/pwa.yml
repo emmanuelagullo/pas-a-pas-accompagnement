@@ -50,6 +50,7 @@ jobs:
       - run: npx --prefix pwa playwright install --with-deps chromium
       - run: python scripts/construire-pwa.py --test
       - run: node scripts/verifier-recherche-dossiers.cjs
+      - run: node scripts/verifier-nouveau-menage.cjs
       - run: node scripts/verifier-pwa-pyodide.mjs
       - run: node scripts/verifier-pwa.cjs
         env:

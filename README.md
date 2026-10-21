@@ -900,3 +900,21 @@ de service n’est ajouté. Aucune migration ni nouvelle permission.
 Vérifications : suite Django, `node scripts/verifier-recherche-dossiers.cjs`
 (réponses hors ordre, préfixe PWA, repli) et recettes navigateur dans
 `personnes.qualification_navigateur` et `scripts/verifier-parcours-metier.cjs`.
+
+
+### BD4 — aides de saisie et recherche
+
+Nouveau dossier ménage affiche uniquement les champs du choix actif si
+JavaScript est disponible ; la validation serveur reste complète sans script.
+Le nom/désignation de la nouvelle personne est obligatoire et distinct du libellé
+du ménage. Les erreurs sont rattachées aux champs et résumées par des liens.
+La recherche et les boîtes Hébergement/Repas proposent des aides dépliables
+natives ; les informations indispensables restent visibles avec les champs.
+
+La recherche attend 250 ms après une saisie avant son GET ; elle annule les
+requêtes précédentes côté navigateur et ignore leurs réponses périmées. Une
+annulation ne garantit pas l'arrêt d'une requête SQL déjà lancée. Les résultats
+sont paginés par 25 et leurs relations préchargées. Les recherches partielles
+`icontains` et le comptage parcourent les données : le nombre borné de requêtes
+ne garantit pas un coût constant sur une très grosse base. Aucune indexation
+spécialisée, mise en cache des dossiers ou nouvelle dépendance n'est introduite.

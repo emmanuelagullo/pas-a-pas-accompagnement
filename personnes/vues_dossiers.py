@@ -56,16 +56,18 @@ def recherche(request):
 
 
 class NouveauMenageForm(forms.Form):
-    libelle = forms.CharField(label='Libellé du ménage', max_length=160)
+    libelle = forms.CharField(label='Libellé du ménage', max_length=160, help_text='Nom court affiché dans la recherche. Il ne désigne ni un chef de famille ni une responsabilité juridique.')
     premiere_personne = forms.ChoiceField(label='Première personne', choices=[('existante', 'Choisir une personne existante'), ('nouvelle', 'Créer une personne')])
-    personne = forms.ModelChoiceField(Personne.objects.all(), required=False, label='Personne existante')
-    designation = forms.CharField(label='Nom ou désignation de la nouvelle personne', max_length=160, required=False)
-    prenom = forms.CharField(label='Prénom de la nouvelle personne', max_length=100, required=False)
-    debut = forms.DateField(label='Début de son appartenance au ménage', widget=forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}))
+    personne = forms.ModelChoiceField(Personne.objects.all(), required=False, label='Personne existante', help_text='À renseigner seulement si vous choisissez une personne existante. Ses autres appartenances sont conservées.')
+    designation = forms.CharField(label='Nom ou désignation de la nouvelle personne', max_length=160, required=False, help_text='Obligatoire pour créer la première personne : le libellé du ménage ne remplace pas son identité.')
+    prenom = forms.CharField(label='Prénom de la nouvelle personne', max_length=100, required=False, help_text='Facultatif ; ne pas inventer un prénom pour compléter le formulaire.')
+    debut = forms.DateField(label='Début de son appartenance au ménage', widget=forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}), help_text='Premier jour de cette appartenance ; aucune prestation ni période de suivi n’est ouverte par cette date.')
 
     def __init__(self, *args, acteur, **kwargs):
         self.acteur = acteur
         super().__init__(*args, **kwargs)
+        if self.is_bound and self.data.get('premiere_personne') == 'nouvelle':
+            self.fields['personne'].disabled = True
         if not acteur.has_perm('personnes.add_personne'):
             self.fields['premiere_personne'].choices = [('existante', 'Choisir une personne existante')]
 
@@ -76,12 +78,21 @@ class NouveauMenageForm(forms.Form):
         if d.get('premiere_personne') == 'nouvelle':
             if not self.acteur.has_perm('personnes.add_personne'):
                 self.add_error(None, 'La création de personne nécessite un droit explicite.')
+            elif not d.get('designation'):
+                if 'designation' not in self.errors:
+                    self.add_error('designation', 'Indiquez le nom ou la désignation de la nouvelle personne.')
             else:
-                p = Personne(designation=d.get('designation', ''), prenom=d.get('prenom', ''), cree_par=self.acteur)
+                p = Personne(designation=d['designation'], prenom=d.get('prenom', ''), cree_par=self.acteur)
                 try:
                     p.full_clean()
                 except ValidationError as erreur:
-                    self.add_error(None, ' '.join(erreur.messages))
+                    if hasattr(erreur, 'error_dict'):
+                        for champ, messages in erreur.message_dict.items():
+                            self.add_error(champ if champ in self.fields else None,
+                                messages if champ in self.fields else [f'Nouvelle personne : {message}' for message in messages])
+                    else:
+                        self.add_error(None, erreur)
+
         return d
 
 

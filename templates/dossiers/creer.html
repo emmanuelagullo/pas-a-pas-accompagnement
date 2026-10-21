@@ -1,6 +1,7 @@
-{% extends "base.html" %}{% block contenu %}
+{% extends "base.html" %}{% load static %}{% block contenu %}
 <p><a href="{{ retour }}">Retour à la recherche</a></p><h1>Nouveau dossier {% if nature == 'menage' %}ménage{% else %}personne{% endif %}</h1>
 <p>Vérifiez les résultats de recherche pour éviter un doublon. Deux personnes peuvent porter le même nom.</p>
 <p>La création du dossier n’ouvre aucune période de suivi et ne crée aucune prestation.</p>
-<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Créer et ouvrir le dossier</button></form>
-{% endblock %}
+{% if form.errors %}<section role="alert" class="erreurs-formulaire"><h2>À corriger avant la création</h2>{{ form.non_field_errors }}<ul>{% for champ in form %}{% for erreur in champ.errors %}<li><a href="#{{ champ.id_for_label }}">{{ champ.label }} : {{ erreur }}</a></li>{% endfor %}{% endfor %}</ul></section>{% endif %}
+<form method="post" id="nouveau-dossier">{% csrf_token %}{{ form.as_p }}<button type="submit">Créer et ouvrir le dossier</button></form>
+{% if nature == 'menage' %}<script src="{% static 'nouveau-menage.js' %}" defer></script>{% endif %}{% endblock %}

@@ -6,9 +6,11 @@
 {% if peut_menages %}<label><input type="radio" name="mode" value="menage"{% if mode == 'menage' %} checked{% endif %}> Ménages</label>{% endif %}
 <label><input type="radio" name="mode" value="personne"{% if mode == 'personne' %} checked{% endif %}> Personnes</label></fieldset>
 <label for="recherche-nom">Nom, prénom ou libellé du dossier</label>
-<input type="search" id="recherche-nom" name="q" value="{{ recherche }}" maxlength="160" placeholder="Rechercher ou commencer un nouveau dossier" autocomplete="off">
+<input type="search" id="recherche-nom" name="q" value="{{ recherche }}" maxlength="160" placeholder="Rechercher ou commencer un nouveau dossier" autocomplete="off" aria-describedby="aide-recherche">
+<p class="helptext" id="aide-recherche">Ménages : recherche aussi dans les noms des membres actuels et anciens. Personnes : recherche dans les identités.</p>
 <p><button type="submit">Rechercher</button> <a href="{% url 'accueil' %}?mode={{ mode }}">Effacer</a></p>
 </form><p id="recherche-etat" role="status"></p>
+<details class="aide-contextuelle"><summary>Aide à la recherche et à la création</summary><p>Commencez à saisir un nom. Les résultats changent après une courte pause ; Rechercher fonctionne aussi sans JavaScript. Ouvrir un résultat consulte le dossier existant. Nouveau dossier reprend la saisie et demande confirmation, sans créer de prestation. Vérifiez les homonymes avant de créer.</p></details>
 <div id="resultats-dossiers">{% include "dossiers/resultats.html" %}</div>
 <script src="{% static 'recherche-dossiers.js' %}" defer></script>
 {% else %}<p>Votre compte n’a pas encore de droit de consultation dans cet espace d’essai.</p>{% endif %}

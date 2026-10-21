@@ -39,7 +39,8 @@ class DossierTests(Donnees, TestCase):
         page = self.client.get(self.url, {'sejour': self.s.pk})
         self.assertNotContains(page, reverse('suivi:sortir', args=[self.s.pk]))
         self.assertNotContains(page, 'Supprimer')
-        self.assertNotContains(page, 'Prolonger')
+        # Une explication peut nommer l'action ; aucune URL de prolongation sans droit.
+        self.assertNotContains(page, '/prolonger/')
 
     def test_annulation_et_selection_double_conservee(self):
         h.sortir(self.u, self.s, date(2026, 1, 10))

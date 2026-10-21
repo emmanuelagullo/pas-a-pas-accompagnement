@@ -256,3 +256,33 @@ class EntreeBDTests(Donnees, TestCase):
         p2 = Personne.objects.create(designation='Autre personne', cree_par=self.u)
         page = self.client.get(reverse('personnes:corriger_identite', args=[p2.pk]), {'contexte_dossier': nav['contexte_dossier']})
         self.assertNotContains(page, nav['retour_dossier'])
+
+    def test_erreur_creation_personne_nommee_et_sans_erreur_globale(self):
+        url = reverse('dossiers:creer', args=['menage'])
+        data = {'libelle': 'Groupe fictif', 'premiere_personne': 'nouvelle', 'designation': '', 'debut': '2026-01-01'}
+        page = self.client.post(url, data)
+        self.assertFormError(page.context['form'], 'designation', 'Indiquez le nom ou la désignation de la nouvelle personne.')
+        self.assertEqual(page.context['form'].non_field_errors(), [])
+        self.assertContains(page, 'href="#id_designation"')
+        self.assertContains(page, 'Nom ou désignation de la nouvelle personne :')
+        self.assertContains(page, 'aria-invalid="true"')
+        self.assertFalse(Menage.objects.filter(libelle='Groupe fictif').exists())
+        data['designation'] = 'Nom fictif'
+        data['personne'] = 'ancienne-selection-invalide'
+        page = self.client.post(url, data)
+        self.assertEqual(page.status_code, 302)
+        self.assertEqual(Menage.objects.get(libelle='Groupe fictif').appartenances.get().personne.designation, 'Nom fictif')
+
+    def test_erreur_personne_existante_et_aides_accessibles_sans_javascript(self):
+        page = self.client.post(reverse('dossiers:creer', args=['menage']), {
+            'libelle': 'Groupe fictif', 'premiere_personne': 'existante', 'debut': '2026-01-01'})
+        self.assertFormError(page.context['form'], 'personne', 'Choisissez la personne à rattacher.')
+        self.assertContains(page, 'href="#id_personne"')
+        self.assertContains(page, 'Personne existante :')
+        self.assertContains(page, 'aucune prestation ni période de suivi')
+        page = self.client.get(reverse('accueil'))
+        self.assertContains(page, 'aria-describedby="aide-recherche"')
+        self.assertContains(page, 'Aide à la recherche et à la création')
+        page = self.client.get(self.url)
+        self.assertContains(page, 'Comprendre les actions d’hébergement')
+        self.assertContains(page, 'tous concernés')

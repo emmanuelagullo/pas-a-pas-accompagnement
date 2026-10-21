@@ -58,3 +58,7 @@ form li { margin-bottom: 1rem; }
 .resultats-dossiers a { min-width: 0; }
 .dossier-identite summary { cursor: pointer; font-weight: 650; }
 .dossier-identite section { margin: 1.5rem 0; }
+
+.aide-contextuelle { margin: .75rem 0; max-width: 48rem; }
+.aide-contextuelle summary { cursor: pointer; color: #175c50; }
+.erreurs-formulaire { border-left: .25rem solid #922b21; padding: .5rem 1rem; }
