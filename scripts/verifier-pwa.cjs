@@ -46,16 +46,22 @@ const server=(tls?require('node:https'):http).createServer(options,(req,res)=>{
     throw erreur;
    });
   }
+  async function rechercherPersonnes(app){
+   await app.getByRole('link',{name:'Dossiers',exact:true}).click();
+   await app.getByLabel('Personnes',{exact:true}).check();
+   await app.getByRole('button',{name:'Rechercher',exact:true}).click();
+  }
   async function ouvrir(){await page.goto(url);await page.frameLocator('#app').locator('h1').waitFor({timeout:120000});}
   await ouvrir();const frame=page.frameLocator('#app');
   await frame.locator('[name=username]').fill('essai-pwa');
   await frame.locator('[name=password1]').fill('Phrase fictive navigateur-854!');
   await frame.locator('[name=password2]').fill('Phrase fictive navigateur-854!');
   await frame.getByRole('button',{name:'Créer mon compte et commencer'}).click();
-  await frame.getByRole('link',{name:'Créer une personne'}).click();
+  await rechercherPersonnes(frame);
+  await frame.getByRole('link',{name:'Nouveau dossier',exact:true}).click();
   await frame.locator('[name=designation]').fill('Personne fictive conservée');
-  await frame.getByRole('button',{name:'Enregistrer'}).click();
-  await frame.getByRole('heading',{name:'Personne fictive conservée'}).waitFor();
+  await frame.getByRole('button',{name:'Créer et ouvrir le dossier',exact:true}).click();
+  await frame.getByRole('heading',{name:'Dossier — Personne fictive conservée',exact:true}).waitFor();
   const autre=await context.newPage();await autre.goto(url);
   await autre.getByText('Cet espace est déjà ouvert dans un autre onglet.').waitFor();await autre.close();
   await context.setOffline(true);await page.reload();
@@ -64,10 +70,12 @@ const server=(tls?require('node:https'):http).createServer(options,(req,res)=>{
   await apres.locator('[name=username]').fill('essai-pwa');
   await apres.locator('[name=password]').fill('Phrase fictive navigateur-854!');
   await apres.getByRole('button',{name:'Se connecter'}).click();
-  await apres.getByRole('link',{name:'Personnes',exact:true}).click();
+  await rechercherPersonnes(apres);
   await apres.getByText('Personne fictive conservée').waitFor();
   // Le PDF doit être un téléchargement réel, y compris sans réseau.
   await apres.getByText('Personne fictive conservée',{exact:true}).click();
+  await apres.getByText('Identité et appartenances',{exact:true}).click();
+  await apres.getByRole('link',{name:'Consulter la fiche d’identité et ses corrections',exact:true}).click();
   const pdfFini=page.waitForEvent('download',{timeout:120000});
   await apres.getByRole('link',{name:'Télécharger la fiche PDF'}).click();
   const pdf=await pdfFini;
@@ -92,11 +100,11 @@ const server=(tls?require('node:https'):http).createServer(options,(req,res)=>{
   await df.getByRole('link',{name:/Déjeuner accordé du/}).click();
   await df.getByRole('heading',{name:'Réalisation effective : 2 repas distribués'}).waitFor();
   await require('./verifier-parcours-metier.cjs')(df);
-  await df.getByRole('link',{name:'Personnes',exact:true}).click();
-  await df.getByRole('link',{name:'Créer une personne'}).click();
+  await rechercherPersonnes(df);
+  await df.getByRole('link',{name:'Nouveau dossier',exact:true}).click();
   await df.locator('[name=designation]').fill('Essai séparé conservé');
-  await df.getByRole('button',{name:'Enregistrer'}).click();
-  await df.getByRole('heading',{name:'Essai séparé conservé'}).waitFor();
+  await df.getByRole('button',{name:'Créer et ouvrir le dossier',exact:true}).click();
+  await df.getByRole('heading',{name:'Dossier — Essai séparé conservé',exact:true}).waitFor();
   await page.locator('summary').click();
   const sauvegardeEssai=page.waitForEvent('download',{timeout:120000});
   await page.locator('#export').click();const zipEssai=await (await sauvegardeEssai).path();
@@ -117,7 +125,7 @@ with zipfile.ZipFile(sys.argv[1]) as z,tempfile.TemporaryDirectory() as t:
   await df.locator('[name=username]').fill('nadia');
   await df.locator('[name=password]').fill('Demonstration-fictive-2026!');
   await df.getByRole('button',{name:'Se connecter'}).click();
-  await df.getByRole('link',{name:'Personnes',exact:true}).click();
+  await rechercherPersonnes(df);
   await df.getByText('Essai séparé conservé',{exact:true}).waitFor();
   async function retrouverHabituel(){
    await changerEspace(false);
@@ -125,7 +133,7 @@ with zipfile.ZipFile(sys.argv[1]) as z,tempfile.TemporaryDirectory() as t:
    await f.locator('[name=username]').fill('essai-pwa');
    await f.locator('[name=password]').fill('Phrase fictive navigateur-854!');
    await f.getByRole('button',{name:'Se connecter'}).click();
-   await f.getByRole('link',{name:'Personnes',exact:true}).click();
+   await rechercherPersonnes(f);
    await f.getByText('Personne fictive conservée').waitFor();
    assert.equal(await f.getByText('Essai séparé conservé',{exact:true}).count(),0);
    assert.equal(await f.getByText('Alex (fictif)',{exact:true}).count(),0);
@@ -136,7 +144,7 @@ with zipfile.ZipFile(sys.argv[1]) as z,tempfile.TemporaryDirectory() as t:
   await df.locator('[name=username]').fill('nadia');
   await df.locator('[name=password]').fill('Demonstration-fictive-2026!');
   await df.getByRole('button',{name:'Se connecter'}).click();
-  await df.getByRole('link',{name:'Personnes',exact:true}).click();
+  await rechercherPersonnes(df);
   await df.getByText('Essai séparé conservé',{exact:true}).waitFor();
   await retrouverHabituel();
   await context.setOffline(false);
@@ -152,7 +160,7 @@ with zipfile.ZipFile(sys.argv[1]) as z,tempfile.TemporaryDirectory() as t:
   async function connexion(){
    const f=page.frameLocator('#app');await f.locator('[name=username]').waitFor({timeout:120000});
    await f.locator('[name=username]').fill('essai-pwa');await f.locator('[name=password]').fill('Phrase fictive navigateur-854!');
-   await f.getByRole('button',{name:'Se connecter'}).click();await f.getByRole('link',{name:'Personnes',exact:true}).click();
+   await f.getByRole('button',{name:'Se connecter'}).click();await rechercherPersonnes(f);
    await f.getByText('Personne fictive conservée').waitFor();
    // Le banc enchaîne plus de cinq connexions dans la même fenêtre fictive.
    // Réinitialisation par le protocole de test, jamais par le produit normal.
@@ -211,10 +219,10 @@ for mode in ['etranger','altere','future']:
  with zipfile.ZipFile(root/(mode+'.zip'),'w') as z:
   for n,b in v.items():z.writestr(n,b)
 `,copie,tmp]);
-   await page.frameLocator('#app').getByRole('link',{name:'Créer une personne'}).click();
+   await page.frameLocator('#app').getByRole('link',{name:'Nouveau dossier',exact:true}).click();
    await page.frameLocator('#app').locator('[name=designation]').fill('Personne fictive après copie');
-   await page.frameLocator('#app').getByRole('button',{name:'Enregistrer'}).click();
-   await page.frameLocator('#app').getByRole('heading',{name:'Personne fictive après copie'}).waitFor();
+   await page.frameLocator('#app').getByRole('button',{name:'Créer et ouvrir le dossier',exact:true}).click();
+   await page.frameLocator('#app').getByRole('heading',{name:'Dossier — Personne fictive après copie',exact:true}).waitFor();
    for(const [mode,texte] of [['etranger','autre application'],['altere','altéré'],['future','plus récente']]){
     await page.locator('#restore-file').setInputFiles(path.join(tmp,mode+'.zip'));
     await page.locator('#notice').filter({hasText:texte}).waitFor({timeout:120000});
@@ -223,7 +231,7 @@ for mode in ['etranger','altere','future']:
    await page.locator('#restore-file').setInputFiles(copie);
    await page.locator('#summary').filter({hasText:'1 personne(s)'}).waitFor({timeout:120000});
    await page.locator('#cancel').click();
-   await page.frameLocator('#app').getByRole('heading',{name:'Personne fictive après copie'}).waitFor();
+   await page.frameLocator('#app').getByRole('heading',{name:'Dossier — Personne fictive après copie',exact:true}).waitFor();
    await page.locator('#restore-file').setInputFiles(copie);
    await page.locator('#confirm').waitFor({state:'visible',timeout:120000});
    await page.locator('#confirm').click();await connexion();

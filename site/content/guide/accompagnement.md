@@ -22,8 +22,9 @@ Pour une nouvelle prestation, choisir explicitement sa période de suivi ; le
 modèle conserve actuellement ce rattachement. La rubrique **Suivi social et
 périodes de suivi** donne accès aux informations contextualisées.
 
-Les anciennes fiches **Personnes** et **Ménages et accompagnements** restent
-accessibles pour les opérations de gestion détaillée.
+Les opérations de gestion détaillée de l’identité, de la composition et des
+périodes de suivi restent accessibles depuis le dossier concerné. Le menu
+**Dossiers** est l’entrée commune aux vues ménage et personne.
 
 Le **Dossier** rassemble les bénéficiaires et les boîtes **Hébergement** et
 **Repas**. Hébergement montre tous les séjours, ouverts puis terminés, et les

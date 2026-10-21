@@ -1,3 +1,10 @@
+## BD4 — navigation principale unifiée
+
+- Retrait des menus Personnes et Ménages et accompagnements ; entrée commune
+  Dossiers, avec les fonctions de gestion accessibles depuis le dossier.
+- Recette PWA adaptée à la recherche et à la création depuis cette entrée,
+  y compris copie, restauration, fonctionnement hors ligne et téléchargement PDF.
+
 ## BD4 — chercher puis ouvrir un dossier
 
 - Recherche centrale dès l’accueil : ménages ou personnes, filtrage dynamique
