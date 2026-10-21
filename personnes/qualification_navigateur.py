@@ -113,6 +113,59 @@ class ProfilsNavigateur(LiveServerTestCase):
         self.assertEqual(page.locator('main').count(), 1)
 
 
+class DossierPersonneMenageNavigateur(LiveServerTestCase):
+    """Parcours réel de rattachement, retours et contrôle des permissions."""
+
+    setUp = ProfilsNavigateur.setUp
+    profil = ProfilsNavigateur.profil
+    navigateur = ProfilsNavigateur.navigateur
+
+    def test_fiche_choix_rattachement_et_accompagnement(self):
+        from .models import Personne, Appartenance
+        autre = Personne.objects.create(
+            designation='Autre personne fictive', cree_par=self.u)
+        self.profil('view_personne', 'view_menage', 'view_accompagnement',
+                    'add_appartenance')
+        page = self.navigateur()
+        fiche = self.live_server_url + reverse('personnes:detail', args=[autre.pk])
+        page.goto(fiche)
+        page.get_by_role('heading', name=autre.designation).wait_for()
+        page.get_by_role('link', name='Rattacher cette personne à un ménage existant').click()
+        page.get_by_text('Rattacher', exact=False).first.wait_for()
+        page.get_by_role('link', name='Retour à sa fiche').click()
+        self.assertEqual(page.url, fiche)
+        page.get_by_role('link', name='Rattacher cette personne à un ménage existant').click()
+        lien = page.get_by_role('link', name='Rattacher à ce ménage')
+        self.assertIn('personne=' + str(autre.pk), lien.get_attribute('href'))
+        lien.click()
+        self.assertEqual(page.locator('select[name="personne"]').input_value(), str(autre.pk))
+        page.get_by_role('link', name='Retour au ménage').click()
+        self.assertEqual(page.url, self.live_server_url + reverse('suivi:detail', args=[self.m.pk]))
+        page.goto(self.live_server_url + reverse('suivi:liste') + '?personne=' + str(autre.pk))
+        page.get_by_role('link', name='Rattacher à ce ménage').click()
+        page.locator('input[name="debut"]').fill('2026-01-02')
+        page.get_by_role('button', name='Enregistrer').click()
+        self.assertEqual(page.url, self.live_server_url + reverse('suivi:detail', args=[self.m.pk]))
+        self.assertTrue(Appartenance.objects.filter(menage=self.m, personne=autre).exists())
+        page.get_by_role('link', name=autre.designation).click()
+        self.assertEqual(page.url, fiche)
+        page.get_by_role('link', name=self.m.libelle).first.click()
+        page.get_by_role('link', name='Ouvrir la fiche d’accompagnement').click()
+        page.get_by_role('heading', name='Accompagnement — ' + self.m.libelle).wait_for()
+        page.get_by_role('link', name='Ménage ' + self.m.libelle).click()
+        self.assertEqual(page.url, self.live_server_url + reverse('suivi:detail', args=[self.m.pk]))
+        # Sans le droit d'ajouter une appartenance, ni lien ni accès direct.
+        self.profil('view_personne', 'view_menage', 'view_accompagnement')
+        page.goto(fiche)
+        self.assertEqual(page.get_by_role('link', name='Rattacher cette personne à un ménage existant').count(), 0)
+        self.assertEqual(page.goto(self.live_server_url + reverse('suivi:ajouter', args=[self.m.pk])).status, 403)
+        # Sans le droit de voir les accompagnements, pas de lien ni d'accès direct.
+        self.profil('view_personne', 'view_menage')
+        page.goto(fiche)
+        self.assertEqual(page.get_by_role('heading', name='Accompagnements').count(), 0)
+        self.assertEqual(page.goto(self.live_server_url + reverse('suivi:accompagnement', args=[self.a.pk])).status, 403)
+
+
 class CycleHebergementNavigateur(LiveServerTestCase):
     """Recette Chromium du séjour fictif : actions réelles et historique conservé."""
 
