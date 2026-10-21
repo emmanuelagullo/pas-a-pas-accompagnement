@@ -2,6 +2,7 @@ from datetime import date
 from io import StringIO
 from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier
+from time import sleep
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
@@ -89,11 +90,19 @@ class ConcurrenceHebergement(Donnees,TransactionTestCase):
                 # Charger les droits avant le départ des transactions métier.
                 u.get_all_permissions()
                 depart.wait(10)
-                try:
-                    h.ajouter_periode(u,self.s,date(2026,1,3),None,self.lieu)
-                    return (True, None)
-                except (ValidationError, OperationalError) as erreur:
-                    return (False, f"{type(erreur).__name__}: {erreur}")
+                # SQLite peut refuser les deux écritures simultanées avec
+                # « database table is locked ». Rejouer uniquement ce conflit
+                # transitoire, après rollback de la transaction métier.
+                for tentative in range(6):
+                    try:
+                        h.ajouter_periode(u,self.s,date(2026,1,3),None,self.lieu)
+                        return (True, None)
+                    except ValidationError as erreur:
+                        return (False, f"ValidationError: {erreur}")
+                    except OperationalError as erreur:
+                        if connections['default'].vendor != 'sqlite' or 'locked' not in str(erreur).lower() or tentative == 5:
+                            return (False, f"OperationalError: {erreur}")
+                        sleep(0.01 * (tentative + 1))
             finally:connections.close_all()
         with ThreadPoolExecutor(max_workers=2) as pool:
             tentatives = list(pool.map(essayer, range(2)))
