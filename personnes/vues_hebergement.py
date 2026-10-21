@@ -40,7 +40,9 @@ def accorder(request, pk):
 def detail(request, pk):
     h.droit(request.user, "view_sejour")
     accord = get_object_or_404(AccordHebergement.objects.select_related("accompagnement__menage"),pk=pk)
-    return render(request,"hebergement/detail.html", {"accord":accord,
+    from .hebergement_collectif import ACTIONS
+    actions_collectives = any(request.user.has_perms(["personnes." + d for d in droits]) for _, droits in ACTIONS.values())
+    return render(request,"hebergement/detail.html", {"accord":accord, "actions_collectives": actions_collectives,
         "aujourdhui": timezone.localdate(),
         "sejours":accord.sejours.prefetch_related("beneficiaires", "affectations__lieu", "absences").order_by("debut"),
         "operations":accord.operations.select_related("auteur") if request.user.has_perm("personnes.view_operationhebergement") else []})

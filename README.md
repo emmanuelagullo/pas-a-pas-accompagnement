@@ -683,3 +683,17 @@ ne participe pas au cumul. Les quantités restent des repas effectivement distri
 à cette personne pour ce service ; les statistiques additionnent ces quantités,
 pas des personnes uniques. Les doublons sous un même accord restent refusés,
 les lots restent atomiques et une case vide ne distribue rien.
+
+
+## CHRS25-08 — actions sur les séjours sélectionnés
+
+Depuis l’accord d’hébergement, sélectionner explicitement les séjours ouverts
+pour affecter/changer de lieu, enregistrer une absence, un retour ou une sortie.
+La date est commune ; les actions disponibles dépendent des droits existants.
+Une affectation ouverte est close puis remplacée ; sans affectation, elle est
+simplement créée. Le retour exige une absence ouverte pour chaque séjour choisi.
+Le lot entier et ses journaux sont annulés au premier échec. Le jeton d’état
+refuse une sélection dont les séjours ont changé depuis l’ouverture du formulaire.
+Un ancien séjour collectif reste collectif : aucune conversion de l’historique.
+Les mouvements sans nuitée ou intrajournaliers peuvent être précisés dans une
+note, sans déplacer artificiellement les dates civiles ni générer des nuitées.
