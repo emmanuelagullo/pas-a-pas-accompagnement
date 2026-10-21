@@ -34,3 +34,17 @@ textarea { display: block; width: 100%; max-width: 45rem; min-height: 8rem; font
 select { max-width: 100%; font: inherit; padding: .4rem; }
 form ul { padding-left: 1.2rem; }
 form li { margin-bottom: 1rem; }
+
+/* Dossier d'accompagnement : listes complètes, actions de la sélection, sans JS. */
+.dossier-boites { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; align-items: start; }
+.dossier-boites .dossier-boite { max-width: none; min-width: 0; margin: 0; padding: 1rem; }
+.dossier-boites fieldset { border: 0; padding: 0; min-width: 0; }
+.dossier-lignes { list-style: none; padding: 0; }
+.dossier-lignes li { padding: .65rem; border: 1px solid #cadbd3; margin: .5rem 0; border-radius: .3rem; }
+.dossier-lignes .selectionnee { border: 2px solid #175c50; padding: calc(.65rem - 1px); background: #f4f7f5; }
+.dossier-lignes label { font-weight: 400; cursor: pointer; }
+.dossier-detail { display: block; overflow-wrap: anywhere; }
+.dossier-actions { border-top: 1px solid #cadbd3; margin-top: 1rem; padding-top: .5rem; }
+.dossier-actions nav { gap: .65rem 1rem; }
+.dossier-identite { max-width: none; }
+@media (max-width: 48rem) { .dossier-boites { grid-template-columns: minmax(0, 1fr); } }

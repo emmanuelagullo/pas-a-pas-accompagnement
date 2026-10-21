@@ -1,3 +1,12 @@
+## BD1–BD2 — dossier et navigation
+
+- Dossier d’accompagnement : tous les séjours et périodes de repas, sélection
+  explicite et actions selon les droits et l’état.
+- Retours depuis les formulaires et pages liées avec sélections conservées,
+  recherche et date de travail si transmises.
+- Services, historiques, contrôles de concurrence et anciens parcours conservés ;
+  aucune migration, prolongation dédiée ou annulation d’accord nouvelle.
+
 ## CHRS26 — parcours quotidiens et rapports
 
 - Actions d’hébergement adaptées aux périodes enregistrées et aux séjours clos.

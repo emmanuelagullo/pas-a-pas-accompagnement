@@ -1,3 +1,4 @@
+from . import dossier
 from django import forms
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
@@ -52,7 +53,7 @@ def corriger(request,nature,pk):
             form.fields['fin'].disabled=True;form.fields['source'].required=True
         else:del form.fields['source']
         action=lambda **d:c.periode(request.user,objet,**d)
-    return traiter_hebergement(request,form,'Corriger une saisie — '+objet._meta.verbose_name,action,c.menage_de(objet),retour=retour)
+    return traiter_hebergement(request,form,'Corriger une saisie — '+objet._meta.verbose_name,action,c.menage_de(objet),accompagnement=a,retour=retour)
 
 
 @require_safe
@@ -72,4 +73,4 @@ def historique(request,pk):
     if not (request.user.has_perm('personnes.view_correctionperiode') or request.user.has_perm('personnes.view_revisiontextesocial')):
         from django.core.exceptions import PermissionDenied
         raise PermissionDenied
-    return render(request,'suivi/corrections.html',{'accompagnement':a,'periodes':periodes,'textes':textes})
+    return render(request,'suivi/corrections.html',{**dossier.lire(request, a),'accompagnement':a,'periodes':periodes,'textes':textes})

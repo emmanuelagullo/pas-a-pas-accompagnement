@@ -7,7 +7,7 @@ from django.views.decorators.http import require_safe,require_http_methods
 from .models import Accompagnement,SituationSociale
 from .forms_social import SituationForm,CorrectionForm,EvenementForm,BilanForm,ConsultationForm
 from .vues_hebergement import traiter_hebergement
-from . import social
+from . import social, dossier
 
 
 @require_safe
@@ -16,8 +16,8 @@ def detail(request,pk):
     social.droit(request.user,"view_situationsociale")
     a=get_object_or_404(Accompagnement,pk=pk)
     jour=timezone.localdate()
-    form=ConsultationForm(request.GET if request.GET else None,initial={"date":jour})
-    if request.GET:
+    form=ConsultationForm(request.GET if "date" in request.GET else None,initial={"date":jour})
+    if "date" in request.GET:
         jour=form.cleaned_data["date"] if form.is_valid() else None
     valeurs=social.etat_date(a,jour) if jour else []
     histoire=[]
@@ -38,7 +38,7 @@ def detail(request,pk):
         for sejour in Sejour.objects.filter(accord__accompagnement=a).select_related("cree_par").prefetch_related("beneficiaires"):
             histoire.append({"date":sejour.debut,"enregistre":sejour.cree_le,"type":"Séjour","objet":sejour})
     histoire.sort(key=lambda x:(x["date"],x["enregistre"]))
-    return render(request,"social/detail.html",{"accompagnement":a,"form":form,"valeurs":valeurs,"histoire":histoire,
+    return render(request,"social/detail.html",{**dossier.lire(request, a),"accompagnement":a,"form":form,"valeurs":valeurs,"histoire":histoire,
         "dimensions":SituationSociale.DIMENSIONS,"jour":jour,
         "operations":a.operations_sociales.select_related("auteur") if request.user.has_perm("personnes.view_operationsociale") else []})
 
@@ -51,7 +51,7 @@ def renseigner(request,pk,dimension):
     a=get_object_or_404(Accompagnement,pk=pk)
     form=SituationForm(request.POST if request.method == "POST" else None,accompagnement=a,dimension=dimension,
         initial={"attendu": social.jeton_situations(a)})
-    return traiter_hebergement(request,form,"Renseigner : "+dict(SituationSociale.DIMENSIONS)[dimension],lambda **d:social.renseigner(request.user,a,dimension=dimension,**d),a.menage, retour=reverse("suivi:social", args=[a.pk]))
+    return traiter_hebergement(request,form,"Renseigner : "+dict(SituationSociale.DIMENSIONS)[dimension],lambda **d:social.renseigner(request.user,a,dimension=dimension,**d),a.menage, accompagnement=a, retour=reverse("suivi:social", args=[a.pk]))
 
 
 @require_http_methods(["GET","POST"])
@@ -61,7 +61,7 @@ def corriger(request,pk):
     s=get_object_or_404(SituationSociale.objects.select_related("accompagnement__menage"),pk=pk)
     form=CorrectionForm(request.POST if request.method == "POST" else None,dimension=s.dimension,
         initial={"valeur": s.valeur, "attendu": social.jeton_valeur(s)})
-    return traiter_hebergement(request,form,"Corriger une valeur sans changer sa date",lambda **d:social.corriger(request.user,s,**d),s.accompagnement.menage, retour=reverse("suivi:social", args=[s.accompagnement_id]))
+    return traiter_hebergement(request,form,"Corriger une valeur sans changer sa date",lambda **d:social.corriger(request.user,s,**d),s.accompagnement.menage, accompagnement=s.accompagnement, retour=reverse("suivi:social", args=[s.accompagnement_id]))
 
 
 @require_http_methods(["GET","POST"])
@@ -72,4 +72,4 @@ def ecrire(request,pk,nature):
     a=get_object_or_404(Accompagnement,pk=pk)
     form=EvenementForm(request.POST or None,accompagnement=a) if nature=="evenement" else BilanForm(request.POST or None)
     action=social.evenement if nature=="evenement" else social.bilan
-    return traiter_hebergement(request,form,"Enregistrer un événement" if nature=="evenement" else "Enregistrer un bilan court",lambda **d:action(request.user,a,**d),a.menage, retour=reverse("suivi:social", args=[a.pk]))
+    return traiter_hebergement(request,form,"Enregistrer un événement" if nature=="evenement" else "Enregistrer un bilan court",lambda **d:action(request.user,a,**d),a.menage, accompagnement=a, retour=reverse("suivi:social", args=[a.pk]))

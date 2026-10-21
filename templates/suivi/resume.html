@@ -1,6 +1,6 @@
-{% load static %}<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+{% load dossier %}{% load static %}<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Résumé d’accompagnement — {{ accompagnement.menage }}</title><link rel="stylesheet" href="{% static 'resume.css' %}"></head><body>
-<nav><a href="{% url 'suivi:accompagnement' accompagnement.pk %}">Retour à l’accompagnement</a><p>Utilisez la commande Imprimer de votre navigateur pour imprimer ou enregistrer en PDF.</p></nav><main id="contenu">
+<nav><a href="{% dossier_url 'suivi:accompagnement' accompagnement.pk %}">Retour à l’accompagnement</a><p>Utilisez la commande Imprimer de votre navigateur pour imprimer ou enregistrer en PDF.</p></nav><main id="contenu">
 <h1>Résumé d’accompagnement — {{ accompagnement.menage }}</h1><p><strong>Prototype — données fictives uniquement.</strong></p>
 <p>Édité le {{ edite_le|date:"d/m/Y H:i" }}. Dates civiles : début inclus, fin exclue. Une autorisation ne prouve pas une réalisation.</p>
 <h2>Personnes accompagnées</h2><ul>{% for p in accompagnement.beneficiaires.all %}<li>{{ p }} — naissance : {{ p.naissance_affichee }}</li>{% endfor %}</ul>

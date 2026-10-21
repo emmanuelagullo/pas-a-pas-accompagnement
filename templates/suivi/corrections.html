@@ -1,4 +1,4 @@
-{% extends "base.html" %}{% block contenu %}<h1>Corrections — {{ accompagnement.menage }}</h1>
+{% extends "base.html" %}{% load dossier %}{% block contenu %}{% include "suivi/_retour_dossier.html" %}<h1>Corrections — {{ accompagnement.menage }}</h1>
 <p>Les valeurs ci-dessous décrivent la saisie avant et après chaque correction. Les opérations d’origine restent dans leurs journaux.</p>
 <h2>Dates et sources</h2><ul>{% for c in periodes %}<li>{{ c.nature }} — enregistré {{ c.enregistre_le }} par {{ c.auteur }}.
 <p>Avant : {{ c.ancien_debut }} / {{ c.ancienne_fin|default:"sans fin" }}{% if c.ancienne_source %} — {{ c.ancienne_source }}{% endif %}.</p>
@@ -6,4 +6,4 @@
 <h2>Événements et bilans</h2><ul>{% for c in textes %}<li>Enregistré {{ c.enregistre_le }} par {{ c.auteur }}.
 <p>Avant ({{ c.ancienne_date }}) : {{ c.ancien_texte|linebreaksbr }} — {{ c.ancienne_source }}</p>
 <p>Après ({{ c.nouvelle_date }}) : {{ c.nouveau_texte|linebreaksbr }} — {{ c.nouvelle_source }}</p><p>Motif : {{ c.motif }}</p></li>{% empty %}<li>Aucune révision accessible.</li>{% endfor %}</ul>
-<a href="{% url 'suivi:accompagnement' accompagnement.pk %}">Retour à l’accompagnement</a>{% endblock %}
+<a href="{% dossier_url 'suivi:accompagnement' accompagnement.pk %}">Retour à l’accompagnement</a>{% endblock %}

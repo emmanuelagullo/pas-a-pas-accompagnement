@@ -12,6 +12,7 @@ from .models import Personne, Menage, Appartenance, Accompagnement, CorrectionPe
 from .forms_suivi import MenageForm, AppartenanceForm, AccompagnementForm, ClotureForm
 from . import suivi
 from .retour_service import date_service
+from . import dossier
 
 
 @require_safe
@@ -38,14 +39,17 @@ def liste(request):
 @permission_required(("personnes.view_menage", "personnes.view_personne"), raise_exception=True)
 def detail(request, pk):
     menage = get_object_or_404(Menage, pk=pk)
-    return render(request, "suivi/detail.html", {"menage": menage,
+    return render(request, "suivi/detail.html", {"recherche_dossier": request.GET.get("q", "")[:160], "page_dossier": request.GET.get("page", "1")[:8], "menage": menage,
         "corrections_appartenances": CorrectionPeriode.objects.filter(menage=menage, nature="appartenance").select_related("auteur") if request.user.has_perm("personnes.view_correctionperiode") else [],
         "appartenances": menage.appartenances.select_related("personne").order_by("debut", "pk"),
         "accompagnements": menage.accompagnements.prefetch_related("beneficiaires") if request.user.has_perm("personnes.view_accompagnement") else [],
         "evenements": menage.evenements.select_related("auteur") if request.user.has_perm("personnes.view_evenementsuivi") else []})
 
 
-def traiter(request, formulaire, titre, action, menage=None, retour=None, sejour=None):
+def traiter(request, formulaire, titre, action, menage=None, retour=None, sejour=None, accompagnement=None):
+    if accompagnement is None and sejour is not None:
+        accompagnement = sejour.accord.accompagnement
+    navigation = dossier.lire(request, accompagnement)
     if request.method == "POST" and formulaire.is_valid():
         try:
             resultat = action(**formulaire.cleaned_data)
@@ -53,10 +57,12 @@ def traiter(request, formulaire, titre, action, menage=None, retour=None, sejour
             formulaire.add_error(None, " ".join(erreur.messages))
         else:
             messages.success(request, "Enregistrement effectué.")
+            if navigation:
+                return redirect(navigation["retour_dossier"])
             if retour:
                 return redirect(retour(resultat) if callable(retour) else retour)
             return redirect("suivi:detail", pk=menage.pk if menage else resultat.pk)
-    return render(request, "suivi/form.html", {"form": formulaire, "titre": titre, "menage": menage, "sejour": sejour, "retour": retour if isinstance(retour, str) else None,
+    return render(request, "suivi/form.html", {**navigation, "accompagnement_cible": accompagnement, "form": formulaire, "titre": titre, "menage": menage, "sejour": sejour, "retour": navigation.get("retour_dossier") or (retour if isinstance(retour, str) else None),
         "retour_jour": (request.POST.get("retour") or request.GET.get("retour")) == "jour",
         "date_service": date_service(request.POST.get("date_service") or request.GET.get("date_service"))})
 
@@ -119,7 +125,7 @@ def clore(request, pk, type_objet, objet_pk):
         suivi.exiger(request.user, "change_appartenance")
         modele = Appartenance
     objet = get_object_or_404(modele, pk=objet_pk, menage_id=pk)
-    return traiter(request, ClotureForm(request.POST or None), "Clôturer la période", lambda **d: suivi.clore(request.user, objet, **d), objet.menage, retour=reverse("suivi:accompagnement", args=[objet.pk]) if type_objet == "accompagnement" else None)
+    return traiter(request, ClotureForm(request.POST or None), "Clôturer la période", lambda **d: suivi.clore(request.user, objet, **d), objet.menage, accompagnement=objet if type_objet == "accompagnement" else None, retour=reverse("suivi:accompagnement", args=[objet.pk]) if type_objet == "accompagnement" else None)
 
 
 @require_safe
@@ -127,10 +133,5 @@ def clore(request, pk, type_objet, objet_pk):
 @permission_required(("personnes.view_personne", "personnes.view_menage", "personnes.view_accompagnement"), raise_exception=True)
 def accompagnement(request, pk):
     a = get_object_or_404(Accompagnement.objects.select_related("menage").prefetch_related("beneficiaires"), pk=pk)
-    droits = request.user
-    return render(request, "suivi/accompagnement.html", {
-        "accompagnement": a,
-        "informations": a.informations.select_related("auteur") if droits.has_perm("personnes.view_informationsaccompagnement") else [],
-        "accords_repas": a.accords_repas.prefetch_related("beneficiaires") if droits.has_perms(["personnes.view_accordrepas", "personnes.view_repasdistribue"]) else [],
-        "accords_hebergement": a.accords_hebergement.prefetch_related("beneficiaires", "sejours") if droits.has_perms(["personnes.view_accordhebergement", "personnes.view_sejour"]) else [],
-    })
+    from .lecture_dossier import contexte
+    return render(request, "suivi/accompagnement.html", contexte(request, a))

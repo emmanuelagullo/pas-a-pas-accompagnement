@@ -5,7 +5,7 @@
 {% if perms.personnes.add_appartenance %}<a href="{% url 'suivi:ajouter' menage.pk %}">Ajouter une appartenance</a>{% endif %}
 {% if perms.personnes.view_accompagnement %}<h2>Accompagnements — service d’essai</h2>
 <p>Les bénéficiaires enregistrés restent indépendants de la composition actuelle du ménage.</p>
-<ul>{% for a in accompagnements %}<li><a href="{% url 'suivi:accompagnement' a.pk %}">Ouvrir la fiche d’accompagnement</a> — Du {{ a.debut }} au {{ a.fin|default:"— période ouverte" }} (fin exclue) : {% for p in a.beneficiaires.all %}{{ p }}{% if not forloop.last %}, {% endif %}{% endfor %}
+<ul>{% for a in accompagnements %}<li><a href="{% url 'suivi:accompagnement' a.pk %}?q={{ recherche_dossier|urlencode }}&amp;page={{ page_dossier|urlencode }}">Ouvrir la fiche d’accompagnement</a> — Du {{ a.debut }} au {{ a.fin|default:"— période ouverte" }} (fin exclue) : {% for p in a.beneficiaires.all %}{{ p }}{% if not forloop.last %}, {% endif %}{% endfor %}
 {% if perms.personnes.view_accordrepas and perms.personnes.view_repasdistribue %}<ul>{% for accord in a.accords_repas.all %}<li><a href="{% url 'suivi:accord_repas' accord.pk %}">{{ accord.get_service_display }} accordé du {{ accord.debut }} au {{ accord.fin|default:"—" }} (fin exclue)</a></li>{% endfor %}</ul>{% endif %}
 {% if perms.personnes.add_accordrepas and perms.personnes.view_accordrepas %}<a href="{% url 'suivi:accorder_repas' a.pk %}">Accorder des repas</a>{% endif %}
 {% if perms.personnes.view_accordhebergement and perms.personnes.view_sejour %}<ul>{% for accord in a.accords_hebergement.all %}<li><a href="{% url 'suivi:accord_hebergement' accord.pk %}">Hébergement accordé du {{ accord.debut }} au {{ accord.fin|default:"—" }}</a></li>{% endfor %}</ul>{% endif %}

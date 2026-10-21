@@ -793,3 +793,35 @@ Ils ne déclenchent pas les calculs de nuitées dont ils n’ont pas besoin.
 La consultation des lieux et de leurs nuitées exige les droits de lecture des
 lieux et des affectations. Sans eux, aucun nom de lieu n’est proposé et l’accès
 direct au rapport ou à son export est refusé, même depuis un modèle enregistré.
+
+## BD1–BD2 — dossier et retours contextuels
+
+La fiche d’accompagnement devient le **Dossier**. Le libellé du ménage reste
+le repère ; aucune personne de référence n’est déduite ou ajoutée. Les
+bénéficiaires du suivi restent nommés et ne sont pas recalculés depuis la
+composition courante du ménage. Plusieurs suivis restent des choix distincts.
+
+Les boîtes Hébergement et Repas montrent tous les séjours et toutes les périodes
+accordées de cet accompagnement. Choisir une ligne puis **Afficher les actions**
+conserve aussi la sélection de l’autre boîte. Les séjours ouverts précèdent les
+séjours terminés ; les accords sans admission restent accessibles séparément.
+Les lieux et absences sont affichés seulement avec leurs droits de lecture.
+
+Les actions ouvrent les vues existantes : accord, admission, affectation,
+absence/retour, sortie, notes, distribution et corrections motivées. Le lien de
+retour et les formulaires conservent les sélections ; une saisie réussie depuis
+le dossier y revient. Une saisie ouverte par une ancienne URL garde son retour
+habituel. La recherche des ménages et sa page sont conservées lorsqu’on passe
+par ce parcours. La date d’un travail du jour transmis au dossier reste un
+contexte de navigation, pas une photographie historique du dossier.
+
+Aucun JavaScript, modèle, migration, droit ou service d’écriture nouveau.
+Un contexte signé de navigation, valable un jour, est vérifié contre
+l’accompagnement de l’objet effectivement consulté ; il ne remplace ni les
+permissions ni les jetons métier de concurrence. Une sélection étrangère,
+invalide ou devenue invisible est ignorée. L’expiration laisse les parcours
+habituels accessibles, sans redirection arbitraire.
+
+Les prolongations dédiées et annulations d’accords ne font pas partie de ce lot.
+Les corrections d’erreurs et annulations de distributions existantes restent
+tracées. Le jeu Les Passerelles et les anciens séjours collectifs sont conservés.

@@ -1,3 +1,4 @@
+from . import dossier
 """Vue dédiée à la trajectoire, sans exposer les informations non autorisées."""
 from django import forms
 from django.contrib.auth.decorators import login_required
@@ -52,6 +53,6 @@ def detail(request, pk):
         if date_initiale <= date_finale:
             comparaison = trajectoire.comparer(accompagnement, beneficiaire, date_initiale, date_finale)
     return render(request, 'social/trajectoire.html', {
-        'accompagnement': accompagnement, 'form': form, 'lignes': lignes,
+        **dossier.lire(request, accompagnement), 'accompagnement': accompagnement, 'form': form, 'lignes': lignes,
         'comparaison': comparaison,
     })

@@ -1,3 +1,4 @@
+from . import dossier
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
@@ -14,7 +15,7 @@ def resume(request, pk):
     a = get_object_or_404(Accompagnement.objects.select_related('menage').prefetch_related('beneficiaires'), pk=pk)
     lecture_repas = request.user.has_perms(['personnes.view_accordrepas', 'personnes.view_repasdistribue'])
     lecture_sejours = request.user.has_perms(['personnes.view_accordhebergement', 'personnes.view_sejour'])
-    return render(request, 'suivi/resume.html', {'accompagnement': a, 'edite_le': timezone.localtime(),
+    return render(request, 'suivi/resume.html', {**dossier.lire(request, a), 'accompagnement': a, 'edite_le': timezone.localtime(),
         'information': a.informations.select_related('auteur').first() if request.user.has_perm('personnes.view_informationsaccompagnement') else None,
         'accords_repas': a.accords_repas.prefetch_related('beneficiaires') if lecture_repas else [],
         'sejours': Sejour.objects.filter(accord__accompagnement=a).select_related('accord').prefetch_related(

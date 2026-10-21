@@ -8,7 +8,7 @@ from django.db import OperationalError
 from django.contrib import messages
 from .models import Accompagnement, LieuHebergement
 from .forms_hebergement import AccordForm, date_champ
-from . import admission, hebergement as h
+from . import admission, hebergement as h, dossier
 
 
 class AdmissionGuideeForm(AccordForm):
@@ -38,6 +38,7 @@ def accueillir(request, pk):
         acteur=request.user, beneficiaires=a.beneficiaires.all(), initial={'debut': max(a.debut, jour),
             'admission': max(a.debut, jour), 'beneficiaires': list(a.beneficiaires.values_list('pk', flat=True)),
             'attendu': admission.jeton(a)})
+    navigation = dossier.lire(request, a)
     statut = 200
     if request.method == 'POST' and form.is_valid():
         try:
@@ -50,5 +51,5 @@ def accueillir(request, pk):
             statut = 409
         else:
             messages.success(request, 'Accord et admissions enregistrés ; aucun repas n’a été créé.')
-            return redirect('suivi:accord_hebergement', pk=accord.pk)
-    return render(request, 'hebergement/admission_guidee.html', {'accompagnement': a, 'form': form}, status=statut)
+            return redirect(navigation['retour_dossier']) if navigation else redirect('suivi:accord_hebergement', pk=accord.pk)
+    return render(request, 'hebergement/admission_guidee.html', {**navigation, 'accompagnement': a, 'form': form}, status=statut)

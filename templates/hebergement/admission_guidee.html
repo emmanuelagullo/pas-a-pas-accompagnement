@@ -1,6 +1,6 @@
-{% extends "base.html" %}{% block contenu %}<h1>Accorder et enregistrer une admission</h1>
+{% extends "base.html" %}{% load dossier %}{% block contenu %}{% include "suivi/_retour_dossier.html" %}<h1>Accorder et enregistrer une admission</h1>
 <p>Accompagnement de {{ accompagnement.menage }}.</p>
 <p>Cette opération crée un nouvel accord d’hébergement, un séjour distinct pour chaque personne sélectionnée et, si vous le choisissez, une première affectation. L’accord et l’admission peuvent avoir des dates différentes.</p>
 <p>Si l’autorisation est déjà saisie, revenez à l’accompagnement et ouvrez cet accord pour y enregistrer l’admission. Aucun repas ni droit supplémentaire n’est créé ici.</p>
-<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Créer l’accord et enregistrer les admissions</button></form>
-<p><a href="{% url 'suivi:accompagnement' accompagnement.pk %}">Annuler et revenir à l’accompagnement</a></p>{% endblock %}
+<form method="post">{% csrf_token %}{% include "suivi/_contexte_dossier.html" %}{{ form.as_p }}<button type="submit">Créer l’accord et enregistrer les admissions</button></form>
+<p><a href="{% dossier_url 'suivi:accompagnement' accompagnement.pk %}">Annuler et revenir à l’accompagnement</a></p>{% endblock %}

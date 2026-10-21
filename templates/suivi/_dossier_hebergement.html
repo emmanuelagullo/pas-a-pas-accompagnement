@@ -1,0 +1,32 @@
+{% load dossier %}
+<section class="carte dossier-boite" id="hebergement"><h2>Hébergement</h2>
+<p>Tous les séjours de cet accompagnement, ouverts puis terminés. Un séjour ouvert ne prouve pas la présence physique.</p>
+{% if perms.personnes.add_accordhebergement and perms.personnes.add_sejour %}<p><a href="{% dossier_url 'suivi:admission_guidee' accompagnement.pk %}">Accorder et enregistrer une admission</a></p>{% endif %}
+{% if perms.personnes.add_accordhebergement %}<p><a href="{% dossier_url 'suivi:accorder_hebergement' accompagnement.pk %}">Accorder un hébergement sans admission</a></p>{% endif %}
+{% if sejours_dossier %}<form method="get" action="#hebergement">
+{% include "suivi/_contexte_dossier.html" %}{% if selection_repas %}<input type="hidden" name="repas" value="{{ selection_repas.pk }}">{% endif %}
+<fieldset><legend>Choisir un séjour</legend><ul class="dossier-lignes">
+{% for s in sejours_dossier %}<li{% if s.pk == selection_sejour.pk %} class="selectionnee"{% endif %}>
+<label><input type="radio" name="sejour" value="{{ s.pk }}"{% if s.pk == selection_sejour.pk %} checked{% endif %}>
+<strong>{% if s.fin %}Terminé{% elif s.debut > aujourdhui %}À venir{% else %}En cours{% endif %}</strong> — {% include "suivi/periode.html" with periode=s %}
+<span class="dossier-detail">{% for p in s.beneficiaires.all %}{{ p }}{% if not forloop.last %} ; {% endif %}{% endfor %}</span>
+{% if lecture_lieux %}<span class="dossier-detail">{% if s.lieu_ouvert %}Lieu actuellement affecté : {{ s.lieu_ouvert.lieu }}{% elif s.lieux_dossier %}Dernier lieu enregistré : {{ s.lieux_dossier.0.lieu }}{% else %}Aucun lieu enregistré.{% endif %}</span>{% endif %}
+{% if s.absence_ouverte %}<span class="dossier-detail">Absence ouverte depuis le {{ s.absence_ouverte.debut|date:"d/m/Y" }}.</span>{% endif %}</label>
+</li>{% endfor %}</ul></fieldset><button type="submit" class="secondaire">Afficher les actions du séjour choisi</button></form>
+{% with s=selection_sejour %}<div class="dossier-actions"><h3>Séjour sélectionné du {{ s.debut|date:"d/m/Y" }}</h3>
+<p>Bénéficiaires : {% for p in s.beneficiaires.all %}{{ p }}{% if not forloop.last %} ; {% endif %}{% endfor %}. Les actions concernent tous les bénéficiaires de ce séjour.</p>
+<p>Accord associé : {% include "suivi/periode.html" with periode=s.accord %}.</p>
+<nav aria-label="Actions du séjour sélectionné">
+<a href="{% dossier_url 'suivi:accord_hebergement' s.accord_id %}#sejour-{{ s.pk }}">Ouvrir le séjour et son accord</a>
+{% if perms.personnes.change_sejour and perms.personnes.view_correctionperiode %}<a href="{% dossier_url 'suivi:corriger_saisie' 'sejour' s.pk %}">Corriger les dates du séjour</a>{% endif %}
+{% if perms.personnes.change_accordhebergement and perms.personnes.view_correctionperiode %}<a href="{% dossier_url 'suivi:corriger_saisie' 'accordhebergement' s.accord_id %}">Corriger les dates de l’accord</a>{% endif %}
+{% if not s.fin %}
+{% if s.lieu_ouvert and perms.personnes.change_affectation and perms.personnes.add_affectation and lecture_lieux %}<a href="{% dossier_url 'suivi:changer_lieu' s.lieu_ouvert.pk %}">Changer de lieu</a>{% elif not s.lieu_ouvert and perms.personnes.add_affectation and lecture_lieux %}<a href="{% dossier_url 'suivi:affecter' s.pk %}">Affecter un lieu</a>{% endif %}
+{% if perms.personnes.view_absence %}{% if s.absence_ouverte and perms.personnes.change_absence %}<a href="{% dossier_url 'suivi:clore_absence' s.absence_ouverte.pk %}">Enregistrer le retour d’absence</a>{% elif not s.absence_ouverte and perms.personnes.add_absence %}<a href="{% dossier_url 'suivi:absence' s.pk %}">Enregistrer une absence</a>{% endif %}{% endif %}
+{% if perms.personnes.change_sejour and perms.personnes.change_affectation and perms.personnes.change_absence %}<a href="{% dossier_url 'suivi:sortir' s.pk %}">Enregistrer la sortie</a>{% endif %}
+{% endif %}
+{% if perms.personnes.view_notepartagee %}<a href="{% dossier_url 'suivi:notes' 'sejour' s.pk %}">Notes du séjour</a>{% endif %}
+</nav></div>{% endwith %}
+{% else %}<p>Aucun séjour effectif enregistré.</p>{% endif %}
+{% if accords_sans_sejour %}<h3>Accords sans séjour enregistré</h3><ul>{% for accord in accords_sans_sejour %}<li><a href="{% dossier_url 'suivi:accord_hebergement' accord.pk %}">Accord d’hébergement</a> — {% include "suivi/periode.html" with periode=accord %}.</li>{% endfor %}</ul>{% endif %}
+</section>

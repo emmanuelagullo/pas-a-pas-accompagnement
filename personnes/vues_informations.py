@@ -33,5 +33,5 @@ def modifier(request, pk):
     initial['attendu'] = service.jeton(a, precedente)
     form = InformationsForm(request.POST if request.method == 'POST' else None, initial=initial)
     return traiter_hebergement(request, form, 'Informations pratiques et projet d’accompagnement',
-        lambda **d: service.enregistrer(request.user, a, **d), a.menage,
+        lambda **d: service.enregistrer(request.user, a, **d), a.menage, accompagnement=a,
         retour=reverse('suivi:accompagnement', args=[a.pk]))

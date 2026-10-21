@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from .models import Transmission, NotePartagee, Personne, Accompagnement, Sejour
-from . import transmissions
+from . import transmissions, dossier
 from .retour_service import date_service, url_jour, contexte_jour, suffixe_jour
 
 
@@ -53,6 +53,8 @@ def notes(request, nature, pk):
         from django.core.exceptions import PermissionDenied
         raise PermissionDenied
     cible = get_object_or_404(modele, pk=pk)
+    a = cible if nature == 'accompagnement' else cible.accord.accompagnement if nature == 'sejour' else None
+    navigation = dossier.lire(request, a)
     form = TexteForm(request.POST or None)
     if request.method == "POST":
         if not request.user.has_perm("personnes.add_notepartagee"):
@@ -60,6 +62,8 @@ def notes(request, nature, pk):
             raise PermissionDenied
         if form.is_valid():
             transmissions.noter(request.user, form.cleaned_data["contenu"], **{nature: cible})
+            if navigation:
+                return redirect(navigation["retour_dossier"])
             return redirect(reverse("suivi:notes", kwargs={"nature": nature, "pk": pk}) + suffixe_jour(request))
     retour = None
     if nature == 'personne':
@@ -68,7 +72,7 @@ def notes(request, nature, pk):
         retour = reverse('suivi:accompagnement', args=[cible.pk])
     elif nature == 'sejour' and request.user.has_perms(['personnes.view_personne', 'personnes.view_menage', 'personnes.view_accompagnement', 'personnes.view_accordhebergement']):
         retour = reverse('suivi:accord_hebergement', args=[cible.accord_id])
-    return render(request, "suivi/transmissions.html", {**contexte_jour(request), "cible": cible, "cible_nature": nature, "titre": "Notes partagées", "retour_cible": retour + suffixe_jour(request) if retour and nature == "sejour" else retour,
+    return render(request, "suivi/transmissions.html", {**contexte_jour(request), **navigation, "cible": cible, "cible_nature": nature, "titre": "Notes partagées", "retour_cible": retour + suffixe_jour(request) if retour and nature == "sejour" else retour,
         "form": form if request.user.has_perm("personnes.add_notepartagee") else None,
         "contributions": NotePartagee.objects.filter(**{nature: cible}).select_related("auteur").prefetch_related("revisions__auteur"), "nature": "note"})
 
@@ -99,7 +103,11 @@ def corriger(request, nature, pk):
         contexte = cible
         retour = reverse("suivi:notes", kwargs={"nature": cible_nature, "pk": cible.pk})
     retour += suffixe_jour(request)
-    donnees = {**contexte_jour(request), "contribution": contribution, "cible": contexte,
+    a = contexte if cible_nature == 'accompagnement' else contexte.accord.accompagnement if cible_nature == 'sejour' else None
+    navigation = dossier.lire(request, a)
+    if navigation:
+        retour = navigation['retour_dossier']
+    donnees = {**navigation, **contexte_jour(request), "contribution": contribution, "cible": contexte,
                "cible_nature": cible_nature, "retour": retour}
     form = CorrectionForm(request.POST or None, initial={"contenu": contribution.contenu, "texte_attendu": contribution.contenu})
     if request.method == "POST" and form.is_valid():

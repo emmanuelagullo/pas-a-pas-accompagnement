@@ -211,3 +211,18 @@ cet avant/après dans CorrectionPeriode ; la suivante reste intacte. Un événem
 historique antérieur ne modifie aucune borne de suivi. Les avertissements repas
 ne sont pas une contrainte globale d’unicité entre accords. Le résumé imprimable
 est une vue de lecture filtrée par les droits existants, sans nouveau moteur PDF.
+
+## BD1–BD2 — lecture unifiée, écritures existantes
+
+`personnes.lecture_dossier` prépare les listes et sélections de la fiche
+accompagnement, avec préchargement des bénéficiaires et des périodes autorisées.
+Les affectations et absences ne sont pas chargées sans leurs droits. Les
+formulaires de sélection GET et les liens restent utilisables sans JavaScript.
+
+`personnes.dossier` porte un contexte signé de navigation lié à l’accompagnement,
+aux deux sélections et à l’origine connue. `dossier_url` construit uniquement des
+routes nommées ; aucune URL de retour fournie par le client n’est acceptée.
+Chaque vue ne propage ce contexte qu’après vérification contre sa cible réelle.
+Les écritures et leurs verrous/journaux/jetons restent dans les services actuels.
+Le contexte de navigation n’est jamais transmis aux arguments des services.
+Aucune modification des profils serveur, bureau, PWA ou du socle partagé.

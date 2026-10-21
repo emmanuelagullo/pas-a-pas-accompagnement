@@ -45,5 +45,5 @@ def selection(request, pk):
         from django.core.exceptions import PermissionDenied
         raise PermissionDenied
     return traiter_hebergement(request, form, 'Agir sur les séjours sélectionnés',
-        lambda **d: service.appliquer(request.user, accord, **d), accord.accompagnement.menage,
+        lambda **d: service.appliquer(request.user, accord, **d), accord.accompagnement.menage, accompagnement=accord.accompagnement,
         retour=reverse('suivi:accord_hebergement', args=[accord.pk]))
