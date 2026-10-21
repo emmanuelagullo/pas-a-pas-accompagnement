@@ -2,6 +2,7 @@
 <body><h1>Pas à Pas — Fiche personne</h1><p>Données fictives uniquement</p>
 <dl><dt>Nom d’usage ou identifiant provisoire</dt><dd>{{ personne.designation }}</dd>
 <dt>Prénom</dt><dd>{{ personne.prenom|default:"Non renseigné" }}</dd>
+<dt>Naissance</dt><dd>{{ personne.naissance_affichee }}</dd>
 <dt>Identifiant de la fiche</dt><dd>{{ personne.pk }}</dd>
 <dt>Fiche créée le</dt><dd>{{ personne.cree_le|date:"d/m/Y à H:i" }}</dd>
 <dt>Éditée le</dt><dd>{{ edite_le|date:"d/m/Y à H:i" }}</dd></dl>

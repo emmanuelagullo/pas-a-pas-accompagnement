@@ -4,8 +4,8 @@ Prototype **#SOC1–#SOC6c** pour préparer une application d'accueil et d'accom
 social, notamment en CHRS. **Données fictives uniquement ; développement local.**
 
 Disponible : connexion, accueil, liste des personnes, création d'une identité
-incomplète et consultation de sa fiche. Pas de modification ni suppression de
-fiche à ce stade. Les comptes professionnels sont distincts des personnes suivies.
+incomplète, consultation et correction tracée de sa fiche. Pas de suppression de
+fiche. Les comptes professionnels sont distincts des personnes suivies.
 
 Non disponible : transports,
 documents joints, invitations. Une PWA fictive est disponible sous #SOC5a ; voir ci-dessous. La date et l'auteur de création ne sont pas un journal
@@ -611,3 +611,26 @@ ceux de la base utilisée. Les pages de 25 résultats conservent recherche et
 contexte de rattachement. Depuis le travail du jour, affectation, absence et
 sortie reviennent à la date consultée ; aucune URL de retour libre n’est acceptée.
 Le retour d’absence utilise la clôture existante, avec les mêmes règles de dates.
+
+
+## CHRS25-04 — identité et naissance facultative
+
+La fiche peut toujours commencer avec une désignation seule. La naissance est
+facultative : date exacte, date estimée, année connue seule ou année estimée seule.
+Une année seule n’est jamais stockée comme un 1er janvier. La précision est
+visible sur la fiche et dans ses PDF natif et navigateur. Aucune majorité ni
+tranche d’âge statistique n’est déduite automatiquement d’une année incertaine.
+
+« Compléter ou corriger l’identité » conserve la personne et tous ses liens.
+La correction exige un motif et les droits `view_personne`, `change_personne`
+et `view_revisionidentite`. Les valeurs précédentes et nouvelles sont typées,
+avec auteur et horodatage ; les formulaires périmés sont refusés. L’auteur et la
+date de création ne changent pas. Les corrections n’appliquent aucun changement
+aux comptes professionnels, aux ménages, aux accords ou aux prestations.
+
+Appliquer les migrations habituelles. Aucun compte existant ne reçoit de droit
+automatiquement. La commande explicite `python3 manage.py autoriser_chrs7 IDENTIFIANT`
+ajoute désormais aussi ces droits au compte fictif choisi ; elle garde son
+périmètre CHRS1–7 complet. Ne pas la relancer pour un compte devant rester en
+lecture seule. Les nouvelles démonstrations l’utilisent, les anciennes restent
+intactes. Les journaux sont conservés dans les copies ZIP du produit.

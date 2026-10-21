@@ -5,12 +5,20 @@ from django.core.validators import RegexValidator
 
 
 class Personne(models.Model):
+    PRECISIONS_NAISSANCE = [("", "Non renseignée"), ("exacte", "Date exacte"),
+        ("estimee", "Date estimée"), ("annee", "Année connue seulement"),
+        ("annee_estimee", "Année estimée seulement")]
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     designation = models.CharField(
         "Nom d’usage ou identifiant provisoire", max_length=160,
         validators=[RegexValidator(r"\S", "Indiquez un nom d’usage ou un identifiant provisoire.")],
     )
     prenom = models.CharField("Prénom", max_length=100, blank=True)
+    date_naissance = models.DateField("Date de naissance", null=True, blank=True)
+    annee_naissance = models.PositiveSmallIntegerField("Année de naissance seule", null=True, blank=True)
+    precision_naissance = models.CharField("Précision de la naissance", max_length=20,
+        choices=PRECISIONS_NAISSANCE, blank=True, default="")
+    revision_identite = models.PositiveIntegerField(default=0, editable=False)
     cree_le = models.DateTimeField("Créée le", auto_now_add=True)
     cree_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, editable=False)
 
@@ -18,9 +26,65 @@ class Personne(models.Model):
         ordering = ["designation", "prenom", "id"]
         verbose_name = "personne"
         verbose_name_plural = "personnes"
+        constraints = [models.CheckConstraint(
+            condition=(models.Q(precision_naissance="", date_naissance__isnull=True, annee_naissance__isnull=True) |
+                models.Q(precision_naissance__in=["exacte", "estimee"], date_naissance__isnull=False, annee_naissance__isnull=True) |
+                models.Q(precision_naissance__in=["annee", "annee_estimee"], date_naissance__isnull=True,
+                    annee_naissance__isnull=False, annee_naissance__gte=1, annee_naissance__lte=9999)),
+            name="personne_naissance_coherente")]
+
+    def clean(self):
+        super().clean()
+        from django.core.exceptions import ValidationError
+        from django.utils import timezone
+        erreurs = {}
+        if self.date_naissance and self.date_naissance > timezone.localdate():
+            erreurs["date_naissance"] = "La naissance ne peut pas être future."
+        if self.annee_naissance is not None and not 1 <= self.annee_naissance <= timezone.localdate().year:
+            erreurs["annee_naissance"] = "Indiquez une année passée ou l’année courante."
+        if self.precision_naissance in ("exacte", "estimee"):
+            if not self.date_naissance or self.annee_naissance is not None:
+                erreurs["date_naissance"] = "Renseignez une date seule pour cette précision."
+        elif self.precision_naissance in ("annee", "annee_estimee"):
+            if self.date_naissance or self.annee_naissance is None:
+                erreurs["annee_naissance"] = "Renseignez une année seule pour cette précision."
+        elif self.date_naissance or self.annee_naissance is not None:
+            erreurs["precision_naissance"] = "Précisez si la date ou l’année est connue ou estimée."
+        if erreurs:
+            raise ValidationError(erreurs)
+
+    @property
+    def naissance_affichee(self):
+        if self.date_naissance:
+            valeur = self.date_naissance.strftime("%d/%m/%Y")
+        elif self.annee_naissance is not None:
+            valeur = str(self.annee_naissance)
+        else:
+            return "Non renseignée"
+        return f"{valeur} ({self.get_precision_naissance_display()})"
 
     def __str__(self):
         return " ".join(partie for partie in [self.prenom, self.designation] if partie)
+
+
+class RevisionIdentite(models.Model):
+    personne = models.ForeignKey(Personne, on_delete=models.PROTECT, related_name="revisions_identite")
+    ancienne_designation = models.CharField(max_length=160)
+    nouvelle_designation = models.CharField(max_length=160)
+    ancien_prenom = models.CharField(max_length=100, blank=True)
+    nouveau_prenom = models.CharField(max_length=100, blank=True)
+    ancienne_date_naissance = models.DateField(null=True, blank=True)
+    nouvelle_date_naissance = models.DateField(null=True, blank=True)
+    ancienne_annee_naissance = models.PositiveSmallIntegerField(null=True, blank=True)
+    nouvelle_annee_naissance = models.PositiveSmallIntegerField(null=True, blank=True)
+    ancienne_precision_naissance = models.CharField(max_length=20, blank=True, choices=Personne.PRECISIONS_NAISSANCE)
+    nouvelle_precision_naissance = models.CharField(max_length=20, blank=True, choices=Personne.PRECISIONS_NAISSANCE)
+    motif = models.CharField(max_length=240)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    enregistre_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-enregistre_le", "-pk"]
 
 
 class Menage(models.Model):

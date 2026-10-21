@@ -12,7 +12,7 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self,*args,**options):
-        droits={'change_accordrepas','change_accordhebergement','change_evenementsocial','change_bilansocial','view_correctionperiode','view_revisiontextesocial'}
+        droits={'change_personne','view_revisionidentite','change_accordrepas','change_accordhebergement','change_evenementsocial','change_bilansocial','view_correctionperiode','view_revisiontextesocial'}
         permissions=list(Permission.objects.filter(content_type__app_label='personnes',codename__in=droits))
         if len(permissions)!=len(droits):raise CommandError('Appliquez les migrations avant cette attribution.')
         call_command('autoriser_chrs4',options['identifiant'],stdout=self.stdout)

@@ -182,3 +182,16 @@ les médias au format existant et conserve ses plafonds mémoire ; ses Workers
 séparés et sa confirmation OPFS ne changent pas. Les tables à neutraliser
 restent une politique applicative. Lire la section Copies du README et
 SAUVEGARDES.md du socle. Aucun modèle, rôle ou migration métier n'est ajouté.
+
+
+## CHRS25-04 — identité
+
+Personne ajoute une naissance facultative (date ou année seule, précision
+explicite) et un numéro de révision. RevisionIdentite conserve les valeurs
+avant/après typées. Le service de correction réserve la révision par UPDATE
+conditionnel comme première requête SQL d’une transaction, puis valide et écrit
+l’identité et son journal ensemble. Une erreur annule aussi la réservation.
+Ce service ne touche aucun lien de ménage, suivi ou séjour et n’acquiert donc
+pas leurs verrous ; aucun service lié n’acquiert un verrou d’identité ensuite.
+Les migrations initiales restent intactes ; les anciennes identités deviennent
+simplement des identités sans naissance renseignée, sans attribution de droits.

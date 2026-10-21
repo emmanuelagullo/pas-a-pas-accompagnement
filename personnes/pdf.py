@@ -12,6 +12,7 @@ def produire(personne, *, navigateur=False):
             'Données fictives uniquement',
             'Nom d’usage ou identifiant provisoire : '+personne.designation,
             'Prénom : '+(personne.prenom or 'Non renseigné'),
+            'Naissance : '+personne.naissance_affichee,
             'Identifiant de la fiche : '+str(personne.pk),
             'Fiche créée le : '+timezone.localtime(personne.cree_le).strftime('%d/%m/%Y à %H:%M'),
             'Éditée le : '+contexte['edite_le'].strftime('%d/%m/%Y à %H:%M'),

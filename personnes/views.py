@@ -4,7 +4,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods, require_safe
-from .forms import PersonneForm
+from .forms import PersonneForm, CorrectionIdentiteForm
 from .models import Personne
 
 
@@ -40,6 +40,7 @@ def detail(request, pk):
     personne = get_object_or_404(Personne, pk=pk)
     return render(request, "personnes/detail.html", {
         "personne": personne,
+        "revisions_identite": personne.revisions_identite.select_related("auteur") if request.user.has_perm("personnes.view_revisionidentite") else [],
         "appartenances": personne.appartenances.select_related("menage").order_by("-debut") if request.user.has_perm("personnes.view_menage") else [],
         "accompagnements": personne.accompagnements.select_related("menage").order_by("-debut") if request.user.has_perms(["personnes.view_menage", "personnes.view_accompagnement"]) else [],
     })
@@ -70,3 +71,30 @@ def fiche_pdf(request, pk):
 @permission_required(("personnes.view_personne", "personnes.view_menage", "personnes.view_accompagnement"), raise_exception=True)
 def decouverte(request):
     return render(request, "decouverte.html")
+
+
+@require_http_methods(["GET", "POST"])
+@login_required
+@permission_required(("personnes.view_personne", "personnes.change_personne", "personnes.view_revisionidentite"), raise_exception=True)
+def corriger_identite(request, pk):
+    from django.core.exceptions import ValidationError
+    from django.db import OperationalError
+    from django.contrib import messages
+    from . import identite
+    personne = get_object_or_404(Personne, pk=pk)
+    form = CorrectionIdentiteForm(request.POST if request.method == "POST" else None,
+        instance=personne, initial={"attendu": identite.jeton(personne)})
+    statut = 200
+    if request.method == "POST" and form.is_valid():
+        try:
+            identite.corriger(request.user, personne, **form.cleaned_data)
+        except ValidationError as erreur:
+            form.add_error(None, " ".join(erreur.messages))
+            statut = 409
+        except OperationalError:
+            form.add_error(None, "L’écriture n’a pas été confirmée. Rechargez la fiche avant de réessayer.")
+            statut = 409
+        else:
+            messages.success(request, "Identité corrigée ; l’historique est conservé.")
+            return redirect("personnes:detail", pk=pk)
+    return render(request, "personnes/corriger_identite.html", {"form": form, "personne": personne}, status=statut)
