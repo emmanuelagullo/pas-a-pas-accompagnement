@@ -16,7 +16,10 @@ from . import suivi
 @login_required
 @permission_required(("personnes.view_menage", "personnes.view_personne"), raise_exception=True)
 def liste(request):
-    return render(request, "suivi/liste.html", {"menages": Menage.objects.all()})
+    personne = request.GET.get("personne", "")
+    if not (_uuid_valide(personne) and Personne.objects.filter(pk=personne).exists()):
+        personne = ""
+    return render(request, "suivi/liste.html", {"menages": Menage.objects.all(), "personne_a_rattacher": personne})
 
 
 @require_safe
@@ -72,7 +75,13 @@ def creer(request):
 @permission_required(("personnes.view_personne", "personnes.view_menage", "personnes.add_appartenance"), raise_exception=True)
 def ajouter(request, pk):
     menage = get_object_or_404(Menage, pk=pk)
-    return traiter(request, AppartenanceForm(request.POST or None), "Ajouter une appartenance", lambda **d: suivi.ajouter_appartenance(request.user, menage, **d), menage)
+    initial = {}
+    if request.method == "GET":
+        personne = request.GET.get("personne", "")
+        if _uuid_valide(personne) and Personne.objects.filter(pk=personne).exists():
+            initial["personne"] = personne
+        initial["debut"] = timezone.localdate()
+    return traiter(request, AppartenanceForm(request.POST or None, initial=initial), "Ajouter une appartenance", lambda **d: suivi.ajouter_appartenance(request.user, menage, **d), menage)
 
 
 @require_http_methods(["GET", "POST"])

@@ -10,6 +10,7 @@
 {% if perms.personnes.add_menage and perms.personnes.add_appartenance and perms.personnes.view_menage %}
 <p><a href="{% url 'suivi:creer' %}?personne={{ personne.pk|urlencode }}">Créer un ménage avec cette personne</a> — facultatif, à faire lorsque les informations sont disponibles.</p>
 {% endif %}
+{% if perms.personnes.view_menage and perms.personnes.add_appartenance %}<p><a href="{% url 'suivi:liste' %}?personne={{ personne.pk|urlencode }}">Rattacher cette personne à un ménage existant</a></p>{% endif %}
 {% if perms.personnes.view_notepartagee %}<p><a href="{% url 'suivi:notes' 'personne' personne.pk %}">Notes partagées de cette personne</a></p>{% endif %}</section>
 {% if perms.personnes.view_menage %}<section class="carte"><h2>Ménages</h2><ul>{% for lien in appartenances %}<li><a href="{% url 'suivi:detail' lien.menage_id %}">{{ lien.menage }}</a> — {% include "suivi/periode.html" with periode=lien %}</li>{% empty %}<li>Aucune appartenance enregistrée.</li>{% endfor %}</ul></section>{% endif %}
 {% if perms.personnes.view_menage and perms.personnes.view_accompagnement %}<section class="carte"><h2>Accompagnements</h2><ul>{% for a in accompagnements %}<li><a href="{% url 'suivi:accompagnement' a.pk %}">{{ a.menage }}</a> — {% include "suivi/periode.html" with periode=a %}</li>{% empty %}<li>Aucun accompagnement enregistré pour cette personne.</li>{% endfor %}</ul></section>{% endif %}{% endblock %}

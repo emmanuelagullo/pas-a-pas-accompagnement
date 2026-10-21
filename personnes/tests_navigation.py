@@ -31,3 +31,22 @@ class NavigationTests(TestCase):
         self.u.user_permissions.clear()
         self.assertEqual(self.client.get(reverse('suivi:accompagnement',args=[self.a.pk])).status_code,403)
         self.assertEqual(self.client.get(reverse('personnes:detail',args=[self.p.pk])).status_code,403)
+
+    def test_rattacher_depuis_fiche_personne_sans_ressaisie(self):
+        autre = Personne.objects.create(designation='Autre personne fictive', cree_par=self.u)
+        fiche = self.client.get(reverse('personnes:detail', args=[autre.pk]))
+        cible = reverse('suivi:liste') + '?personne=' + str(autre.pk)
+        self.assertContains(fiche, cible.replace('&', '&amp;'))
+        liste = self.client.get(cible)
+        ajout = reverse('suivi:ajouter', args=[self.m.pk]) + '?personne=' + str(autre.pk)
+        self.assertContains(liste, ajout.replace('&', '&amp;'))
+        formulaire = self.client.get(ajout)
+        self.assertEqual(formulaire.status_code, 200)
+        self.assertEqual(str(formulaire.context['form'].initial['personne']), str(autre.pk))
+        self.assertNotIn(autre.pk, self.m.appartenances.values_list('personne_id', flat=True))
+
+    def test_parametre_personne_invalide_ignore(self):
+        url = reverse('suivi:ajouter', args=[self.m.pk]) + '?personne=invalide'
+        reponse = self.client.get(url)
+        self.assertEqual(reponse.status_code, 200)
+        self.assertNotIn('personne', reponse.context['form'].initial)
