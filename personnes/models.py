@@ -451,3 +451,25 @@ class ActionRelais(models.Model):
     class Meta:
         ordering = ["echeance", "cree_le", "pk"]
 
+
+
+class InformationsAccompagnement(models.Model):
+    """Versions conservées des informations pratiques et du projet de suivi."""
+    accompagnement = models.ForeignKey(Accompagnement, on_delete=models.PROTECT, related_name='informations')
+    version = models.PositiveIntegerField()
+    referent = models.CharField('Référent professionnel', max_length=160, blank=True)
+    provenance = models.CharField('Provenance à l’entrée', max_length=160, blank=True)
+    motif_entree = models.CharField('Motif d’entrée', max_length=160, blank=True)
+    orientation_sortie = models.CharField('Orientation à la sortie', max_length=160, blank=True)
+    motif_sortie = models.CharField('Motif de sortie', max_length=160, blank=True)
+    destination_sortie = models.CharField('Destination à la sortie', max_length=160, blank=True)
+    objectifs_courts = models.TextField('Objectifs à court terme', max_length=1000, blank=True)
+    objectifs_longs = models.TextField('Objectifs à plus long terme', max_length=1000, blank=True)
+    animaux = models.CharField('Animaux — information pratique pour l’accueil', max_length=500, blank=True)
+    motif = models.CharField('Motif de mise à jour', max_length=240)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    enregistre_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-version']
+        constraints = [models.UniqueConstraint(fields=['accompagnement', 'version'], name='informations_suivi_version_unique')]

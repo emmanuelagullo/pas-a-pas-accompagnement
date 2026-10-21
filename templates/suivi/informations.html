@@ -1,0 +1,10 @@
+<dl><dt>Référent professionnel</dt><dd>{{ information.referent|default:"Non renseigné" }}</dd>
+<dt>Provenance à l’entrée</dt><dd>{{ information.provenance|default:"Non renseignée" }}</dd>
+<dt>Motif d’entrée</dt><dd>{{ information.motif_entree|default:"Non renseigné" }}</dd>
+<dt>Orientation à la sortie</dt><dd>{{ information.orientation_sortie|default:"Non renseignée" }}</dd>
+<dt>Motif de sortie</dt><dd>{{ information.motif_sortie|default:"Non renseigné" }}</dd>
+<dt>Destination à la sortie</dt><dd>{{ information.destination_sortie|default:"Non renseignée" }}</dd>
+<dt>Objectifs à court terme</dt><dd>{{ information.objectifs_courts|default:"Non renseignés"|linebreaksbr }}</dd>
+<dt>Objectifs à plus long terme</dt><dd>{{ information.objectifs_longs|default:"Non renseignés"|linebreaksbr }}</dd>
+<dt>Animaux — accueil</dt><dd>{{ information.animaux|default:"Non renseigné"|linebreaksbr }}</dd></dl>
+<p>Version {{ information.version }}, enregistrée le {{ information.enregistre_le|date:"d/m/Y H:i" }} par {{ information.auteur }}. Motif : {{ information.motif }}.</p>

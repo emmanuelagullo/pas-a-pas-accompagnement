@@ -166,7 +166,7 @@ class CompatibiliteIdentiteTests(TransactionTestCase):
         from django.db import connection
         from django.db.migrations.executor import MigrationExecutor
         compte = get_user_model().objects.create_user('migration-identite-fictive')
-        cible = [('personnes', '0010_identite_naissance_et_corrections')]
+        cible = MigrationExecutor(connection).loader.graph.leaf_nodes('personnes')
         try:
             executor = MigrationExecutor(connection)
             ancienne = [('personnes', '0009_modelerapport')]

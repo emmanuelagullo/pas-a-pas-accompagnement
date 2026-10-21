@@ -1,5 +1,6 @@
 from django.urls import path
 from . import vues_suivi as vues
+from . import vues_informations
 from . import vues_repas
 from . import vues_hebergement as h
 from . import vues_social as social
@@ -9,6 +10,7 @@ from . import vues_trajectoire
 from . import vues_corrections
 app_name = "suivi"
 urlpatterns = [
+    path("accompagnements/<uuid:pk>/informations/", vues_informations.modifier, name="informations"),
     path("liaison/", vues_transmissions.cahier, name="cahier"),
     path("notes/<str:nature>/<uuid:pk>/", vues_transmissions.notes, name="notes"),
     path("contributions/<str:nature>/<int:pk>/corriger/", vues_transmissions.corriger, name="corriger_contribution"),

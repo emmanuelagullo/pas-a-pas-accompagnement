@@ -130,6 +130,7 @@ def accompagnement(request, pk):
     droits = request.user
     return render(request, "suivi/accompagnement.html", {
         "accompagnement": a,
+        "informations": a.informations.select_related("auteur") if droits.has_perm("personnes.view_informationsaccompagnement") else [],
         "accords_repas": a.accords_repas.prefetch_related("beneficiaires") if droits.has_perms(["personnes.view_accordrepas", "personnes.view_repasdistribue"]) else [],
         "accords_hebergement": a.accords_hebergement.prefetch_related("beneficiaires", "sejours") if droits.has_perms(["personnes.view_accordhebergement", "personnes.view_sejour"]) else [],
     })

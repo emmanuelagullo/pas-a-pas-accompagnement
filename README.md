@@ -634,3 +634,22 @@ ajoute désormais aussi ces droits au compte fictif choisi ; elle garde son
 périmètre CHRS1–7 complet. Ne pas la relancer pour un compte devant rester en
 lecture seule. Les nouvelles démonstrations l’utilisent, les anciennes restent
 intactes. Les journaux sont conservés dans les copies ZIP du produit.
+
+
+## CHRS25-05 — informations pratiques et projet
+
+L’accompagnement propose un référent professionnel (nom ou fonction, y compris
+extérieur, sans lui attribuer un compte ni des droits), la provenance et le
+motif d’entrée, l’orientation, le motif et la destination de sortie, les objectifs
+à court et plus long terme, et les informations pratiques sur les animaux.
+Tous sont facultatifs et communs aux bénéficiaires du suivi ; si une information
+ne concerne qu’une personne, la préciser dans le texte ou utiliser son suivi.
+Les champs restent libres pour évaluer le métier avant de figer des nomenclatures.
+
+Chaque mise à jour motivée ajoute une version complète avec auteur et horodatage ;
+les versions précédentes restent consultables. Ce sont des versions à la date de
+saisie, pas une chronologie reconstruite des changements de situation. Aucun
+changement de ces informations ne clôture le suivi ni un séjour. Les droits
+`view_informationsaccompagnement` et `add_informationsaccompagnement` sont
+explicites : la migration ne les attribue pas. La commande `autoriser_chrs7`
+les ajoute au compte fictif choisi quand on la relance volontairement.
