@@ -1,0 +1,14 @@
+{% load static %}<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Résumé d’accompagnement — {{ accompagnement.menage }}</title><link rel="stylesheet" href="{% static 'resume.css' %}"></head><body>
+<nav><a href="{% url 'suivi:accompagnement' accompagnement.pk %}">Retour à l’accompagnement</a><p>Utilisez la commande Imprimer de votre navigateur pour imprimer ou enregistrer en PDF.</p></nav>
+<h1>Résumé d’accompagnement — {{ accompagnement.menage }}</h1><p><strong>Prototype — données fictives uniquement.</strong></p>
+<p>Édité le {{ edite_le|date:"d/m/Y H:i" }}. Dates civiles : début inclus, fin exclue. Une autorisation ne prouve pas une réalisation.</p>
+<h2>Personnes accompagnées</h2><ul>{% for p in accompagnement.beneficiaires.all %}<li>{{ p }} — naissance : {{ p.naissance_affichee }}</li>{% endfor %}</ul>
+<p>Accompagnement : {% include "suivi/periode.html" with periode=accompagnement %}.</p>
+{% if information %}<h2>Informations pratiques et projet</h2>{% include "suivi/informations.html" %}{% endif %}
+{% if lecture_sejours %}<h2>Séjours enregistrés</h2>{% for s in sejours %}<section><h3>{% for p in s.beneficiaires.all %}{{ p }}{% if not forloop.last %}, {% endif %}{% endfor %}</h3>
+<p>Séjour : {% include "suivi/periode.html" with periode=s %}. Accord : {% include "suivi/periode.html" with periode=s.accord %}.</p>
+{% if perms.personnes.view_affectation and perms.personnes.view_lieuhebergement %}<p>Affectations :</p><ul>{% for p in s.affectations.all %}<li>{{ p.lieu }} — {% include "suivi/periode.html" with periode=p %}</li>{% empty %}<li>Aucune affectation renseignée.</li>{% endfor %}</ul>{% endif %}
+{% if perms.personnes.view_absence %}<p>Absences déclarées :</p><ul>{% for p in s.absences.all %}<li>{% include "suivi/periode.html" with periode=p %}</li>{% empty %}<li>Aucune absence renseignée.</li>{% endfor %}</ul>{% endif %}</section>{% empty %}<p>Aucun séjour enregistré.</p>{% endfor %}{% endif %}
+{% if lecture_repas %}<h2>Repas accordés</h2><ul>{% for accord in accords_repas %}<li>{{ accord.get_service_display }} — {% include "suivi/periode.html" with periode=accord %} ; bénéficiaires : {% for p in accord.beneficiaires.all %}{{ p }}{% if not forloop.last %}, {% endif %}{% endfor %}.</li>{% empty %}<li>Aucun repas accordé.</li>{% endfor %}</ul>{% endif %}
+</body></html>

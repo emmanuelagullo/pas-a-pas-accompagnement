@@ -1,0 +1,7 @@
+body { font-family: sans-serif; line-height: 1.45; max-width: 65rem; margin: 2rem auto; padding: 0 1rem; color: #182b27; }
+h1, h2, h3, dt { font-weight: bold; }
+dt { margin-top: .5rem; }
+dd { margin-left: 1rem; overflow-wrap: anywhere; }
+h1, h2, h3 { break-after: avoid; }
+@media print { nav { display: none; } body { max-width: none; margin: 0; padding: 0; color: black; } a { color: inherit; } }
+@page { margin: 18mm; }

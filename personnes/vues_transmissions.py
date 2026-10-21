@@ -2,6 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from .models import Transmission, NotePartagee, Personne, Accompagnement, Sejour
 from . import transmissions
@@ -60,7 +61,14 @@ def notes(request, nature, pk):
         if form.is_valid():
             transmissions.noter(request.user, form.cleaned_data["contenu"], **{nature: cible})
             return redirect("suivi:notes", nature=nature, pk=pk)
-    return render(request, "suivi/transmissions.html", {"titre": "Notes partagées",
+    retour = None
+    if nature == 'personne':
+        retour = reverse('personnes:detail', args=[cible.pk])
+    elif nature == 'accompagnement' and request.user.has_perms(['personnes.view_personne', 'personnes.view_menage']):
+        retour = reverse('suivi:accompagnement', args=[cible.pk])
+    elif nature == 'sejour' and request.user.has_perms(['personnes.view_personne', 'personnes.view_menage', 'personnes.view_accompagnement', 'personnes.view_accordhebergement']):
+        retour = reverse('suivi:accord_hebergement', args=[cible.accord_id])
+    return render(request, "suivi/transmissions.html", {"titre": "Notes partagées", "retour_cible": retour,
         "form": form if request.user.has_perm("personnes.add_notepartagee") else None,
         "contributions": NotePartagee.objects.filter(**{nature: cible}).select_related("auteur").prefetch_related("revisions__auteur"), "nature": "note"})
 

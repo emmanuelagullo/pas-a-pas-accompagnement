@@ -89,12 +89,13 @@ def terminer(request, pk, nature):
 def lieu(request):
     h.droit(request.user,"add_lieuhebergement")
     h.exiger(request.user,"view_lieuhebergement")
-    form=LieuForm(request.POST or None)
-    from django.shortcuts import redirect
-    if request.method=="POST" and form.is_valid():
-        h.creer_lieu(request.user,**form.cleaned_data)
-        return redirect("suivi:liste")
-    return render(request,"suivi/form.html",{"form":form,"titre":"Créer un lieu d’hébergement"})
+    from .vues_suivi import _uuid_valide
+    identifiant = request.GET.get('accord', '')
+    accord = get_object_or_404(AccordHebergement, pk=identifiant) if _uuid_valide(identifiant) else None
+    retour = reverse('suivi:accord_hebergement', args=[accord.pk]) if accord else reverse('suivi:liste')
+    return traiter_hebergement(request, LieuForm(request.POST if request.method == 'POST' else None),
+        'Créer un lieu d’hébergement', lambda **d: h.creer_lieu(request.user, **d), retour=retour)
+
 
 
 @require_http_methods(["GET", "POST"])

@@ -697,3 +697,23 @@ refuse une sélection dont les séjours ont changé depuis l’ouverture du form
 Un ancien séjour collectif reste collectif : aucune conversion de l’historique.
 Les mouvements sans nuitée ou intrajournaliers peuvent être précisés dans une
 note, sans déplacer artificiellement les dates civiles ni générer des nuitées.
+
+
+## CHRS26-02 — résumé et retours contextuels
+
+Le résumé d’accompagnement est une page dédiée à l’impression du navigateur
+(ou son enregistrement en PDF). Il présente les bénéficiaires, la dernière
+version des informations pratiques, les séjours/affectations/absences et les
+repas accordés selon les droits du lecteur. Les anciennes versions et les notes
+ne sont pas incluses. Les accords y restent distingués des réalisations ;
+il ne s’agit pas d’une attestation de présence ni d’un rapport réglementaire.
+La réponse demande de ne pas conserver de cache. Aucun moteur PDF supplémentaire.
+
+Créer un lieu depuis un accord revient désormais à cet accord ; les notes
+proposent un retour à la fiche concernée si les droits permettent sa lecture.
+Les destinations sont toujours construites côté serveur.
+
+Les corrections de valeur sociale vérifient également un jeton d’état signé.
+L’ajout d’une appartenance déjà présente avec la même personne, le même ménage
+et les mêmes bornes est refusé. Aucun ancien doublon n’est supprimé et aucune
+interdiction générale d’appartenir à plusieurs ménages n’est introduite.

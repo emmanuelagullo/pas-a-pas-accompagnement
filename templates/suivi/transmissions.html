@@ -2,6 +2,7 @@
 {% block titre %}{{ titre }} — Pas à Pas{% endblock %}
 {% block contenu %}
 <h1>{{ titre }}</h1>
+{% if retour_cible %}<p><a href="{{ retour_cible }}">Retour à la fiche concernée</a></p>{% endif %}
 {% if nature == "transmission" %}<p><a href="{% url 'suivi:jour' %}{% if date_service %}?date={{ date_service }}{% endif %}">Retour au travail du jour</a></p>{% endif %}
 {% if form %}<section class="carte"><h2>Nouvelle contribution</h2><form method="post">{% csrf_token %}{% if retour_jour %}<input type="hidden" name="retour" value="jour">{% if date_service %}<input type="hidden" name="date_service" value="{{ date_service }}">{% endif %}{% endif %}{{ form.as_p }}<button type="submit">Enregistrer</button></form></section>{% endif %}
 <section class="carte"><h2>Historique</h2><ol>{% for message in contributions %}<li><p>{{ message.contenu|linebreaksbr }}</p><small>{{ message.cree_le|date:"j/m/Y H:i" }} — {{ message.auteur }}</small>

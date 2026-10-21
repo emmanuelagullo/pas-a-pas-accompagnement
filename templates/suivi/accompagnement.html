@@ -1,6 +1,7 @@
 {% extends "base.html" %}{% block contenu %}
 <p><a href="{% url 'suivi:detail' accompagnement.menage_id %}">Ménage {{ accompagnement.menage }}</a></p>
 <h1>Accompagnement — {{ accompagnement.menage }}</h1>
+<p><a href="{% url 'suivi:resume' accompagnement.pk %}">Ouvrir le résumé imprimable</a></p>
 {% if perms.personnes.view_notepartagee %}<p><a href="{% url 'suivi:notes' 'accompagnement' accompagnement.pk %}">Notes partagées de cet accompagnement</a></p>{% endif %}
 <p>{% include "suivi/periode.html" with periode=accompagnement %}. Service d’essai.</p>
 <section class="carte"><h2>Bénéficiaires</h2><ul>{% for p in accompagnement.beneficiaires.all %}<li><a href="{% url 'personnes:detail' p.pk %}">{{ p }}</a></li>{% endfor %}</ul><p>Ces personnes restent liées à cet accompagnement même si la composition du ménage change.</p></section>

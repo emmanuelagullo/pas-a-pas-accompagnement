@@ -195,3 +195,19 @@ Ce service ne touche aucun lien de ménage, suivi ou séjour et n’acquiert don
 pas leurs verrous ; aucun service lié n’acquiert un verrou d’identité ensuite.
 Les migrations initiales restent intactes ; les anciennes identités deviennent
 simplement des identités sans naissance renseignée, sans attribution de droits.
+
+
+## CHRS25-05–08 et CHRS26-02
+
+InformationsAccompagnement conserve des versions complètes et typées des champs
+facultatifs, sans nouveau moteur générique de champs ni effet sur les prestations.
+Les ajouts de versions, les insertions de situations et les actions collectives
+prennent le verrou du ménage avant le suivi ou les séjours. Les lots restent
+sous une transaction externe ; les services unitaires et leurs journaux sont
+réutilisés. Les jetons signés refusent les états périmés.
+
+Une insertion de situation modifie au plus la borne de la précédente et trace
+cet avant/après dans CorrectionPeriode ; la suivante reste intacte. Un événement
+historique antérieur ne modifie aucune borne de suivi. Les avertissements repas
+ne sont pas une contrainte globale d’unicité entre accords. Le résumé imprimable
+est une vue de lecture filtrée par les droits existants, sans nouveau moteur PDF.

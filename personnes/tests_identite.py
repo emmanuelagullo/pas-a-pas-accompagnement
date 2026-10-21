@@ -199,6 +199,18 @@ class CompatibiliteIdentiteTests(TransactionTestCase):
         identite.corriger(self.u, self.p, 'Naissance précisée', identite.jeton(self.p),
             designation='Fictif corrigé', prenom='', date_naissance=None,
             annee_naissance=1990, precision_naissance='annee_estimee')
+        from . import informations_suivi, social
+        valeurs = {champ: '' for champ in informations_suivi.CHAMPS}
+        valeurs['referent'] = 'Premier référent fictif'
+        premiere = informations_suivi.enregistrer(self.u, self.a, informations_suivi.jeton(self.a, None), 'Accueil', **valeurs)
+        valeurs['referent'] = 'Deuxième référent fictif'
+        informations_suivi.enregistrer(self.u, self.a, informations_suivi.jeton(self.a, premiere), 'Relais', **valeurs)
+        from datetime import date
+        for jour in [5, 20]:
+            social.renseigner(self.u, self.a, self.p, 'emploi', 'emploi', date(2026,1,jour), 'Source fictive')
+        self.a.refresh_from_db()
+        social.renseigner(self.u, self.a, self.p, 'emploi', 'formation', date(2026,1,10), 'Source fictive',
+            'Situation oubliée', social.jeton_situations(self.a))
         with TemporaryDirectory() as temporaire:
             racine = Path(temporaire)
             source = racine / 'source'
@@ -217,3 +229,7 @@ class CompatibiliteIdentiteTests(TransactionTestCase):
                     ['Fictif corrigé']).fetchone(), (1990, 'annee_estimee'))
                 self.assertEqual(db.execute('SELECT ancienne_designation, nouvelle_designation, motif FROM personnes_revisionidentite').fetchone(),
                     ('Navigation fictive', 'Fictif corrigé', 'Naissance précisée'))
+                self.assertEqual(db.execute('SELECT version, referent FROM personnes_informationsaccompagnement ORDER BY version').fetchall(),
+                    [(1, 'Premier référent fictif'), (2, 'Deuxième référent fictif')])
+                self.assertEqual(db.execute('SELECT ancienne_fin, nouvelle_fin FROM personnes_correctionperiode').fetchone(),
+                    ('2026-01-20', '2026-01-10'))

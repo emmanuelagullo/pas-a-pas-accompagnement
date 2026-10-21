@@ -3,7 +3,7 @@
 <p>Accord du {{ accord.debut }} au {{ accord.fin|default:"— période ouverte" }} (fin exclue).</p>
 <p>Bénéficiaires : {% for p in accord.beneficiaires.all %}{{ p }} ; {% endfor %}</p>
 {% if perms.personnes.add_sejour %}<a href="{% url 'suivi:admettre' accord.pk %}">Enregistrer une admission</a>{% endif %}
-{% if perms.personnes.add_lieuhebergement and perms.personnes.view_lieuhebergement %}<a href="{% url 'suivi:creer_lieu' %}">Créer un lieu</a>{% endif %}
+{% if perms.personnes.add_lieuhebergement and perms.personnes.view_lieuhebergement %}<a href="{% url 'suivi:creer_lieu' %}?accord={{ accord.pk }}">Créer un lieu</a>{% endif %}
 {% if perms.personnes.change_accordhebergement and perms.personnes.view_correctionperiode %}<p><a href="{% url 'suivi:corriger_saisie' 'accordhebergement' accord.pk %}">Corriger les dates de l’accord</a></p>{% endif %}
 {% for s in sejours %}<section class="carte"><h2>Séjour du {{ s.debut }} au {{ s.fin|default:"— en cours" }} (fin exclue)</h2>
 {% if accord.fin %}{% if s.fin and s.fin > accord.fin or not s.fin and aujourdhui >= accord.fin %}<p role="status">Ce séjour dépasse la fin de l’accord. Les faits enregistrés ne prolongent pas l’autorisation d’hébergement.</p>{% endif %}{% endif %}

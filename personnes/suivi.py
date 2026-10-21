@@ -28,6 +28,8 @@ def creer_menage(acteur, libelle, personnes, debut):
 @transaction.atomic
 def ajouter_appartenance(acteur, menage, personne, debut, fin=None):
     exiger(acteur, "view_personne", "view_menage", "add_appartenance")
+    if Appartenance.objects.filter(menage=menage, personne=personne, debut=debut, fin=fin).exists():
+        raise ValidationError("Cette appartenance est déjà enregistrée avec les mêmes dates.")
     objet = Appartenance(menage=menage, personne=personne, debut=debut, fin=fin)
     objet.full_clean()
     objet.save()
