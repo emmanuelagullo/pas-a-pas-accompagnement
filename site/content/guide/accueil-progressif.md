@@ -1,5 +1,6 @@
 ---
-categorie_guide: accueillir
+categories_guide: [accueillir, quotidien]
+mots_cles_guide: ["admission", "premier accueil", "dossier"]
 title: "Accueillir progressivement une personne"
 description: "Commencer par la fiche utile sans imposer tout le dossier d’emblée."
 fiche: true

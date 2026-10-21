@@ -1,5 +1,6 @@
 ---
-categorie_guide: quotidien
+categories_guide: [quotidien, accueillir]
+mots_cles_guide: ["repas", "nuit", "service"]
 fiche: true
 title: "Préparer le travail du jour"
 description: "Retrouver les séjours et saisir les repas effectivement distribués."

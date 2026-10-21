@@ -7,6 +7,10 @@ liste_auto: false
 Ce guide part d’une tâche concrète : **« Je voudrais faire… »**. Chaque fiche
 indique les étapes utiles dans le prototype et les précautions à connaître.
 
+La recherche couvre les titres, les descriptions et les mots-clés des fiches.
+Les catégories sont des **portes d’entrée** : une même fiche peut figurer
+à plusieurs endroits, sans duplication.
+
 {{< guide-fiches >}}
 
 Pour commencer, consultez aussi [Démarrer]({{< relref "/demarrer/" >}})

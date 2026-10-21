@@ -1,5 +1,6 @@
 ---
-categorie_guide: quotidien
+categories_guide: [quotidien, accompagner]
+mots_cles_guide: ["rectification", "historique"]
 fiche: true
 title: "Corriger une erreur de saisie"
 description: "Rectifier une date ou un texte en conservant l’avant et l’après."

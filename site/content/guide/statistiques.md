@@ -1,5 +1,6 @@
 ---
-categorie_guide: analyser
+categories_guide: [analyser, quotidien]
+mots_cles_guide: ["csv", "rapport", "nuitées"]
 title: "Lire les statistiques d’activité"
 description: "Choisir une période, comprendre les indicateurs et exporter un bilan."
 fiche: true

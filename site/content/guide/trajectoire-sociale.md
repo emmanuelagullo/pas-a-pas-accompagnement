@@ -1,5 +1,6 @@
 ---
-categorie_guide: accompagner
+categories_guide: [accompagner, analyser]
+mots_cles_guide: ["historique", "evolution"]
 fiche: true
 title: "Lire une trajectoire d’accompagnement"
 description: "Comparer les situations datées et retrouver les faits, sans score social."

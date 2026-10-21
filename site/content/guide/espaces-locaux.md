@@ -1,5 +1,6 @@
 ---
-categorie_guide: demarrer
+categories_guide: [demarrer]
+mots_cles_guide: ["pwa", "sauvegarde", "restauration"]
 fiche: true
 title: "Essayer et retrouver son espace habituel"
 description: "Deux espaces distincts dans la PWA et les programmes récents."

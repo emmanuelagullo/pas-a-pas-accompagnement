@@ -1,5 +1,6 @@
 ---
-categorie_guide: quotidien
+categories_guide: [quotidien, accompagner]
+mots_cles_guide: ["releve", "cahier de liaison", "equipe"]
 title: "Transmettre une information à l’équipe"
 description: "Distinguer cahier de liaison et notes partagées sur un dossier."
 fiche: true

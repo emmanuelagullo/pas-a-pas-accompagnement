@@ -20,11 +20,11 @@
   <div class="guide-cartes">
     {{- range $guide.RegularPages.ByTitle }}
       {{- if .Params.fiche }}
-        {{- $category := .Params.categorie_guide | default "demarrer" -}}
-        {{- $label := $category -}}
-        {{- range $categories }}{{ if eq .id $category }}{{ $label = .nom }}{{ end }}{{ end -}}
-        <a class="guide-carte" href="{{ .RelPermalink }}" data-categorie="{{ $category }}">
-          <span class="guide-carte-categorie">{{ $label }}</span>
+        {{- $categoryIds := .Params.categories_guide | default (slice (.Params.categorie_guide | default "demarrer")) -}}
+        {{- $labels := slice -}}
+        {{- range $categories }}{{ if in $categoryIds .id }}{{ $labels = $labels | append .nom }}{{ end }}{{ end -}}
+        <a class="guide-carte" href="{{ .RelPermalink }}" data-categories="{{ delimit $categoryIds " " }}" data-recherche="{{ .Params.mots_cles_guide | default (slice) | jsonify }}">
+          <span class="guide-carte-categorie">{{ delimit $labels " · " }}</span>
           <strong>{{ .Title }}</strong>
           {{ with .Description }}<span>{{ . }}</span>{{ end }}
         </a>
@@ -62,7 +62,7 @@
     const category = root.querySelector('input[name="guide-categorie"]:checked').value;
     let visible = 0;
     for (const card of cards) {
-      const matches = (!category || card.dataset.categorie === category) && normalize(card.textContent).includes(query);
+      const matches = (!category || card.dataset.categories.split(" ").includes(category)) && normalize(card.textContent + " " + card.dataset.recherche).includes(query);
       card.hidden = !matches;
       if (matches) visible++;
     }
