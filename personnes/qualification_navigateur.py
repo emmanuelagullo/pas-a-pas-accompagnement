@@ -1,10 +1,25 @@
 """Recette Chromium des permissions métier (lancée explicitement en CI)."""
+from concurrent.futures import ThreadPoolExecutor
+
 from django.contrib.auth.models import Permission
+from django.db import connections
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.urls import reverse
 from playwright.sync_api import sync_playwright
 
 from .tests_navigation import NavigationTests
+
+
+def verifier_hors_boucle_playwright(verification):
+    """Vérifier la base hors de la boucle événementielle Playwright."""
+    def executer():
+        try:
+            return verification()
+        finally:
+            connections.close_all()
+
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        return pool.submit(executer).result()
 
 
 class ProfilsNavigateur(StaticLiveServerTestCase):
@@ -146,7 +161,8 @@ class DossierPersonneMenageNavigateur(StaticLiveServerTestCase):
         page.locator('input[name="debut"]').fill('2026-01-02')
         page.get_by_role('button', name='Enregistrer').click()
         self.assertEqual(page.url, self.live_server_url + reverse('suivi:detail', args=[self.m.pk]))
-        self.assertTrue(Appartenance.objects.filter(menage=self.m, personne=autre).exists())
+        self.assertTrue(verifier_hors_boucle_playwright(
+            lambda: Appartenance.objects.filter(menage_id=self.m.pk, personne_id=autre.pk).exists()))
         page.get_by_role('link', name=autre.designation).click()
         self.assertEqual(page.url, fiche)
         page.get_by_role('link', name=self.m.libelle).first.click()
@@ -213,12 +229,19 @@ class CycleHebergementNavigateur(StaticLiveServerTestCase):
         self.assertEqual(page.get_by_role('link', name='Ajouter une affectation').count(), 0)
         self.assertEqual(page.get_by_role('link', name='Enregistrer une absence').count(), 0)
         self.assertEqual(page.get_by_role('link', name='Enregistrer la sortie').count(), 0)
-        self.s.refresh_from_db()
-        self.assertEqual(self.s.fin, date(2026, 1, 20))
-        self.assertEqual(list(Affectation.objects.filter(sejour=self.s).order_by('debut')
-                              .values_list('debut', 'fin')),
+        def etat_final():
+            sejour = Sejour.objects.get(pk=self.s.pk)
+            affectations = list(Affectation.objects.filter(sejour=sejour).order_by('debut')
+                                .values_list('debut', 'fin'))
+            absence_fin = Absence.objects.get(sejour=sejour).fin
+            sortie = OperationHebergement.objects.filter(
+                sejour=sejour, action='Sortie effective').exists()
+            return sejour.fin, affectations, absence_fin, sortie
+
+        fin, affectations, absence_fin, sortie = verifier_hors_boucle_playwright(etat_final)
+        self.assertEqual(fin, date(2026, 1, 20))
+        self.assertEqual(affectations,
                          [(date(2026, 1, 3), date(2026, 1, 10)),
                           (date(2026, 1, 10), date(2026, 1, 20))])
-        self.assertEqual(Absence.objects.get(sejour=self.s).fin, date(2026, 1, 20))
-        self.assertTrue(OperationHebergement.objects.filter(sejour=self.s,
-                                                            action='Sortie effective').exists())
+        self.assertEqual(absence_fin, date(2026, 1, 20))
+        self.assertTrue(sortie)
