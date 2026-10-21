@@ -91,11 +91,14 @@ class ConcurrenceHebergement(Donnees,TransactionTestCase):
                 depart.wait(10)
                 try:
                     h.ajouter_periode(u,self.s,date(2026,1,3),None,self.lieu)
-                    return True
-                except (ValidationError,OperationalError):return False
+                    return (True, None)
+                except (ValidationError, OperationalError) as erreur:
+                    return (False, f"{type(erreur).__name__}: {erreur}")
             finally:connections.close_all()
-        with ThreadPoolExecutor(max_workers=2) as pool:resultats=list(pool.map(essayer,range(2)))
-        self.assertEqual(sum(resultats),1)
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            tentatives = list(pool.map(essayer, range(2)))
+        resultats = [reussite for reussite, _ in tentatives]
+        self.assertEqual(sum(resultats), 1, f"Échecs concurrents : {tentatives}")
         self.assertEqual(Affectation.objects.count(),1)
         self.assertEqual(OperationHebergement.objects.filter(action='Affectation enregistrée').count(),1)
 
