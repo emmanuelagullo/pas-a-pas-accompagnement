@@ -3,13 +3,13 @@ module.exports = async function verifierParcoursMetier(app) {
   await app.getByRole('link', {name:'Personnes', exact:true}).click();
   await app.getByRole('link', {name:'Thomas (fictif)', exact:true}).click();
   await app.locator('a[href*="/accompagnements/"]').first().click();
-  await app.getByRole('heading', {name:/Accompagnement — Thomas/}).waitFor();
+  await app.getByRole('heading', {name:/Dossier — Thomas/}).waitFor();
   await app.getByRole('link', {name:'Situation et parcours sociaux', exact:true}).click();
   await app.getByRole('link', {name:'Corriger cet événement', exact:true}).click();
   await app.locator('[name=texte]').fill('Installation fictive — texte rectifié pendant l’essai.');
   await app.locator('[name=motif]').fill('Correction fictive du parcours navigateur');
   await app.getByRole('button', {name:'Enregistrer', exact:true}).click();
-  await app.getByRole('heading', {name:/Accompagnement — Thomas/}).waitFor();
+  await app.getByRole('heading', {name:/Dossier — Thomas/}).waitFor();
   await app.getByRole('link', {name:'Consulter l’avant/après des corrections', exact:true}).click();
   await app.getByText('Correction fictive du parcours navigateur', {exact:false}).waitFor();
   await app.getByText('Installation dans un logement autonome fictif.', {exact:false}).waitFor();
