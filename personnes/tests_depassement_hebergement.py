@@ -57,3 +57,15 @@ class DepassementAccordTests(Donnees, TestCase):
         acteur = type(self.u).objects.get(pk=self.u.pk)
         with self.assertRaises(PermissionDenied):
             h.sortir(acteur, self.s, date(2026,3,1))
+
+    def test_retour_au_jour_conserve_date_sans_destination_libre(self):
+        self.client.force_login(self.u)
+        url = reverse('suivi:absence', args=[self.s.pk])
+        page = self.client.get(url, {'retour': 'jour', 'date_service': '2026-03-03'})
+        self.assertContains(page, 'name="date_service" value="2026-03-03"')
+        response = self.client.post(url, {'debut': '2026-03-03', 'fin': '2026-03-04',
+                                         'retour': 'jour', 'date_service': '2026-03-03'})
+        self.assertRedirects(response, reverse('suivi:jour')+'?date=2026-03-03', fetch_redirect_response=False)
+        response = self.client.post(url, {'debut': '2026-03-05', 'fin': '2026-03-06',
+                                         'retour': 'https://example.test/', 'date_service': 'invalide'})
+        self.assertRedirects(response, reverse('suivi:accord_hebergement', args=[self.accord.pk]))

@@ -9,6 +9,13 @@ from .models import Accompagnement, AccordHebergement, Sejour, Affectation, Abse
 from .forms_hebergement import AccordForm, AdmissionForm, AffectationForm, PeriodeForm, LieuForm, ClotureForm
 from .vues_suivi import traiter
 from . import hebergement as h
+from .retour_service import url_jour
+
+
+def retour_hebergement(request, accord_id):
+    if (request.POST.get("retour") or request.GET.get("retour")) == "jour" and request.user.has_perm("personnes.view_sejour"):
+        return url_jour(request.POST.get("date_service") or request.GET.get("date_service"))
+    return reverse("suivi:accord_hebergement", args=[accord_id])
 
 
 def traiter_hebergement(*args, **kwargs):
@@ -57,7 +64,7 @@ def periode(request, pk, absence=False):
     s=get_object_or_404(Sejour,pk=pk)
     form=(PeriodeForm if absence else AffectationForm)(request.POST or None,
         initial={"debut": max(s.debut, timezone.localdate())})
-    return traiter_hebergement(request,form,"Enregistrer une absence de tous les bénéficiaires" if absence else "Affecter tous les bénéficiaires à un lieu",lambda **d:h.ajouter_periode(request.user,s,absence=absence,**d),s.accord.accompagnement.menage, retour=reverse("suivi:accord_hebergement", args=[s.accord_id]))
+    return traiter_hebergement(request,form,"Enregistrer une absence de tous les bénéficiaires" if absence else "Affecter tous les bénéficiaires à un lieu",lambda **d:h.ajouter_periode(request.user,s,absence=absence,**d),s.accord.accompagnement.menage, retour=retour_hebergement(request, s.accord_id))
 
 
 @require_http_methods(["GET", "POST"])
@@ -72,7 +79,7 @@ def terminer(request, pk, nature):
     # commencé avant aujourd'hui. Une clôture le jour du début est invalide.
     debut = objet.debut
     initial = {"fin": timezone.localdate()} if debut < timezone.localdate() else {}
-    return traiter_hebergement(request,ClotureForm(request.POST or None, initial=initial),"Enregistrer la sortie" if nature=="sejour" else "Clôturer la période",lambda **d:action(request.user,objet,**d),s.accord.accompagnement.menage, retour=reverse("suivi:accord_hebergement", args=[s.accord_id]))
+    return traiter_hebergement(request,ClotureForm(request.POST or None, initial=initial),"Enregistrer la sortie" if nature=="sejour" else "Enregistrer le retour d’absence" if nature=="absence" else "Clôturer l’affectation",lambda **d:action(request.user,objet,**d),s.accord.accompagnement.menage, retour=retour_hebergement(request, s.accord_id))
 
 
 @require_http_methods(["GET", "POST"])

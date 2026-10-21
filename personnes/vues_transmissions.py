@@ -32,7 +32,7 @@ def cahier(request):
         raise PermissionDenied
     return render(request, "suivi/transmissions.html", {"titre": "Cahier de liaison",
         "form": form if request.user.has_perm("personnes.add_transmission") else None,
-        "messages": Transmission.objects.select_related("auteur").prefetch_related("revisions__auteur"), "nature": "transmission",
+        "contributions": Transmission.objects.select_related("auteur").prefetch_related("revisions__auteur"), "nature": "transmission",
         "retour_jour": request.GET.get("retour") == "jour" or request.POST.get("retour") == "jour",
         "date_service": date_service(request.POST.get("date_service") or request.GET.get("date_service"))})
 
@@ -62,7 +62,7 @@ def notes(request, nature, pk):
             return redirect("suivi:notes", nature=nature, pk=pk)
     return render(request, "suivi/transmissions.html", {"titre": "Notes partagées",
         "form": form if request.user.has_perm("personnes.add_notepartagee") else None,
-        "messages": NotePartagee.objects.filter(**{nature: cible}).select_related("auteur").prefetch_related("revisions__auteur"), "nature": "note"})
+        "contributions": NotePartagee.objects.filter(**{nature: cible}).select_related("auteur").prefetch_related("revisions__auteur"), "nature": "note"})
 
 
 @login_required

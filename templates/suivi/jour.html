@@ -35,9 +35,9 @@
 <p>Les dates reflètent les informations enregistrées. Un séjour ouvert ne prouve pas la présence physique.</p>
 {% if perms.personnes.view_accordhebergement and perms.personnes.view_sejour %}<section class="carte"><h2>Hébergement au {{ date }}</h2><ul>{% for ligne in hebergements %}<li><a href="{% url 'suivi:accord_hebergement' ligne.sejour.accord_id %}">{{ ligne.sejour.accord.accompagnement.menage }}</a> : {% for p in ligne.sejour.beneficiaires.all %}{{ p }} ; {% endfor %}
 <p>Actions sur le séjour :
-{% if perms.personnes.add_affectation and perms.personnes.view_lieuhebergement %}<a href="{% url 'suivi:affecter' ligne.sejour.pk %}">Affecter un lieu</a> · {% endif %}
-{% if perms.personnes.add_absence %}<a href="{% url 'suivi:absence' ligne.sejour.pk %}">Signaler une absence</a> · {% endif %}
-{% if perms.personnes.change_sejour %}<a href="{% url 'suivi:sortir' ligne.sejour.pk %}">Enregistrer la sortie</a>{% endif %}
+{% if perms.personnes.add_affectation and perms.personnes.view_affectation and perms.personnes.view_lieuhebergement %}<a href="{% url 'suivi:affecter' ligne.sejour.pk %}?retour=jour{% if date_service %}&amp;date_service={{ date_service }}{% endif %}">Affecter un lieu</a> · {% endif %}
+{% if perms.personnes.add_absence and perms.personnes.view_absence %}<a href="{% url 'suivi:absence' ligne.sejour.pk %}?retour=jour{% if date_service %}&amp;date_service={{ date_service }}{% endif %}">Signaler une absence</a> · {% endif %}
+{% if perms.personnes.change_sejour and perms.personnes.change_affectation and perms.personnes.change_absence %}<a href="{% url 'suivi:sortir' ligne.sejour.pk %}?retour=jour{% if date_service %}&amp;date_service={{ date_service }}{% endif %}">Enregistrer la sortie</a>{% endif %}
 </p>
 {% if ligne.lieux != None %}{% for a in ligne.lieux %}<p>Lieu : {{ a.lieu }}</p>{% empty %}<p>Aucun lieu affecté à cette date.</p>{% endfor %}{% endif %}
 {% if perms.personnes.view_notepartagee %}<p><a href="{% url 'suivi:notes' 'sejour' ligne.sejour.pk %}">Notes du séjour</a></p>{% endif %}

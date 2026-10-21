@@ -1,6 +1,7 @@
 from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.paginator import Paginator
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods, require_safe
 from .forms import PersonneForm
@@ -11,8 +12,12 @@ from .models import Personne
 @login_required
 @permission_required("personnes.view_personne", raise_exception=True)
 def liste(request):
-    page = Paginator(Personne.objects.all(), 25).get_page(request.GET.get("page"))
-    return render(request, "personnes/liste.html", {"page_obj": page})
+    recherche = request.GET.get("q", "").strip()
+    personnes = Personne.objects.all()
+    for terme in recherche.split():
+        personnes = personnes.filter(Q(designation__icontains=terme) | Q(prenom__icontains=terme))
+    page = Paginator(personnes.order_by("designation", "prenom", "pk"), 25).get_page(request.GET.get("page"))
+    return render(request, "personnes/liste.html", {"page_obj": page, "recherche": recherche})
 
 
 @require_http_methods(["GET", "POST"])

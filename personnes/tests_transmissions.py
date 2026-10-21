@@ -117,3 +117,19 @@ class RetourServiceTests(TestCase):
         self.assertRedirects(self.client.post(reverse("suivi:terminer_action_relais", args=[action.pk]),
                                               {"retour": "jour"}), reverse("suivi:jour"),
                              fetch_redirect_response=False)
+
+
+class AffichageContributionsTests(TransmissionsTests):
+    def test_contributions_ne_sont_pas_des_alertes_globales(self):
+        from django.contrib.messages.storage.cookie import CookieStorage
+        from django.contrib.messages.storage.base import Message
+        from django.contrib.messages import SUCCESS
+        self.client.force_login(self.u)
+        transmissions.transmettre(self.u, 'Texte de liaison unique')
+        transmissions.noter(self.u, 'Texte de note unique', personne=self.p)
+        for route, texte in [(reverse('suivi:cahier'), 'Texte de liaison unique'),
+                             (reverse('suivi:notes', args=['personne', self.p.pk]), 'Texte de note unique')]:
+            self.client.cookies['messages'] = CookieStorage(None)._encode([Message(SUCCESS, 'Alerte enregistrée')])
+            page = self.client.get(route)
+            self.assertContains(page, 'Alerte enregistrée', count=1)
+            self.assertContains(page, texte, count=1)

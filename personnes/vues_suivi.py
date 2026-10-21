@@ -1,6 +1,7 @@
 import uuid
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import ValidationError
+from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -10,6 +11,7 @@ from django.views.decorators.http import require_http_methods, require_safe
 from .models import Personne, Menage, Appartenance, Accompagnement, CorrectionPeriode
 from .forms_suivi import MenageForm, AppartenanceForm, AccompagnementForm, ClotureForm
 from . import suivi
+from .retour_service import date_service
 
 
 @require_safe
@@ -18,8 +20,15 @@ from . import suivi
 def liste(request):
     identifiant = request.GET.get("personne", "")
     personne = (Personne.objects.filter(pk=identifiant).first() if _uuid_valide(identifiant) else None)
+    recherche = request.GET.get("q", "").strip()
+    menages = Menage.objects.all()
+    for terme in recherche.split():
+        menages = menages.filter(Q(libelle__icontains=terme) |
+            Q(appartenances__personne__designation__icontains=terme) |
+            Q(appartenances__personne__prenom__icontains=terme))
+    page = Paginator(menages.distinct().order_by("libelle", "pk"), 25).get_page(request.GET.get("page"))
     return render(request, "suivi/liste.html", {
-        "menages": Menage.objects.all(),
+        "menages": page, "page_obj": page, "recherche": recherche,
         "personne_a_rattacher": personne,
     })
 
@@ -47,7 +56,9 @@ def traiter(request, formulaire, titre, action, menage=None, retour=None):
             if retour:
                 return redirect(retour(resultat) if callable(retour) else retour)
             return redirect("suivi:detail", pk=menage.pk if menage else resultat.pk)
-    return render(request, "suivi/form.html", {"form": formulaire, "titre": titre, "menage": menage, "retour": retour if isinstance(retour, str) else None})
+    return render(request, "suivi/form.html", {"form": formulaire, "titre": titre, "menage": menage, "retour": retour if isinstance(retour, str) else None,
+        "retour_jour": (request.POST.get("retour") or request.GET.get("retour")) == "jour",
+        "date_service": date_service(request.POST.get("date_service") or request.GET.get("date_service"))})
 
 
 def _uuid_valide(valeur):

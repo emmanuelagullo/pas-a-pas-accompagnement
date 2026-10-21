@@ -1,14 +1,15 @@
 {% extends "base.html" %}
 {% block titre %}Personnes — Pas à Pas{% endblock %}
 {% block contenu %}<h1>Personnes</h1>
+<form method="get" role="search"><label for="recherche">Nom, prénom ou désignation</label> <input id="recherche" name="q" value="{{ recherche }}" type="search"><button type="submit">Rechercher</button></form>
 {% if perms.personnes.add_personne %}<p><a class="bouton" href="{% url 'personnes:creer' %}">Créer une personne</a></p>{% endif %}
 {% if page_obj.object_list %}<ul class="fiches">{% for personne in page_obj %}
 <li><a href="{% url 'personnes:detail' personne.pk %}">{{ personne }}</a></li>
 {% endfor %}</ul>
 {% if page_obj.has_other_pages %}<nav aria-label="Pagination">
-{% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}">Page précédente</a>{% endif %}
+{% if page_obj.has_previous %}<a href="?q={{ recherche|urlencode }}&amp;page={{ page_obj.previous_page_number }}">Page précédente</a>{% endif %}
 <span>Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}</span>
-{% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}">Page suivante</a>{% endif %}
+{% if page_obj.has_next %}<a href="?q={{ recherche|urlencode }}&amp;page={{ page_obj.next_page_number }}">Page suivante</a>{% endif %}
 </nav>{% endif %}
-{% else %}<section class="carte"><h2>Aucune personne pour le moment</h2><p>Commencez avec un nom fictif ou un identifiant provisoire.</p></section>{% endif %}
+{% else %}<section class="carte">{% if recherche %}<h2>Aucun résultat</h2><p>Essayez une partie du nom ou de la désignation.</p>{% else %}<h2>Aucune personne pour le moment</h2><p>Commencez avec un nom fictif ou un identifiant provisoire.</p>{% endif %}</section>{% endif %}
 {% endblock %}

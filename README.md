@@ -459,7 +459,10 @@ périodes ouvertes à sa date, dans la même transaction et avec audit ; une
 période déjà enregistrée au-delà entraîne un refus, sans modification partielle.
 La clôture de l’accompagnement exige d’abord la clôture des séjours. Admission
 et périodes effectives ne peuvent commencer dans le futur ; une fin effective
-ne peut être future ni dépasser le séjour, l’accord ou l’accompagnement.
+ne peut être future ni dépasser le séjour ou l’accompagnement. Les mouvements
+et la sortie d’un séjour déjà admis peuvent dépasser la fin de l’accord ;
+un avertissement signale ce dépassement sans modifier l’autorisation.
+L’admission reste comprise dans l’accord, y compris lors d’une correction.
 Un séjour ouvert sous accord borné ne constitue pas une prolongation de droit.
 
 Les affectations d’un même séjour ne peuvent se chevaucher ; même règle pour
@@ -591,3 +594,13 @@ Le banc navigateur scripts/verifier-pwa.cjs exerce aussi la fiche d’accompagne
 une correction avec avant/après et une distribution du jour via le vrai Worker
 Pyodide (scripts/verifier-parcours-metier.cjs). Sa réussite reste à confirmer
 dans la CI du candidat ; elle ne se déduit pas des tests Django.
+
+## CHRS26 — recherche et continuité de navigation
+
+Les listes permettent de rechercher les personnes par nom, prénom ou désignation,
+et les ménages par libellé ou par nom d’un membre actuel ou ancien. Les mots
+saisis sont tous recherchés, sans distinction de casse ; les accents restent
+ceux de la base utilisée. Les pages de 25 résultats conservent recherche et
+contexte de rattachement. Depuis le travail du jour, affectation, absence et
+sortie reviennent à la date consultée ; aucune URL de retour libre n’est acceptée.
+Le retour d’absence utilise la clôture existante, avec les mêmes règles de dates.
