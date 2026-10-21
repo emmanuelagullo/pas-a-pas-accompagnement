@@ -1,13 +1,13 @@
 """Recette Chromium des permissions métier (lancée explicitement en CI)."""
 from django.contrib.auth.models import Permission
-from django.test import LiveServerTestCase
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.urls import reverse
 from playwright.sync_api import sync_playwright
 
 from .tests_navigation import NavigationTests
 
 
-class ProfilsNavigateur(LiveServerTestCase):
+class ProfilsNavigateur(StaticLiveServerTestCase):
     """Profils fictifs : le navigateur ne doit proposer aucun accès interdit."""
 
     def setUp(self):
@@ -113,7 +113,7 @@ class ProfilsNavigateur(LiveServerTestCase):
         self.assertEqual(page.locator('main').count(), 1)
 
 
-class DossierPersonneMenageNavigateur(LiveServerTestCase):
+class DossierPersonneMenageNavigateur(StaticLiveServerTestCase):
     """Parcours réel de rattachement, retours et contrôle des permissions."""
 
     setUp = ProfilsNavigateur.setUp
@@ -166,7 +166,7 @@ class DossierPersonneMenageNavigateur(LiveServerTestCase):
         self.assertEqual(page.goto(self.live_server_url + reverse('suivi:accompagnement', args=[self.a.pk])).status, 403)
 
 
-class CycleHebergementNavigateur(LiveServerTestCase):
+class CycleHebergementNavigateur(StaticLiveServerTestCase):
     """Recette Chromium du séjour fictif : actions réelles et historique conservé."""
 
     def setUp(self):
