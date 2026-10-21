@@ -237,3 +237,16 @@ consultables mais ne reçoivent plus d’admission/distribution/correction. Tout
 nouvelle écriture liée doit recharger l’état sous le verrou commun de ménage.
 Préserver la révision des accords, leurs décisions et les anciens journaux dans
 les copies ; tester dépendances, conflits, migration et reprise ZIP.
+
+
+# BD4 — entrée et synthèse
+
+Le dossier est une vue personne/ménage, pas un alias de l'accompagnement ni un
+nouveau modèle. Filtrer la vue personne sur les bénéficiaires et la vue ménage
+sur le ménage ; ne pas importer implicitement les prestations des autres ménages.
+Conserver les actions collectives et leurs bénéficiaires explicites. Aucune
+création silencieuse de ménage, période ou accord. Les droits existants restent
+nécessaires ; les fragments de recherche ont les mêmes contrôles que l'accueil.
+Préserver le repli GET, les retours signés et les sélections du ménage d'origine.
+Tester `node scripts/verifier-recherche-dossiers.cjs` et actualiser les recettes
+navigateur/PWA lors d'un changement des libellés ou de la navigation.

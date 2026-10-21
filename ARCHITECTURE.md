@@ -247,3 +247,26 @@ a aucune ; les rapports n’ont donc aucune quantité à retrancher. Le travail 
 jour et le résumé courant filtrent les accords de repas annulés. Les listes du
 dossier et les détails les conservent avec un état explicite. Les anciennes fins
 sont journalisées, sans annoncer une reconstruction des droits à une date passée.
+
+
+## BD4 — synthèse indépendante des périodes de suivi
+
+`personnes.vues_dossiers` fournit recherche paginée, création explicite et
+synthèse au niveau personne/ménage, sans modèle ni migration. Les requêtes de
+prestations sont bornées aux périodes visibles puis aux bénéficiaires en vue
+personne ; les lieux, absences et informations sociales gardent leurs droits
+propres. Les relations affichées sont préchargées, pas une requête par ligne.
+
+Le contexte BD1–BD2 accepte une cible de synthèse signée en plus du parent
+accompagnement. Chaque boîte signe le parent réel de sa sélection ; la lecture
+vérifie que ce parent appartient au ménage ou compte la personne parmi ses
+bénéficiaires. Un contexte spécifique à l’identité/aux notes personne vérifie
+la personne cible. Les destinations sont des routes internes connues ; aucun
+`next` libre. La recherche, la page, les sélections et le ménage d’origine sont
+conservés ; les sélections sont revalidées dans chaque synthèse.
+
+Le JavaScript local annule les recherches précédentes et compare leur numéro
+avant d’afficher une réponse ; les anciens résultats sont inertes pendant la
+saisie. Aucun CDN ni bibliothèque. Le rendu intégral GET reste fonctionnel sans
+JavaScript. L’accueil et ses fragments privés sont marqués no-store.
+Les services d’écriture, verrous, révisions et journaux existants sont réutilisés.

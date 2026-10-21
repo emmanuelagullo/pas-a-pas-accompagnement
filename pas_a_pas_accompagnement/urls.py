@@ -12,6 +12,7 @@ urlpatterns = [
     path("essai-local/", choisir_espace_local, name="choisir_espace_local"),
     path("decouverte/", decouverte, name="decouverte"),
     path("copies-locales/", copies, name="copies_locales"),
+    path("dossiers/", include("personnes.urls_dossiers")),
     path("menages/", include("personnes.urls_suivi")),
     path("statistiques/", statistiques, name="statistiques"),
     path("statistiques/modeles/ajouter/", enregistrer_modele_rapport, name="statistiques_modele_ajouter"),

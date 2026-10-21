@@ -40,8 +40,7 @@ superpouvoir ni accès à une console d'administration : ses seules permissions
 sont consultation et création des personnes fictives. Une nouvelle exécution
 sur le même identifiant est refusée et ne modifie pas le compte existant.
 
-Ouvrir <http://127.0.0.1:8000/>, se connecter, puis **Consulter les personnes →
-Créer une personne**. Par exemple, nom d'usage `Personne fictive A`, prénom vide.
+Ouvrir <http://127.0.0.1:8000/>, se connecter, puis **Personnes → Nouveau dossier** dans la recherche d’accueil. Par exemple, nom d'usage `Personne fictive A`, prénom vide.
 Enregistrer, consulter la fiche, revenir à la liste, arrêter puis relancer la
 commande `runserver` : la fiche est toujours présente. Deux personnes peuvent
 avoir la même désignation ; leurs UUID sont distincts et stables.
@@ -859,3 +858,45 @@ reviennent à la sélection du dossier si elle a été transmise. Les décisions
 le verrou du ménage avant de recharger l’accord et ses dépendances ; elles sont
 atomiques avec leur journal. Les copies natives conservent ces états et décisions.
 Pas de dépendance ni modification du socle, du stockage PWA ou des profils serveur/bureau.
+
+
+## BD4 — entrée et dossier personne/ménage
+
+Après connexion, l’accueil est une recherche centrale de dossiers. Ménages est
+le mode par défaut si le compte peut les lire ; sinon seule la recherche des
+personnes est proposée. Chaque mot peut correspondre au libellé ou à une
+personne rattachée, y compris une ancienne appartenance. Les résultats sont
+paginés par 25. La recherche se met à jour à la saisie ; sans JavaScript ou en
+cas d’échec, le bouton Rechercher exécute le même GET. Aucun nom n’est unique.
+
+Nouveau dossier reprend la saisie sans découper automatiquement nom et prénom.
+Une personne peut être créée sans ménage. Un ménage commence avec une personne
+choisie ou créée explicitement selon les droits ; les autres appartenances se
+complètent depuis sa composition. Aucune période de suivi ni prestation n’est
+créée implicitement. Les créations restent des POST CSRF avec les droits existants.
+
+La nouvelle synthèse `/dossiers/menage/<uuid>/` ou `/dossiers/personne/<uuid>/`
+n’est pas un nouveau modèle. Elle rassemble les séjours et accords de repas de
+toutes les périodes consultables. La vue personne filtre sur les bénéficiaires
+réels ; la vue ménage reste limitée aux prestations de ce ménage. Une action
+collective conserve tous ses bénéficiaires, même ouverte depuis une personne.
+Les bascules et le retour au ménage d’origine conservent recherche et sélection,
+y compris si la sélection d’origine ne concerne pas la personne consultée.
+Les informations pratiques restent contextualisées par période et bénéficiaires.
+
+Le choix de la période pour une nouvelle prestation est explicite. Le modèle
+actuel et ses limites de dates sont conservés ; aucune période n’est choisie ni
+ouverte silencieusement. Les anciennes fiches restent accessibles pour la gestion
+fine. Les formulaires liés aux prestations et les notes/corrections d’identité
+ouvertes depuis la synthèse reviennent à celle-ci avec leur contexte signé.
+
+Sauvegardes & Transferts mène aux outils locaux existants ou aux indications de
+la coque PWA ; côté serveur, elle explique le rôle de l’exploitant. L’export par
+établissement, le multiétablissement, les habilitations d’export des dossiers et
+l’import vers un nouvel établissement restent un chantier dédié.
+Aucun bouton documentaire Solenne vide, entretien réseau, mode Inconnu ou choix
+de service n’est ajouté. Aucune migration ni nouvelle permission.
+
+Vérifications : suite Django, `node scripts/verifier-recherche-dossiers.cjs`
+(réponses hors ordre, préfixe PWA, repli) et recettes navigateur dans
+`personnes.qualification_navigateur` et `scripts/verifier-parcours-metier.cjs`.

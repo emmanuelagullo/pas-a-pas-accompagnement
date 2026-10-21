@@ -1,3 +1,14 @@
+## BD4 — chercher puis ouvrir un dossier
+
+- Recherche centrale dès l’accueil : ménages ou personnes, filtrage dynamique
+  progressif, recherche des membres actuels et anciens, pagination et repli GET.
+- Dossier personne/ménage réunissant les prestations de toutes les périodes,
+  bascule explicite et retour au ménage d’origine avec sélection conservée.
+- Création explicite depuis la saisie, sans suivi social ni prestation implicite ;
+  choix de la période avant toute nouvelle prestation.
+- Retours signés des opérations, notes personne et corrections d’identité ;
+  entrée Sauvegardes & Transferts adaptée au profil. Aucun changement de modèle.
+
 ## BD3 — décisions sur les accords
 
 - Prolongation motivée des accords d’hébergement et de repas : nouvelle fin

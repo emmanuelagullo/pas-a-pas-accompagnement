@@ -440,3 +440,56 @@ class NouveauxParcoursNavigateur(StaticLiveServerTestCase):
         self.assertTrue(page.locator('input[name="repas"][value="' + str(accord.pk) + '"]').is_checked())
         self.assertEqual(page.get_by_role('link', name='Enregistrer une distribution', exact=True).count(), 0)
         self.assertEqual(verifier_hors_boucle_playwright(lambda: EvolutionAccord.objects.count()), 2)
+
+
+class EntreeBDNavigateur(StaticLiveServerTestCase):
+    """Entrée réelle BD4, recherche dynamique et sans JavaScript."""
+    navigateur = ProfilsNavigateur.navigateur
+
+    def setUp(self):
+        from io import StringIO
+        from django.core.management import call_command
+        from .tests_hebergement import Donnees
+        Donnees.preparer(self)
+        call_command('autoriser_chrs7', self.u.username, stdout=StringIO())
+        self.u.set_password('Recette-fictive-CHRS14!')
+        self.u.save(update_fields=['password'])
+
+    def test_recherche_bascule_et_sortie_retour(self):
+        page = self.navigateur()
+        page.get_by_role('heading', name='Quel dossier souhaitez-vous ouvrir ?').wait_for()
+        page.get_by_label('Nom, prénom ou libellé du dossier', exact=True).fill(self.p.designation)
+        page.get_by_text('Résultats actualisés.', exact=True).wait_for()
+        page.locator('#resultats-dossiers a[href*="/dossiers/menage/"]').click()
+        page.get_by_role('heading', name='Dossier — ' + self.m.libelle, exact=True).wait_for()
+        page.locator('nav[aria-label="Dossiers liés"] a').first.click()
+        page.get_by_role('heading', name='Dossier — ' + str(self.p), exact=True).wait_for()
+        page.get_by_role('link', name='Enregistrer la sortie', exact=True).click()
+        page.locator('input[name="fin"]').fill('2026-01-20')
+        page.get_by_role('button', name='Enregistrer', exact=True).click()
+        page.get_by_role('heading', name='Dossier — ' + str(self.p), exact=True).wait_for()
+        self.assertTrue(page.locator('input[name="sejour"]').first.is_checked())
+        page.get_by_role('link', name='← Revenir au ménage ' + self.m.libelle, exact=True).click()
+        page.get_by_role('link', name='Retour à la recherche', exact=True).click()
+        self.assertEqual(page.locator('#recherche-nom').input_value(), self.p.designation)
+        page.get_by_label('Personnes', exact=True).check()
+        page.get_by_text('Résultats actualisés.', exact=True).wait_for()
+        page.locator('#resultats-dossiers a[href*="/dossiers/personne/"]').click()
+        page.get_by_role('heading', name='Dossier — ' + str(self.p), exact=True).wait_for()
+        page.set_viewport_size({'width': 360, 'height': 800})
+        self.assertTrue(page.evaluate('document.documentElement.scrollWidth <= window.innerWidth'))
+
+    def test_recherche_sans_javascript(self):
+        playwright = sync_playwright().start()
+        self.addCleanup(playwright.stop)
+        browser = playwright.chromium.launch()
+        self.addCleanup(browser.close)
+        page = browser.new_page(java_script_enabled=False)
+        page.goto(self.live_server_url + '/connexion/')
+        page.locator('input[name="username"]').fill(self.u.username)
+        page.locator('input[name="password"]').fill('Recette-fictive-CHRS14!')
+        page.get_by_role('button', name='Se connecter').click()
+        page.get_by_label('Nom, prénom ou libellé du dossier', exact=True).fill(self.p.designation)
+        page.get_by_role('button', name='Rechercher', exact=True).click()
+        page.locator('#resultats-dossiers a[href*="/dossiers/menage/"]').click()
+        page.get_by_role('heading', name='Dossier — ' + self.m.libelle, exact=True).wait_for()

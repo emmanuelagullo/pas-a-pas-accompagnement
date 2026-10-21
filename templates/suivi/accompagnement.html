@@ -1,7 +1,7 @@
 {% extends "base.html" %}{% load dossier %}{% block contenu %}
 <p><a href="{% url 'suivi:detail' accompagnement.menage_id %}">Ménage {{ accompagnement.menage }}</a></p>
 <p><a href="{{ retour_origine }}">{% if dossier_valeurs.origine == "jour" %}Retour au travail du jour{% else %}Retour à la recherche des ménages{% endif %}</a></p>
-<h1>Dossier — {{ accompagnement.menage }}</h1>
+{% if retour_dossier %}<p><a href="{{ retour_dossier }}">Revenir au dossier</a></p>{% endif %}<p><a href="{% url 'dossiers:detail' 'menage' accompagnement.menage_id %}">Dossier du ménage — toutes les périodes</a></p><h1>Dossier — {{ accompagnement.menage }}</h1>
 {% if dossier_valeurs.date_service %}<p>Date de travail conservée : {{ dossier_valeurs.date_service }}. Ce dossier présente les informations enregistrées, pas une photographie historique.</p>{% endif %}
 
 <p><a href="{% dossier_url 'suivi:resume' accompagnement.pk %}">Ouvrir le résumé imprimable</a></p>

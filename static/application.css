@@ -48,3 +48,13 @@ form li { margin-bottom: 1rem; }
 .dossier-actions nav { gap: .65rem 1rem; }
 .dossier-identite { max-width: none; }
 @media (max-width: 48rem) { .dossier-boites { grid-template-columns: minmax(0, 1fr); } }
+
+/* Entrée BD : une recherche centrale, sans dépendance JavaScript. */
+#recherche-dossiers { max-width: 48rem; }
+#recherche-nom { max-width: none; width: 100%; padding: 1rem; }
+.choix-recherche { display: flex; flex-wrap: wrap; gap: 1rem; border: 0; padding: 0; margin: 1rem 0; }
+.choix-recherche label { font-weight: 450; }
+.resultats-dossiers { max-width: none; }
+.resultats-dossiers a { min-width: 0; }
+.dossier-identite summary { cursor: pointer; font-weight: 650; }
+.dossier-identite section { margin: 1.5rem 0; }

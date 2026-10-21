@@ -80,10 +80,11 @@ def corriger_identite(request, pk):
     from django.core.exceptions import ValidationError
     from django.db import OperationalError
     from django.contrib import messages
-    from . import identite
+    from . import identite, dossier
     personne = get_object_or_404(Personne, pk=pk)
     form = CorrectionIdentiteForm(request.POST if request.method == "POST" else None,
         instance=personne, initial={"attendu": identite.jeton(personne)})
+    navigation = dossier.lire_personne(request, pk)
     statut = 200
     if request.method == "POST" and form.is_valid():
         try:
@@ -96,5 +97,5 @@ def corriger_identite(request, pk):
             statut = 409
         else:
             messages.success(request, "Identité corrigée ; l’historique est conservé.")
-            return redirect("personnes:detail", pk=pk)
-    return render(request, "personnes/corriger_identite.html", {"form": form, "personne": personne}, status=statut)
+            return redirect(navigation["retour_dossier"]) if navigation else redirect("personnes:detail", pk=pk)
+    return render(request, "personnes/corriger_identite.html", {**navigation, "form": form, "personne": personne}, status=statut)

@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block contenu %}
+<p><a href="{{ retour }}">Retour à la recherche</a></p><h1>Nouveau dossier {% if nature == 'menage' %}ménage{% else %}personne{% endif %}</h1>
+<p>Vérifiez les résultats de recherche pour éviter un doublon. Deux personnes peuvent porter le même nom.</p>
+<p>La création du dossier n’ouvre aucune période de suivi et ne crée aucune prestation.</p>
+<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Créer et ouvrir le dossier</button></form>
+{% endblock %}

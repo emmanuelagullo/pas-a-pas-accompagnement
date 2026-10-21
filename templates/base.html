@@ -8,7 +8,7 @@
 <header><a class="marque" href="{% url 'accueil' %}">Pas à Pas <span>Accompagnement</span></a>
 {% if user.is_authenticated %}<nav aria-label="Navigation principale">
 <span>Compte : {{ user.get_username }}</span>
-<a href="{% url 'accueil' %}">Accueil</a>
+<a href="{% url 'accueil' %}">Dossiers</a>
 {% if not demonstration_publique and not espace_essai %}<a href="{% url 'securite_compte' %}">Sécurité du compte</a>{% endif %}
 {% if perms.personnes.view_personne and not request.inscription_2fa_requise %}<a href="{% url 'personnes:liste' %}">Personnes</a>{% endif %}
 {% if perms.personnes.view_menage and perms.personnes.view_personne and not request.inscription_2fa_requise %}<a href="{% url 'suivi:liste' %}">Ménages et accompagnements</a>{% endif %}

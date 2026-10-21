@@ -5,15 +5,18 @@ from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from personnes.installation import disponible
 from django.views.decorators.http import require_safe
+from django.views.decorators.cache import never_cache
 
 
+@never_cache
 @require_safe
 def accueil(request):
     if disponible():
         return redirect("installation_locale")
     if not request.user.is_authenticated:
         return redirect_to_login(request.get_full_path())
-    return render(request, "accueil.html")
+    from personnes.vues_dossiers import recherche
+    return recherche(request)
 
 
 @require_safe

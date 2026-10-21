@@ -105,6 +105,7 @@ pwa-prototype:
   script:
     - python -m unittest discover -s scripts -p test_construire_pwa.py
     - python scripts/construire-pwa.py --test
+    - node scripts/verifier-recherche-dossiers.cjs
     - node scripts/verifier-pwa-pyodide.mjs
     - PWA_TEST_HTTPS=oui node scripts/verifier-pwa.cjs
     - PWA_BASE_PATH=/ node scripts/verifier-pwa.cjs

@@ -18,8 +18,10 @@ def lire(request, accompagnement):
             return {}
     except (signing.BadSignature, TypeError, ValueError):
         return {}
+    if valeurs.get('vue') and not vue_autorisee(request.user, accompagnement, valeurs['vue']):
+        return {}
     return {'contexte_dossier': token, 'dossier_valeurs': valeurs,
-            'retour_dossier': reverse('suivi:accompagnement', args=[accompagnement.pk]) + '?' + urlencode({'contexte_dossier': token})}
+            'retour_dossier': retour(accompagnement, valeurs, token)}
 
 
 def creer(request, accompagnement, sejour, repas):
@@ -30,6 +32,70 @@ def creer(request, accompagnement, sejour, repas):
                'origine': precedent.get('origine') or ('jour' if request.GET.get('retour') == 'jour' else ''),
                'recherche': precedent.get('recherche', request.GET.get('q', '')[:160]),
                'page': precedent.get('page', request.GET.get('page', '1')[:8])}
+    if precedent.get('vue'):
+        valeurs['vue'] = precedent['vue']
     token = signing.dumps(valeurs, salt=SEL, compress=True)
     return {'contexte_dossier': token, 'dossier_valeurs': valeurs,
-            'retour_dossier': reverse('suivi:accompagnement', args=[accompagnement.pk]) + '?' + urlencode({'contexte_dossier': token})}
+            'retour_dossier': retour(accompagnement, valeurs, token)}
+
+
+def vue_autorisee(acteur, accompagnement, vue):
+    """Le jeton de retour ne remplace jamais la cible ni ses droits actuels."""
+    if not isinstance(vue, dict) or not acteur.has_perms(DROITS):
+        return False
+    if vue.get('nature') == 'menage':
+        return vue.get('pk') == str(accompagnement.menage_id)
+    if vue.get('nature') == 'personne':
+        return accompagnement.beneficiaires.filter(pk=vue.get('pk')).exists()
+    return False
+
+
+def retour(accompagnement, valeurs, token):
+    vue = valeurs.get('vue')
+    if vue:
+        return reverse('dossiers:detail', args=[vue['nature'], vue['pk']]) + '?' + urlencode({'contexte_dossier': token})
+    return reverse('suivi:accompagnement', args=[accompagnement.pk]) + '?' + urlencode({'contexte_dossier': token})
+
+
+def pour_vue(request, accompagnement, nature, pk, params):
+    valeurs = creer(request, accompagnement, None, None)['dossier_valeurs']
+    valeurs.update({k: params.get(k, valeurs.get(k, '')) for k in ('sejour', 'repas')})
+    valeurs['vue'] = {'nature': nature, 'pk': str(pk), **{k: params.get(k, '') for k in
+        ('q', 'mode', 'page', 'sejour', 'repas', 'origine_menage', 'origine_sejour', 'origine_repas')}}
+    token = signing.dumps(valeurs, salt=SEL, compress=True)
+    return {'contexte_dossier': token, 'dossier_valeurs': valeurs,
+            'retour_dossier': retour(accompagnement, valeurs, token)}
+
+
+def valeurs_vue(request, nature, pk):
+    token = request.GET.get('contexte_dossier')
+    try:
+        valeurs = signing.loads(token, salt=SEL, max_age=86400)
+        vue = valeurs.get('vue', {})
+        if vue.get('nature') == nature and vue.get('pk') == str(pk):
+            return {k: vue.get(k, '') for k in ('q', 'mode', 'page', 'sejour', 'repas', 'origine_menage', 'origine_sejour', 'origine_repas')}
+    except (signing.BadSignature, TypeError, ValueError, AttributeError):
+        pass
+    return {}
+
+
+def pour_personne(pk, params):
+    vue = {'nature': 'personne', 'pk': str(pk), **{k: params.get(k, '') for k in
+        ('q', 'mode', 'page', 'sejour', 'repas', 'origine_menage', 'origine_sejour', 'origine_repas')}}
+    valeurs = {'vue': vue}
+    token = signing.dumps(valeurs, salt=SEL, compress=True)
+    return {'contexte_dossier': token, 'dossier_valeurs': valeurs, 'retour_dossier': retour(None, valeurs, token)}
+
+
+def lire_personne(request, pk):
+    if not request.user.has_perm('personnes.view_personne'):
+        return {}
+    token = request.POST.get('contexte_dossier') or request.GET.get('contexte_dossier')
+    try:
+        valeurs = signing.loads(token, salt=SEL, max_age=86400)
+        vue = valeurs.get('vue', {})
+        if vue.get('nature') == 'personne' and vue.get('pk') == str(pk):
+            return {'contexte_dossier': token, 'dossier_valeurs': valeurs, 'retour_dossier': retour(None, valeurs, token)}
+    except (signing.BadSignature, TypeError, ValueError, AttributeError):
+        pass
+    return {}

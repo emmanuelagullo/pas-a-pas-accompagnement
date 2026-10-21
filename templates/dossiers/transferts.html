@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block contenu %}<h1>Sauvegardes &amp; Transferts</h1>
+{% if outils_copies_bureau %}<p><a class="bouton" href="{% url 'copies_locales' %}">Copies et restauration sur cet appareil</a></p>
+{% elif mode_pwa %}<p>Utilisez « Copies et restauration sur cet appareil » dans la barre de l’application navigateur, au-dessus de cette page.</p>
+{% else %}<p>Sur le serveur, les sauvegardes de l’instance sont réalisées par l’exploitant.</p>{% endif %}
+<p>Les transferts par établissement et les exports de dossiers ne sont pas encore disponibles. Leur chantier inclura le périmètre multiétablissement du serveur et les autorisations nécessaires.</p>
+<p><a href="{% url 'accueil' %}">Retour à la recherche</a></p>{% endblock %}

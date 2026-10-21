@@ -2,12 +2,28 @@
 categories_guide: [accompagner, accueillir]
 mots_cles_guide: ["menage", "personne", "suivi"]
 fiche: true
-title: "Retrouver un accompagnement"
+title: "Trouver et ouvrir un dossier"
 description: "Passer d’une personne ou d’un ménage aux prestations et au suivi social."
 ---
 
-Depuis **Personnes**, ouvrir une fiche puis choisir son accompagnement. Depuis
-**Ménages et accompagnements**, ouvrir le ménage puis la fiche d’accompagnement.
+Après connexion, saisir un nom dans la recherche centrale. **Ménages** recherche
+le libellé et les noms des personnes rattachées, même anciennement. **Personnes**
+ouvre directement un dossier individuel. Les résultats se filtrent à la saisie ;
+le bouton **Rechercher** fonctionne également sans JavaScript.
+
+**Nouveau dossier** reprend la saisie et demande une création explicite. Une
+personne peut exister sans ménage ni suivi. Créer un ménage demande de choisir
+ou créer sa première personne, sans ouvrir de prestation.
+
+Le dossier rassemble toutes les périodes. Cliquer sur une personne du ménage
+ouvre son dossier ; **Revenir au ménage** retrouve le contexte d’origine.
+La composition et ses changements sont distincts des bénéficiaires des prestations.
+Pour une nouvelle prestation, choisir explicitement sa période de suivi ; le
+modèle conserve actuellement ce rattachement. La rubrique **Suivi social et
+périodes de suivi** donne accès aux informations contextualisées.
+
+Les anciennes fiches **Personnes** et **Ménages et accompagnements** restent
+accessibles pour les opérations de gestion détaillée.
 
 Le **Dossier** rassemble les bénéficiaires et les boîtes **Hébergement** et
 **Repas**. Hébergement montre tous les séjours, ouverts puis terminés, et les

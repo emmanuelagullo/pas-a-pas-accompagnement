@@ -1,8 +1,14 @@
 // Parcours fictif CHRS5–7, appelé dans le vrai navigateur/Pyodide du banc PWA.
 module.exports = async function verifierParcoursMetier(app) {
-  await app.getByRole('link', {name:'Personnes', exact:true}).click();
-  await app.getByRole('link', {name:'Thomas (fictif)', exact:true}).click();
-  await app.locator('a[href*="/accompagnements/"]').first().click();
+  await app.getByRole('link', {name:'Dossiers', exact:true}).click();
+  await app.getByLabel('Nom, prénom ou libellé du dossier', {exact:true}).fill('Thomas');
+  await app.getByText('Résultats actualisés.', {exact:true}).waitFor();
+  await app.locator('#resultats-dossiers a[href*="/dossiers/menage/"]').first().click();
+  await app.getByRole('heading', {name:/Dossier — Thomas/}).waitFor();
+  await app.locator('nav[aria-label="Dossiers liés"] a').first().click();
+  await app.getByRole('link', {name:/Revenir au ménage/}).click();
+  await app.getByText('Suivi social et périodes de suivi', {exact:true}).click();
+  await app.getByRole('link', {name:'Consulter cette période', exact:true}).first().click();
   await app.getByRole('heading', {name:/Dossier — Thomas/}).waitFor();
   await app.getByRole('link', {name:'Situation et parcours sociaux', exact:true}).click();
   await app.getByRole('link', {name:'Corriger cet événement', exact:true}).click();

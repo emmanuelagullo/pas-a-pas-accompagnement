@@ -1,5 +1,5 @@
 {% extends "base.html" %}
 {% block contenu %}<h1>Compléter ou corriger l’identité</h1>
 <p>L’identité peut rester incomplète. Cette correction conserve la même personne et ses rattachements, séjours et prestations. Les valeurs précédentes, votre nom et le motif sont conservés dans l’historique.</p>
-<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Enregistrer la correction</button></form>
-<p><a href="{% url 'personnes:detail' personne.pk %}">Annuler et revenir à la fiche</a></p>{% endblock %}
+<form method="post">{% csrf_token %}{% include "suivi/_contexte_dossier.html" %}{{ form.as_p }}<button type="submit">Enregistrer la correction</button></form>
+{% if retour_dossier %}<p><a href="{{ retour_dossier }}">Annuler et revenir au dossier</a></p>{% else %}<p><a href="{% url 'personnes:detail' personne.pk %}">Annuler et revenir à la fiche</a></p>{% endif %}{% endblock %}

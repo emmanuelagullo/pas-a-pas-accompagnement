@@ -54,7 +54,7 @@ def notes(request, nature, pk):
         raise PermissionDenied
     cible = get_object_or_404(modele, pk=pk)
     a = cible if nature == 'accompagnement' else cible.accord.accompagnement if nature == 'sejour' else None
-    navigation = dossier.lire(request, a)
+    navigation = dossier.lire_personne(request, cible.pk) if nature == 'personne' else dossier.lire(request, a)
     form = TexteForm(request.POST or None)
     if request.method == "POST":
         if not request.user.has_perm("personnes.add_notepartagee"):
@@ -104,7 +104,7 @@ def corriger(request, nature, pk):
         retour = reverse("suivi:notes", kwargs={"nature": cible_nature, "pk": cible.pk})
     retour += suffixe_jour(request)
     a = contexte if cible_nature == 'accompagnement' else contexte.accord.accompagnement if cible_nature == 'sejour' else None
-    navigation = dossier.lire(request, a)
+    navigation = dossier.lire_personne(request, contexte.pk) if cible_nature == 'personne' else dossier.lire(request, a)
     if navigation:
         retour = navigation['retour_dossier']
     donnees = {**navigation, **contexte_jour(request), "contribution": contribution, "cible": contexte,
