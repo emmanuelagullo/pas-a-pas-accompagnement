@@ -34,6 +34,7 @@ def detail(request, pk):
     h.droit(request.user, "view_sejour")
     accord = get_object_or_404(AccordHebergement.objects.select_related("accompagnement__menage"),pk=pk)
     return render(request,"hebergement/detail.html", {"accord":accord,
+        "aujourdhui": timezone.localdate(),
         "sejours":accord.sejours.prefetch_related("beneficiaires", "affectations__lieu", "absences").order_by("debut"),
         "operations":accord.operations.select_related("auteur") if request.user.has_perm("personnes.view_operationhebergement") else []})
 

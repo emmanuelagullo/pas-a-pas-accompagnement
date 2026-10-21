@@ -36,9 +36,9 @@ def bornes(sejour, debut, fin):
         raise ValidationError("La fin effective ne peut pas être future.")
     accord = sejour.accord
     suivi = accord.accompagnement
-    for limite in (accord.fin, suivi.fin):
+    for limite in (suivi.fin,):
         if limite and (debut >= limite or (fin is not None and fin > limite)):
-            raise ValidationError("La période dépasse l’accord ou l’accompagnement.")
+            raise ValidationError("La période dépasse l’accompagnement.")
     if debut > timezone.localdate():
         raise ValidationError("Le début effectif ne peut pas être futur.")
 
@@ -137,8 +137,8 @@ def sortir(acteur, sejour, fin):
     verifier_periode(sejour.debut, fin)
     if fin > timezone.localdate(): raise ValidationError("La sortie effective ne peut pas être future.")
     suivi = sejour.accord.accompagnement
-    if (sejour.accord.fin and fin > sejour.accord.fin) or (suivi.fin and fin > suivi.fin):
-        raise ValidationError("La sortie doit respecter la fin de l’accord et de l’accompagnement.")
+    if suivi.fin and fin > suivi.fin:
+        raise ValidationError("La sortie doit respecter la fin de l’accompagnement.")
     for modele in (Affectation, Absence):
         for objet in modele.objects.filter(sejour=sejour):
             if objet.debut >= fin or (objet.fin and objet.fin > fin):

@@ -46,7 +46,7 @@ class HebergementTests(Donnees,TestCase):
 
     def test_refus_chevauchement_et_hors_sejour(self):
         h.ajouter_periode(self.u,self.s,date(2026,1,3),date(2026,1,10),self.lieu)
-        for debut,fin in [(date(2026,1,2),date(2026,1,5)),(date(2026,1,4),None),(date(2026,1,10),date(2026,1,10)),(date(2026,3,1),None)]:
+        for debut,fin in [(date(2026,1,2),date(2026,1,5)),(date(2026,1,4),None),(date(2026,1,10),date(2026,1,10))]:
             with self.assertRaises(ValidationError): h.ajouter_periode(self.u,self.s,debut,fin,self.lieu)
         self.assertEqual(Affectation.objects.count(),1)
         h.sortir(self.u,self.s,date(2026,1,12))

@@ -90,10 +90,8 @@ def valider(objet):
         for s in objet.sejours.all():
             # Admission ouverte sous un accord borné permise, sans prolongation.
             incluse(objet,s.debut,point=True)
-            if s.fin and objet.fin and s.fin>objet.fin:raise ValidationError('Un séjour dépasse la nouvelle fin accordée.')
     elif nature=='sejour':
         incluse(objet.accord,objet.debut,point=True)
-        if objet.fin and objet.accord.fin and objet.fin>objet.accord.fin:raise ValidationError('La sortie dépasse l’accord.')
         incluse(objet.accord.accompagnement,objet.debut,objet.fin)
         for periode in list(objet.affectations.all())+list(objet.absences.all()):incluse(objet,periode.debut,periode.fin)
     elif nature in ('affectation','absence'):
