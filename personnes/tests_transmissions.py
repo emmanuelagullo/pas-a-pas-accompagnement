@@ -119,7 +119,10 @@ class RetourServiceTests(TestCase):
                              fetch_redirect_response=False)
 
 
-class AffichageContributionsTests(TransmissionsTests):
+class AffichageContributionsTests(TestCase):
+    def setUp(self):
+        TransmissionsTests.setUp(self)
+
     def test_contributions_ne_sont_pas_des_alertes_globales(self):
         from django.contrib.messages.storage.cookie import CookieStorage
         from django.contrib.messages.storage.base import Message

@@ -166,3 +166,16 @@ def changer_lieu(acteur, objet, debut, lieu, attendu):
         raise ValidationError("Choisissez un autre lieu.")
     terminer_periode(acteur, objet, debut)
     return ajouter_periode(acteur, objet.sejour, debut, None, lieu)
+
+
+@serialiser("accord")
+@transaction.atomic
+def admettre_individuellement(acteur, accord, beneficiaires, debut):
+    """Une sélection collective, un séjour par personne ; aucun historique converti."""
+    personnes = list(beneficiaires)
+    # Validation de la sélection complète avant toute admission.
+    droit(acteur, "add_sejour")
+    ids = {p.pk for p in personnes}
+    if not ids or not ids.issubset(set(accord.beneficiaires.values_list("pk", flat=True))):
+        raise ValidationError("Sélectionnez des bénéficiaires de cet accord.")
+    return [admettre(acteur, accord, [p], debut) for p in sorted({p.pk: p for p in personnes}.values(), key=lambda p: str(p.pk))]

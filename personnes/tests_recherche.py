@@ -1,14 +1,13 @@
-from django.contrib import messages
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import Personne, Menage, Transmission
-from .tests_navigation import NavigationTests
+from .models import Personne, Menage
+from . import tests_navigation
 
 
 class RechercheTests(TestCase):
     def setUp(self):
-        NavigationTests.setUp(self)
+        tests_navigation.NavigationTests.setUp(self)
 
     def test_personnes_termes_repartis_et_aucun_resultat(self):
         self.p.prenom = 'Camille'

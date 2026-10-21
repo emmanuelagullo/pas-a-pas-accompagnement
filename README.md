@@ -441,7 +441,13 @@ python manage.py autoriser_chrs3 nom-utilisateur
 L’attribution ajoute CHRS1 et CHRS3 uniquement, sans retirer les droits CHRS2
 éventuels. Aucun droit n’est attribué à la migration. Depuis un accompagnement,
 accorder un hébergement à des bénéficiaires explicites ; ouvrir l’accord puis
-saisir l’admission effective. Créer un lieu (chambre, appartement, hôtel, etc.),
+saisir l’admission effective : une sélection de plusieurs personnes crée désormais
+un séjour distinct pour chacune, sous le même accord. Les anciens séjours
+collectifs restent inchangés ; leurs absences restent collectives. Les admissions
+et sorties statistiques comptent toujours les séjours : une admission de trois
+personnes représente donc trois séjours nouveaux, contre un pour un ancien séjour
+collectif. Ne pas comparer ces nombres comme des admissions de ménages.
+Créer un lieu (chambre, appartement, hôtel, etc.),
 avec opérateur extérieur facultatif, puis ajouter une affectation au séjour.
 Le lien « Changer de lieu » ferme l’affectation ouverte et ouvre la suivante
 à la même date dans une transaction unique. Un conflit ou formulaire périmé
