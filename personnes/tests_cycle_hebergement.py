@@ -76,3 +76,26 @@ class CycleHebergement(Donnees, TestCase):
         self.assertEqual(self.s.fin, date(2026, 1, 20))
         self.assertEqual(self.s.affectations.get().fin, self.s.fin)
         self.assertEqual(self.s.absences.get().fin, self.s.fin)
+
+
+class ErgonomieHebergement(Donnees, TestCase):
+    def setUp(self):
+        self.preparer()
+        self.client.force_login(self.u)
+
+    def test_sejour_clos_ne_propose_plus_de_nouvelle_affectation_ou_absence(self):
+        h.sortir(self.u, self.s, date(2026, 1, 20))
+        reponse = self.client.get(reverse('suivi:accord_hebergement', args=[self.accord.pk]))
+        self.assertEqual(reponse.status_code, 200)
+        self.assertNotContains(reponse, reverse('suivi:affecter', args=[self.s.pk]))
+        self.assertNotContains(reponse, reverse('suivi:absence', args=[self.s.pk]))
+        self.assertNotContains(reponse, reverse('suivi:sortir', args=[self.s.pk]))
+
+    def test_date_de_cloture_proposee_sans_ecriture(self):
+        affectation = h.ajouter_periode(self.u, self.s, date(2026, 1, 3), None, self.lieu)
+        reponse = self.client.get(reverse('suivi:clore_affectation', args=[affectation.pk]))
+        self.assertEqual(reponse.status_code, 200)
+        from django.utils import timezone
+        self.assertEqual(reponse.context['form'].initial['fin'], timezone.localdate())
+        affectation.refresh_from_db()
+        self.assertIsNone(affectation.fin)
