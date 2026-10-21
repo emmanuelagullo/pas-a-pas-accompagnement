@@ -737,3 +737,14 @@ La personne, le ménage et le suivi se créent par les étapes existantes. Cette
 entrée guidée raccourcit la partie hébergement sans regrouper ces identités dans
 un assistant à état ni les recréer automatiquement. Les anciennes données et
 les parcours séparés restent disponibles. Pas de migration ni dépendance nouvelle.
+
+## CHRS26-03 — date de travail et recette navigateur
+
+Les actions d’hébergement ouvertes depuis le travail du jour proposent désormais
+la date consultée, tout en conservant les contrôles des dates effectives. Une
+clôture le jour du début ne reçoit pas une date de fin invalide par défaut.
+Le retour reste limité à une route connue ; un paramètre invalide est ignoré.
+Les recettes Chromium de `personnes.qualification_navigateur` couvrent aussi les
+nouveaux parcours d’admission, d’information et de rétrospective, les actions
+collectives et le résumé imprimable. Elles sont appelées par la CI existante,
+sans nouvelle bibliothèque ni changement de profil d’installation.

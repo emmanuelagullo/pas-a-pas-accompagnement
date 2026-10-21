@@ -9,7 +9,14 @@ from .models import Accompagnement, AccordHebergement, Sejour, Affectation, Abse
 from .forms_hebergement import AccordForm, AdmissionForm, AffectationForm, PeriodeForm, LieuForm, ClotureForm
 from .vues_suivi import traiter
 from . import hebergement as h
-from .retour_service import url_jour
+from .retour_service import url_jour, date_service
+from datetime import date
+
+
+def jour_hebergement(request):
+    retour = request.POST.get('retour') or request.GET.get('retour')
+    valeur = date_service(request.POST.get('date_service') or request.GET.get('date_service')) if retour == 'jour' else ''
+    return date.fromisoformat(valeur) if valeur else timezone.localdate()
 
 
 def retour_hebergement(request, accord_id):
@@ -65,7 +72,7 @@ def periode(request, pk, absence=False):
     if not absence: h.exiger(request.user,"view_lieuhebergement")
     s=get_object_or_404(Sejour,pk=pk)
     form=(PeriodeForm if absence else AffectationForm)(request.POST or None,
-        initial={"debut": max(s.debut, timezone.localdate())})
+        initial={"debut": max(s.debut, jour_hebergement(request))})
     return traiter_hebergement(request,form,"Enregistrer une absence de tous les bénéficiaires" if absence else "Affecter tous les bénéficiaires à un lieu",lambda **d:h.ajouter_periode(request.user,s,absence=absence,**d),s.accord.accompagnement.menage, retour=retour_hebergement(request, s.accord_id))
 
 
@@ -77,10 +84,11 @@ def terminer(request, pk, nature):
     objet=get_object_or_404(modele,pk=pk)
     s=objet if nature=="sejour" else objet.sejour
     action=h.sortir if nature=="sejour" else h.terminer_periode
-    # La fin est exclue : proposer aujourd'hui seulement si la période a
-    # commencé avant aujourd'hui. Une clôture le jour du début est invalide.
+    # La fin est exclue : proposer la date consultée (ou aujourd’hui)
+    # seulement si elle suit le début. Une clôture le jour du début est invalide.
     debut = objet.debut
-    initial = {"fin": timezone.localdate()} if debut < timezone.localdate() else {}
+    jour = jour_hebergement(request)
+    initial = {"fin": jour} if debut < jour else {}
     return traiter_hebergement(request,ClotureForm(request.POST or None, initial=initial),"Enregistrer la sortie" if nature=="sejour" else "Enregistrer le retour d’absence" if nature=="absence" else "Clôturer l’affectation",lambda **d:action(request.user,objet,**d),s.accord.accompagnement.menage, retour=retour_hebergement(request, s.accord_id))
 
 
@@ -106,7 +114,7 @@ def changer_lieu(request, pk):
     h.droit(request.user, "change_affectation")
     h.exiger(request.user, "add_affectation", "view_affectation", "view_lieuhebergement")
     objet = get_object_or_404(Affectation.objects.select_related("sejour__accord__accompagnement"), pk=pk)
-    form = ChangementLieuForm(request.POST or None, initial={"debut": timezone.localdate(), "attendu": jeton(objet)})
+    form = ChangementLieuForm(request.POST or None, initial={"debut": jour_hebergement(request), "attendu": jeton(objet)})
     return traiter_hebergement(request, form, "Changer de lieu pour tous les bénéficiaires du séjour",
         lambda **d: h.changer_lieu(request.user, objet, **d), objet.sejour.accord.accompagnement.menage,
         retour=retour_hebergement(request, objet.sejour.accord_id))

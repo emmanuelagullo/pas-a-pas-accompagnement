@@ -248,3 +248,105 @@ class CycleHebergementNavigateur(StaticLiveServerTestCase):
                           (date(2026, 1, 10), date(2026, 1, 20))])
         self.assertEqual(absence_fin, date(2026, 1, 20))
         self.assertTrue(sortie)
+
+
+class NouveauxParcoursNavigateur(StaticLiveServerTestCase):
+    """Recette des jalons CHRS25–26 sans ORM dans la boucle Playwright."""
+
+    profil = ProfilsNavigateur.profil
+    navigateur = ProfilsNavigateur.navigateur
+
+    def setUp(self):
+        from io import StringIO
+        from django.core.management import call_command
+        from .tests_admission_guidee import AdmissionGuideeTests
+        AdmissionGuideeTests.setUp(self)
+        call_command('autoriser_chrs7', self.u.username, stdout=StringIO())
+        self.u = type(self.u).objects.get(pk=self.u.pk)
+        self.u.set_password('Recette-fictive-CHRS14!')
+        self.u.save(update_fields=['password'])
+
+    def test_responsable_admission_familiale_et_actions_collectives(self):
+        from datetime import date
+        from .models import AccordHebergement, RepasDistribue
+        page = self.navigateur()
+        page.goto(self.live_server_url + reverse('suivi:accompagnement', args=[self.a.pk]))
+        page.get_by_role('link', name='Accorder et enregistrer une admission', exact=True).click()
+        page.locator('input[name="debut"]').fill('2026-02-01')
+        page.locator('input[name="fin"]').fill('2026-03-01')
+        page.locator('input[name="admission"]').fill('2026-02-03')
+        page.locator('select[name="lieu"]').select_option(str(self.lieu.pk))
+        page.get_by_role('button', name='Créer l’accord et enregistrer les admissions').click()
+        page.get_by_role('heading', name='Hébergement accordé et séjours effectifs').wait_for()
+        self.assertEqual(page.get_by_role('heading', name='Séjour du', exact=False).count(), 2)
+        page.get_by_role('link', name='Agir sur plusieurs séjours', exact=False).click()
+        for case in page.locator('input[name="sejours"]').all():
+            case.check()
+        page.locator('select[name="action"]').select_option('absence')
+        page.locator('input[name="date"]').fill('2026-02-05')
+        page.get_by_role('button', name='Enregistrer', exact=True).click()
+        page.get_by_role('heading', name='Hébergement accordé et séjours effectifs').wait_for()
+        def verifier():
+            accord = AccordHebergement.objects.exclude(pk=self.accord.pk).get()
+            return (accord.sejours.count(), sum(s.absences.filter(debut=date(2026,2,5)).count() for s in accord.sejours.all()),
+                    RepasDistribue.objects.count())
+        self.assertEqual(verifier_hors_boucle_playwright(verifier), (2, 2, 0))
+
+    def test_veilleur_date_conservee_et_refus_social(self):
+        self.profil('view_personne', 'view_menage', 'view_accompagnement',
+            'view_accordhebergement', 'view_sejour', 'add_absence', 'view_absence', 'change_absence')
+        page = self.navigateur()
+        cible = self.live_server_url + reverse('suivi:jour') + '?date=2026-01-10'
+        page.goto(cible)
+        page.get_by_role('link', name='Signaler une absence', exact=True).click()
+        self.assertEqual(page.locator('input[name="debut"]').input_value(), '2026-01-10')
+        page.get_by_role('button', name='Enregistrer', exact=True).click()
+        page.get_by_role('heading', name='Travail du jour', exact=True).wait_for()
+        self.assertEqual(page.url, cible)
+        page.goto(self.live_server_url + reverse('suivi:accord_hebergement', args=[self.accord.pk]))
+        page.get_by_role('link', name='Enregistrer le retour d’absence', exact=True).click()
+        page.locator('input[name="fin"]').fill('2026-01-12')
+        page.get_by_role('button', name='Enregistrer', exact=True).click()
+        page.get_by_role('heading', name='Hébergement accordé et séjours effectifs').wait_for()
+        self.assertEqual(page.get_by_role('link', name='Enregistrer le retour d’absence', exact=True).count(), 0)
+        self.assertEqual(page.goto(self.live_server_url + reverse('suivi:social', args=[self.a.pk])).status, 403)
+        self.assertEqual(page.goto(self.live_server_url + reverse('suivi:informations', args=[self.a.pk])).status, 403)
+
+    def test_travailleur_social_insertion_et_resume_imprimable(self):
+        from datetime import date
+        from . import social
+        from .models import SituationSociale, NotePartagee
+        for jour in [5, 20]:
+            social.renseigner(self.u, self.a, self.p, 'emploi', 'emploi', date(2026,1,jour), 'Source fictive')
+        NotePartagee.objects.create(accompagnement=self.a, contenu='Note réservée hors résumé', auteur=self.u)
+        page = self.navigateur()
+        cible = self.live_server_url + reverse('suivi:accompagnement', args=[self.a.pk])
+        page.goto(cible)
+        page.get_by_role('link', name='Compléter ou mettre à jour', exact=True).click()
+        page.locator('input[name="referent"]').fill('Référente extérieure fictive')
+        page.locator('textarea[name="objectifs_courts"]').fill('Projet fictif à court terme')
+        page.locator('input[name="motif"]').fill('Projet préparé')
+        page.get_by_role('button', name='Enregistrer', exact=True).click()
+        page.get_by_role('link', name='Situation et parcours sociaux', exact=True).click()
+        page.get_by_role('link', name='Renseigner Emploi / formation', exact=True).click()
+        page.locator('select[name="beneficiaire"]').select_option(str(self.p.pk))
+        page.locator('select[name="valeur"]').select_option('formation')
+        page.locator('input[name="debut"]').fill('2026-01-10')
+        page.locator('input[name="source"]').fill('Source fictive précisée')
+        page.locator('input[name="motif"]').fill('Situation oubliée')
+        page.get_by_role('button', name='Enregistrer', exact=True).click()
+        page.get_by_role('heading', name='Historique par date d’effet', exact=True).wait_for()
+        def verifier():
+            return list(SituationSociale.objects.filter(accompagnement=self.a, beneficiaire=self.p)
+                .order_by('debut').values_list('debut', 'fin'))
+        self.assertEqual(verifier_hors_boucle_playwright(verifier), [
+            (date(2026,1,5), date(2026,1,10)), (date(2026,1,10), date(2026,1,20)), (date(2026,1,20), None)])
+        page.goto(cible)
+        page.get_by_role('link', name='Ouvrir le résumé imprimable', exact=True).click()
+        page.get_by_role('heading', name='Résumé d’accompagnement', exact=False).wait_for()
+        self.assertIn('Référente extérieure fictive', page.locator('body').inner_text())
+        self.assertNotIn('Note réservée hors résumé', page.locator('body').inner_text())
+        self.assertEqual(page.locator('main').count(), 1)
+        page.emulate_media(media='print')
+        self.assertFalse(page.locator('nav').is_visible())
+        self.assertTrue(page.get_by_role('heading', name='Résumé d’accompagnement', exact=False).is_visible())
