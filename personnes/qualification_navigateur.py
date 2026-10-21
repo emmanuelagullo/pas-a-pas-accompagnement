@@ -111,3 +111,61 @@ class ProfilsNavigateur(LiveServerTestCase):
         page.goto(self.live_server_url + reverse('suivi:jour') + '?date=2026-01-03')
         page.get_by_role('heading', name='Travail du jour').wait_for()
         self.assertEqual(page.locator('main').count(), 1)
+
+
+class CycleHebergementNavigateur(LiveServerTestCase):
+    """Recette Chromium du séjour fictif : actions réelles et historique conservé."""
+
+    def setUp(self):
+        from .tests_hebergement import Donnees
+        Donnees.preparer(self)
+        self.u.set_password('Recette-fictive-hebergement!')
+        self.u.save(update_fields=['password'])
+
+    def test_affectation_absence_sortie_et_actions_closes(self):
+        from datetime import date
+        from .models import Sejour, Affectation, Absence, OperationHebergement
+        playwright = sync_playwright().start()
+        self.addCleanup(playwright.stop)
+        browser = playwright.chromium.launch()
+        self.addCleanup(browser.close)
+        page = browser.new_page()
+        page.goto(self.live_server_url + '/connexion/')
+        page.locator('input[name="username"]').fill(self.u.username)
+        page.locator('input[name="password"]').fill('Recette-fictive-hebergement!')
+        page.get_by_role('button', name='Se connecter').click()
+        url = self.live_server_url + reverse('suivi:accord_hebergement', args=[self.accord.pk])
+        page.goto(url)
+        page.get_by_role('link', name='Enregistrer une admission').wait_for()
+        # L'admission du jeu de test existe : la fiche doit exposer le séjour.
+        page.get_by_role('heading', name='Séjour du', exact=False).wait_for()
+        page.get_by_role('link', name='Ajouter une affectation').click()
+        page.locator('input[name="debut"]').fill('2026-01-03')
+        page.locator('select[name="lieu"]').select_option(str(self.lieu.pk))
+        page.get_by_role('button', name='Enregistrer').click()
+        page.get_by_role('link', name='Clôturer l’affectation').click()
+        page.locator('input[name="fin"]').fill('2026-01-10')
+        page.get_by_role('button', name='Enregistrer').click()
+        page.get_by_role('link', name='Ajouter une affectation').click()
+        page.locator('input[name="debut"]').fill('2026-01-10')
+        page.locator('select[name="lieu"]').select_option(str(self.lieu.pk))
+        page.get_by_role('button', name='Enregistrer').click()
+        page.get_by_role('link', name='Enregistrer une absence').click()
+        page.locator('input[name="debut"]').fill('2026-01-12')
+        page.get_by_role('button', name='Enregistrer').click()
+        page.get_by_role('link', name='Enregistrer la sortie').click()
+        page.locator('input[name="fin"]').fill('2026-01-20')
+        page.get_by_role('button', name='Enregistrer').click()
+        page.get_by_role('heading', name='Séjour du', exact=False).wait_for()
+        self.assertEqual(page.get_by_role('link', name='Ajouter une affectation').count(), 0)
+        self.assertEqual(page.get_by_role('link', name='Enregistrer une absence').count(), 0)
+        self.assertEqual(page.get_by_role('link', name='Enregistrer la sortie').count(), 0)
+        self.s.refresh_from_db()
+        self.assertEqual(self.s.fin, date(2026, 1, 20))
+        self.assertEqual(list(Affectation.objects.filter(sejour=self.s).order_by('debut')
+                              .values_list('debut', 'fin')),
+                         [(date(2026, 1, 3), date(2026, 1, 10)),
+                          (date(2026, 1, 10), date(2026, 1, 20))])
+        self.assertEqual(Absence.objects.get(sejour=self.s).fin, date(2026, 1, 20))
+        self.assertTrue(OperationHebergement.objects.filter(sejour=self.s,
+                                                            action='Sortie effective').exists())
