@@ -1,3 +1,12 @@
+## CHRS26 — parcours quotidiens et rapports
+
+- Actions d’hébergement adaptées aux périodes enregistrées et aux séjours clos.
+- Rappel du ménage et des bénéficiaires dans les formulaires de séjour ; cible des notes selon les droits.
+- Date de la journée conservée dans les accords, les notes et leurs corrections ; annulation explicite.
+- Auteur des transmissions visible dans la relève du travail du jour.
+- Rapports : filtres pertinents, résultats avant les modèles, options secondaires repliables.
+- Aucun nouveau champ, calcul statistique ou droit implicite.
+
 ## CHRS7 — corrections motivées
 
 - Dates corrigibles sans exclure les réalisations ou créer des chevauchements.

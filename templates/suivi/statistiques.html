@@ -1,11 +1,7 @@
-{% extends "base.html" %}{% block contenu %}<p>Les admissions et sorties comptent des séjours, pas des ménages : les nouveaux séjours sont individuels, les anciens séjours collectifs restent comptés comme un seul séjour. Les nuitées restent calculées par bénéficiaire.</p>
-<h1>Statistiques d’activité</h1>
+{% extends "base.html" %}{% block contenu %}<h1>Statistiques d’activité</h1>
 {% if perms.personnes.view_personne and perms.personnes.view_menage and perms.personnes.view_accompagnement %}<p><a href="{% url 'suivi:jour' %}">Retour au travail du jour</a> · <a href="{% url 'suivi:liste' %}">Ménages et accompagnements</a></p>{% endif %}
 <p>Les indicateurs portent sur la période civile choisie, début inclus et fin exclue.</p>
-<section class="carte"><h2>Mes modèles de rapports</h2>
-<p>Un modèle peut conserver une période fixe ou une période relative recalculée à chaque ouverture. Les modèles sont personnels et mémorisent les filtres, pas les résultats. Les chiffres sont recalculés à chaque consultation.</p>
-<ul>{% for modele in modeles_rapports %}<li><a href="{% url 'statistiques' %}?modele={{ modele.pk }}">{{ modele.nom }}</a>{% if modele_actif.pk == modele.pk %} <strong>(affiché)</strong>{% endif %}
-<form method="post" action="{% url 'statistiques_modele_supprimer' modele.pk %}" style="display:inline">{% csrf_token %}<button type="submit">Supprimer</button></form></li>{% empty %}<li>Aucun modèle enregistré.</li>{% endfor %}</ul></section>
+
 <form method="get" aria-label="Périodes prédéfinies">
 <input type="hidden" name="service" value="{{ service_choisi }}">
 <input type="hidden" name="lieu" value="{{ lieu_choisi }}">
@@ -21,27 +17,25 @@
 <select id="rapport" name="rapport">
 {% for code, libelle in rapports.items %}<option value="{{ code }}" {% if code == rapport %}selected{% endif %}>{{ libelle }}</option>{% endfor %}
 </select>{{ formulaire.as_p }}
-<label for="service">Service de repas (rapport exploratoire)</label>
+{% if rapport == "exploration_repas" %}<label for="service">Service de repas (rapport exploratoire)</label>
 <select id="service" name="service"><option value="">Tous les services</option>
 {% for code, libelle in services_possibles %}<option value="{{ code }}" {% if code == service_choisi %}selected{% endif %}>{{ libelle }}</option>{% endfor %}
 </select>
-<label for="lieu">Lieu (exploration des affectations)</label>
+{% endif %}
+{% if rapport == "exploration_hebergement" %}<label for="lieu">Lieu (exploration des affectations)</label>
 <select id="lieu" name="lieu"><option value="">Tous les lieux</option>
 {% for item in lieux_possibles %}<option value="{{ item.pk }}" {% if lieu_choisi == item.pk|stringformat:"s" %}selected{% endif %}>{{ item.libelle }}</option>{% endfor %}
 </select>
-<label for="regroupement">Regroupement (rapports exploratoires)</label>
+{% endif %}
+{% if rapport == "exploration_repas" or rapport == "exploration_hebergement" %}<label for="regroupement">Regroupement (rapports exploratoires)</label>
 <select id="regroupement" name="regroupement">
 {% for code, libelle in regroupements %}<option value="{{ code }}" {% if code == regroupement %}selected{% endif %}>{{ libelle }}</option>{% endfor %}
 </select>
+{% endif %}
 {% if rapport != "ages" %}<label><input type="checkbox" name="comparer" value="1" {% if comparer %}checked{% endif %}> Comparer avec la période précédente de même durée</label>{% endif %}
 <button type="submit">Calculer</button></form>
 {% if modele_actif %}<p>Modèle affiché : <strong>{{ modele_actif.nom }}</strong>. Toute modification des filtres crée une consultation indépendante ; le modèle enregistré reste inchangé.</p>{% endif %}
-{% if resultats != None %}<form method="post" action="{% url 'statistiques_modele_ajouter' %}">
-{% csrf_token %}<label for="nom_modele">Nom du modèle</label><input id="nom_modele" name="nom" maxlength="100" required>
-<input type="hidden" name="rapport" value="{{ rapport }}"><input type="hidden" name="debut" value="{{ debut_iso }}"><input type="hidden" name="fin" value="{{ fin_iso }}">
-<input type="hidden" name="service" value="{{ service_choisi }}"><input type="hidden" name="lieu" value="{{ lieu_choisi }}">
-<input type="hidden" name="regroupement" value="{{ regroupement }}">{% if periode_choisie %}<input type="hidden" name="periode" value="{{ periode_choisie }}">{% endif %}{% if comparer %}<input type="hidden" name="comparer" value="1">{% endif %}
-<button type="submit">Enregistrer cette configuration</button></form>{% endif %}
+
 {% if erreur_comparaison %}<p role="alert">{{ erreur_comparaison }}</p>{% endif %}
 {% if comparaison != None %}
 <section class="carte"><h2>Comparaison avec la période précédente</h2>
@@ -114,4 +108,17 @@
 </form></section>
 <p>Attention : les nuitées ne prouvent pas une présence physique. Les nuitées théoriques ne déduisent pas les absences et les séjours simultanés peuvent être comptés plusieurs fois. Les nuits hors absences déclarées ne prouvent pas non plus une présence effective. Les repas accordés ne sont pas des repas distribués.</p>
 {% endif %}
+
+<details><summary>Définitions générales des indicateurs</summary><p>Les admissions et sorties comptent des séjours, pas des ménages : les nouveaux séjours sont individuels, les anciens séjours collectifs restent comptés comme un seul séjour. Les nuitées restent calculées par bénéficiaire.</p>
+</details>
+<details class="carte"><summary>Mes modèles de rapports</summary>
+<p>Un modèle peut conserver une période fixe ou une période relative recalculée à chaque ouverture. Les modèles sont personnels et mémorisent les filtres, pas les résultats. Les chiffres sont recalculés à chaque consultation.</p>
+<ul>{% for modele in modeles_rapports %}<li><a href="{% url 'statistiques' %}?modele={{ modele.pk }}">{{ modele.nom }}</a>{% if modele_actif.pk == modele.pk %} <strong>(affiché)</strong>{% endif %}
+<form method="post" action="{% url 'statistiques_modele_supprimer' modele.pk %}" style="display:inline">{% csrf_token %}<button type="submit">Supprimer</button></form></li>{% empty %}<li>Aucun modèle enregistré.</li>{% endfor %}</ul></details>
+{% if resultats != None %}<details><summary>Enregistrer cette configuration comme modèle</summary><form method="post" action="{% url 'statistiques_modele_ajouter' %}">
+{% csrf_token %}<label for="nom_modele">Nom du modèle</label><input id="nom_modele" name="nom" maxlength="100" required>
+<input type="hidden" name="rapport" value="{{ rapport }}"><input type="hidden" name="debut" value="{{ debut_iso }}"><input type="hidden" name="fin" value="{{ fin_iso }}">
+<input type="hidden" name="service" value="{{ service_choisi }}"><input type="hidden" name="lieu" value="{{ lieu_choisi }}">
+<input type="hidden" name="regroupement" value="{{ regroupement }}">{% if periode_choisie %}<input type="hidden" name="periode" value="{{ periode_choisie }}">{% endif %}{% if comparer %}<input type="hidden" name="comparer" value="1">{% endif %}
+<button type="submit">Enregistrer cette configuration</button></form></details>{% endif %}
 {% endblock %}

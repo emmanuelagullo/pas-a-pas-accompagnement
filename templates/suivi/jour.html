@@ -17,7 +17,7 @@
 <h2 id="relais-equipe">Relève actuelle — transmissions récentes</h2>
 <p>Dernières transmissions du cahier de liaison, toutes dates confondues. Elles ne constituent pas une liste de tâches ni une preuve de prise en charge.</p>
 <ul>{% for transmission in transmissions_recentes %}
-<li><time datetime="{{ transmission.cree_le|date:'c' }}">{{ transmission.cree_le|date:'d/m/Y H:i' }}</time> — {{ transmission.contenu|linebreaksbr }}</li>
+<li><time datetime="{{ transmission.cree_le|date:'c' }}">{{ transmission.cree_le|date:'d/m/Y H:i' }}</time> — {{ transmission.auteur }} — {{ transmission.contenu|linebreaksbr }}</li>
 {% empty %}<li>Aucune transmission enregistrée.</li>{% endfor %}</ul>
 <p><a href="{% url 'suivi:cahier' %}?retour=jour{% if date_service %}&amp;date_service={{ date_service }}{% endif %}">Ouvrir le cahier de liaison{% if perms.personnes.add_transmission %} et transmettre une information{% endif %}</a></p>
 </section>
@@ -33,20 +33,22 @@
 {% if perms.personnes.view_menage %}<p><a href="{% url 'suivi:liste' %}">Ouvrir les ménages et accompagnements</a>{% if perms.personnes.view_accompagnement and perms.personnes.view_sejour and perms.personnes.view_repasdistribue %} · <a href="{% url 'statistiques' %}">Consulter les statistiques d’activité</a>{% endif %}</p>{% endif %}
 <h2 id="situation-date">Situation à la date choisie{% if date %} — {{ date|date:"d/m/Y" }}{% endif %}</h2>
 <p>Les dates reflètent les informations enregistrées. Un séjour ouvert ne prouve pas la présence physique.</p>
-{% if perms.personnes.view_accordhebergement and perms.personnes.view_sejour %}<section class="carte"><h2>Hébergement au {{ date }}</h2><ul>{% for ligne in hebergements %}<li><a href="{% url 'suivi:accord_hebergement' ligne.sejour.accord_id %}">{{ ligne.sejour.accord.accompagnement.menage }}</a> : {% for p in ligne.sejour.beneficiaires.all %}{{ p }} ; {% endfor %}
-<p>Actions sur le séjour :
-{% if perms.personnes.add_affectation and perms.personnes.view_affectation and perms.personnes.view_lieuhebergement %}<a href="{% url 'suivi:affecter' ligne.sejour.pk %}?retour=jour{% if date_service %}&amp;date_service={{ date_service }}{% endif %}">Affecter un lieu</a> · {% endif %}
-{% if perms.personnes.add_absence and perms.personnes.view_absence %}<a href="{% url 'suivi:absence' ligne.sejour.pk %}?retour=jour{% if date_service %}&amp;date_service={{ date_service }}{% endif %}">Signaler une absence</a> · {% endif %}
+{% if perms.personnes.view_accordhebergement and perms.personnes.view_sejour %}<section class="carte"><h2>Hébergement au {{ date }}</h2><ul>{% for ligne in hebergements %}<li><a href="{% url 'suivi:accord_hebergement' ligne.sejour.accord_id %}?retour=jour{% if date_service %}&amp;date_service={{ date_service }}{% endif %}">{{ ligne.sejour.accord.accompagnement.menage }}</a> : {% for p in ligne.sejour.beneficiaires.all %}{{ p }} ; {% endfor %}
+{% if not ligne.sejour.fin %}<p>Actions sur le séjour :
+{% if ligne.affectation_ouverte %}{% if perms.personnes.change_affectation and perms.personnes.add_affectation and perms.personnes.view_affectation and perms.personnes.view_lieuhebergement %}<a href="{% url 'suivi:changer_lieu' ligne.affectation_ouverte.pk %}?retour=jour{% if date_service %}&amp;date_service={{ date_service }}{% endif %}">Changer de lieu</a> · {% endif %}
+{% elif not ligne.lieux and not ligne.affectation_deja_ouverte and perms.personnes.add_affectation and perms.personnes.view_affectation and perms.personnes.view_lieuhebergement %}<a href="{% url 'suivi:affecter' ligne.sejour.pk %}?retour=jour{% if date_service %}&amp;date_service={{ date_service }}{% endif %}">Affecter un lieu</a> · {% endif %}
+{% if ligne.absence_ouverte %}{% if perms.personnes.change_absence and perms.personnes.view_absence %}<a href="{% url 'suivi:clore_absence' ligne.absence_ouverte.pk %}?retour=jour{% if date_service %}&amp;date_service={{ date_service }}{% endif %}">Enregistrer le retour d’absence</a> · {% endif %}
+{% elif not ligne.absences and not ligne.absence_deja_ouverte and perms.personnes.add_absence and perms.personnes.view_absence %}<a href="{% url 'suivi:absence' ligne.sejour.pk %}?retour=jour{% if date_service %}&amp;date_service={{ date_service }}{% endif %}">Signaler une absence</a> · {% endif %}
 {% if perms.personnes.change_sejour and perms.personnes.change_affectation and perms.personnes.change_absence %}<a href="{% url 'suivi:sortir' ligne.sejour.pk %}?retour=jour{% if date_service %}&amp;date_service={{ date_service }}{% endif %}">Enregistrer la sortie</a>{% endif %}
-</p>
+</p>{% else %}<p>Séjour désormais clos : consulter l’accord pour son historique et les corrections autorisées.</p>{% endif %}
 {% if ligne.lieux != None %}{% for a in ligne.lieux %}<p>Lieu : {{ a.lieu }}</p>{% empty %}<p>Aucun lieu affecté à cette date.</p>{% endfor %}{% endif %}
-{% if perms.personnes.view_notepartagee %}<p><a href="{% url 'suivi:notes' 'sejour' ligne.sejour.pk %}">Notes du séjour</a></p>{% endif %}
+{% if perms.personnes.view_notepartagee %}<p><a href="{% url 'suivi:notes' 'sejour' ligne.sejour.pk %}?retour=jour{% if date_service %}&amp;date_service={{ date_service }}{% endif %}">Notes du séjour</a></p>{% endif %}
 {% if ligne.absences %}<p>Absence enregistrée pour les bénéficiaires du séjour.</p>{% endif %}{% if ligne.accord_expire %}<p>La période accordée est terminée ; le séjour reste ouvert. À vérifier.</p>{% endif %}</li>{% empty %}<li>Aucun séjour enregistré pour cette date.</li>{% endfor %}</ul></section>{% endif %}
 {% if perms.personnes.view_accordhebergement and perms.personnes.view_sejour %}
 <section class="carte" aria-labelledby="echeances-hebergement">
 <h2 id="echeances-hebergement">Échéances d'hébergement</h2>
 <p>Accords liés à un séjour en cours arrivant à échéance dans les sept jours suivant la date affichée. La date de fin est exclusive ; aucune prolongation n'est présumée.</p>
-<ul>{% for ligne in echeances %}<li><a href="{% url 'suivi:accord_hebergement' ligne.accord.pk %}">{{ ligne.menage }}</a> — fin de l'accord le {{ ligne.fin|date:'d/m/Y' }} (exclu)</li>
+<ul>{% for ligne in echeances %}<li><a href="{% url 'suivi:accord_hebergement' ligne.accord.pk %}?retour=jour{% if date_service %}&amp;date_service={{ date_service }}{% endif %}">{{ ligne.menage }}</a> — fin de l'accord le {{ ligne.fin|date:'d/m/Y' }} (exclu)</li>
 {% empty %}<li>Aucune échéance d'accord identifiée dans cette fenêtre.</li>{% endfor %}</ul>
 </section>
 {% endif %}

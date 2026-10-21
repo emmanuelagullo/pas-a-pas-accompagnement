@@ -9,7 +9,7 @@ from .models import Accompagnement, AccordHebergement, Sejour, Affectation, Abse
 from .forms_hebergement import AccordForm, AdmissionForm, AffectationForm, PeriodeForm, LieuForm, ClotureForm
 from .vues_suivi import traiter
 from . import hebergement as h
-from .retour_service import url_jour, date_service
+from .retour_service import url_jour, date_service, contexte_jour
 from datetime import date
 
 
@@ -49,7 +49,7 @@ def detail(request, pk):
     accord = get_object_or_404(AccordHebergement.objects.select_related("accompagnement__menage"),pk=pk)
     from .hebergement_collectif import ACTIONS
     actions_collectives = any(request.user.has_perms(["personnes." + d for d in droits]) for _, droits in ACTIONS.values())
-    return render(request,"hebergement/detail.html", {"accord":accord, "actions_collectives": actions_collectives,
+    return render(request,"hebergement/detail.html", {**contexte_jour(request), "accord":accord, "actions_collectives": actions_collectives,
         "aujourdhui": timezone.localdate(),
         "sejours":accord.sejours.prefetch_related("beneficiaires", "affectations__lieu", "absences").order_by("debut"),
         "operations":accord.operations.select_related("auteur") if request.user.has_perm("personnes.view_operationhebergement") else []})
@@ -73,7 +73,7 @@ def periode(request, pk, absence=False):
     s=get_object_or_404(Sejour,pk=pk)
     form=(PeriodeForm if absence else AffectationForm)(request.POST or None,
         initial={"debut": max(s.debut, jour_hebergement(request))})
-    return traiter_hebergement(request,form,"Enregistrer une absence de tous les bénéficiaires" if absence else "Affecter tous les bénéficiaires à un lieu",lambda **d:h.ajouter_periode(request.user,s,absence=absence,**d),s.accord.accompagnement.menage, retour=retour_hebergement(request, s.accord_id))
+    return traiter_hebergement(request,form,"Enregistrer une absence de tous les bénéficiaires" if absence else "Affecter tous les bénéficiaires à un lieu",lambda **d:h.ajouter_periode(request.user,s,absence=absence,**d),s.accord.accompagnement.menage, retour=retour_hebergement(request, s.accord_id), sejour=s)
 
 
 @require_http_methods(["GET", "POST"])
@@ -89,7 +89,7 @@ def terminer(request, pk, nature):
     debut = objet.debut
     jour = jour_hebergement(request)
     initial = {"fin": jour} if debut < jour else {}
-    return traiter_hebergement(request,ClotureForm(request.POST or None, initial=initial),"Enregistrer la sortie" if nature=="sejour" else "Enregistrer le retour d’absence" if nature=="absence" else "Clôturer l’affectation",lambda **d:action(request.user,objet,**d),s.accord.accompagnement.menage, retour=retour_hebergement(request, s.accord_id))
+    return traiter_hebergement(request,ClotureForm(request.POST or None, initial=initial),"Enregistrer la sortie" if nature=="sejour" else "Enregistrer le retour d’absence" if nature=="absence" else "Clôturer l’affectation",lambda **d:action(request.user,objet,**d),s.accord.accompagnement.menage, retour=retour_hebergement(request, s.accord_id), sejour=s)
 
 
 @require_http_methods(["GET", "POST"])
@@ -117,4 +117,4 @@ def changer_lieu(request, pk):
     form = ChangementLieuForm(request.POST or None, initial={"debut": jour_hebergement(request), "attendu": jeton(objet)})
     return traiter_hebergement(request, form, "Changer de lieu pour tous les bénéficiaires du séjour",
         lambda **d: h.changer_lieu(request.user, objet, **d), objet.sejour.accord.accompagnement.menage,
-        retour=retour_hebergement(request, objet.sejour.accord_id))
+        retour=retour_hebergement(request, objet.sejour.accord_id), sejour=objet.sejour)

@@ -45,7 +45,7 @@ def detail(request, pk):
         "evenements": menage.evenements.select_related("auteur") if request.user.has_perm("personnes.view_evenementsuivi") else []})
 
 
-def traiter(request, formulaire, titre, action, menage=None, retour=None):
+def traiter(request, formulaire, titre, action, menage=None, retour=None, sejour=None):
     if request.method == "POST" and formulaire.is_valid():
         try:
             resultat = action(**formulaire.cleaned_data)
@@ -56,7 +56,7 @@ def traiter(request, formulaire, titre, action, menage=None, retour=None):
             if retour:
                 return redirect(retour(resultat) if callable(retour) else retour)
             return redirect("suivi:detail", pk=menage.pk if menage else resultat.pk)
-    return render(request, "suivi/form.html", {"form": formulaire, "titre": titre, "menage": menage, "retour": retour if isinstance(retour, str) else None,
+    return render(request, "suivi/form.html", {"form": formulaire, "titre": titre, "menage": menage, "sejour": sejour, "retour": retour if isinstance(retour, str) else None,
         "retour_jour": (request.POST.get("retour") or request.GET.get("retour")) == "jour",
         "date_service": date_service(request.POST.get("date_service") or request.GET.get("date_service"))})
 

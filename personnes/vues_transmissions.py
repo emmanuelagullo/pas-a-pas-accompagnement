@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from .models import Transmission, NotePartagee, Personne, Accompagnement, Sejour
 from . import transmissions
-from .retour_service import date_service, url_jour
+from .retour_service import date_service, url_jour, contexte_jour, suffixe_jour
 
 
 class TexteForm(forms.Form):
@@ -60,7 +60,7 @@ def notes(request, nature, pk):
             raise PermissionDenied
         if form.is_valid():
             transmissions.noter(request.user, form.cleaned_data["contenu"], **{nature: cible})
-            return redirect("suivi:notes", nature=nature, pk=pk)
+            return redirect(reverse("suivi:notes", kwargs={"nature": nature, "pk": pk}) + suffixe_jour(request))
     retour = None
     if nature == 'personne':
         retour = reverse('personnes:detail', args=[cible.pk])
@@ -68,7 +68,7 @@ def notes(request, nature, pk):
         retour = reverse('suivi:accompagnement', args=[cible.pk])
     elif nature == 'sejour' and request.user.has_perms(['personnes.view_personne', 'personnes.view_menage', 'personnes.view_accompagnement', 'personnes.view_accordhebergement']):
         retour = reverse('suivi:accord_hebergement', args=[cible.accord_id])
-    return render(request, "suivi/transmissions.html", {"titre": "Notes partagées", "retour_cible": retour,
+    return render(request, "suivi/transmissions.html", {**contexte_jour(request), "cible": cible, "cible_nature": nature, "titre": "Notes partagées", "retour_cible": retour + suffixe_jour(request) if retour and nature == "sejour" else retour,
         "form": form if request.user.has_perm("personnes.add_notepartagee") else None,
         "contributions": NotePartagee.objects.filter(**{nature: cible}).select_related("auteur").prefetch_related("revisions__auteur"), "nature": "note"})
 
@@ -91,6 +91,16 @@ def corriger(request, nature, pk):
         if not request.user.has_perm("personnes.view_" + type(cible).__name__.lower()):
             from django.core.exceptions import PermissionDenied
             raise PermissionDenied
+    retour = reverse("suivi:cahier")
+    contexte = None
+    cible_nature = None
+    if nature == "note":
+        cible_nature = next(n for n in CIBLES if getattr(contribution, n + "_id") is not None)
+        contexte = cible
+        retour = reverse("suivi:notes", kwargs={"nature": cible_nature, "pk": cible.pk})
+    retour += suffixe_jour(request)
+    donnees = {**contexte_jour(request), "contribution": contribution, "cible": contexte,
+               "cible_nature": cible_nature, "retour": retour}
     form = CorrectionForm(request.POST or None, initial={"contenu": contribution.contenu, "texte_attendu": contribution.contenu})
     if request.method == "POST" and form.is_valid():
         try:
@@ -98,9 +108,6 @@ def corriger(request, nature, pk):
                                      form.cleaned_data["motif"], texte_attendu=form.cleaned_data["texte_attendu"])
         except ValidationError as erreur:
             form.add_error(None, erreur)
-            return render(request, "suivi/corriger_transmission.html", {"form": form}, status=409)
-        if nature == "transmission":
-            return redirect("suivi:cahier")
-        cible_nature = next(n for n in CIBLES if getattr(contribution, n + "_id") is not None)
-        return redirect("suivi:notes", nature=cible_nature, pk=getattr(contribution, cible_nature + "_id"))
-    return render(request, "suivi/corriger_transmission.html", {"form": form})
+            return render(request, "suivi/corriger_transmission.html", {**donnees, "form": form}, status=409)
+        return redirect(retour)
+    return render(request, "suivi/corriger_transmission.html", {**donnees, "form": form})

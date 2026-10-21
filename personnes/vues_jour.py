@@ -97,7 +97,10 @@ def jour(request):
         for s in sejours.order_by("debut", "pk"):
             lieux = [a for a in s.affectations.all() if a.debut<=date and (a.fin is None or a.fin>date)] if request.user.has_perms(["personnes.view_affectation","personnes.view_lieuhebergement"]) else None
             absences = [a for a in s.absences.all() if a.debut<=date and (a.fin is None or a.fin>date)] if request.user.has_perm("personnes.view_absence") else None
-            hebergements.append({"sejour":s,"lieux":lieux,"absences":absences,"accord_expire":s.accord.fin and s.accord.fin<=date})
+            hebergements.append({"affectation_deja_ouverte": any(a.fin is None for a in s.affectations.all()) if lieux is not None else False,
+                "absence_deja_ouverte": any(a.fin is None for a in s.absences.all()) if absences is not None else False,
+                "affectation_ouverte": next((a for a in (lieux or []) if a.fin is None), None),
+                "absence_ouverte": next((a for a in (absences or []) if a.fin is None), None), "sejour":s,"lieux":lieux,"absences":absences,"accord_expire":s.accord.fin and s.accord.fin<=date})
     # Le cahier transversal est consultable sans exposer les notes individuelles.
     # Les dernières transmissions restent accessibles indépendamment de la date métier.
     transmissions_recentes = (list(Transmission.objects.select_related("auteur")[:8])
