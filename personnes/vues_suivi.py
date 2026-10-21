@@ -16,10 +16,12 @@ from . import suivi
 @login_required
 @permission_required(("personnes.view_menage", "personnes.view_personne"), raise_exception=True)
 def liste(request):
-    personne = request.GET.get("personne", "")
-    if not (_uuid_valide(personne) and Personne.objects.filter(pk=personne).exists()):
-        personne = ""
-    return render(request, "suivi/liste.html", {"menages": Menage.objects.all(), "personne_a_rattacher": personne})
+    identifiant = request.GET.get("personne", "")
+    personne = (Personne.objects.filter(pk=identifiant).first() if _uuid_valide(identifiant) else None)
+    return render(request, "suivi/liste.html", {
+        "menages": Menage.objects.all(),
+        "personne_a_rattacher": personne,
+    })
 
 
 @require_safe

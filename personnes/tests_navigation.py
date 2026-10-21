@@ -38,6 +38,9 @@ class NavigationTests(TestCase):
         cible = reverse('suivi:liste') + '?personne=' + str(autre.pk)
         self.assertContains(fiche, cible.replace('&', '&amp;'))
         liste = self.client.get(cible)
+        self.assertContains(liste, 'Rattacher')
+        self.assertContains(liste, autre.designation)
+        self.assertContains(liste, reverse('personnes:detail', args=[autre.pk]))
         ajout = reverse('suivi:ajouter', args=[self.m.pk]) + '?personne=' + str(autre.pk)
         self.assertContains(liste, ajout.replace('&', '&amp;'))
         formulaire = self.client.get(ajout)
@@ -50,3 +53,10 @@ class NavigationTests(TestCase):
         reponse = self.client.get(url)
         self.assertEqual(reponse.status_code, 200)
         self.assertNotIn('personne', reponse.context['form'].initial)
+
+    def test_liste_menages_ignore_personne_inconnue(self):
+        from uuid import uuid4
+        reponse = self.client.get(reverse('suivi:liste') + '?personne=' + str(uuid4()))
+        self.assertEqual(reponse.status_code, 200)
+        self.assertNotContains(reponse, 'Retour à sa fiche')
+        self.assertNotContains(reponse, 'Rattacher à ce ménage')
