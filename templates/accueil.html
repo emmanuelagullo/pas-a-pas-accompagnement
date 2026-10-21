@@ -1,7 +1,7 @@
 {% extends "base.html" %}{% load static %}
-{% block contenu %}<h1>Quel dossier souhaitez-vous ouvrir ?</h1>
+{% block contenu %}<div class="entree-dossiers"><p class="surtitre">Dossiers</p><h1>Quel dossier souhaitez-vous ouvrir ?</h1>
 {% if peut_personnes %}
-<form method="get" id="recherche-dossiers" action="{% url 'accueil' %}">
+<form class="carte recherche-centrale" method="get" id="recherche-dossiers" action="{% url 'accueil' %}">
 <fieldset class="choix-recherche"><legend>Rechercher dans</legend>
 {% if peut_menages %}<label><input type="radio" name="mode" value="menage"{% if mode == 'menage' %} checked{% endif %}> Ménages</label>{% endif %}
 <label><input type="radio" name="mode" value="personne"{% if mode == 'personne' %} checked{% endif %}> Personnes</label></fieldset>
@@ -16,4 +16,4 @@
 {% else %}<p>Votre compte n’a pas encore de droit de consultation dans cet espace d’essai.</p>{% endif %}
 {% if perms.personnes.view_menage and perms.personnes.view_accompagnement and peut_personnes %}<p><a href="{% url 'decouverte' %}">Découvrir le scénario fictif Les Passerelles</a></p>{% endif %}
 <p><a href="{% url 'dossiers:transferts' %}">Sauvegardes &amp; Transferts</a></p>
-{% endblock %}
+</div>{% endblock %}

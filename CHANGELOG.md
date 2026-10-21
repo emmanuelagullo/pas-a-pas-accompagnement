@@ -1,3 +1,16 @@
+## BD5 — Form2 directe et présentation commune
+
+- Listes compactes des séjours et accords de repas : sélection en un clic,
+  actions visibles et formulaires dans la boîte, sans quitter le dossier.
+- Nouveau séjour : accord et admissions individuelles dans une saisie ; choix
+  explicite du suivi quand plusieurs rattachements sont possibles. Aucune
+  période sociale ni distribution de repas implicite.
+- Situation, projet et dernières notes du suivi courant lorsqu’il est unique ;
+  autres périodes toujours consultables. Droits et historiques conservés.
+- Form1, boutons et contrôles harmonisés dans les vrais templates Django.
+- Recette PWA : accès social directement depuis la synthèse et consultation
+  des corrections après le retour signé vers cette synthèse.
+
 ## BD4 — navigation principale unifiée
 
 - Retrait des menus Personnes et Ménages et accompagnements ; entrée commune

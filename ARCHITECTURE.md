@@ -270,3 +270,19 @@ avant d’afficher une réponse ; les anciens résultats sont inertes pendant la
 saisie. Aucun CDN ni bibliothèque. Le rendu intégral GET reste fonctionnel sans
 JavaScript. L’accueil et ses fragments privés sont marqués no-store.
 Les services d’écriture, verrous, révisions et journaux existants sont réutilisés.
+
+
+## BD5 — amélioration progressive de Form2
+
+`vues_prestations_dossier.nouveau` borne les suivis au ménage ou à la personne,
+valide le choix et les bénéficiaires, puis appelle admission.accueillir,
+repas.accorder ou repas.accorder_services. Aucun nouveau service d’écriture,
+modèle ou droit. Les jetons de concurrence des services sont conservés.
+
+`dossier-en-place.js` réutilise les pages complètes : il extrait leur main dans
+la boîte, fixe l’action des formulaires sur leur URL réelle et conserve CSRF et
+contexte signé. Les scripts reçus ne sont pas exécutés. Le succès retourne à la
+synthèse serveur pour renouveler ensemble sélections et jetons de navigation.
+Un seul chargement à la fois ; aucune relance automatique de POST, saisie
+conservée sur panne et protection contre la perte d’une saisie modifiée.
+Les liens/formulaires gardent leur fonctionnement normal sans ce script.

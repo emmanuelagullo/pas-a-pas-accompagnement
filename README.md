@@ -918,3 +918,36 @@ sont paginés par 25 et leurs relations préchargées. Les recherches partielles
 `icontains` et le comptage parcourent les données : le nombre borné de requêtes
 ne garantit pas un coût constant sur une très grosse base. Aucune indexation
 spécialisée, mise en cache des dossiers ou nouvelle dépendance n'est introduite.
+
+
+## BD5 — agir dans la Form2
+
+Depuis Dossiers, ouvrir un ménage ou une personne. Un clic sur une ligne
+Hébergement ou Repas sélectionne cette prestation et affiche ses actions, sans
+bouton intermédiaire. Avec JavaScript, les formulaires et consultations s’ouvrent
+dans la boîte concernée ; l’identité et les autres boîtes restent visibles.
+Revenir à la liste annule la saisie après confirmation si elle a changé.
+Un enregistrement réussi actualise le dossier et ses sélections. Sans JavaScript,
+les liens ouvrent les mêmes pages complètes, avec les mêmes retours signés.
+
+Nouveau séjour utilise l’admission guidée existante : un accord et un séjour
+individuel pour chaque bénéficiaire confirmé, avec premier lieu facultatif selon
+les droits. Nouvelle période de repas crée un accord, sans distribution. Un seul
+suivi possible est affiché explicitement ; plusieurs suivis imposent un choix
+dans le formulaire. Aucune période sociale n’est créée automatiquement.
+La vue personne présélectionne cette personne ; les bénéficiaires possibles
+restent ceux du suivi choisi et sont à confirmer avant tout effet collectif.
+
+La situation, le projet et les trois dernières notes du suivi courant sont
+présentés si ce suivi est unique. Les informations des autres périodes restent
+accessibles en dessous. La distinction accord / séjour effectif / distribution,
+les corrections motivées et les droits BD3 restent inchangés.
+
+La recherche d’entrée et les contrôles partagent la présentation des templates
+réels. Le script ne rejoue jamais un POST en échec. En cas de résultat incertain,
+consulter le dossier avant de recommencer. Une saisie modifiée est protégée lors
+d’un changement de sélection ou d’une sortie de page.
+
+Vérifications : suite Django ; `node scripts/verifier-dossier-en-place.cjs` ;
+`node scripts/verifier-recherche-dossiers.cjs` ; recette Chromium
+`personnes.qualification_navigateur.EntreeBDNavigateur`, puis banc PWA habituel.

@@ -62,3 +62,67 @@ form li { margin-bottom: 1rem; }
 .aide-contextuelle { margin: .75rem 0; max-width: 48rem; }
 .aide-contextuelle summary { cursor: pointer; color: #175c50; }
 .erreurs-formulaire { border-left: .25rem solid #922b21; padding: .5rem 1rem; }
+
+/* Form2 : sélection directe, actions dans la boîte, dossier toujours identifiable. */
+main:has(.dossier-form2) { max-width: 82rem; }
+.dossier-form2 { display: grid; grid-template-columns: .85fr 1.15fr 1.15fr; gap: 1rem; align-items: start; }
+.dossier-form2 > .carte { margin: 0; max-width: none; min-width: 0; padding: 1.15rem; box-shadow: 0 3px 12px #243b3b08; }
+.dossier-form2 h2 { margin: 0 0 .8rem; }
+.boite-entete { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.boite-entete h2 { margin: 0; }
+.dossier-form2 .bouton, .dossier-form2 button { border-radius: .55rem; padding: .55rem .8rem; font-weight: 600; line-height: 1.4; font-size: .93rem; }
+.dossier-form2 .bouton:hover, .dossier-form2 button:hover { background: #10483f; color: white; }
+.dossier-form2 .secondaire { background: #f5faf7; }
+.episodes-compacts { list-style: none; padding: 0; margin: 0; display: grid; gap: .45rem; }
+.episodes-compacts a { display: block; padding: .7rem .8rem; border: 1px solid #dbe5df; border-radius: .5rem; text-decoration: none; color: inherit; }
+.episodes-compacts a:hover { background: #f2f7f4; border-color: #6b9988; }
+.episodes-compacts a[aria-current="true"] { background: #eaf4ef; border-color: #175c50; box-shadow: inset 3px 0 #175c50; }
+.episodes-compacts strong { font-size: .95rem; }
+.episodes-compacts span { display: block; font-size: .85rem; color: #4e665f; }
+.actions-directes { margin-top: 1rem; border-top: 1px solid #dbe5df; padding-top: .7rem; }
+.actions-directes nav { gap: .5rem; }
+.cible-operation { font-size: .9rem; padding: .6rem .75rem; background: #f2f7f4; border-radius: .4rem; overflow-wrap: anywhere; }
+.dossier-form2 details { margin-top: 1rem; font-size: .9rem; }
+.dossier-form2 summary { cursor: pointer; color: #175c50; }
+.dossier-apercu h2:not(:first-child) { padding-top: 1rem; border-top: 1px solid #dbe5df; }
+.dossier-apercu p, .dossier-apercu dl { font-size: .95rem; }
+.operation-en-place { min-width: 0; overflow-wrap: anywhere; }
+.operation-en-place h1 { font-size: 1.3rem; margin: 1rem 0; }
+.operation-en-place form { margin-top: 1rem; }
+.operation-en-place label { font-size: .95rem; }
+.operation-en-place input, .operation-en-place select, .operation-en-place textarea { max-width: 100%; }
+.operation-en-place .helptext { font-size: .85rem; color: #4e665f; }
+.operation-en-place .carte { padding: .7rem; }
+[aria-busy="true"] { opacity: .65; }
+#etat-dossier:empty { display: none; }
+@media (max-width: 68rem) { .dossier-form2 { grid-template-columns: 1fr 1fr; } .dossier-apercu { grid-column: 1 / -1; } }
+@media (max-width: 45rem) { .dossier-form2 { grid-template-columns: minmax(0, 1fr); } .dossier-apercu { grid-column: auto; } .boite-entete { align-items: start; } }
+
+/* Contrôles communs : mêmes repères dans l'entrée et les formulaires métier. */
+button, .bouton { border-radius: .55rem; font-weight: 600; transition: background-color .12s, border-color .12s; }
+button:hover, .bouton:hover { background: #10483f; border-color: #10483f; color: white; }
+button:disabled { opacity: .6; cursor: wait; }
+input:not([type="radio"]):not([type="checkbox"]):focus, textarea:focus, select:focus { border-color: #175c50; background: #fbfefc; }
+textarea, select { border: 1px solid #617d73; border-radius: .4rem; }
+.entree-dossiers { max-width: 50rem; margin: 2rem auto; }
+.surtitre { color: #527368; text-transform: uppercase; letter-spacing: .09em; font-size: .8rem; font-weight: 700; margin-bottom: .5rem; }
+.entree-dossiers h1 { margin-top: 0; }
+#recherche-dossiers.recherche-centrale { max-width: none; box-shadow: 0 5px 20px #243b3b08; padding: 1.3rem; }
+.recherche-centrale .choix-recherche { margin: 0 0 1.2rem; gap: .5rem; }
+.recherche-centrale .choix-recherche legend { font-size: .85rem; color: #4e665f; margin-bottom: .4rem; }
+.recherche-centrale .choix-recherche label { border: 1px solid #cadbd3; border-radius: 2rem; padding: .4rem .85rem; cursor: pointer; }
+.recherche-centrale .choix-recherche label:has(input:checked) { background: #eaf4ef; border-color: #175c50; font-weight: 650; }
+#recherche-nom { border-radius: .6rem; font-size: 1.1rem; background: #fbfdfc; }
+.resultats-dossiers { display: grid; gap: .65rem; }
+.resultats-dossiers li { border: 1px solid #cadbd3; border-radius: .65rem; overflow: hidden; }
+.resultats-dossiers a { text-decoration: none; color: inherit; padding: 1rem 1.15rem; }
+.resultats-dossiers a:hover { background: #eaf4ef; }
+.resultats-dossiers strong { font-size: 1.05rem; color: #175c50; }
+.resultats-dossiers .dossier-detail { font-size: .9rem; color: #4e665f; }
+.ouvrir-dossier { display: block; margin-top: .55rem; font-size: .85rem; color: #175c50; font-weight: 650; }
+.compte-resultats { font-size: .9rem; color: #4e665f; }
+@media (prefers-reduced-motion: reduce) { button, .bouton { transition: none; } }
+
+.champ-formulaire { margin: 1rem 0; }
+.champ-formulaire fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.champ-formulaire legend { font-weight: 650; }

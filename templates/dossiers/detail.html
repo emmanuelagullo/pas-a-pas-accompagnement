@@ -1,4 +1,4 @@
-{% extends "base.html" %}{% load dossier %}{% block contenu %}
+{% extends "base.html" %}{% load dossier static %}{% block contenu %}
 <p><a href="{{ retour }}">Retour à la recherche</a></p>
 <h1>Dossier — {{ objet }}</h1><p>{% if nature == 'menage' %}Ménage{% else %}Personne{% endif %} · Toutes les périodes</p>
 {% if origine %}<p><a href="{{ origine_url }}">← Revenir au ménage {{ origine }}</a></p>{% endif %}
@@ -9,9 +9,15 @@
 {% if nature == 'menage' %}<p><a href="{% url 'suivi:detail' objet.pk %}">Gérer les appartenances et leurs historiques</a></p>{% elif perms.personnes.add_menage and perms.personnes.add_appartenance and perms.personnes.view_menage %}<p><a href="{% url 'suivi:creer' %}?personne={{ objet.pk }}">Créer un ménage avec cette personne</a></p>{% endif %}
 <p>La composition du ménage et les bénéficiaires enregistrés de chaque prestation sont distincts.</p></details>
 {% if nature == 'personne' and perms.personnes.view_notepartagee %}{% with contexte_dossier=navigation_personne.contexte_dossier %}<p><a href="{% dossier_url 'suivi:notes' 'personne' objet.pk %}">Notes partagées de cette personne</a></p>{% endwith %}{% endif %}
-<div class="dossier-boites">
-{% if lecture_hebergement %}{% include "suivi/_dossier_hebergement.html" with synthese=True contexte_dossier=navigation_h.contexte_dossier %}{% endif %}
-{% if lecture_repas %}{% include "suivi/_dossier_repas.html" with synthese=True contexte_dossier=navigation_r.contexte_dossier %}{% endif %}
+<p id="etat-dossier" role="status"></p><div class="dossier-form2" data-dossier-form2>
+<aside class="carte dossier-apercu" data-dossier-boite="suivi"><h2>Situation et projet</h2>
+{% if lecture_hebergement %}<p>{{ sejours_dossier|length }} séjour{{ sejours_dossier|length|pluralize }} enregistré{{ sejours_dossier|length|pluralize }}.</p>{% endif %}
+{% if information_actuelle %}<dl><dt>Référent professionnel</dt><dd>{{ information_actuelle.referent|default:"Non renseigné" }}</dd><dt>Objectifs à court terme</dt><dd>{{ information_actuelle.objectifs_courts|default:"Non renseignés"|linebreaksbr }}</dd></dl>{% endif %}
+{% if periode_actuelle %}{% with contexte_dossier=periode_actuelle.navigation.contexte_dossier %}<p class="helptext">Suivi du {{ periode_actuelle.debut|date:"d/m/Y" }} · {% for p in periode_actuelle.beneficiaires.all %}{{ p }}{% if not forloop.last %} ; {% endif %}{% endfor %}.</p>
+{% if perms.personnes.add_informationsaccompagnement and perms.personnes.view_informationsaccompagnement %}<p><a class="bouton secondaire" data-dossier-action href="{% dossier_url 'suivi:informations' periode_actuelle.pk %}">Mettre à jour le projet</a></p>{% endif %}
+{% if perms.personnes.view_notepartagee %}<h2>Notes récentes</h2>{% for note in notes_actuelles %}<p>{{ note.contenu|truncatechars:240|linebreaksbr }}</p><p class="helptext">{{ note.auteur }} · {{ note.cree_le|date:"d/m/Y H:i" }}</p>{% empty %}<p>Aucune note de cette période.</p>{% endfor %}<a data-dossier-action href="{% dossier_url 'suivi:notes' 'accompagnement' periode_actuelle.pk %}">Lire ou écrire une note</a>{% endif %}{% endwith %}{% else %}<p>Consultez les informations par période ci-dessous.</p>{% endif %}</aside>
+{% if lecture_hebergement %}{% include "dossiers/_hebergement_direct.html" with contexte_dossier=navigation_h.contexte_dossier %}{% endif %}
+{% if lecture_repas %}{% include "dossiers/_repas_direct.html" with contexte_dossier=navigation_r.contexte_dossier %}{% endif %}
 </div>
 {% if not lecture_hebergement and not lecture_repas %}<p>Les prestations sont consultables selon les droits de votre compte.</p>{% endif %}
 {% if perms.personnes.view_informationsaccompagnement %}<section class="carte dossier-identite"><h2>Informations pratiques et projet</h2>
@@ -19,6 +25,6 @@
 <details class="carte dossier-identite"><summary>Suivi social et périodes de suivi</summary>
 <p>Ces périodes regroupent les bénéficiaires et les informations de suivi. Elles restent les rattachements des prestations dans le modèle actuel.</p>
 {% for a in periodes %}{% with contexte_dossier=a.navigation.contexte_dossier %}<section><h3>{% include "suivi/periode.html" with periode=a %} — {{ a.menage }}</h3><p>Bénéficiaires : {% for p in a.beneficiaires.all %}{{ p }}{% if not forloop.last %} ; {% endif %}{% endfor %}.</p>
-<nav aria-label="Période de suivi du {{ a.debut|date:'d/m/Y' }}"><a href="{% dossier_url 'suivi:accompagnement' a.pk %}">Consulter cette période</a>{% if perms.personnes.view_situationsociale %}<a href="{% dossier_url 'suivi:social' a.pk %}">Situation et parcours sociaux</a>{% endif %}{% if perms.personnes.view_notepartagee %}<a href="{% dossier_url 'suivi:notes' 'accompagnement' a.pk %}">Notes de cette période</a>{% endif %}</nav></section>{% endwith %}{% empty %}<p>Aucune période consultable. Le dossier existe indépendamment du suivi social.</p>{% endfor %}
+<nav aria-label="Période de suivi du {{ a.debut|date:'d/m/Y' }}"><a href="{% dossier_url 'suivi:accompagnement' a.pk %}">Consulter cette période</a>{% if perms.personnes.view_correctionperiode %}<a href="{% dossier_url 'suivi:corrections' a.pk %}">Consulter l’avant/après des corrections</a>{% endif %}{% if perms.personnes.view_situationsociale %}<a href="{% dossier_url 'suivi:social' a.pk %}">Situation et parcours sociaux</a>{% endif %}{% if perms.personnes.view_notepartagee %}<a href="{% dossier_url 'suivi:notes' 'accompagnement' a.pk %}">Notes de cette période</a>{% endif %}</nav></section>{% endwith %}{% empty %}<p>Aucune période consultable. Le dossier existe indépendamment du suivi social.</p>{% endfor %}
 {% if nature == 'menage' and perms.personnes.add_accompagnement and perms.personnes.view_accompagnement %}<p><a href="{% url 'suivi:ouvrir' objet.pk %}">Ouvrir une période de suivi</a></p>{% endif %}</details>
-{% endblock %}
+<script src="{% static 'dossier-en-place.js' %}" defer></script>{% endblock %}

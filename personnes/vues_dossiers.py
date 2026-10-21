@@ -210,11 +210,23 @@ def detail(request, nature, pk):
             lien.cible = cible
             lien.url = reverse('dossiers:detail', args=['personne' if nature == 'menage' else 'menage', cible.pk]) + '?' + urlencode({**params, 'origine_menage': str(pk) if nature == 'menage' else '', **({'origine_sejour': params['sejour'], 'origine_repas': params['repas']} if nature == 'menage' else {})})
             liens_uniques[cle] = lien
+    for s in sejours:
+        s.selection_url = reverse('dossiers:detail', args=[nature, pk]) + '?' + urlencode({**params, 'sejour': str(s.pk)}) + '#hebergement'
+    for accord in accords_r:
+        accord.selection_url = reverse('dossiers:detail', args=[nature, pk]) + '?' + urlencode({**params, 'repas': str(accord.pk)}) + '#repas'
+    courantes = [a for a in periodes if a.debut <= jour and (a.fin is None or a.fin > jour)]
+    actuelle = courantes[0] if len(courantes) == 1 else None
+    informations_actuelles = getattr(actuelle, 'informations_dossier', [])
+    notes_actuelles = []
+    if actuelle and request.user.has_perm('personnes.view_notepartagee'):
+        from .models import NotePartagee
+        notes_actuelles = NotePartagee.objects.filter(accompagnement=actuelle).select_related('auteur').order_by('-cree_le', '-pk')[:3]
     retour = reverse('accueil') + '?' + urlencode({k: params[k] for k in ('q', 'mode', 'page')})
     origine_url = reverse('dossiers:detail', args=['menage', origine.pk]) + '?' + urlencode({**params, 'sejour': params.get('origine_sejour', params['sejour']), 'repas': params.get('origine_repas', params['repas'])}) if origine else ''
     return render(request, 'dossiers/detail.html', {'objet': objet, 'nature': nature, 'liens': liens, 'liens_uniques': liens_uniques.values(),
         'navigation_personne': dossier.pour_personne(pk, params) if nature == 'personne' else {}, 'origine_url': origine_url, 'origine': origine, 'retour': retour, 'navigation_query': urlencode(params), 'recherche': params['q'], 'mode_recherche': params['mode'], 'page_recherche': params['page'], 'origine_sejour': params.get('origine_sejour', ''), 'origine_repas': params.get('origine_repas', ''),
-        'periodes': periodes, 'aujourdhui': jour, 'lecture_hebergement': h, 'lecture_repas': r, 'lecture_lieux': lieux,
+        'periode_actuelle': actuelle, 'information_actuelle': informations_actuelles[0] if informations_actuelles else None,
+        'notes_actuelles': notes_actuelles, 'periodes': periodes, 'aujourdhui': jour, 'lecture_hebergement': h, 'lecture_repas': r, 'lecture_lieux': lieux,
         'sejours_dossier': sejours, 'accords_sans_sejour': accords_h, 'accords_repas': accords_r,
         'selection_sejour': selection_h, 'selection_repas': selection_r, 'navigation_h': nav_h, 'navigation_r': nav_r})
 
