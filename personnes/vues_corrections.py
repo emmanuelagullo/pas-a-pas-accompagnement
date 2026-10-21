@@ -39,7 +39,10 @@ def corriger(request,nature,pk):
     if nature in c.TEXTES:
         initial={'date_effet':objet.date_effet,'texte':objet.texte,'source':getattr(objet,'source',''),'attendu':c.jeton(objet)}
         form=TexteForm(request.POST if request.method=='POST' else None,initial=initial)
-        if nature=='evenementsocial':form.fields['texte'].max_length=500;form.fields['source'].required=True
+        if nature=='evenementsocial':
+            form.fields['texte'].max_length=500
+            form.fields['source'].required=True
+            form.fields['date_effet'].help_text='Un fait de l’histoire antérieure peut précéder le début du suivi ; sa source et le motif restent requis.'
         else:del form.fields['source']
         action=lambda **d:c.texte(request.user,objet,**d)
     else:

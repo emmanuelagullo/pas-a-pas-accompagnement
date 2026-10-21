@@ -49,7 +49,8 @@ def renseigner(request,pk,dimension):
     social.droit(request.user,"add_situationsociale");social.droit(request.user,"view_situationsociale")
     if dimension not in SituationSociale.VALEURS: raise Http404
     a=get_object_or_404(Accompagnement,pk=pk)
-    form=SituationForm(request.POST or None,accompagnement=a,dimension=dimension)
+    form=SituationForm(request.POST if request.method == "POST" else None,accompagnement=a,dimension=dimension,
+        initial={"attendu": social.jeton_situations(a)})
     return traiter_hebergement(request,form,"Renseigner : "+dict(SituationSociale.DIMENSIONS)[dimension],lambda **d:social.renseigner(request.user,a,dimension=dimension,**d),a.menage, retour=reverse("suivi:social", args=[a.pk]))
 
 
@@ -58,7 +59,8 @@ def renseigner(request,pk,dimension):
 def corriger(request,pk):
     social.droit(request.user,"change_situationsociale");social.droit(request.user,"view_situationsociale")
     s=get_object_or_404(SituationSociale.objects.select_related("accompagnement__menage"),pk=pk)
-    form=CorrectionForm(request.POST or None,dimension=s.dimension)
+    form=CorrectionForm(request.POST if request.method == "POST" else None,dimension=s.dimension,
+        initial={"valeur": s.valeur, "attendu": social.jeton_valeur(s)})
     return traiter_hebergement(request,form,"Corriger une valeur sans changer sa date",lambda **d:social.corriger(request.user,s,**d),s.accompagnement.menage, retour=reverse("suivi:social", args=[s.accompagnement_id]))
 
 

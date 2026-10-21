@@ -506,7 +506,8 @@ Une absence de ligne ne signifie pas que la personne n’a aucune difficulté.
 
 Renseigner une dimension avec sa date d’effet et la source de l’information.
 Une nouvelle valeur ferme la précédente à sa date d’effet (fin exclue). Les
-ajouts sont chronologiques par personne/dimension ; la consultation sélectionne
+ajouts sont datés par personne/dimension ; une insertion rétroactive motivée
+est possible entre deux valeurs (CHRS25-06). La consultation sélectionne
 les valeurs valables à la date demandée. On ne rejoue pas les événements.
 Pour une erreur de valeur, « Corriger » conserve dates et source, mais enregistre
 ancienne/nouvelle valeur, motif, auteur et horodatage dans le journal. CHRS7 ajoute la correction des dates et sources ; le bénéficiaire ne change pas.
@@ -653,3 +654,21 @@ changement de ces informations ne clôture le suivi ni un séjour. Les droits
 `view_informationsaccompagnement` et `add_informationsaccompagnement` sont
 explicites : la migration ne les attribue pas. La commande `autoriser_chrs7`
 les ajoute au compte fictif choisi quand on la relance volontairement.
+
+
+## CHRS25-06 — situations oubliées et histoire antérieure
+
+Le formulaire de situation protège désormais sa révision par un jeton signé.
+Une date déjà renseignée reste une correction dédiée, jamais un écrasement.
+L’insertion d’une situation oubliée avant une valeur existante exige un motif,
+`change_situationsociale` et `view_correctionperiode`, en plus des droits d’ajout
+et de lecture. Elle ajuste la fin de la valeur précédente et conserve cet
+avant/après dans CorrectionPeriode ; la nouvelle valeur finit au début de la
+suivante. Une erreur annule l’ensemble. Les situations restent dans le suivi.
+
+Un événement sourcé peut appartenir à l’histoire antérieure : cocher ce choix
+explicitement lors de l’ajout. Sa date réelle est conservée sans déplacer le
+début du suivi ; il est identifié comme antérieur dans l’historique et la
+trajectoire. Sa correction motivée peut également porter sur une date antérieure.
+Les bilans, situations et prestations conservent leurs bornes habituelles.
+Aucun événement n’est déduit en situation, admission ou prestation.

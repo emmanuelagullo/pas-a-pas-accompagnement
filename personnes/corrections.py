@@ -68,7 +68,9 @@ def dates_dependantes(a):
     for r in m.RepasDistribue.objects.filter(accord__accompagnement=a,annule_le__isnull=True):
         incluse(a,r.date,point=True)
     for s in m.Sejour.objects.filter(accord__accompagnement=a):incluse(a,s.debut,s.fin)
-    for modele,champ in [(m.SituationSociale,'debut'),(m.EvenementSocial,'date_effet'),(m.BilanSocial,'date_effet')]:
+    from .social import date_evenement
+    for e in m.EvenementSocial.objects.filter(accompagnement=a):date_evenement(a, e.date_effet)
+    for modele,champ in [(m.SituationSociale,'debut'),(m.BilanSocial,'date_effet')]:
         for valeur in modele.objects.filter(accompagnement=a).values_list(champ,flat=True):incluse(a,valeur,point=True)
 
 
@@ -150,8 +152,8 @@ def texte(acteur,objet,date_effet,texte,motif,attendu,source=''):
     objet=type(objet).objects.get(pk=objet.pk)
     verifier_jeton(objet,attendu);motif=motif_valide(motif)
     ancienne=etat(objet)
-    from .social import date_valide
-    date_valide(objet.accompagnement,date_effet)
+    from .social import date_valide, date_evenement
+    (date_evenement if nature == 'evenementsocial' else date_valide)(objet.accompagnement,date_effet)
     objet.date_effet=date_effet;objet.texte=texte
     if nature=='evenementsocial':objet.source=source
     objet.full_clean()

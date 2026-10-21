@@ -68,7 +68,7 @@ class SocialTests(TestCase):
     def test_parcours_http_et_droits(self):
         self.client.force_login(self.u)
         reponse=self.client.post(reverse('suivi:situation_sociale',args=[self.a.pk,'logement']),{
-            'beneficiaire':self.p.pk,'valeur':'inconnu','debut':'2026-01-01','source':'Déclaration fictive'})
+            'beneficiaire':self.p.pk,'valeur':'inconnu','debut':'2026-01-01','source':'Déclaration fictive','attendu':social.jeton_situations(self.a)})
         self.assertEqual(reponse.status_code,302)
         url=reverse('suivi:social',args=[self.a.pk])
         self.assertContains(self.client.get(url,{'date':'2026-01-02'}),'Non renseigné')

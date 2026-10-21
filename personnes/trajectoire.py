@@ -23,7 +23,8 @@ def construire(accompagnement, acteur, beneficiaire=None, debut=None, fin=None):
                 f'{s.get_dimension_display()} : {s.libelle_valeur} (source : {s.source})', s.beneficiaire)
     if acteur.has_perm('personnes.view_evenementsocial'):
         for e in EvenementSocial.objects.filter(accompagnement=accompagnement).select_related('beneficiaire'):
-            ajouter(e.date_effet, e.cree_le, 'Événement', e.texte, e.beneficiaire)
+            ajouter(e.date_effet, e.cree_le, 'Événement antérieur' if e.date_effet < accompagnement.debut else 'Événement',
+                    e.texte + f' (source : {e.source})', e.beneficiaire)
     if acteur.has_perm('personnes.view_bilansocial') and not beneficiaire:
         for b in BilanSocial.objects.filter(accompagnement=accompagnement):
             ajouter(b.date_effet, b.cree_le, 'Bilan du ménage', b.texte)

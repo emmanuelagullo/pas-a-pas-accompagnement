@@ -1,6 +1,7 @@
 """CHRS4 : valeurs datées par dimension, sans reconstruction événementielle."""
 from .verrous_metier import serialiser
 from django.core.exceptions import ValidationError
+from django.core import signing
 from django.db import transaction
 from django.db.models import F, Q
 from django.utils import timezone
@@ -22,39 +23,93 @@ def date_valide(accompagnement, date):
         raise ValidationError("La date d’effet doit appartenir à l’accompagnement et ne pas être future.")
 
 
+def date_evenement(accompagnement, date):
+    if date > timezone.localdate() or (accompagnement.fin and date >= accompagnement.fin):
+        raise ValidationError("L’événement doit être non futur et antérieur à la fin du suivi. Son histoire peut précéder le début.")
+
+
 def personne_valide(accompagnement, personne):
     if not accompagnement.beneficiaires.filter(pk=personne.pk).exists():
         raise ValidationError("Choisissez un bénéficiaire de cet accompagnement.")
 
 
+def jeton_situations(accompagnement):
+    return signing.dumps([str(accompagnement.pk), accompagnement.revision_sociale], salt='chrs25-situations')
+
+
+def verifier_situations(accompagnement, attendu):
+    try:
+        etat = signing.loads(attendu, salt='chrs25-situations', max_age=86400)
+    except signing.BadSignature as exc:
+        raise ValidationError('Le formulaire a expiré. Rechargez le suivi social.') from exc
+    # verrouiller a réservé la révision suivante dans cette transaction.
+    if etat != [str(accompagnement.pk), accompagnement.revision_sociale - 1]:
+        raise ValidationError('Le suivi social a changé. Rechargez le formulaire.')
+
+
 @serialiser("accompagnement")
 @transaction.atomic
-def renseigner(acteur, accompagnement, beneficiaire, dimension, valeur, debut, source):
-    droit(acteur,"add_situationsociale")
-    droit(acteur,"view_situationsociale")
-    a=verrouiller(accompagnement)
-    date_valide(a,debut); personne_valide(a,beneficiaire)
-    serie=SituationSociale.objects.filter(accompagnement=a,beneficiaire=beneficiaire,dimension=dimension)
-    precedente=serie.order_by("-debut").first()
-    if precedente and debut <= precedente.debut:
-        raise ValidationError("Ajoutez une date postérieure à la dernière valeur. Pour une erreur de valeur, utilisez Corriger.")
-    nouvelle=SituationSociale(accompagnement=a,beneficiaire=beneficiaire,dimension=dimension,valeur=valeur,debut=debut,source=source,cree_par=acteur)
-    # Valider les champs avant de fermer la valeur précédente ; les contraintes
-    # d’unicité sont ensuite vérifiées dans la même transaction.
-    nouvelle.clean_fields(); nouvelle.clean()
-    if precedente:
-        precedente.fin=debut; precedente.save(update_fields=["fin"])
-    nouvelle.full_clean(); nouvelle.save()
-    OperationSociale.objects.create(accompagnement=a,situation=nouvelle,action="Situation renseignée",date_effet=debut,auteur=acteur,nouvelle_valeur=valeur)
+def renseigner(acteur, accompagnement, beneficiaire, dimension, valeur, debut, source, motif='', attendu=None):
+    droit(acteur, "add_situationsociale")
+    droit(acteur, "view_situationsociale")
+    a = verrouiller(accompagnement)
+    if attendu is not None:
+        verifier_situations(a, attendu)
+    date_valide(a, debut)
+    personne_valide(a, beneficiaire)
+    serie = SituationSociale.objects.filter(accompagnement=a, beneficiaire=beneficiaire, dimension=dimension)
+    if serie.filter(debut=debut).exists():
+        raise ValidationError('Une situation existe déjà à cette date. Utilisez Corriger.')
+    precedente = serie.filter(debut__lt=debut).order_by('-debut').first()
+    suivante = serie.filter(debut__gt=debut).order_by('debut').first()
+    if suivante:
+        from .corrections import motif_valide
+        droit(acteur, 'change_situationsociale')
+        droit(acteur, 'view_correctionperiode')
+        if attendu is None:
+            raise ValidationError('Rechargez le formulaire pour insérer une situation antérieure.')
+        motif = motif_valide(motif)
+    nouvelle = SituationSociale(accompagnement=a, beneficiaire=beneficiaire, dimension=dimension,
+        valeur=valeur, debut=debut, fin=suivante.debut if suivante else None, source=source, cree_par=acteur)
+    nouvelle.clean_fields()
+    nouvelle.clean()
+    if precedente and (precedente.fin is None or precedente.fin > debut):
+        ancien = (precedente.debut, precedente.fin, precedente.source)
+        precedente.fin = debut
+        precedente.full_clean()
+        precedente.save(update_fields=['fin'])
+        if suivante:
+            from .corrections import enregistrer
+            enregistrer(acteur, precedente, ancien, motif)
+    nouvelle.full_clean()
+    nouvelle.save()
+    OperationSociale.objects.create(accompagnement=a, situation=nouvelle,
+        action='Situation insérée' if suivante else 'Situation renseignée', date_effet=debut,
+        auteur=acteur, nouvelle_valeur=valeur, motif=motif if suivante else '')
     return nouvelle
+
+
+def etat_valeur(situation):
+    return [str(situation.pk), situation.valeur, str(situation.debut), str(situation.fin), situation.source]
+
+
+def jeton_valeur(situation):
+    return signing.dumps(etat_valeur(situation), salt='chrs25-valeur')
 
 
 @serialiser("situation")
 @transaction.atomic
-def corriger(acteur, situation, valeur, motif):
+def corriger(acteur, situation, valeur, motif, attendu=None):
     droit(acteur,"change_situationsociale"); droit(acteur,"view_situationsociale")
     a=verrouiller(situation.accompagnement)
     situation=SituationSociale.objects.get(pk=situation.pk)
+    if attendu is not None:
+        try:
+            precedent = signing.loads(attendu, salt='chrs25-valeur', max_age=86400)
+        except signing.BadSignature as exc:
+            raise ValidationError('Le formulaire a expiré. Rechargez la situation.') from exc
+        if precedent != etat_valeur(situation):
+            raise ValidationError('Cette situation a changé. Rechargez le formulaire.')
     motif=motif.strip()
     if not motif or len(motif)>240: raise ValidationError("Indiquez un motif de 1 à 240 caractères.")
     ancienne=situation.valeur
@@ -66,13 +121,16 @@ def corriger(acteur, situation, valeur, motif):
 
 @serialiser("accompagnement")
 @transaction.atomic
-def evenement(acteur, accompagnement, beneficiaire, date_effet, texte, source):
+def evenement(acteur, accompagnement, beneficiaire, date_effet, texte, source, anterieur=False):
     droit(acteur,"add_evenementsocial"); droit(acteur,"view_evenementsocial")
     a=verrouiller(accompagnement)
-    date_valide(a,date_effet); personne_valide(a,beneficiaire)
+    if date_effet < a.debut and not anterieur:
+        raise ValidationError("Pour un fait antérieur, cochez explicitement l’histoire antérieure.")
+    date_evenement(a, date_effet)
+    personne_valide(a,beneficiaire)
     objet=EvenementSocial(accompagnement=a,beneficiaire=beneficiaire,date_effet=date_effet,texte=texte,source=source,cree_par=acteur)
     objet.full_clean(); objet.save()
-    OperationSociale.objects.create(accompagnement=a,evenement=objet,action="Événement enregistré",date_effet=date_effet,auteur=acteur)
+    OperationSociale.objects.create(accompagnement=a,evenement=objet,action="Événement antérieur enregistré" if date_effet < a.debut else "Événement enregistré",date_effet=date_effet,auteur=acteur)
     return objet
 
 
