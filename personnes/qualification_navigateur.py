@@ -31,9 +31,12 @@ class ProfilsNavigateur(StaticLiveServerTestCase):
         self.u.save(update_fields=['password'])
 
     def profil(self, *droits):
-        self.u.user_permissions.clear()
-        self.u.user_permissions.add(*Permission.objects.filter(
-            content_type__app_label='personnes', codename__in=droits))
+        def appliquer():
+            self.u.user_permissions.clear()
+            self.u.user_permissions.add(*Permission.objects.filter(
+                content_type__app_label='personnes', codename__in=droits))
+
+        verifier_hors_boucle_playwright(appliquer)
 
     def navigateur(self):
         playwright = sync_playwright().start()
