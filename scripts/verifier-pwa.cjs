@@ -1,6 +1,7 @@
 // Chromium réel ; serveur statique et profil éphémères, données fictives seulement.
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),assert=require('node:assert/strict');
 const {createRequire}=require('node:module');
+const cliquerLienPwa=require('./cliquer-lien-pwa.cjs');
 const requirePwa=createRequire(path.resolve(__dirname,'../pwa/package.json'));
 const {chromium}=process.env.PWA_PLAYWRIGHT?require(process.env.PWA_PLAYWRIGHT):requirePwa('playwright');
 const root=process.env.PWA_BUNDLE?path.resolve(process.env.PWA_BUNDLE):path.resolve(__dirname,'../dist/pwa');
@@ -47,20 +48,20 @@ const server=(tls?require('node:https'):http).createServer(options,(req,res)=>{
    });
   }
   async function rechercherPersonnes(app){
-   await app.getByRole('link',{name:'Dossiers',exact:true}).click();
+   await cliquerLienPwa(app.getByRole('link',{name:'Dossiers',exact:true}));
    await app.getByLabel('Personnes',{exact:true}).check();
-   await app.getByRole('button',{name:'Rechercher',exact:true}).click();
+   await cliquerLienPwa(app.getByRole('button',{name:'Rechercher',exact:true}));
   }
   async function ouvrir(){await page.goto(url);await page.frameLocator('#app').locator('h1').waitFor({timeout:120000});}
   await ouvrir();const frame=page.frameLocator('#app');
   await frame.locator('[name=username]').fill('essai-pwa');
   await frame.locator('[name=password1]').fill('Phrase fictive navigateur-854!');
   await frame.locator('[name=password2]').fill('Phrase fictive navigateur-854!');
-  await frame.getByRole('button',{name:'Créer mon compte et commencer'}).click();
+  await cliquerLienPwa(frame.getByRole('button',{name:'Créer mon compte et commencer'}));
   await rechercherPersonnes(frame);
-  await frame.getByRole('link',{name:'Nouveau dossier',exact:true}).click();
+  await cliquerLienPwa(frame.getByRole('link',{name:'Nouveau dossier',exact:true}));
   await frame.locator('[name=designation]').fill('Personne fictive conservée');
-  await frame.getByRole('button',{name:'Créer et ouvrir le dossier',exact:true}).click();
+  await cliquerLienPwa(frame.getByRole('button',{name:'Créer et ouvrir le dossier',exact:true}));
   await frame.getByRole('heading',{name:'Dossier — Personne fictive conservée',exact:true}).waitFor();
   const autre=await context.newPage();await autre.goto(url);
   await autre.getByText('Cet espace est déjà ouvert dans un autre onglet.').waitFor();await autre.close();
@@ -69,19 +70,19 @@ const server=(tls?require('node:https'):http).createServer(options,(req,res)=>{
   const apres=page.frameLocator('#app');
   await apres.locator('[name=username]').fill('essai-pwa');
   await apres.locator('[name=password]').fill('Phrase fictive navigateur-854!');
-  await apres.getByRole('button',{name:'Se connecter'}).click();
+  await cliquerLienPwa(apres.getByRole('button',{name:'Se connecter'}));
   await rechercherPersonnes(apres);
   await apres.getByText('Personne fictive conservée').waitFor();
   // Le PDF doit être un téléchargement réel, y compris sans réseau.
-  await apres.getByText('Personne fictive conservée',{exact:true}).click();
+  await cliquerLienPwa(apres.getByText('Personne fictive conservée',{exact:true}));
   await apres.getByText('Identité et appartenances',{exact:true}).click();
-  await apres.getByRole('link',{name:'Consulter la fiche d’identité et ses corrections',exact:true}).click();
+  await cliquerLienPwa(apres.getByRole('link',{name:'Consulter la fiche d’identité et ses corrections',exact:true}));
   const pdfFini=page.waitForEvent('download',{timeout:120000});
   await apres.getByRole('link',{name:'Télécharger la fiche PDF'}).click();
   const pdf=await pdfFini;
   assert.match(pdf.suggestedFilename(),/^fiche-personne-[a-f0-9-]+\.pdf$/);
   assert.equal(fs.readFileSync(await pdf.path()).subarray(0,5).toString(),'%PDF-');
-  await apres.getByRole('link',{name:'Retour aux personnes'}).click();
+  await cliquerLienPwa(apres.getByRole('link',{name:'Retour aux personnes'}));
   await apres.getByRole('link',{name:'Personne fictive conservée',exact:true}).waitFor();
   await context.setOffline(false);
   // Même profil et origine : isoler l’essai de l’espace habituel déjà rempli.
@@ -92,18 +93,18 @@ const server=(tls?require('node:https'):http).createServer(options,(req,res)=>{
   assert.equal(await df.locator('[name=password1]').count(),0);
   await df.locator('[name=username]').fill('nadia');
   await df.locator('[name=password]').fill('Demonstration-fictive-2026!');
-  await df.getByRole('button',{name:'Se connecter'}).click();
-  await df.getByRole('link',{name:'Découvrir le scénario fictif Les Passerelles'}).click();
+  await cliquerLienPwa(df.getByRole('button',{name:'Se connecter'}));
+  await cliquerLienPwa(df.getByRole('link',{name:'Découvrir le scénario fictif Les Passerelles'}));
   await df.getByRole('heading',{name:'Les Passerelles : découverte en cinq minutes'}).waitFor();
-  await df.getByRole('link',{name:'les ménages',exact:true}).click();
-  await df.getByRole('link',{name:'Alex — Les Passerelles (fictif)',exact:true}).click();
-  await df.getByRole('link',{name:/Déjeuner accordé du/}).click();
+  await cliquerLienPwa(df.getByRole('link',{name:'les ménages',exact:true}));
+  await cliquerLienPwa(df.getByRole('link',{name:'Alex — Les Passerelles (fictif)',exact:true}));
+  await cliquerLienPwa(df.getByRole('link',{name:/Déjeuner accordé du/}));
   await df.getByRole('heading',{name:'Réalisation effective : 2 repas distribués'}).waitFor();
   await require('./verifier-parcours-metier.cjs')(df);
   await rechercherPersonnes(df);
-  await df.getByRole('link',{name:'Nouveau dossier',exact:true}).click();
+  await cliquerLienPwa(df.getByRole('link',{name:'Nouveau dossier',exact:true}));
   await df.locator('[name=designation]').fill('Essai séparé conservé');
-  await df.getByRole('button',{name:'Créer et ouvrir le dossier',exact:true}).click();
+  await cliquerLienPwa(df.getByRole('button',{name:'Créer et ouvrir le dossier',exact:true}));
   await df.getByRole('heading',{name:'Dossier — Essai séparé conservé',exact:true}).waitFor();
   await page.locator('summary').click();
   const sauvegardeEssai=page.waitForEvent('download',{timeout:120000});
@@ -124,7 +125,7 @@ with zipfile.ZipFile(sys.argv[1]) as z,tempfile.TemporaryDirectory() as t:
   await df.locator('[name=username]').waitFor({timeout:120000});
   await df.locator('[name=username]').fill('nadia');
   await df.locator('[name=password]').fill('Demonstration-fictive-2026!');
-  await df.getByRole('button',{name:'Se connecter'}).click();
+  await cliquerLienPwa(df.getByRole('button',{name:'Se connecter'}));
   await rechercherPersonnes(df);
   await df.getByText('Essai séparé conservé',{exact:true}).waitFor();
   async function retrouverHabituel(){
@@ -132,7 +133,7 @@ with zipfile.ZipFile(sys.argv[1]) as z,tempfile.TemporaryDirectory() as t:
    const f=page.frameLocator('#app');await f.locator('[name=username]').waitFor({timeout:120000});
    await f.locator('[name=username]').fill('essai-pwa');
    await f.locator('[name=password]').fill('Phrase fictive navigateur-854!');
-   await f.getByRole('button',{name:'Se connecter'}).click();
+   await cliquerLienPwa(f.getByRole('button',{name:'Se connecter'}));
    await rechercherPersonnes(f);
    await f.getByText('Personne fictive conservée').waitFor();
    assert.equal(await f.getByText('Essai séparé conservé',{exact:true}).count(),0);
@@ -143,7 +144,7 @@ with zipfile.ZipFile(sys.argv[1]) as z,tempfile.TemporaryDirectory() as t:
   await df.locator('[name=username]').waitFor({timeout:120000});
   await df.locator('[name=username]').fill('nadia');
   await df.locator('[name=password]').fill('Demonstration-fictive-2026!');
-  await df.getByRole('button',{name:'Se connecter'}).click();
+  await cliquerLienPwa(df.getByRole('button',{name:'Se connecter'}));
   await rechercherPersonnes(df);
   await df.getByText('Essai séparé conservé',{exact:true}).waitFor();
   await retrouverHabituel();
@@ -160,7 +161,7 @@ with zipfile.ZipFile(sys.argv[1]) as z,tempfile.TemporaryDirectory() as t:
   async function connexion(){
    const f=page.frameLocator('#app');await f.locator('[name=username]').waitFor({timeout:120000});
    await f.locator('[name=username]').fill('essai-pwa');await f.locator('[name=password]').fill('Phrase fictive navigateur-854!');
-   await f.getByRole('button',{name:'Se connecter'}).click();await rechercherPersonnes(f);
+   await cliquerLienPwa(f.getByRole('button',{name:'Se connecter'}));await rechercherPersonnes(f);
    await f.getByText('Personne fictive conservée').waitFor();
    // Le banc enchaîne plus de cinq connexions dans la même fenêtre fictive.
    // Réinitialisation par le protocole de test, jamais par le produit normal.

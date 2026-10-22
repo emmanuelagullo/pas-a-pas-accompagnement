@@ -1,3 +1,11 @@
+## BD5 — attendre les navigations du banc PWA
+
+- Armer l’attente de navigation du cadre avant chaque clic qui change de page,
+  puis attendre le chargement du document avant la saisie ou l’ouverture d’un
+  volet. Cela couvre aussi les rechargements de même URL et les titres identiques.
+- Remplacer le contournement de défilement par cette synchronisation ; conserver
+  les attentes spécifiques des formulaires en place et ne rejouer aucun clic.
+
 ## BD5 — clic des liens bas de page dans le banc PWA
 
 - Positionnement explicite des liens sociaux et de corrections dans l’iframe
