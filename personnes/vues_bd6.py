@@ -35,9 +35,10 @@ class CommentaireForm(EtatForm):
 
 
 class SituationForm(EtatForm):
-    debut = date_champ('Date d’effet incluse')
+    debut = date_champ('Depuis quelle date cette situation est-elle vraie ?')
     valeur = forms.ChoiceField(label='Situation')
-    source = forms.CharField(label='Source de l’information', max_length=160)
+    source = forms.CharField(label='Comment le savez-vous ?', max_length=160,
+        help_text='Par exemple : entretien avec la personne le 12/10, courrier CAF, échange avec un partenaire. Aucun document à joindre.')
     motif = forms.CharField(label='Motif de correction ou d’insertion antérieure', max_length=240, required=False)
 
     def __init__(self, *args, dimension, correction=False, **kwargs):
@@ -45,6 +46,13 @@ class SituationForm(EtatForm):
         self.fields['valeur'].choices = SituationSociale.VALEURS[dimension]
         self.fields['debut'].disabled = correction
         self.fields['motif'].required = correction
+        if correction:
+            self.fields['debut'].help_text = 'Date de l’information corrigée : elle reste inchangée.'
+            self.fields['motif'].label = 'Pourquoi la saisie précédente était-elle erronée ?'
+        else:
+            self.fields['debut'].help_text = 'La situation précédente reste dans l’historique jusqu’à cette date.'
+            self.fields['motif'].label = 'Explication de l’ajout dans le passé (si nécessaire)'
+            self.fields['motif'].help_text = 'À remplir seulement si une situation plus récente est déjà enregistrée pour cette rubrique.'
 
 
 def objet_dossier(request, nature, pk):
@@ -191,7 +199,8 @@ def social(request, pk, dimension=None, fait_pk=None):
     return traiter(request, form, ('Corriger une erreur — ' if fait else 'Enregistrer un changement — ') + dict(SituationSociale.DIMENSIONS)[dimension],
         lambda **d: bd6.renseigner(request.user, personne, dimension, correction=fait.pk if fait else None, **d),
         reverse('dossiers:social', args=[pk]) + '?' + query_sociale, personne,
-        explication='Un changement réel commence à sa date d’effet. Une correction rectifie une valeur erronée, conserve sa date et exige un motif. Le journal conserve les valeurs avant/après.')
+        explication=('Vous corrigez une erreur de saisie dans une information déjà enregistrée. Choisissez la bonne valeur et expliquez l’erreur. Sa date reste inchangée ; la correction est conservée dans le journal.' if fait else
+            'Vous enregistrez une situation nouvelle ou encore inconnue du dossier. Indiquez depuis quand elle est vraie. Exemple : reprise d’un emploi le 1er octobre. Si une information déjà saisie était fausse, revenez en arrière et choisissez « Corriger une erreur » sur cette information.'))
 
 
 class MembreForm(EtatForm):

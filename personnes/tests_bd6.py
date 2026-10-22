@@ -273,6 +273,24 @@ class BD6Tests(Donnees, TestCase):
             page = self.client.get(reverse('dossiers:social_corriger', args=[self.p.pk, 'emploi', fait.pk]))
         self.assertEqual(page.context['form'].initial['valeur'], 'emploi')
 
+    def test_actions_sociales_ciblent_la_rubrique_et_distinguent_les_operations(self):
+        fait = self.fait()
+        page = self.client.get(reverse('dossiers:social', args=[self.p.pk]))
+        nouveau = reverse('dossiers:social_nouveau', args=[self.p.pk, 'emploi'])
+        correction = reverse('dossiers:social_corriger', args=[self.p.pk, 'emploi', fait.pk])
+        self.assertContains(page, nouveau)
+        self.assertContains(page, correction)
+        self.assertNotContains(page, 'Changer :')
+        ajout = self.client.get(nouveau)
+        rectification = self.client.get(correction)
+        self.assertFalse(ajout.context['form'].fields['debut'].disabled)
+        self.assertTrue(rectification.context['form'].fields['debut'].disabled)
+        self.assertTrue(rectification.context['form'].fields['motif'].required)
+        self.assertContains(ajout, 'Comment le savez-vous ?')
+        self.assertContains(ajout, 'entretien avec la personne')
+        self.assertContains(rectification, 'Vous corrigez une erreur de saisie')
+        self.assertNotContains(ajout, 'Un changement réel commence à sa date d’effet.')
+
     def test_date_travail_traverse_form2_et_form3(self):
         request = SimpleNamespace(user=self.u, POST={}, GET={'date_service': '2026-05-01'})
         nav = dossier.pour_vue(request, self.a, 'menage', self.m.pk, {})

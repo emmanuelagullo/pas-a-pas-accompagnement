@@ -175,3 +175,5 @@ main:has(.bd-dossier) { max-width: 76rem; }
 .episodes-compacts .hebergement-prevu.selectionnee { background: #eaf4ef; border-style: solid; }
 .episodes-compacts .hebergement-prevu nav { gap: .5rem; margin-top: .6rem; }
 .episodes-compacts .hebergement-prevu nav a { padding: .4rem .6rem; }
+
+.social-actions { display: flex; flex-wrap: wrap; gap: .4rem 1rem; margin-top: .6rem; font-size: .85rem; }
