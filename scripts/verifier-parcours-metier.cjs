@@ -1,4 +1,5 @@
 // Parcours fictif CHRS5–7, appelé dans le vrai navigateur/Pyodide du banc PWA.
+const cliquerLienPwa = require('./cliquer-lien-pwa.cjs');
 module.exports = async function verifierParcoursMetier(app) {
   await app.getByRole('link', {name:'Dossiers', exact:true}).click();
   await app.getByLabel('Nom, prénom ou libellé du dossier', {exact:true}).fill('Thomas');
@@ -17,7 +18,7 @@ module.exports = async function verifierParcoursMetier(app) {
   await app.getByRole('link', {name:/Revenir au ménage/}).click();
   await app.getByText('Suivi social et périodes de suivi', {exact:true}).click();
   const periodes = app.locator('details').filter({has: app.locator('summary').filter({hasText: /^Suivi social et périodes de suivi$/})});
-  await periodes.getByRole('link', {name:'Situation et parcours sociaux', exact:true}).first().click();
+  await cliquerLienPwa(periodes.getByRole('link', {name:'Situation et parcours sociaux', exact:true}).first());
   await app.getByRole('heading', {name:/Situation et parcours sociaux — Thomas/}).waitFor();
   await app.getByRole('link', {name:'Corriger cet événement', exact:true}).click();
   await app.locator('[name=texte]').fill('Installation fictive — texte rectifié pendant l’essai.');
@@ -25,7 +26,7 @@ module.exports = async function verifierParcoursMetier(app) {
   await app.getByRole('button', {name:'Enregistrer', exact:true}).click();
   await app.getByRole('heading', {name:/Dossier — Thomas/}).waitFor();
   await app.getByText('Suivi social et périodes de suivi', {exact:true}).click();
-  await periodes.getByRole('link', {name:'Consulter l’avant/après des corrections', exact:true}).first().click();
+  await cliquerLienPwa(periodes.getByRole('link', {name:'Consulter l’avant/après des corrections', exact:true}).first());
   await app.getByText('Correction fictive du parcours navigateur', {exact:false}).waitFor();
   await app.getByText('Installation dans un logement autonome fictif.', {exact:false}).waitFor();
   await app.getByRole('link', {name:'Travail du jour', exact:true}).click();

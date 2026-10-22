@@ -1,3 +1,10 @@
+## BD5 — clic des liens bas de page dans le banc PWA
+
+- Positionnement explicite des liens sociaux et de corrections dans l’iframe
+  avant le clic normal Playwright, avec ses contrôles conservés.
+- En cas d’échec, journal de géométrie sans jeton de navigation ; erreur
+  propagée sans second clic automatique.
+
 ## BD5 — Form2 directe et présentation commune
 
 - Listes compactes des séjours et accords de repas : sélection en un clic,

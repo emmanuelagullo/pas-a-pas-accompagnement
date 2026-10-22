@@ -51,6 +51,7 @@ jobs:
       - run: python scripts/construire-pwa.py --test
       - run: node scripts/verifier-recherche-dossiers.cjs
       - run: node scripts/verifier-dossier-en-place.cjs
+      - run: node scripts/verifier-clic-pwa.cjs
       - run: node scripts/verifier-nouveau-menage.cjs
       - run: node scripts/verifier-pwa-pyodide.mjs
       - run: node scripts/verifier-pwa.cjs
