@@ -119,8 +119,10 @@ def main():
             raise RuntimeError('La période rapide a effacé les filtres ou la comparaison')
         # Le scénario peut être relancé sur la même base : éviter les homonymes.
         nom_modele = 'Repas du mois — recette navigateur'
+        page.get_by_text('Enregistrer cette configuration comme modèle', exact=True).click()
         page.locator('#nom_modele').fill(nom_modele)
         page.get_by_role('button', name='Enregistrer cette configuration').click()
+        page.get_by_text('Mes modèles de rapports', exact=True).click()
         page.get_by_role('link', name=nom_modele).last.click()
         page.get_by_role('heading', name='Repas par mois et service').wait_for()
         if (page.locator('select#periode').input_value() != 'mois' or
@@ -144,6 +146,7 @@ def main():
         page.get_by_role('button', name='Calculer').click()
         if page.locator('select#service').input_value() != 'diner':
             raise RuntimeError('La modification du service n’est pas appliquée')
+        page.get_by_text('Mes modèles de rapports', exact=True).click()
         page.get_by_role('link', name=nom_modele).last.click()
         if page.locator('select#service').input_value() != 'dejeuner':
             raise RuntimeError('La consultation a modifié le modèle enregistré')
