@@ -286,3 +286,28 @@ synthèse serveur pour renouveler ensemble sélections et jetons de navigation.
 Un seul chargement à la fois ; aucune relance automatique de POST, saisie
 conservée sur panne et protection contre la perte d’une saisie modifiée.
 Les liens/formulaires gardent leur fonctionnement normal sans ce script.
+
+## BD6 — histoire personnelle et navigation en trois vues
+
+`Accompagnement.fin_prevue` est une prévision exclue ; `fin` garde son sens de
+clôture effective. `EvolutionPriseEnCharge` trace les prolongations, sous droit
+dédié. `SituationPersonnelle` porte les intervalles par personne et dimension ;
+`RevisionSituationPersonnelle` conserve les séries avant/après, auteur et motif.
+Les tables sociales historiques, leurs liens et journaux ne sont pas réécrits.
+Le lecteur expose leurs divergences plutôt que choisir arbitrairement un suivi.
+`CommentaireDossier` ajoute des versions immuables pour une cible exclusive
+personne/ménage/prise. Un effacement est une nouvelle version vide motivée.
+
+Toutes les écritures liées gardent l’ordre ménage puis prise. Les écritures
+sociales personnelles et commentaires de personne réservent uniquement la
+révision personnelle par UPDATE conditionnel : elles ne prennent ensuite aucun
+verrou ménage. Les formulaires utilisent des états signés et refusent les états
+périmés sans rejouer les POST. L’ajout de membre réserve le ménage avant
+l’identité nouvelle et l’appartenance ; le tout est atomique.
+
+Les routes `dossiers:detail` et `dossiers:prise` partagent le lecteur borné par
+ménage/bénéficiaire, avec un filtre supplémentaire sur la prise pour Form3.
+Les jetons de retour incluent l’écran et le parent ; ils ne remplacent pas les
+droits. Les routes historiques restent accessibles aux historiques existants.
+Aucune nouvelle dépendance ni changement du format ZIP : les nouvelles tables
+et migrations accompagnent les sauvegardes complètes serveur/bureau/PWA.

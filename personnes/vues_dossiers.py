@@ -1,5 +1,6 @@
 """Entrée et synthèse personne/ménage ; aucun nouvel objet métier « dossier »."""
 from urllib.parse import urlencode
+from collections import defaultdict
 
 from django import forms
 from django.contrib.auth.decorators import login_required, permission_required
@@ -13,7 +14,7 @@ from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods, require_safe
 
-from . import dossier, suivi
+from . import dossier, suivi, bd6
 from .forms import PersonneForm
 from .models import Personne, Menage, Appartenance, Accompagnement, Sejour, AccordRepas, AccordHebergement, Affectation, Absence, InformationsAccompagnement
 from .lecture_dossier import choisir
@@ -137,7 +138,7 @@ def creer(request, nature):
 @require_safe
 @login_required
 @permission_required('personnes.view_personne', raise_exception=True)
-def detail(request, nature, pk):
+def detail(request, nature, pk, prise_pk=None):
     if nature == 'menage':
         suivi.exiger(request.user, 'view_menage')
         objet = get_object_or_404(Menage, pk=pk)
@@ -150,10 +151,16 @@ def detail(request, nature, pk):
     else:
         from django.http import Http404
         raise Http404
+    prise = get_object_or_404(periodes, pk=prise_pk) if prise_pk and request.user.has_perms(dossier.DROITS) else None
+    if prise_pk and prise is None:
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied
+    if prise:
+        periodes = periodes.filter(pk=prise.pk)
     jour = timezone.localdate()
     anciens = dossier.valeurs_vue(request, nature, pk)
     params = {**parametres(request), **anciens}
-    for cle in ('sejour', 'repas', 'origine_menage', 'origine_sejour', 'origine_repas'):
+    for cle in ('sejour', 'repas', 'origine_menage', 'origine_sejour', 'origine_repas', 'prise', 'date_service'):
         if cle in request.GET:
             params[cle] = request.GET[cle][:40]
     origine = next((l.menage for l in liens if nature == 'personne' and str(l.menage_id) == params.get('origine_menage')), None)
@@ -165,6 +172,8 @@ def detail(request, nature, pk):
     if request.user.has_perm('personnes.view_informationsaccompagnement'):
         periodes = periodes.prefetch_related(Prefetch('informations', queryset=InformationsAccompagnement.objects.select_related('auteur'), to_attr='informations_dossier'))
     periodes = list(periodes.select_related('menage').prefetch_related('beneficiaires').order_by('-debut', 'pk')) if droits_suivi else []
+    if prise:
+        prise = next(a for a in periodes if a.pk == prise.pk)
     h = request.user.has_perms(['personnes.view_accordhebergement', 'personnes.view_sejour']) and droits_suivi
     r = request.user.has_perms(['personnes.view_accordrepas', 'personnes.view_repasdistribue']) and droits_suivi
     lieux = request.user.has_perms(['personnes.view_affectation', 'personnes.view_lieuhebergement'])
@@ -194,13 +203,33 @@ def detail(request, nature, pk):
     selection_h = choisir(sejours, params.get('sejour', ''))
     selection_r = choisir(accords_r, params.get('repas', ''))
     params.update(sejour=str(selection_h.pk) if selection_h else '', repas=str(selection_r.pk) if selection_r else '')
+    params['ecran'] = 'prise' if prise else 'dossier'
+    if prise:
+        params['prise'] = str(prise.pk)
+        params['accompagnement'] = str(prise.pk)
+    signer = dossier.pour_prise if prise else dossier.pour_vue
     # Chaque boîte signe le vrai parent de sa sélection, jamais le premier suivi arbitraire.
-    nav_h = dossier.pour_vue(request, selection_h.accord.accompagnement, nature, pk, params) if selection_h else {}
-    nav_r = dossier.pour_vue(request, selection_r.accompagnement, nature, pk, params) if selection_r else {}
+    nav_h = signer(request, selection_h.accord.accompagnement, nature, pk, params) if selection_h else {}
+    nav_r = signer(request, selection_r.accompagnement, nature, pk, params) if selection_r else {}
     for accord in accords_h:
-        accord.navigation = dossier.pour_vue(request, next(a for a in periodes if a.pk == accord.accompagnement_id), nature, pk, params)
+        accord.navigation = signer(request, next(a for a in periodes if a.pk == accord.accompagnement_id), nature, pk, params)
+    sejours_par_prise, repas_par_prise = defaultdict(list), defaultdict(list)
+    for s in sejours:
+        sejours_par_prise[s.accord.accompagnement_id].append(s)
+    for r_accord in accords_r:
+        repas_par_prise[r_accord.accompagnement_id].append(r_accord)
     for a in periodes:
-        a.navigation = dossier.pour_vue(request, a, nature, pk, params)
+        a.navigation = signer(request, a, nature, pk, params)
+        a.url_prise = reverse('dossiers:prise', args=[nature, pk, a.pk]) + '?' + urlencode(params)
+        a.url_prolonger = reverse('dossiers:prolonger_prise', args=[nature, pk, a.pk]) + '?' + urlencode(params)
+        a.resume_prestations = bd6.resume_prestations(a, sejours_par_prise[a.pk], repas_par_prise[a.pk], jour, lieux)
+    selection_prise = choisir(periodes, params.get('prise', ''))
+    if not prise and selection_prise and request.GET.get('action') in ('ouvrir', 'prolonger', 'pdf'):
+        action = request.GET['action']
+        if params.get('prise') and str(selection_prise.pk) != params['prise']:
+            from django.http import Http404
+            raise Http404
+        return redirect(selection_prise.url_prise if action == 'ouvrir' else selection_prise.url_prolonger if action == 'prolonger' else reverse('suivi:resume', args=[selection_prise.pk]) + '?' + urlencode({'contexte_dossier': selection_prise.navigation['contexte_dossier']}))
     liens_uniques = {}
     for lien in liens:
         lien.actuel = lien.debut <= jour and (lien.fin is None or lien.fin > jour)
@@ -211,9 +240,11 @@ def detail(request, nature, pk):
             lien.url = reverse('dossiers:detail', args=['personne' if nature == 'menage' else 'menage', cible.pk]) + '?' + urlencode({**params, 'origine_menage': str(pk) if nature == 'menage' else '', **({'origine_sejour': params['sejour'], 'origine_repas': params['repas']} if nature == 'menage' else {})})
             liens_uniques[cle] = lien
     for s in sejours:
-        s.selection_url = reverse('dossiers:detail', args=[nature, pk]) + '?' + urlencode({**params, 'sejour': str(s.pk)}) + '#hebergement'
+        s.selection_url = reverse('dossiers:prise', args=[nature, pk, prise.pk]) if prise else reverse('dossiers:detail', args=[nature, pk])
+        s.selection_url = s.selection_url + '?' + urlencode({**params, 'sejour': str(s.pk)}) + '#hebergement'
     for accord in accords_r:
-        accord.selection_url = reverse('dossiers:detail', args=[nature, pk]) + '?' + urlencode({**params, 'repas': str(accord.pk)}) + '#repas'
+        accord.selection_url = reverse('dossiers:prise', args=[nature, pk, prise.pk]) if prise else reverse('dossiers:detail', args=[nature, pk])
+        accord.selection_url = accord.selection_url + '?' + urlencode({**params, 'repas': str(accord.pk)}) + '#repas'
     courantes = [a for a in periodes if a.debut <= jour and (a.fin is None or a.fin > jour)]
     actuelle = courantes[0] if len(courantes) == 1 else None
     informations_actuelles = getattr(actuelle, 'informations_dossier', [])
@@ -223,7 +254,21 @@ def detail(request, nature, pk):
         notes_actuelles = NotePartagee.objects.filter(accompagnement=actuelle).select_related('auteur').order_by('-cree_le', '-pk')[:3]
     retour = reverse('accueil') + '?' + urlencode({k: params[k] for k in ('q', 'mode', 'page')})
     origine_url = reverse('dossiers:detail', args=['menage', origine.pk]) + '?' + urlencode({**params, 'sejour': params.get('origine_sejour', params['sejour']), 'repas': params.get('origine_repas', params['repas'])}) if origine else ''
-    return render(request, 'dossiers/detail.html', {'objet': objet, 'nature': nature, 'liens': liens, 'liens_uniques': liens_uniques.values(),
+    personnes_sociales = list(prise.beneficiaires.all()) if prise else [objet] if nature == 'personne' else list({l.personne_id: l.personne for l in liens if l.actuel}.values())
+    date_sociale = prise.fin if prise and prise.fin else jour
+    # La clôture est exclue : restituer le dernier jour de la prise.
+    if prise and prise.fin:
+        from datetime import timedelta
+        date_sociale -= timedelta(days=1)
+    commentaire_cible = prise or objet
+    commentaires = commentaire_cible.commentaires_dossier.select_related('auteur') if request.user.has_perm('personnes.view_commentairedossier') else []
+    return render(request, 'dossiers/prise.html' if prise else 'dossiers/detail.html', {'prise': prise,
+        'parametres_navigation': {k: v for k, v in params.items() if k not in ('prise', 'ecran', 'accompagnement')}, 'selection_prise': selection_prise, 'commentaires': commentaires, 'commentaire': commentaires[0] if commentaires else None,
+        'etat_social': bd6.etat(request.user, personnes_sociales, date_sociale), 'date_sociale': date_sociale,
+        'etat_entree': bd6.etat(request.user, personnes_sociales, prise.debut) if prise else [],
+        'retour_form2': reverse('dossiers:detail', args=[nature, pk]) + '?' + urlencode({**params, 'ecran': 'dossier'}),
+        'evolutions': prise.evolutions_prevision.select_related('auteur') if prise and request.user.has_perm('personnes.view_evolutionpriseencharge') else [],
+        'objet': objet, 'nature': nature, 'liens': liens, 'liens_uniques': liens_uniques.values(),
         'navigation_personne': dossier.pour_personne(pk, params) if nature == 'personne' else {}, 'origine_url': origine_url, 'origine': origine, 'retour': retour, 'navigation_query': urlencode(params), 'recherche': params['q'], 'mode_recherche': params['mode'], 'page_recherche': params['page'], 'origine_sejour': params.get('origine_sejour', ''), 'origine_repas': params.get('origine_repas', ''),
         'periode_actuelle': actuelle, 'information_actuelle': informations_actuelles[0] if informations_actuelles else None,
         'notes_actuelles': notes_actuelles, 'periodes': periodes, 'aujourdhui': jour, 'lecture_hebergement': h, 'lecture_repas': r, 'lecture_lieux': lieux,
@@ -267,8 +312,12 @@ def choisir_periode(request, nature, pk, prestation):
         suivi.exiger(request.user, 'view_accordrepas')
     objet = get_object_or_404(Menage if nature == 'menage' else Personne, pk=pk)
     periodes = objet.accompagnements.select_related('menage').prefetch_related('beneficiaires').order_by('-debut', 'pk')
-    params = {**parametres(request), **{k: request.GET.get(k, '')[:40] for k in ('sejour', 'repas', 'origine_menage', 'origine_sejour', 'origine_repas')}}
+    params = {**parametres(request), **dossier.valeurs_vue(request, nature, pk), **{k: request.GET.get(k, '')[:40] for k in ('sejour', 'repas', 'origine_menage', 'origine_sejour', 'origine_repas')}}
+    if params.get('ecran') == 'prise' and suivi_uuid(params.get('prise')):
+        periodes = periodes.filter(pk=params['prise'])
     for a in periodes:
-        a.url_action = reverse(route, args=[a.pk]) + '?' + urlencode({'contexte_dossier': dossier.pour_vue(request, a, nature, pk, params)['contexte_dossier']})
+        a.url_action = reverse(route, args=[a.pk]) + '?' + urlencode({'contexte_dossier': (dossier.pour_prise if params.get('ecran') == 'prise' else dossier.pour_vue)(request, a, nature, pk, params)['contexte_dossier']})
+    if params.get('ecran') == 'prise' and len(periodes) == 1:
+        return redirect(periodes[0].url_action)
     return render(request, 'dossiers/choisir.html', {'objet': objet, 'nature': nature, 'periodes': periodes, 'prestation': prestation,
         'retour': reverse('dossiers:detail', args=[nature, pk]) + '?' + urlencode(params)})

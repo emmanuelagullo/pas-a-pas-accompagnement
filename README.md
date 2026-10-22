@@ -951,3 +951,40 @@ d’un changement de sélection ou d’une sortie de page.
 Vérifications : suite Django ; `node scripts/verifier-dossier-en-place.cjs` ;
 `node scripts/verifier-recherche-dossiers.cjs` ; recette Chromium
 `personnes.qualification_navigateur.EntreeBDNavigateur`, puis banc PWA habituel.
+
+## BD6 — Dossier puis prise en charge
+
+L’accueil reste la recherche de dossiers. La **Form2** réunit situation sociale
+(composition et bascules personne/ménage comprises), commentaire libre historisé
+et liste des prises en charge. **Ouvrir** ou cliquer une ligne mène à la **Form3** :
+prestations de cette prise, situation à l’entrée et à ce jour/à la clôture,
+commentaire propre, projet, notes et historiques. Le modèle `Accompagnement`
+reste le rattachement des prestations ; « prise en charge » est son libellé dans
+ce parcours. Aucun objet « dossier » supplémentaire n’est créé.
+
+Les résumés comptent l’union des intervalles civils, sans multiplication par
+personne ou service : nuits de séjours enregistrés (sans preuve de présence),
+jours de repas **accordés** (sans distribution implicite). Une période ouverte
+est signalée et comptée à ce jour ; les lieux exigent leurs droits propres.
+La fin prévue est distincte de la clôture effective. Prolonger la prévision ne
+prolonge aucun accord. Une nouvelle prestation propose la date du jour ou le
+début futur de la prise, et sa fin prévue si elle reste utilisable ; l’admission
+est confirmée séparément et le séjour réalisé reste ouvert.
+
+L’histoire sociale personnelle distingue changement réel, insertion antérieure
+motivée et correction motivée de valeur/source à date constante. Les situations
+historiques liées aux suivis restent conservées : aucune fusion en migration.
+Les contradictions couvrant une même date sont signalées avec leur provenance.
+Une information personnelle confirmée plus récemment devient la référence à
+partir de sa date ; un ancien suivi renseigné à une date ultérieure reste signalé
+s’il diverge. Les vues « à l’entrée » sont des restitutions datées, susceptibles
+de correction tracée, et non des photographies juridiques figées.
+
+Après `python3 manage.py migrate`, les nouveaux droits s’attribuent volontairement :
+`python3 manage.py autoriser_bd6 IDENTIFIANT`. Aucun ancien compte ni jeu conservé
+n’est habilité automatiquement ; les droits métier préexistants restent requis.
+Seuls les nouveaux jeux fictifs reçoivent ces droits lors de leur génération.
+L’ajout d’un membre recherche les personnes existantes, puis confirme identité
+et date ; une création utilise la saisie commencée. Les bénéficiaires des prises
+existantes ne changent pas. Suppression/annulation d’une prise et transports
+restent hors de ce lot ; aucun bouton inactif ne les simule.

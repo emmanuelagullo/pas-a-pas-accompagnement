@@ -39,11 +39,11 @@ def ajouter_appartenance(acteur, menage, personne, debut, fin=None):
 
 @serialiser("menage")
 @transaction.atomic
-def ouvrir(acteur, menage, beneficiaires, debut):
+def ouvrir(acteur, menage, beneficiaires, debut, fin_prevue=None):
     exiger(acteur, "view_personne", "view_menage", "view_accompagnement", "add_accompagnement")
     if not beneficiaires:
         raise ValidationError("Sélectionnez au moins un bénéficiaire.")
-    objet = Accompagnement(menage=menage, debut=debut, cree_par=acteur)
+    objet = Accompagnement(menage=menage, debut=debut, fin_prevue=fin_prevue, cree_par=acteur)
     objet.full_clean()
     objet.save()
     objet.beneficiaires.set(beneficiaires)

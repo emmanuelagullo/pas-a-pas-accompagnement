@@ -276,3 +276,17 @@ deux produits. Les mots et règles métier restent dans chaque application ; le
 socle ne fournit un composant que si des usages réels justifient son extraction.
 Vérifier les parcours modifiés au clavier, sur écran étroit et sans JavaScript ;
 distinguer les tests du HTML des observations réelles en navigateur.
+
+# BD6 — dossier et prise en charge
+
+Form2 met en premier situation sociale, commentaire et prises en charge ; la
+composition appartient à la situation sociale. Form3 borne les prestations à
+une prise explicite. Conserver les anciens suivis et journaux sans fusion
+arbitraire ; signaler les divergences avec leur provenance. Les restitutions
+sociales datées ne sont pas des instantanés figés. Ne pas inventer une annulation
+de prise ni assimiler fin prévue, clôture, accord et réalisation. Les durées sont
+des unions civiles, sans multiplication par bénéficiaire/service. Les nouveaux
+droits BD6 restent volontaires. Pour les écritures personnelles, réserver la
+personne sans prendre ensuite de verrou ménage ; pour les écritures liées,
+garder ménage puis prise. Tester migration, concurrence, copies et vrai parcours
+navigateur/PWA lorsque ces chemins changent.

@@ -15,6 +15,7 @@ class AppartenanceForm(forms.Form):
 
 
 class AccompagnementForm(forms.Form):
+    fin_prevue = forms.DateField(label="Fin prévue exclue", required=False, widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}), help_text="Prévision uniquement : ne clôture ni la prise en charge ni ses prestations.")
     beneficiaires = forms.ModelMultipleChoiceField(Personne.objects.all(), label="Bénéficiaires explicites", widget=forms.CheckboxSelectMultiple)
     debut = forms.DateField(label="Début inclus", widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}))
 

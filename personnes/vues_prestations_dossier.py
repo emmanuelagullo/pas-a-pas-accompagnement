@@ -1,5 +1,6 @@
 """Créer depuis Form2, avec un rattachement explicite et les services existants."""
 from urllib.parse import urlencode
+from datetime import date
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
@@ -33,6 +34,10 @@ def nouveau(request, nature, pk, prestation):
         repas.droit(request.user, 'add_accordrepas')
     objet = get_object_or_404(Menage if nature == 'menage' else Personne, pk=pk)
     periodes = objet.accompagnements.select_related('menage').prefetch_related('beneficiaires').order_by('-debut', 'pk')
+    # Un retour signé Form3 borne le choix à son vrai parent.
+    contexte = dossier.valeurs_vue(request, nature, pk)
+    if contexte.get('ecran') == 'prise' and contexte.get('prise'):
+        periodes = periodes.filter(pk=contexte['prise'])
     liste = list(periodes)
     donnees = request.POST if request.method == 'POST' else request.GET
     valeur = donnees.get('accompagnement', '')
@@ -40,15 +45,21 @@ def nouveau(request, nature, pk, prestation):
     a = next((p for p in liste if str(p.pk) == valeur), None)
     if not valeur and request.method == 'GET' and len(liste) == 1:
         a = liste[0]
-    params = {**parametres(request), **{k: request.GET.get(k, '')[:40] for k in
+    params = {**parametres(request), **contexte, **{k: request.GET.get(k, '')[:40] for k in
         ('sejour', 'repas', 'origine_menage', 'origine_sejour', 'origine_repas')}}
     retour = reverse('dossiers:detail', args=[nature, pk]) + '?' + urlencode(params)
-    navigation = dossier.pour_vue(request, a, nature, pk, params) if a else {}
+    signer = dossier.pour_prise if contexte.get('ecran') == 'prise' else dossier.pour_vue
+    navigation = signer(request, a, nature, pk, params) if a else {}
+    if navigation:
+        retour = navigation['retour_dossier']
     jour = timezone.localdate()
     initial = {'accompagnement': a.pk if a else None}
     if a:
-        debut = a.debut if a.fin and a.fin <= jour else max(a.debut, jour)
-        initial.update(debut=debut, admission=debut, beneficiaires=[pk] if nature == 'personne' else [p.pk for p in a.beneficiaires.all()])
+        date_contexte = dossier.lire(request, a).get('dossier_valeurs', {}).get('date_service')
+        jour = date.fromisoformat(date_contexte) if date_contexte else jour
+        debut = max(a.debut, jour)
+        fin = min(a.fin_prevue, a.fin) if a.fin_prevue and a.fin else a.fin_prevue
+        initial.update(debut=debut, fin=fin if fin and fin > debut else None, admission=debut, beneficiaires=[pk] if nature == 'personne' else [p.pk for p in a.beneficiaires.all()])
         if prestation == 'hebergement':
             initial['attendu'] = admission.jeton(a)
             form = AdmissionGuideeForm(request.POST if request.method == 'POST' else None,
@@ -60,8 +71,8 @@ def nouveau(request, nature, pk, prestation):
             form = AccordForm(request.POST if request.method == 'POST' else None, accompagnement=a, initial=initial)
     else:
         form = forms.Form(request.POST if request.method == 'POST' else None, initial=initial)
-    champ = forms.ModelChoiceField(periodes, label='Période de suivi', empty_label='Choisir la période',
-        help_text='Rattachement de cette prestation et bénéficiaires possibles. Aucune période de suivi ne sera créée.')
+    champ = forms.ModelChoiceField(periodes, label='Prise en charge', empty_label='Choisir la prise en charge',
+        help_text='Rattachement de cette prestation et bénéficiaires possibles. Aucune prise en charge ne sera créée.')
     champ.label_from_instance = lambda p: f'{p.debut:%d/%m/%Y} → {p.fin.strftime("%d/%m/%Y") if p.fin else "ouverte"} — {p.menage}'
     if len(liste) == 1:
         champ.widget = forms.HiddenInput()
@@ -96,7 +107,7 @@ def nouveau(request, nature, pk, prestation):
             statut = 409
         else:
             messages.success(request, 'Admission enregistrée.' if prestation == 'hebergement' else 'Repas accordés ; aucune distribution créée.')
-            return redirect(dossier.pour_vue(request, a, nature, pk, params)['retour_dossier'])
+            return redirect(signer(request, a, nature, pk, params)['retour_dossier'])
     return render(request, 'dossiers/nouvelle_prestation.html', {**navigation, 'objet': objet, 'nature': nature,
         'parametres_retour': params, 'form': form, 'periode': a, 'unique': len(liste) == 1, 'prestation': prestation, 'retour': retour,
         'titre': 'Nouveau séjour' if prestation == 'hebergement' else 'Nouvelle période de repas'}, status=statut)

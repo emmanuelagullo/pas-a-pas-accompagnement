@@ -57,7 +57,7 @@ class EntreeBDTests(Donnees, TestCase):
         p = Personne.objects.create(designation='Sans suivi', cree_par=self.u)
         page = self.client.get(reverse('dossiers:detail', args=['personne', p.pk]))
         self.assertContains(page, 'Dossier — Sans suivi')
-        self.assertContains(page, 'Aucune période consultable')
+        self.assertContains(page, 'Aucune prise en charge consultable')
         self.assertEqual(list(page.context['sejours_dossier']), [])
         self.assertEqual(self.client.get(self.url).status_code, 200)
 
@@ -283,6 +283,6 @@ class EntreeBDTests(Donnees, TestCase):
         page = self.client.get(reverse('accueil'))
         self.assertContains(page, 'aria-describedby="aide-recherche"')
         self.assertContains(page, 'Aide à la recherche et à la création')
-        page = self.client.get(self.url)
+        page = self.client.get(reverse('dossiers:prise', args=['menage', self.m.pk, self.a.pk]))
         self.assertContains(page, 'Comprendre les actions d’hébergement')
         self.assertContains(page, 'tous concernés')

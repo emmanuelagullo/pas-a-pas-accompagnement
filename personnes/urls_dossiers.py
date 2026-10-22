@@ -2,8 +2,19 @@ from django.urls import path
 from . import vues_dossiers as vues
 from . import vues_prestations_dossier as prestations
 
+from . import vues_bd6 as bd6
+
 app_name = 'dossiers'
 urlpatterns = [
+    path('personne/<uuid:pk>/social/', bd6.social, name='social'),
+    path('personne/<uuid:pk>/social/<str:dimension>/nouveau/', bd6.social, name='social_nouveau'),
+    path('personne/<uuid:pk>/social/<str:dimension>/<int:fait_pk>/corriger/', bd6.social, name='social_corriger'),
+    path('menage/<uuid:pk>/membre/', bd6.membre, name='membre'),
+    path('<str:nature>/<uuid:pk>/commentaire/', bd6.commentaire, name='commentaire'),
+    path('<str:nature>/<uuid:pk>/prises/nouvelle/', bd6.nouvelle, name='nouvelle_prise'),
+    path('<str:nature>/<uuid:pk>/prises/<uuid:prise_pk>/prolonger/', bd6.prolonger, name='prolonger_prise'),
+    path('<str:nature>/<uuid:pk>/prises/<uuid:prise_pk>/commentaire/', bd6.commentaire, name='commentaire_prise'),
+    path('<str:nature>/<uuid:pk>/prises/<uuid:prise_pk>/', vues.detail, name='prise'),
     path('<str:nature>/<uuid:pk>/nouveau/<str:prestation>/', prestations.nouveau, name='nouveau'),
     path('transferts/', vues.transferts, name='transferts'),
     path('<str:nature>/nouveau/', vues.creer, name='creer'),

@@ -17,7 +17,7 @@ class Form2Tests(Donnees, TestCase):
         call_command('autoriser_chrs7', self.u.username, stdout=StringIO())
         self.u = get_user_model().objects.get(pk=self.u.pk)
         self.client.force_login(self.u)
-        self.detail = reverse('dossiers:detail', args=['menage', self.m.pk])
+        self.detail = reverse('dossiers:prise', args=['menage', self.m.pk, self.a.pk])
         self.nouveau = reverse('dossiers:nouveau', args=['menage', self.m.pk, 'hebergement'])
 
     def donnees(self):
@@ -43,7 +43,7 @@ class Form2Tests(Donnees, TestCase):
         page = self.client.get(self.nouveau)
         self.assertEqual(page.status_code, 200)
         self.assertEqual(page.context['periode'].pk, self.a.pk)
-        self.assertContains(page, 'Période de suivi :')
+        self.assertContains(page, 'Prise en charge :')
         self.assertEqual(AccordHebergement.objects.count(), 1)
         self.assertEqual(Sejour.objects.count(), 1)
 

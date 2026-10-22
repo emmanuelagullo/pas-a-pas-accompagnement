@@ -18,6 +18,7 @@ class Personne(models.Model):
     annee_naissance = models.PositiveSmallIntegerField("Année de naissance seule", null=True, blank=True)
     precision_naissance = models.CharField("Précision de la naissance", max_length=20,
         choices=PRECISIONS_NAISSANCE, blank=True, default="")
+    revision_sociale = models.PositiveIntegerField(default=0, editable=False)
     revision_identite = models.PositiveIntegerField(default=0, editable=False)
     cree_le = models.DateTimeField("Créée le", auto_now_add=True)
     cree_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, editable=False)
@@ -125,6 +126,7 @@ class Appartenance(Periode):
 
 
 class Accompagnement(Periode):
+    fin_prevue = models.DateField("Fin prévue exclue", null=True, blank=True)
     revision_sociale = models.PositiveIntegerField(default=0, editable=False)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     menage = models.ForeignKey(Menage, on_delete=models.PROTECT, related_name="accompagnements")
@@ -134,7 +136,8 @@ class Accompagnement(Periode):
 
     class Meta:
         ordering = ["-debut", "id"]
-        constraints = [models.CheckConstraint(condition=models.Q(fin__isnull=True) | models.Q(fin__gt=models.F("debut")), name="accompagnement_periode_valide")]
+        constraints = [models.CheckConstraint(condition=models.Q(fin__isnull=True) | models.Q(fin__gt=models.F("debut")), name="accompagnement_periode_valide"), models.CheckConstraint(condition=models.Q(fin_prevue__isnull=True) | models.Q(fin_prevue__gt=models.F("debut")), name="prise_fin_prevue_valide")]
+        permissions = [("prolonger_accompagnement", "Prolonger la fin prévue d’une prise en charge")]
 
 
 class EvenementSuivi(models.Model):
@@ -515,3 +518,75 @@ class InformationsAccompagnement(models.Model):
     class Meta:
         ordering = ['-version']
         constraints = [models.UniqueConstraint(fields=['accompagnement', 'version'], name='informations_suivi_version_unique')]
+
+
+class EvolutionPriseEnCharge(models.Model):
+    accompagnement = models.ForeignKey(Accompagnement, on_delete=models.PROTECT, related_name="evolutions_prevision")
+    ancienne_fin = models.DateField(null=True)
+    nouvelle_fin = models.DateField()
+    motif = models.CharField(max_length=240)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    enregistre_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-enregistre_le", "-pk"]
+
+
+class SituationPersonnelle(Periode):
+    """Fait social daté par personne, indépendant des prises en charge."""
+    personne = models.ForeignKey(Personne, on_delete=models.PROTECT, related_name="situations_personnelles")
+    dimension = models.CharField(max_length=20, choices=SituationSociale.DIMENSIONS)
+    valeur = models.CharField(max_length=30)
+    source = models.CharField(max_length=160)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    enregistre_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["debut", "pk"]
+        constraints = [
+            models.CheckConstraint(condition=models.Q(fin__isnull=True) | models.Q(fin__gt=models.F("debut")), name="situation_personnelle_periode"),
+            models.UniqueConstraint(fields=["personne", "dimension", "debut"], name="situation_personnelle_date_unique"),
+            models.UniqueConstraint(fields=["personne", "dimension"], condition=models.Q(fin__isnull=True), name="situation_personnelle_ouverte_unique"),
+        ]
+
+    def clean(self):
+        super().clean()
+        if self.valeur not in dict(SituationSociale.VALEURS.get(self.dimension, [])):
+            from django.core.exceptions import ValidationError
+            raise ValidationError({"valeur": "Choisissez une valeur de cette dimension."})
+
+    @property
+    def libelle_valeur(self):
+        return dict(SituationSociale.VALEURS.get(self.dimension, [])).get(self.valeur, self.valeur)
+
+
+class RevisionSituationPersonnelle(models.Model):
+    personne = models.ForeignKey(Personne, on_delete=models.PROTECT)
+    situation = models.ForeignKey(SituationPersonnelle, on_delete=models.PROTECT, related_name="revisions")
+    action = models.CharField(max_length=20, choices=[("changement", "Changement réel"), ("insertion", "Fait antérieur oublié"), ("correction", "Correction d’une erreur")])
+    avant = models.JSONField(default=list)
+    apres = models.JSONField(default=list)
+    motif = models.CharField(max_length=240, blank=True)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    enregistre_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-enregistre_le", "-pk"]
+
+
+class CommentaireDossier(models.Model):
+    """Versions immuables ; un texte vide est un effacement tracé."""
+    personne = models.ForeignKey(Personne, on_delete=models.PROTECT, null=True, blank=True, related_name="commentaires_dossier")
+    menage = models.ForeignKey(Menage, on_delete=models.PROTECT, null=True, blank=True, related_name="commentaires_dossier")
+    accompagnement = models.ForeignKey(Accompagnement, on_delete=models.PROTECT, null=True, blank=True, related_name="commentaires_dossier")
+    texte = models.TextField(max_length=4000, blank=True)
+    motif = models.CharField(max_length=240, blank=True)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    enregistre_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-enregistre_le", "-pk"]
+        constraints = [models.CheckConstraint(condition=(
+            models.Q(personne__isnull=False, menage__isnull=True, accompagnement__isnull=True) |
+            models.Q(personne__isnull=True, menage__isnull=False, accompagnement__isnull=True) |
+            models.Q(personne__isnull=True, menage__isnull=True, accompagnement__isnull=False)), name="commentaire_cible_unique")]
