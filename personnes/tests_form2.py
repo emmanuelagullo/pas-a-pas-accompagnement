@@ -23,7 +23,7 @@ class Form2Tests(Donnees, TestCase):
     def donnees(self):
         self.a.refresh_from_db()
         return {'accompagnement': str(self.a.pk), 'beneficiaires': [str(self.p.pk)],
-                'debut': '2026-04-01', 'fin': '2026-05-01', 'admission': '2026-04-01',
+                'debut': '2026-04-01', 'fin': '2026-05-01', 'admission': '2026-04-01', 'arrivee_effectuee': 'on',
                 'attendu': admission.jeton(self.a)}
 
     def test_selection_directe_et_conservation_autre_boite(self):
@@ -100,7 +100,7 @@ class Form2Tests(Donnees, TestCase):
 
     def test_droits_creation_retires_refus_get_et_post(self):
         self.u.user_permissions.remove(Permission.objects.get(codename='add_sejour', content_type__app_label='personnes'))
-        self.assertEqual(self.client.get(self.nouveau).status_code, 403)
+        self.assertEqual(self.client.get(self.nouveau).status_code, 200)
         self.assertEqual(self.client.post(self.nouveau, self.donnees()).status_code, 403)
         self.assertEqual(Sejour.objects.count(), 1)
 

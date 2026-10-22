@@ -71,9 +71,9 @@ class AdmissionGuideeTests(TestCase):
 
     def test_http_erreurs_et_refus_direct_sans_droits(self):
         url = reverse('suivi:admission_guidee', args=[self.a.pk])
-        self.assertContains(self.client.get(url), 'Créer l’accord et enregistrer les admissions')
+        self.assertContains(self.client.get(url), 'Enregistrer le séjour')
         valeurs = {'beneficiaires': [str(self.p.pk)], 'debut': '2026-02-01', 'fin': '2026-03-01',
-            'admission': '2026-02-03', 'lieu': '', 'attendu': admission.jeton(self.a)}
+            'admission': '2026-02-03', 'arrivee_effectuee': 'on', 'lieu': '', 'attendu': admission.jeton(self.a)}
         reponse = self.client.post(url, valeurs)
         self.assertEqual(reponse.status_code, 302)
         self.assertContains(self.client.post(url, valeurs), 'Aucun accord', status_code=409)

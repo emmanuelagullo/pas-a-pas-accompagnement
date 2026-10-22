@@ -24,6 +24,16 @@ module.exports = async function verifierParcoursMetier(app) {
   await app.locator('#repas').waitFor();
   await hebergement.getByRole('button', {name:'← Revenir à la liste', exact:true}).click();
   await app.getByText('Dossier actualisé.', {exact:true}).waitFor();
+  // Même formulaire pour l’accueil prévu, puis confirmation de l’arrivée.
+  await app.getByRole('link', {name:'Nouveau séjour', exact:true}).click();
+  await hebergement.getByLabel('Arrivée déjà effectuée', {exact:false}).uncheck();
+  await hebergement.getByRole('button', {name:'Enregistrer le séjour', exact:true}).click();
+  await app.getByText('Dossier actualisé.', {exact:true}).waitFor();
+  await app.getByText('Prévu — arrivée à confirmer', {exact:true}).waitFor();
+  await app.getByRole('link', {name:'Enregistrer l’arrivée', exact:true}).click();
+  await hebergement.getByRole('button', {name:'Enregistrer l’arrivée', exact:true}).click();
+  await app.getByText('Dossier actualisé.', {exact:true}).waitFor();
+  await app.getByText('Prévu — arrivée à confirmer', {exact:true}).waitFor({state:'hidden'});
   const historique = app.locator('details').filter({has: app.locator('summary').filter({hasText: /^Projet, notes et historique de la prise$/})});
   await historique.locator('summary').click();
   await cliquerLienPwa(historique.getByRole('link', {name:'Situation et parcours sociaux', exact:true}));

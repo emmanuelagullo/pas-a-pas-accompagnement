@@ -29,7 +29,6 @@ def nouveau(request, nature, pk, prestation):
     from . import hebergement as h
     if prestation == 'hebergement':
         h.droit(request.user, 'add_accordhebergement')
-        h.exiger(request.user, 'add_sejour')
     else:
         repas.droit(request.user, 'add_accordrepas')
     objet = get_object_or_404(Menage if nature == 'menage' else Personne, pk=pk)
@@ -79,7 +78,7 @@ def nouveau(request, nature, pk, prestation):
     champ.widget.attrs['data-periode-dossier'] = '1'
     form.fields = {'accompagnement': champ, **form.fields}
     if 'beneficiaires' in form.fields:
-        form.order_fields(['accompagnement', 'beneficiaires', 'debut', 'fin', 'admission', 'lieu', 'service', 'services', 'prestataire', 'attendu'])
+        form.order_fields(['accompagnement', 'beneficiaires', 'debut', 'fin', 'arrivee_effectuee', 'admission', 'lieu', 'service', 'services', 'prestataire', 'attendu'])
     statut = 200
     if request.method == 'POST' and form.is_valid() and a:
         d = form.cleaned_data.copy()
@@ -93,6 +92,9 @@ def nouveau(request, nature, pk, prestation):
                 s = sejours.order_by('pk').first()
                 if s:
                     params['sejour'] = str(s.pk)
+                    params['prevision'] = ''
+                else:
+                    params['prevision'] = str(accord.pk)
             elif prestation == 'services_repas':
                 accords = repas.accorder_services(request.user, a, **d)
                 params['repas'] = str(accords[0].pk)
@@ -106,7 +108,7 @@ def nouveau(request, nature, pk, prestation):
             form.add_error(None, 'Écriture non confirmée. Rechargez le dossier avant de réessayer.')
             statut = 409
         else:
-            messages.success(request, 'Admission enregistrée.' if prestation == 'hebergement' else 'Repas accordés ; aucune distribution créée.')
+            messages.success(request, ('Arrivée enregistrée.' if d['arrivee_effectuee'] else 'Séjour prévu ; arrivée à confirmer.') if prestation == 'hebergement' else 'Repas accordés ; aucune distribution créée.')
             return redirect(signer(request, a, nature, pk, params)['retour_dossier'])
     return render(request, 'dossiers/nouvelle_prestation.html', {**navigation, 'objet': objet, 'nature': nature,
         'parametres_retour': params, 'form': form, 'periode': a, 'unique': len(liste) == 1, 'prestation': prestation, 'retour': retour,

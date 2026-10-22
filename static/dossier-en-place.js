@@ -45,6 +45,12 @@
         scrollTo(0, y);
         const selection = document.querySelector(`${new URL(retour).hash || '[data-dossier-form2]'} [aria-current="true"]`);
         selection?.focus({preventScroll: true});
+        const ancre = new URL(retour).hash;
+        if (ancre.startsWith('#hebergement-prevu-')) {
+          const prevu = document.getElementById(ancre.slice(1));
+          prevu?.focus({preventScroll: true});
+          prevu?.scrollIntoView({block: 'nearest'});
+        }
         etat('Dossier actualisé.');
       } else if (boite) {
         const panneau = document.createElement('div');

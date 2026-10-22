@@ -160,7 +160,7 @@ def detail(request, nature, pk, prise_pk=None):
     jour = timezone.localdate()
     anciens = dossier.valeurs_vue(request, nature, pk)
     params = {**parametres(request), **anciens}
-    for cle in ('sejour', 'repas', 'origine_menage', 'origine_sejour', 'origine_repas', 'prise', 'date_service'):
+    for cle in ('sejour', 'repas', 'origine_menage', 'origine_sejour', 'origine_repas', 'prise', 'date_service', 'prevision'):
         if cle in request.GET:
             params[cle] = request.GET[cle][:40]
     origine = next((l.menage for l in liens if nature == 'personne' and str(l.menage_id) == params.get('origine_menage')), None)
@@ -177,10 +177,10 @@ def detail(request, nature, pk, prise_pk=None):
     h = request.user.has_perms(['personnes.view_accordhebergement', 'personnes.view_sejour']) and droits_suivi
     r = request.user.has_perms(['personnes.view_accordrepas', 'personnes.view_repasdistribue']) and droits_suivi
     lieux = request.user.has_perms(['personnes.view_affectation', 'personnes.view_lieuhebergement'])
-    sejours, accords_h, accords_r = [], [], []
+    sejours, accords_h, accords_r, prevus = [], [], [], []
     if h:
         accords = Sejour.objects.filter(accord__accompagnement__in=periodes).select_related('accord__accompagnement').prefetch_related('beneficiaires')
-        seuls = AccordHebergement.objects.filter(accompagnement__in=periodes, sejours__isnull=True).prefetch_related('beneficiaires')
+        seuls = AccordHebergement.objects.filter(accompagnement__in=periodes).prefetch_related('beneficiaires', 'sejours__beneficiaires')
         if nature == 'personne':
             accords = accords.filter(beneficiaires=objet)
             seuls = seuls.filter(beneficiaires=objet)
@@ -193,7 +193,14 @@ def detail(request, nature, pk, prise_pk=None):
         for s in sejours:
             s.lieu_ouvert = next((x for x in getattr(s, 'lieux_dossier', []) if x.fin is None), None)
             s.absence_ouverte = next((x for x in getattr(s, 'absences_dossier', []) if x.fin is None), None)
-        accords_h = list(seuls.order_by('-debut', 'pk'))
+        for accord in seuls.order_by('-debut', 'pk'):
+            realises = list(accord.sejours.all())
+            arrives = {p.pk for sejour in realises for p in sejour.beneficiaires.all()}
+            accord.personnes_attendues = [p for p in accord.beneficiaires.all() if p.pk not in arrives and (nature == 'menage' or p.pk == objet.pk)]
+            if accord.personnes_attendues and not accord.annule_le:
+                prevus.append(accord)
+            if not realises:
+                accords_h.append(accord)
     if r:
         accords = AccordRepas.objects.filter(accompagnement__in=periodes).select_related('accompagnement', 'annule_par').prefetch_related('beneficiaires')
         if nature == 'personne':
@@ -203,6 +210,7 @@ def detail(request, nature, pk, prise_pk=None):
     selection_h = choisir(sejours, params.get('sejour', ''))
     selection_r = choisir(accords_r, params.get('repas', ''))
     params.update(sejour=str(selection_h.pk) if selection_h else '', repas=str(selection_r.pk) if selection_r else '')
+    params['prevision'] = next((str(x.pk) for x in prevus if str(x.pk) == params.get('prevision')), '')
     params['ecran'] = 'prise' if prise else 'dossier'
     if prise:
         params['prise'] = str(prise.pk)
@@ -211,7 +219,7 @@ def detail(request, nature, pk, prise_pk=None):
     # Chaque boîte signe le vrai parent de sa sélection, jamais le premier suivi arbitraire.
     nav_h = signer(request, selection_h.accord.accompagnement, nature, pk, params) if selection_h else {}
     nav_r = signer(request, selection_r.accompagnement, nature, pk, params) if selection_r else {}
-    for accord in accords_h:
+    for accord in {x.pk: x for x in accords_h + prevus}.values():
         accord.navigation = signer(request, next(a for a in periodes if a.pk == accord.accompagnement_id), nature, pk, params)
     sejours_par_prise, repas_par_prise = defaultdict(list), defaultdict(list)
     for s in sejours:
@@ -223,6 +231,10 @@ def detail(request, nature, pk, prise_pk=None):
         a.url_prise = reverse('dossiers:prise', args=[nature, pk, a.pk]) + '?' + urlencode(params)
         a.url_prolonger = reverse('dossiers:prolonger_prise', args=[nature, pk, a.pk]) + '?' + urlencode(params)
         a.resume_prestations = bd6.resume_prestations(a, sejours_par_prise[a.pk], repas_par_prise[a.pk], jour, lieux)
+        attendus = [x for x in prevus if x.accompagnement_id == a.pk]
+        if attendus:
+            libelle = 'Héberg. prévu — arrivée à confirmer' if any(x.fin is None or x.fin > jour for x in attendus) else 'Héberg. — arrivée non enregistrée'
+            a.resume_prestations = (a.resume_prestations + ' · ' if a.resume_prestations != 'Aucune prestation consultable' else '') + libelle
     selection_prise = choisir(periodes, params.get('prise', ''))
     if not prise and selection_prise and request.GET.get('action') in ('ouvrir', 'prolonger', 'pdf'):
         action = request.GET['action']
@@ -272,7 +284,7 @@ def detail(request, nature, pk, prise_pk=None):
         'navigation_personne': dossier.pour_personne(pk, params) if nature == 'personne' else {}, 'origine_url': origine_url, 'origine': origine, 'retour': retour, 'navigation_query': urlencode(params), 'recherche': params['q'], 'mode_recherche': params['mode'], 'page_recherche': params['page'], 'origine_sejour': params.get('origine_sejour', ''), 'origine_repas': params.get('origine_repas', ''),
         'periode_actuelle': actuelle, 'information_actuelle': informations_actuelles[0] if informations_actuelles else None,
         'notes_actuelles': notes_actuelles, 'periodes': periodes, 'aujourdhui': jour, 'lecture_hebergement': h, 'lecture_repas': r, 'lecture_lieux': lieux,
-        'sejours_dossier': sejours, 'accords_sans_sejour': accords_h, 'accords_repas': accords_r,
+        'accords_annules_sans_sejour': [x for x in accords_h if x.annule_le], 'hebergements_prevus': prevus, 'selection_prevision': params['prevision'], 'sejours_dossier': sejours, 'accords_sans_sejour': accords_h, 'accords_repas': accords_r,
         'selection_sejour': selection_h, 'selection_repas': selection_r, 'navigation_h': nav_h, 'navigation_r': nav_r})
 
 
@@ -305,7 +317,7 @@ def choisir_periode(request, nature, pk, prestation):
     route, droit = routes[prestation]
     suivi.exiger(request.user, droit)
     if prestation == 'admission':
-        suivi.exiger(request.user, 'add_sejour', 'view_accordhebergement', 'view_sejour')
+        suivi.exiger(request.user, 'view_accordhebergement', 'view_sejour')
     elif prestation == 'hebergement':
         suivi.exiger(request.user, 'view_accordhebergement', 'view_sejour')
     else:

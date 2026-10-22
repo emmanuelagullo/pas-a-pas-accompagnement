@@ -988,3 +988,19 @@ L’ajout d’un membre recherche les personnes existantes, puis confirme identi
 et date ; une création utilise la saisie commencée. Les bénéficiaires des prises
 existantes ne changent pas. Suppression/annulation d’une prise et transports
 restent hors de ce lot ; aucun bouton inactif ne les simule.
+
+### Hébergement : une seule entrée
+
+**Nouveau séjour** prépare l’accueil et permet d’enregistrer l’arrivée dans la
+même saisie. La case **Arrivée déjà effectuée** est cochée par défaut pour les
+comptes autorisés. Décochée, elle crée seulement l’accord ; date d’arrivée et
+lieu effectif ne sont pas enregistrés. Sans JavaScript, la même règle serveur
+s’applique même si ces champs restent visibles au premier affichage.
+
+Les accueils prévus apparaissent directement dans la boîte Hébergement, avec
+**Enregistrer l’arrivée**. Cette confirmation réutilise l’accord et crée les
+séjours individuels ; en cas d’arrivée partielle, les autres bénéficiaires
+restent affichés comme attendus. Une période échue est signalée sans prétendre
+qu’une arrivée est encore attendue. Les nuitées réalisées ne sont jamais
+créées par une prévision. Les droits de préparation, d’arrivée et d’affectation
+restent distincts. Les anciens formulaires d’admission doivent être rechargés.

@@ -1,0 +1,1 @@
+{% for champ in form %}{% if champ.is_hidden %}{{ champ }}{% else %}<div class="champ-formulaire"{% if champ.name == 'admission' or champ.name == 'lieu' %} data-champ-arrivee{% if not form.champs_arrivee_visibles %} hidden{% endif %}{% endif %}>{{ champ.as_field_group }}</div>{% endif %}{% endfor %}

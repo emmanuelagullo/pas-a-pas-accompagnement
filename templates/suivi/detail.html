@@ -9,7 +9,7 @@
 {% if perms.personnes.view_accordrepas and perms.personnes.view_repasdistribue %}<ul>{% for accord in a.accords_repas.all %}<li><a href="{% url 'suivi:accord_repas' accord.pk %}">{{ accord.get_service_display }} accordé du {{ accord.debut }} au {{ accord.fin|default:"—" }} (fin exclue)</a></li>{% endfor %}</ul>{% endif %}
 {% if perms.personnes.add_accordrepas and perms.personnes.view_accordrepas %}<a href="{% url 'suivi:accorder_repas' a.pk %}">Accorder des repas</a>{% endif %}
 {% if perms.personnes.view_accordhebergement and perms.personnes.view_sejour %}<ul>{% for accord in a.accords_hebergement.all %}<li><a href="{% url 'suivi:accord_hebergement' accord.pk %}">Hébergement accordé du {{ accord.debut }} au {{ accord.fin|default:"—" }}</a></li>{% endfor %}</ul>{% endif %}
-{% if perms.personnes.add_accordhebergement and perms.personnes.view_accordhebergement and perms.personnes.view_sejour %}<a href="{% url 'suivi:accorder_hebergement' a.pk %}">Accorder un hébergement</a>{% endif %}
+{% if perms.personnes.add_accordhebergement and perms.personnes.view_accordhebergement and perms.personnes.view_sejour %}<a href="{% url 'suivi:admission_guidee' a.pk %}">Nouveau séjour</a>{% endif %}
 {% if perms.personnes.view_situationsociale %}<p><a href="{% url 'suivi:social' a.pk %}">Situation et parcours sociaux</a></p>{% endif %}
 {% if not a.fin and perms.personnes.change_accompagnement %}<a href="{% url 'suivi:clore_accompagnement' menage.pk a.pk %}">Clôturer l’accompagnement</a>{% endif %}</li>{% empty %}<li>Aucun accompagnement.</li>{% endfor %}</ul>
 {% if perms.personnes.add_accompagnement %}<a href="{% url 'suivi:ouvrir' menage.pk %}">Ouvrir un accompagnement</a>{% endif %}{% endif %}

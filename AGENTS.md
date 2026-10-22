@@ -290,3 +290,9 @@ droits BD6 restent volontaires. Pour les écritures personnelles, réserver la
 personne sans prendre ensuite de verrou ménage ; pour les écritures liées,
 garder ménage puis prise. Tester migration, concurrence, copies et vrai parcours
 navigateur/PWA lorsque ces chemins changent.
+
+Hébergement : une seule entrée « Nouveau séjour » réunit accueil prévu et
+arrivée effectuée. Une prévision n’ajoute ni nuitée réalisée ni lieu effectif.
+Confirmer l’arrivée réutilise l’accord ; les personnes encore attendues restent
+visibles lors d’une arrivée partielle. Ne pas réintroduire une entrée séparée
+« hébergement sans admission » pour refléter la seule structure des tables.

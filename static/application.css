@@ -169,3 +169,9 @@ main:has(.bd-dossier) { max-width: 76rem; }
 .bd-formulaire .carte { max-width: none; }
 @media (max-width: 48rem) { .bd-synthese, .bd-prestations { grid-template-columns: minmax(0, 1fr); } .social-valeurs { grid-template-columns: minmax(0, 1fr); } .bd-dossier .carte { padding: 1rem; } .bd-chemin span { display: none; } }
 @media print { .bd-chemin, .bd-actions, .bd-titre nav { display: none; } .bd-dossier .carte { box-shadow: none; } }
+
+/* Un accueil prévu reste dans la liste d’hébergement, sans simuler une présence. */
+.episodes-compacts .hebergement-prevu { padding: .7rem .8rem; border: 1px dashed #6b9988; border-radius: .5rem; }
+.episodes-compacts .hebergement-prevu.selectionnee { background: #eaf4ef; border-style: solid; }
+.episodes-compacts .hebergement-prevu nav { gap: .5rem; margin-top: .6rem; }
+.episodes-compacts .hebergement-prevu nav a { padding: .4rem .6rem; }

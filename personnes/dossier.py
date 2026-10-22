@@ -55,7 +55,7 @@ def retour(accompagnement, valeurs, token):
     if vue:
         route = 'dossiers:prise' if accompagnement and vue.get('ecran') == 'prise' and vue.get('prise') == str(accompagnement.pk) else 'dossiers:detail'
         args = [vue['nature'], vue['pk']] + ([accompagnement.pk] if route == 'dossiers:prise' else [])
-        return reverse(route, args=args) + '?' + urlencode({'contexte_dossier': token})
+        return reverse(route, args=args) + '?' + urlencode({'contexte_dossier': token}) + (('#hebergement-prevu-' + vue['prevision'] if route == 'dossiers:prise' else '#prises') if vue.get('prevision') else '')
     return reverse('suivi:accompagnement', args=[accompagnement.pk]) + '?' + urlencode({'contexte_dossier': token})
 
 
@@ -65,7 +65,7 @@ def pour_vue(request, accompagnement, nature, pk, params):
     if params.get('date_service'):
         valeurs['date_service'] = date_service(params['date_service'])
     valeurs['vue'] = {'nature': nature, 'pk': str(pk), **{k: params.get(k, '') for k in
-        ('q', 'mode', 'page', 'sejour', 'repas', 'origine_menage', 'origine_sejour', 'origine_repas', 'prise', 'ecran', 'date_service')}}
+        ('q', 'mode', 'page', 'sejour', 'repas', 'origine_menage', 'origine_sejour', 'origine_repas', 'prise', 'ecran', 'date_service', 'prevision')}}
     token = signing.dumps(valeurs, salt=SEL, compress=True)
     return {'contexte_dossier': token, 'dossier_valeurs': valeurs,
             'retour_dossier': retour(accompagnement, valeurs, token)}
@@ -77,7 +77,7 @@ def valeurs_vue(request, nature, pk):
         valeurs = signing.loads(token, salt=SEL, max_age=86400)
         vue = valeurs.get('vue', {})
         if vue.get('nature') == nature and vue.get('pk') == str(pk):
-            return {**{k: vue.get(k, '') for k in ('q', 'mode', 'page', 'sejour', 'repas', 'origine_menage', 'origine_sejour', 'origine_repas', 'prise', 'ecran')}, 'date_service': valeurs.get('date_service') or vue.get('date_service', '')}
+            return {**{k: vue.get(k, '') for k in ('q', 'mode', 'page', 'sejour', 'repas', 'origine_menage', 'origine_sejour', 'origine_repas', 'prise', 'ecran', 'prevision')}, 'date_service': valeurs.get('date_service') or vue.get('date_service', '')}
     except (signing.BadSignature, TypeError, ValueError, AttributeError):
         pass
     return {}
@@ -85,7 +85,7 @@ def valeurs_vue(request, nature, pk):
 
 def pour_personne(pk, params):
     vue = {'nature': 'personne', 'pk': str(pk), **{k: params.get(k, '') for k in
-        ('q', 'mode', 'page', 'sejour', 'repas', 'origine_menage', 'origine_sejour', 'origine_repas', 'prise', 'ecran', 'date_service')}}
+        ('q', 'mode', 'page', 'sejour', 'repas', 'origine_menage', 'origine_sejour', 'origine_repas', 'prise', 'ecran', 'date_service', 'prevision')}}
     valeurs = {'vue': vue}
     token = signing.dumps(valeurs, salt=SEL, compress=True)
     return {'contexte_dossier': token, 'dossier_valeurs': valeurs, 'retour_dossier': retour(None, valeurs, token)}
