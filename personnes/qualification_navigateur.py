@@ -5,7 +5,14 @@ from django.contrib.auth.models import Permission
 from django.db import connections
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.urls import reverse
-from playwright.sync_api import sync_playwright
+from unittest import skipIf
+
+try:
+    from playwright.sync_api import sync_playwright
+except ModuleNotFoundError as erreur:
+    if erreur.name != 'playwright':
+        raise
+    sync_playwright = None
 
 from .tests_navigation import NavigationTests
 
@@ -22,6 +29,7 @@ def verifier_hors_boucle_playwright(verification):
         return pool.submit(executer).result()
 
 
+@skipIf(sync_playwright is None, 'Module Python Playwright non installé : qualification navigateur ignorée.')
 class ProfilsNavigateur(StaticLiveServerTestCase):
     """Profils fictifs : le navigateur ne doit proposer aucun accès interdit."""
 
@@ -131,6 +139,7 @@ class ProfilsNavigateur(StaticLiveServerTestCase):
         self.assertEqual(page.locator('main').count(), 1)
 
 
+@skipIf(sync_playwright is None, 'Module Python Playwright non installé : qualification navigateur ignorée.')
 class DossierPersonneMenageNavigateur(StaticLiveServerTestCase):
     """Parcours réel de rattachement, retours et contrôle des permissions."""
 
@@ -185,6 +194,7 @@ class DossierPersonneMenageNavigateur(StaticLiveServerTestCase):
         self.assertEqual(page.goto(self.live_server_url + reverse('suivi:accompagnement', args=[self.a.pk])).status, 403)
 
 
+@skipIf(sync_playwright is None, 'Module Python Playwright non installé : qualification navigateur ignorée.')
 class CycleHebergementNavigateur(StaticLiveServerTestCase):
     """Recette Chromium du séjour fictif : actions réelles et historique conservé."""
 
@@ -250,6 +260,7 @@ class CycleHebergementNavigateur(StaticLiveServerTestCase):
         self.assertTrue(sortie)
 
 
+@skipIf(sync_playwright is None, 'Module Python Playwright non installé : qualification navigateur ignorée.')
 class NouveauxParcoursNavigateur(StaticLiveServerTestCase):
     """Recette des jalons CHRS25–26 sans ORM dans la boucle Playwright."""
 
@@ -442,6 +453,7 @@ class NouveauxParcoursNavigateur(StaticLiveServerTestCase):
         self.assertEqual(verifier_hors_boucle_playwright(lambda: EvolutionAccord.objects.count()), 2)
 
 
+@skipIf(sync_playwright is None, 'Module Python Playwright non installé : qualification navigateur ignorée.')
 class EntreeBDNavigateur(StaticLiveServerTestCase):
     """Entrée réelle BD4, recherche dynamique et sans JavaScript."""
     navigateur = ProfilsNavigateur.navigateur
@@ -522,6 +534,7 @@ class EntreeBDNavigateur(StaticLiveServerTestCase):
         page.get_by_role('heading', name='Dossier — ' + self.m.libelle, exact=True).wait_for()
 
 
+@skipIf(sync_playwright is None, 'Module Python Playwright non installé : qualification navigateur ignorée.')
 class BD6Navigateur(EntreeBDNavigateur):
     """Nouveaux formulaires métier, testés sans s’appuyer sur les maquettes."""
     def setUp(self):
@@ -580,6 +593,7 @@ class BD6Navigateur(EntreeBDNavigateur):
         self.assertTrue(page.evaluate('document.documentElement.scrollWidth <= window.innerWidth'))
 
 
+@skipIf(sync_playwright is None, 'Module Python Playwright non installé : qualification navigateur ignorée.')
 class SejourUnifieNavigateur(BD6Navigateur):
     def test_prevoir_puis_confirmer_dans_la_meme_boite(self):
         from .models import AccordHebergement, Sejour
