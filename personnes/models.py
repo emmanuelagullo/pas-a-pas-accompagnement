@@ -357,6 +357,7 @@ class BilanSocial(models.Model):
     accompagnement = models.ForeignKey(Accompagnement, on_delete=models.PROTECT, related_name="bilans_sociaux")
     date_effet = models.DateField("Date du bilan")
     texte = models.TextField("Bilan court", max_length=2000)
+    texte_document = models.JSONField(null=True, blank=True, editable=False)
     cree_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     cree_le = models.DateTimeField(auto_now_add=True)
 
@@ -412,7 +413,9 @@ class RevisionTexteSocial(models.Model):
     ancienne_date = models.DateField()
     nouvelle_date = models.DateField()
     ancien_texte = models.TextField(max_length=2000)
+    ancien_texte_document = models.JSONField(null=True, blank=True, editable=False)
     nouveau_texte = models.TextField(max_length=2000)
+    nouveau_texte_document = models.JSONField(null=True, blank=True, editable=False)
     ancienne_source = models.CharField(max_length=160, blank=True)
     nouvelle_source = models.CharField(max_length=160, blank=True)
     motif = models.CharField(max_length=240)
@@ -427,6 +430,7 @@ class Transmission(models.Model):
     """Message transversal d'équipe, distinct des dossiers individuels."""
     id = models.BigAutoField(primary_key=True)
     contenu = models.TextField()
+    contenu_document = models.JSONField(null=True, blank=True, editable=False)
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     cree_le = models.DateTimeField(auto_now_add=True)
 
@@ -438,6 +442,7 @@ class NotePartagee(models.Model):
     """Contribution libre liée à un seul objet métier."""
     id = models.BigAutoField(primary_key=True)
     contenu = models.TextField()
+    contenu_document = models.JSONField(null=True, blank=True, editable=False)
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     cree_le = models.DateTimeField(auto_now_add=True)
     personne = models.ForeignKey(Personne, on_delete=models.PROTECT, null=True, blank=True, related_name="notes")
@@ -461,7 +466,9 @@ class RevisionContribution(models.Model):
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     date = models.DateTimeField(auto_now_add=True)
     ancien_texte = models.TextField()
+    ancien_texte_document = models.JSONField(null=True, blank=True, editable=False)
     nouveau_texte = models.TextField()
+    nouveau_texte_document = models.JSONField(null=True, blank=True, editable=False)
     motif = models.TextField()
 
     class Meta:
@@ -509,7 +516,9 @@ class InformationsAccompagnement(models.Model):
     motif_sortie = models.CharField('Motif de sortie', max_length=160, blank=True)
     destination_sortie = models.CharField('Destination à la sortie', max_length=160, blank=True)
     objectifs_courts = models.TextField('Objectifs à court terme', max_length=1000, blank=True)
+    objectifs_courts_document = models.JSONField(null=True, blank=True, editable=False)
     objectifs_longs = models.TextField('Objectifs à plus long terme', max_length=1000, blank=True)
+    objectifs_longs_document = models.JSONField(null=True, blank=True, editable=False)
     animaux = models.CharField('Animaux — information pratique pour l’accueil', max_length=500, blank=True)
     motif = models.CharField('Motif de mise à jour', max_length=240)
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
@@ -580,6 +589,7 @@ class CommentaireDossier(models.Model):
     menage = models.ForeignKey(Menage, on_delete=models.PROTECT, null=True, blank=True, related_name="commentaires_dossier")
     accompagnement = models.ForeignKey(Accompagnement, on_delete=models.PROTECT, null=True, blank=True, related_name="commentaires_dossier")
     texte = models.TextField(max_length=4000, blank=True)
+    texte_document = models.JSONField(null=True, blank=True, editable=False)
     motif = models.CharField(max_length=240, blank=True)
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     enregistre_le = models.DateTimeField(auto_now_add=True)
