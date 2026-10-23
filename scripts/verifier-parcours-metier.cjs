@@ -34,7 +34,7 @@ module.exports = async function verifierParcoursMetier(app) {
   await hebergement.getByRole('button', {name:'Enregistrer l’arrivée', exact:true}).click();
   await app.getByText('Dossier actualisé.', {exact:true}).waitFor();
   await app.getByText('Prévu — arrivée à confirmer', {exact:true}).waitFor({state:'hidden'});
-  const historique = app.locator('details').filter({has: app.locator('summary').filter({hasText: /^Projet, notes et historique de la prise$/})});
+  const historique = app.locator('details').filter({has: app.locator('summary').filter({hasText: /^Historique de la prise en charge$/})});
   await historique.locator('summary').click();
   await cliquerLienPwa(historique.getByRole('link', {name:'Situation et parcours sociaux', exact:true}));
   await app.getByRole('heading', {name:/Situation et parcours sociaux — Thomas/}).waitFor();
