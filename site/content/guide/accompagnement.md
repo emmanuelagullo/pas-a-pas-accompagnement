@@ -71,3 +71,18 @@ Une fin non renseignée ne prouve pas une présence physique.
 
 Pour des données fictives, essayer le ménage de Samira dans
 [Les Passerelles](../decouvrir-passerelles/).
+
+## Présenter les commentaires et le projet
+
+Le commentaire libre, les objectifs à court et plus long terme et les bilans
+courts disposent d’une petite barre de mise en forme : gras, italique, listes
+et liens web. Les champs courts, sources et motifs restent simples.
+Le texte visible est conservé avec **Enregistrer** ; le motif de modification
+reste séparé et les versions précédentes sont conservées. Les anciens textes
+ne sont pas interprétés comme du Markdown.
+
+Le résumé imprimable conserve les paragraphes, listes et liens du commentaire
+de prise en charge et du projet. La fiche PDF d’identité reste une fiche
+d’identité : elle n’ajoute pas implicitement les notes du dossier.
+Les détails de saisie et de correction sont expliqués dans
+[Transmettre une information à l’équipe](../transmissions/#écrire-et-corriger).

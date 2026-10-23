@@ -1,3 +1,4 @@
+from . import textes_riches as tr
 from . import dossier
 from django import forms
 from django.contrib.auth.decorators import login_required
@@ -47,14 +48,18 @@ def corriger(request,nature,pk):
             form.fields['texte'].max_length=500
             form.fields['source'].required=True
             form.fields['date_effet'].help_text='Un fait de l’histoire antérieure peut précéder le début du suivi ; sa source et le motif restent requis.'
-        else:del form.fields['source']
+        else:
+            del form.fields['source']
+            form.fields['texte'] = tr.ChampTexte(label='Bilan court', max_length=2000)
+            form.initial['texte'] = tr.lire_objet(objet, 'texte')
         action=lambda **d:c.texte(request.user,objet,**d)
     else:
         initial={'debut':objet.debut,'fin':objet.fin,'source':getattr(objet,'source',''),'attendu':c.jeton(objet)}
         form=PeriodeForm(request.POST if request.method=='POST' else None,initial=initial)
         if nature=='situationsociale':
             form.fields['fin'].disabled=True;form.fields['source'].required=True
-        else:del form.fields['source']
+        else:
+            del form.fields['source']
         action=lambda **d:c.periode(request.user,objet,**d)
     return traiter_hebergement(request,form,'Corriger une saisie — '+objet._meta.verbose_name,action,c.menage_de(objet),accompagnement=a,retour=retour)
 

@@ -2,7 +2,8 @@
 <html lang="fr">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block titre %}Pas à Pas — Accompagnement{% endblock %}</title>
-<link rel="stylesheet" href="{% static 'application.css' %}"></head>
+<link rel="stylesheet" href="{% static 'application.css' %}"><link rel="stylesheet" href="{% static 'textes-riches.css' %}">
+<script src="{% static 'textes-riches.js' %}" data-editeur-source="{% static 'editeur/texte-riche.js' %}" defer></script></head>
 <body>
 <a class="evitement" href="#contenu">Aller au contenu</a>
 <header><a class="marque" href="{% url 'accueil' %}">Pas à Pas <span>Accompagnement</span></a>

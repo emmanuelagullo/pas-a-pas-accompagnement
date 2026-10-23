@@ -1,4 +1,5 @@
 """Prises en charge et histoire sociale personnelle, sans réécriture des anciens journaux."""
+from . import textes_riches as tr
 from django.core import signing
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -154,7 +155,7 @@ def commenter(acteur, objet, texte, motif, attendu):
     cible = cible_commentaire(objet)
     if CommentaireDossier.objects.filter(**cible).exists() and not motif.strip():
         raise ValidationError('Expliquez la modification du commentaire.')
-    commentaire = CommentaireDossier(**cible, texte=texte, motif=motif, auteur=acteur)
+    commentaire = CommentaireDossier(**cible, **tr.colonnes('texte', texte, max_length=4000), motif=motif, auteur=acteur)
     commentaire.full_clean()
     commentaire.save()
     return commentaire

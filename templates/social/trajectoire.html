@@ -1,4 +1,4 @@
-{% extends "base.html" %}{% load dossier %}
+{% extends "base.html" %}{% load textes %}{% load dossier %}
 {% block contenu %}{% include "suivi/_retour_dossier.html" %}
 <h1>Trajectoire d’accompagnement — {{ accompagnement.menage }}</h1>
 <p><a href="{% dossier_url 'suivi:social' accompagnement.pk %}">Situation et parcours sociaux</a></p>
@@ -13,7 +13,7 @@
 {% endif %}
 <h2>Éléments datés</h2>
 <ol>{% for ligne in lignes %}
-<li><strong>{{ ligne.date }} — {{ ligne.nature }}</strong>{% if ligne.beneficiaire %} — {{ ligne.beneficiaire }}{% endif %} : {{ ligne.texte }}
+<li><strong>{{ ligne.date }} — {{ ligne.nature }}</strong>{% if ligne.beneficiaire %} — {{ ligne.beneficiaire }}{% endif %} : {{ ligne|texte_riche }}
 <small>(enregistré le {{ ligne.enregistre }})</small></li>
 {% empty %}<li>Aucun élément pour cette sélection.</li>{% endfor %}</ol>
 <p>Les bilans concernant l’ensemble du ménage n’apparaissent que lorsque tous les bénéficiaires sont sélectionnés. Les prestations et contributions sont affichées selon les autorisations de consultation.</p>

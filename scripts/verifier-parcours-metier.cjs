@@ -11,9 +11,13 @@ module.exports = async function verifierParcoursMetier(app) {
   await cliquerLienPwa(app.getByRole('link', {name:/Revenir au ménage/}));
   // Commentaire append-only dans le dossier, avant d’ouvrir sa prise.
   await cliquerLienPwa(app.locator('.bd-commentaire').getByRole('link', {name:'Modifier', exact:true}));
-  await app.getByLabel('Commentaire libre', {exact:false}).fill('Commentaire fictif de la recette BD6.');
+  const commentaire = app.locator('.edition-texte .ProseMirror');
+  await commentaire.waitFor();
+  await commentaire.fill('Commentaire fictif de la recette BD6.');
+  await commentaire.press('ControlOrMeta+a');
+  await app.getByRole('button', {name:'Gras', exact:true}).click();
   await cliquerLienPwa(app.getByRole('button', {name:'Enregistrer', exact:true}));
-  await app.getByText('Commentaire fictif de la recette BD6.', {exact:true}).waitFor();
+  await app.locator('.texte-narratif strong').filter({hasText:'Commentaire fictif de la recette BD6.'}).waitFor();
   await cliquerLienPwa(app.getByRole('button', {name:'Ouvrir', exact:true}));
   await app.getByRole('heading', {name:/Prise en charge du/}).waitFor();
   // Form3 : ouvrir puis annuler sans créer de prestation et sans quitter la prise.

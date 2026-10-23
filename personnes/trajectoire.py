@@ -10,13 +10,13 @@ def construire(accompagnement, acteur, beneficiaire=None, debut=None, fin=None):
     """Retourne des lignes triées par date d'effet, fin de filtre incluse."""
     lignes = []
 
-    def ajouter(date, enregistre, nature, texte, personne=None):
+    def ajouter(date, enregistre, nature, texte, personne=None, document=None):
         if debut and date < debut or fin and date > fin:
             return
         if beneficiaire and personne != beneficiaire:
             return
         lignes.append({"date": date, "enregistre": enregistre, "nature": nature,
-                       "texte": texte, "beneficiaire": personne})
+                       "texte": texte, "texte_document": document, "beneficiaire": personne})
 
     for s in SituationSociale.objects.filter(accompagnement=accompagnement).select_related('beneficiaire'):
         ajouter(s.debut, s.cree_le, 'Situation',
@@ -27,7 +27,7 @@ def construire(accompagnement, acteur, beneficiaire=None, debut=None, fin=None):
                     e.texte + f' (source : {e.source})', e.beneficiaire)
     if acteur.has_perm('personnes.view_bilansocial') and not beneficiaire:
         for b in BilanSocial.objects.filter(accompagnement=accompagnement):
-            ajouter(b.date_effet, b.cree_le, 'Bilan du ménage', b.texte)
+            ajouter(b.date_effet, b.cree_le, 'Bilan du ménage', b.texte, document=b.texte_document)
     if acteur.has_perms(['personnes.view_accordrepas', 'personnes.view_repasdistribue']):
         for r in RepasDistribue.objects.filter(accord__accompagnement=accompagnement).select_related('beneficiaire', 'accord'):
             statut = 'annulé' if r.annule_le else 'réalisé'

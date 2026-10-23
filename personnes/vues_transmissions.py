@@ -1,4 +1,6 @@
+from . import textes_riches as tr
 from django import forms
+from django.db import OperationalError
 from django.core.exceptions import ValidationError
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import get_object_or_404, redirect, render
@@ -10,10 +12,11 @@ from .retour_service import date_service, url_jour, contexte_jour, suffixe_jour
 
 
 class TexteForm(forms.Form):
-    contenu = forms.CharField(label="Texte", widget=forms.Textarea(attrs={"rows": 4}))
+    contenu = tr.ChampTexte(label="Texte", widget=tr.WidgetTexte(attrs={"rows": 4}))
 
 
 class CorrectionForm(TexteForm):
+    etat_attendu = forms.CharField(widget=forms.HiddenInput, required=False)
     texte_attendu = forms.CharField(widget=forms.HiddenInput)
     motif = forms.CharField(label="Motif de correction", widget=forms.Textarea(attrs={"rows": 2}))
 
@@ -109,13 +112,13 @@ def corriger(request, nature, pk):
         retour = navigation['retour_dossier']
     donnees = {**navigation, **contexte_jour(request), "contribution": contribution, "cible": contexte,
                "cible_nature": cible_nature, "retour": retour}
-    form = CorrectionForm(request.POST or None, initial={"contenu": contribution.contenu, "texte_attendu": contribution.contenu})
+    form = CorrectionForm(request.POST or None, initial={"contenu": tr.lire_objet(contribution, "contenu"), "texte_attendu": contribution.contenu, "etat_attendu": transmissions.jeton(contribution)})
     if request.method == "POST" and form.is_valid():
         try:
             transmissions.rectifier(request.user, contribution, form.cleaned_data["contenu"],
-                                     form.cleaned_data["motif"], texte_attendu=form.cleaned_data["texte_attendu"])
-        except ValidationError as erreur:
-            form.add_error(None, erreur)
+                                     form.cleaned_data["motif"], texte_attendu=form.cleaned_data["texte_attendu"], etat_attendu=form.cleaned_data["etat_attendu"])
+        except (ValidationError, OperationalError) as erreur:
+            form.add_error(None, erreur if isinstance(erreur, ValidationError) else 'Le stockage est occupé. Votre saisie est conservée ; consultez la contribution avant de réessayer.')
             return render(request, "suivi/corriger_transmission.html", {**donnees, "form": form}, status=409)
         return redirect(retour)
     return render(request, "suivi/corriger_transmission.html", {**donnees, "form": form})

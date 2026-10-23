@@ -1,3 +1,4 @@
+from . import textes_riches as tr
 from django import forms
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
@@ -10,6 +11,8 @@ from .vues_hebergement import traiter_hebergement
 
 
 class InformationsForm(forms.ModelForm):
+    objectifs_courts = tr.ChampTexte(label='Objectifs à court terme', max_length=1000, required=False)
+    objectifs_longs = tr.ChampTexte(label='Objectifs à plus long terme', max_length=1000, required=False)
     attendu = forms.CharField(widget=forms.HiddenInput)
 
     class Meta:
@@ -30,6 +33,8 @@ def modifier(request, pk):
     a = get_object_or_404(Accompagnement, pk=pk)
     precedente = a.informations.first()
     initial = {champ: getattr(precedente, champ) if precedente else '' for champ in service.CHAMPS}
+    for champ in ('objectifs_courts', 'objectifs_longs'):
+        initial[champ] = tr.lire_objet(precedente, champ) if precedente else ''
     initial['attendu'] = service.jeton(a, precedente)
     form = InformationsForm(request.POST if request.method == 'POST' else None, initial=initial)
     return traiter_hebergement(request, form, 'Informations pratiques et projet d’accompagnement',

@@ -1,4 +1,4 @@
-{% extends "base.html" %}{% block contenu %}<h1>Travail du jour</h1>
+{% extends "base.html" %}{% load textes %}{% block contenu %}<h1>Travail du jour</h1>
 <nav aria-label="Accès rapides du service">{% if perms.personnes.view_transmission %}<a href="#relais-equipe">Relève</a> · {% elif perms.personnes.view_actionrelais %}<a href="#actions-en-attente">Relève</a> · {% endif %}<a href="#situation-date">Situation à la date choisie</a>{% if lecture_repas %} · <a href="#repas-du-jour">Repas</a>{% endif %}</nav>
 <form method="get">{{ date_form.as_p }}<button type="submit">Afficher</button></form>
 <p>La date choisie concerne uniquement les séjours, les accords et les repas ci-dessous. La relève est toujours actuelle, indépendamment de cette date.</p>
@@ -17,7 +17,7 @@
 <h2 id="relais-equipe">Relève actuelle — transmissions récentes</h2>
 <p>Dernières transmissions du cahier de liaison, toutes dates confondues. Elles ne constituent pas une liste de tâches ni une preuve de prise en charge.</p>
 <ul>{% for transmission in transmissions_recentes %}
-<li><time datetime="{{ transmission.cree_le|date:'c' }}">{{ transmission.cree_le|date:'d/m/Y H:i' }}</time> — {{ transmission.auteur }} — {{ transmission.contenu|linebreaksbr }}</li>
+<li><time datetime="{{ transmission.cree_le|date:'c' }}">{{ transmission.cree_le|date:'d/m/Y H:i' }}</time> — {{ transmission.auteur }} — {{ transmission|texte_riche:"contenu" }}</li>
 {% empty %}<li>Aucune transmission enregistrée.</li>{% endfor %}</ul>
 <p><a href="{% url 'suivi:cahier' %}?retour=jour{% if date_service %}&amp;date_service={{ date_service }}{% endif %}">Ouvrir le cahier de liaison{% if perms.personnes.add_transmission %} et transmettre une information{% endif %}</a></p>
 </section>

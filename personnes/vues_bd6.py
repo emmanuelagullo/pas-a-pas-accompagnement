@@ -1,3 +1,4 @@
+from . import textes_riches as tr
 """Formulaires BD6 ; mêmes validations avec ou sans JavaScript."""
 from urllib.parse import urlencode
 from django import forms
@@ -28,7 +29,7 @@ class PrevisionForm(EtatForm):
 
 
 class CommentaireForm(EtatForm):
-    texte = forms.CharField(label='Commentaire libre', max_length=4000, required=False, widget=forms.Textarea,
+    texte = tr.ChampTexte(label='Commentaire libre', max_length=4000, required=False,
         help_text='Informations utiles au dossier. Les versions précédentes restent consultables.')
     motif = forms.CharField(label='Motif de la modification', max_length=240, required=False,
         help_text='Obligatoire après la première version, y compris pour effacer le texte.')
@@ -147,7 +148,7 @@ def commentaire(request, nature, pk, prise_pk=None):
     versions = CommentaireDossier.objects.filter(**bd6.cible_commentaire(cible)).select_related('auteur')
     premiere = versions.first()
     form = CommentaireForm(request.POST if request.method == 'POST' else None,
-        initial={'attendu': attendu, 'texte': premiere.texte if premiere else ''})
+        initial={'attendu': attendu, 'texte': tr.lire_objet(premiere, 'texte') if premiere else ''})
     return traiter(request, form, 'Commentaire de la prise en charge' if a else 'Commentaire du dossier',
         lambda **d: bd6.commenter(request.user, cible, **d), retour(nature, pk, parametres_retour(request), prise=a), objet, versions=versions)
 

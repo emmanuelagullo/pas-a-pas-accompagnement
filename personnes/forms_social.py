@@ -1,3 +1,4 @@
+from . import textes_riches as tr
 from django import forms
 from .models import SituationSociale, Personne
 from .forms_hebergement import date_champ
@@ -43,7 +44,7 @@ class EvenementForm(forms.Form):
 
 class BilanForm(forms.Form):
     date_effet = date_champ("Date du bilan")
-    texte = forms.CharField(label="Bilan court",max_length=2000,widget=forms.Textarea)
+    texte = tr.ChampTexte(label="Bilan court", max_length=2000)
 
 
 class ConsultationForm(forms.Form):

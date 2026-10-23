@@ -1,4 +1,5 @@
 """CHRS4 : valeurs datées par dimension, sans reconstruction événementielle."""
+from . import textes_riches as tr
 from .verrous_metier import serialiser
 from django.core.exceptions import ValidationError
 from django.core import signing
@@ -140,7 +141,7 @@ def bilan(acteur, accompagnement, date_effet, texte):
     droit(acteur,"add_bilansocial"); droit(acteur,"view_bilansocial")
     a=verrouiller(accompagnement)
     date_valide(a,date_effet)
-    objet=BilanSocial(accompagnement=a,date_effet=date_effet,texte=texte,cree_par=acteur)
+    objet=BilanSocial(accompagnement=a,date_effet=date_effet,**tr.colonnes('texte', texte, max_length=2000, required=True),cree_par=acteur)
     objet.full_clean(); objet.save()
     OperationSociale.objects.create(accompagnement=a,bilan=objet,action="Bilan enregistré",date_effet=date_effet,auteur=acteur)
     return objet

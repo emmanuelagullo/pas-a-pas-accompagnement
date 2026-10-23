@@ -1,4 +1,5 @@
 """Informations facultatives : une nouvelle version, jamais d’écrasement."""
+from . import textes_riches as tr
 from django.core import signing
 from django.core.exceptions import ValidationError
 from .models import InformationsAccompagnement
@@ -28,7 +29,9 @@ def enregistrer(acteur, accompagnement, attendu, motif, **donnees):
         raise ValidationError('Ces informations ont changé. Rechargez l’accompagnement.')
     motif = motif_valide(motif)
     valeurs = {champ: donnees[champ].strip() for champ in CHAMPS}
-    if valeurs == {champ: getattr(derniere, champ) if derniere else '' for champ in CHAMPS}:
+    for champ in ('objectifs_courts', 'objectifs_longs'):
+        valeurs.update(tr.colonnes(champ, donnees[champ], max_length=1000))
+    if valeurs == {champ: getattr(derniere, champ) if derniere else (None if champ.endswith('_document') else '') for champ in valeurs}:
         raise ValidationError('Aucune modification.')
     information = InformationsAccompagnement(accompagnement=a, version=derniere.version + 1 if derniere else 1,
         auteur=acteur, motif=motif, **valeurs)

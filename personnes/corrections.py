@@ -1,4 +1,5 @@
 """Corrections limitées, contrôles de dépendances et avant/après persistants."""
+from . import textes_riches as tr
 from django.core import signing
 from django.core.exceptions import ValidationError
 from django.db.models import Q
@@ -34,7 +35,7 @@ def droits(acteur, nature):
 
 def etat(objet):
     if isinstance(objet,(m.EvenementSocial,m.BilanSocial)):
-        return [str(objet.date_effet),objet.texte,getattr(objet,'source','')]
+        return [str(objet.date_effet),objet.texte,getattr(objet,'source',''),getattr(objet, 'texte_document', None)]
     resultat = [str(objet.debut),str(objet.fin),getattr(objet,'source','')]
     if isinstance(objet, (m.AccordRepas, m.AccordHebergement)):
         resultat += [objet.revision, str(objet.annule_le)]
@@ -163,13 +164,19 @@ def texte(acteur,objet,date_effet,texte,motif,attendu,source=''):
     ancienne=etat(objet)
     from .social import date_valide, date_evenement
     (date_evenement if nature == 'evenementsocial' else date_valide)(objet.accompagnement,date_effet)
-    objet.date_effet=date_effet;objet.texte=texte
+    objet.date_effet=date_effet
+    if nature == 'bilansocial':
+        valeur = tr.preparer(texte, max_length=2000, required=True)
+        objet.texte, objet.texte_document = str(valeur), valeur.document
+    else:
+        objet.texte=texte
     if nature=='evenementsocial':objet.source=source
     objet.full_clean()
     if etat(objet)==ancienne:raise ValidationError('Aucune modification.')
     m.RevisionTexteSocial.objects.create(accompagnement=objet.accompagnement,
         **({'evenement':objet} if nature=='evenementsocial' else {'bilan':objet}),
-        ancienne_date=ancienne[0],nouvelle_date=date_effet,ancien_texte=ancienne[1],nouveau_texte=texte,
+        ancienne_date=ancienne[0],nouvelle_date=date_effet,ancien_texte=ancienne[1],nouveau_texte=objet.texte,
+        ancien_texte_document=ancienne[3],nouveau_texte_document=getattr(objet, 'texte_document', None),
         ancienne_source=ancienne[2],nouvelle_source=getattr(objet,'source',''),motif=motif,auteur=acteur)
-    objet.save(update_fields=['date_effet','texte']+(['source'] if nature=='evenementsocial' else []))
+    objet.save(update_fields=['date_effet','texte']+(['source'] if nature=='evenementsocial' else ['texte_document']))
     return objet

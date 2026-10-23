@@ -107,6 +107,7 @@ pwa-prototype:
     - python scripts/construire-pwa.py --test
     - node scripts/verifier-recherche-dossiers.cjs
     - node scripts/verifier-nouveau-menage.cjs
+    - node scripts/verifier-editeur-textes.cjs
     - node scripts/verifier-pwa-pyodide.mjs
     - PWA_TEST_HTTPS=oui node scripts/verifier-pwa.cjs
     - PWA_BASE_PATH=/ node scripts/verifier-pwa.cjs

@@ -23,6 +23,23 @@ async function moteur(fichiers={},essai=false){
 }
 const premier=await moteur();
 premier.runPython(`
+from personnes import textes_riches as textes_recette
+from django.core.exceptions import ValidationError as ErreurTexteRecette
+texte_doc_recette = {'version': 1, 'doc': {'type': 'doc', 'content': [{'type': 'paragraph', 'content': [{'type': 'text', 'text': '<fictif>', 'marks': [{'type': 'bold'}]}]}]}}
+texte_valeur_recette = textes_recette.preparer(textes_recette.ValeurTexte('', texte_doc_recette), max_length=100)
+assert str(texte_valeur_recette) == '<fictif>'
+assert '<strong>&lt;fictif&gt;</strong>' in textes_recette.rendre('', texte_valeur_recette.document)
+assert '**ancien**' in textes_recette.rendre('**ancien**')
+try:
+    textes_recette.valider({'version': 1, 'doc': {'type': 'html'}})
+except ErreurTexteRecette:
+    pass
+else:
+    raise AssertionError('Format inconnu accepté')
+`);
+console.log('Texte enrichi v1 : validation Python, projection, échappement et texte historique dans WASM : OK');
+
+premier.runPython(`
 import json,urllib.parse
 
 def requete(chemin,donnees=None):

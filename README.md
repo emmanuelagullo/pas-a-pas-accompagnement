@@ -1004,3 +1004,16 @@ restent affichés comme attendus. Une période échue est signalée sans préten
 qu’une arrivée est encore attendue. Les nuitées réalisées ne sont jamais
 créées par une prévision. Les droits de préparation, d’arrivée et d’affectation
 restent distincts. Les anciens formulaires d’admission doivent être rechargés.
+
+## Édition des textes narratifs
+
+Commentaires de dossier, notes partagées, cahier de liaison, objectifs du projet
+et bilans courts proposent une petite barre visuelle : gras, italique, listes
+et liens. Le contenu visible est conservé avec Enregistrer ; les motifs de
+modification restent séparés. Les anciens textes ne sont pas convertis ni
+interprétés comme du Markdown. Les champs courts restent simples.
+
+Sans JavaScript, les textes simples restent éditables ; les textes enrichis
+restent consultables en texte simple, avec édition protégée. Aucun CDN ni
+compte supplémentaire. Voir [TEXTES-ENRICHIS.md](TEXTES-ENRICHIS.md) pour les
+versions, copies, restitutions, profils et limites de qualification.

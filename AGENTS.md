@@ -296,3 +296,14 @@ arrivée effectuée. Une prévision n’ajoute ni nuitée réalisée ni lieu eff
 Confirmer l’arrivée réutilise l’accord ; les personnes encore attendues restent
 visibles lors d’une arrivée partielle. Ne pas réintroduire une entrée séparée
 « hébergement sans admission » pour refléter la seule structure des tables.
+
+## Textes narratifs enrichis
+
+Lire TEXTES-ENRICHIS.md. Conserver le format explicite, les anciennes colonnes
+texte et les documents de chaque version/correction. Ne jamais interpréter
+automatiquement les textes historiques en HTML/Markdown. Les projections
+textuelles sont dérivées du document validé ; les droits et motifs restent
+métier. Une modification du format exige les essais de reprise et de conflits.
+Les fichiers JS embarqués sont reconstruits avec le lock de outils/editeur ;
+conserver leurs licences et tester scripts/verifier-editeur-textes.cjs ainsi
+que le vrai parcours PWA. Ne pas assimiler Chromium à WebView2/WebKitGTK.

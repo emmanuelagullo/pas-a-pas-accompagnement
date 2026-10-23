@@ -18,3 +18,6 @@ htmlcov/
 /site/.hugo_build.lock
 
 /version-application.txt
+
+# Dépendances de reconstruction de l’éditeur, jamais distribuées.
+outils/editeur/node_modules/

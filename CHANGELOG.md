@@ -1,5 +1,11 @@
 ## BD5 — attendre les navigations du banc PWA
 
+## À venir — textes narratifs
+
+- Édition visuelle légère des commentaires, notes, transmissions, objectifs et bilans.
+- Conservation explicite des anciennes saisies et des mises en forme dans les versions et corrections.
+- Restitutions harmonisées, ressources hors ligne et contrôles de conflit incluant la mise en forme.
+
 - Armer l’attente de navigation du cadre avant chaque clic qui change de page,
   puis attendre le chargement du document avant la saisie ou l’ouverture d’un
   volet. Cela couvre aussi les rechargements de même URL et les titres identiques.
