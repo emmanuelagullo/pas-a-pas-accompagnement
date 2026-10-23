@@ -179,15 +179,27 @@ class ConcurrenceArrivee(Donnees, TransactionTestCase):
             try:
                 u = get_user_model().objects.get(pk=self.u.pk)
                 u.get_all_permissions()
+                # Chaque requête possède ses instances. Résoudre la chaîne du
+                # verrou avant le départ : une lecture paresseuse du ménage
+                # pendant l'UPDATE adverse peut bloquer les deux écritures sur
+                # SQLite en mémoire partagée, sans remettre en cause l'absence
+                # de doublon garantie par le service.
+                accord_local = AccordHebergement.objects.select_related(
+                    'accompagnement__menage').get(pk=accord.pk)
+                personne_locale = Personne.objects.get(pk=self.p.pk)
                 depart.wait(timeout=10)
                 try:
-                    admission.enregistrer_arrivee(u, accord, [self.p], date(2026, 1, 2), token)
-                    return True
-                except (ValidationError, OperationalError):
-                    return False
+                    admission.enregistrer_arrivee(u, accord_local, [personne_locale], date(2026, 1, 2), token)
+                    return True, ''
+                except (ValidationError, OperationalError) as erreur:
+                    return False, f'{type(erreur).__name__}: {erreur}'
             finally:
                 connections.close_all()
         with ThreadPoolExecutor(max_workers=2) as pool:
             resultats = list(pool.map(ecrire, range(2)))
-        self.assertEqual(sum(resultats), 1)
+        self.assertEqual(sum(succes for succes, _ in resultats), 1, resultats)
+        self.assertEqual(accord.sejours.count(), 1)
+        self.assertEqual(accord.operations.filter(action='Admission effective').count(), 1)
+        with self.assertRaises(ValidationError):
+            admission.enregistrer_arrivee(self.u, accord, [self.p], date(2026, 1, 2), token)
         self.assertEqual(accord.sejours.count(), 1)
