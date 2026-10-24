@@ -1,6 +1,7 @@
 import csv
 from datetime import timedelta
 from django import forms
+from .champs_saisie import FormulaireMetier
 from django.contrib.auth.decorators import login_required, permission_required
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
@@ -16,7 +17,7 @@ from .forms_hebergement import date_champ
 from .exports import cellule_csv
 
 
-class AffectationForm(forms.Form):
+class AffectationForm(FormulaireMetier):
     role = forms.ChoiceField(label='Rôle', choices=[('', 'Choisir un rôle'), *AffectationIntervenant.ROLES])
     intervenant = forms.ModelChoiceField(Intervenant.objects.all(), required=False, label='Professionnel du répertoire')
     organisme = forms.ModelChoiceField(Partenaire.objects.all(), required=False, label='Organisme seul', help_text='Choisissez un professionnel OU un organisme si l’interlocuteur n’est pas connu. Aucune identité n’est créée ici.')
@@ -53,7 +54,7 @@ def gerer(request, pk, action=None, affectation_pk=None):
             exiger(request.user, 'change_affectationintervenant')
         if action=='annuler':
             exiger(request.user,'annuler_affectationintervenant')
-            form=forms.Form(request.POST if request.method=='POST' else None)
+            form=FormulaireMetier(request.POST if request.method=='POST' else None)
             form.fields['motif']=forms.CharField(label='Pourquoi cette affectation était-elle une erreur ?',max_length=240)
             form.fields['attendu']=forms.CharField(widget=forms.HiddenInput,initial=attendu)
             return traiter(request,form,'Annuler une affectation erronée',lambda **d:interventions.annuler(request.user,a,x,**d),
@@ -68,7 +69,7 @@ def gerer(request, pk, action=None, affectation_pk=None):
             form.fields['fin'].required = True
         return traiter(request, form, 'Terminer la mission' if action == 'clore' else 'Corriger une affectation' if x else 'Affecter un professionnel ou organisme',
             lambda **d: interventions.affecter(request.user, a, correction=x.pk if x else None, cloture=action == 'clore', **d),
-            base, a.menage, explication='Le rôle est limité à cette prise. Plusieurs professionnels peuvent intervenir ; aucune mission précédente n’est terminée automatiquement. Le référent n’est ni l’auteur de saisie, ni le contact du ménage, ni un représentant légal.')
+            base, a.menage, explication='Le rôle est limité à cette prise en charge. Plusieurs professionnels peuvent intervenir ; aucune mission précédente n’est terminée automatiquement. Le référent n’est ni l’auteur de saisie, ni le contact du ménage, ni un représentant légal.')
     jour = a.fin - timedelta(days=1) if a.fin else timezone.localdate()
     consultation = ConsultationMissionForm(request.GET if request.GET.get('date') else None, initial={'date': jour})
     if consultation.is_bound and consultation.is_valid():

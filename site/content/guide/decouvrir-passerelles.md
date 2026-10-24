@@ -2,13 +2,13 @@
 categories_guide: [demarrer, accueillir]
 mots_cles_guide: ["demo", "essai"]
 fiche: true
-title: "Découvrir Les Passerelles en cinq minutes"
+title: "Découvrir Établissement Les Passerelles en cinq minutes"
 description: "Suivre trois situations pour comprendre les distinctions métier."
 liste_auto: false
 ---
 
 Ouvrez [l’espace d’essai](../../essayer/), connectez-vous avec un compte public,
-puis choisissez **Découvrir le scénario fictif Les Passerelles** depuis l’accueil.
+puis choisissez **Découvrir le scénario fictif Établissement Les Passerelles** depuis l’accueil.
 Ce guide de l’application ne charge ni ne remplace aucune donnée.
 
 1. **Samira, Lina et Adam** : ouvrir leur ménage. Consulter les trois fiches et
@@ -55,3 +55,26 @@ Les étapes 6 à 9 sont un prolongement de la visite initiale de cinq minutes ; 
 ## Captures du parcours
 
 {{< captures-passerelles >}}
+
+## Un jeu étendu pour éprouver les parcours
+
+Les versions comprenant le scénario enrichi de l’**Établissement Les Passerelles**
+préparent **36 personnes, 18 ménages et 51 prises en charge** dans les espaces
+neufs. Les anciens essais restent conservés et ne sont pas enrichis automatiquement.
+La présence de cette documentation ne signifie pas que la démonstration publiée
+ou une PWA déjà installée a reçu cette version.
+
+- **Noor** : une ancienne prise close, une reprise et deux co-référents.
+- **Inès** : dossier individuel sans ménage ni prise, prêt pour un premier accueil.
+- **Gabriel et Éva** : deux bénéficiaires d’un séjour terminé en logement diffus.
+- **Yannis** : année de naissance estimée seule et prise close sans hébergement.
+- **Deux Robin** : homonymes distincts, à retrouver sans fusionner leurs identités.
+- **Noé** : changement de ménage conservant les bénéficiaires des prises anciennes.
+- **Thomas** : changement d’adresse et correction d’un complément, clairement distingués.
+- **Samira** : relais professionnel daté, contact du ménage et suivi extérieur distincts.
+
+Les autres dossiers font varier les situations connues ou inconnues, l’emploi,
+la formation et les ressources déclarées. Un groupe comprend un membre qui n’est
+pas bénéficiaire de la prise. Les listes de personnes dépassent une page.
+Les propositions de villes et de situations restent modifiables ; elles ne
+remplissent aucun dossier sans confirmation.

@@ -11,7 +11,7 @@ Pas à Pas — Accompagnement est une application libre en construction pour les
 Personnes à identité éventuellement incomplète, ménages aux appartenances
 datées, accompagnements, repas accordés et distribués, hébergement accordé,
 séjours et affectations, absences et situations sociales datées : le jeu
-[Les Passerelles](../guide/decouvrir-passerelles/) illustre ces distinctions.
+[Établissement Les Passerelles](../guide/decouvrir-passerelles/) illustre ces distinctions.
 L’accompagnement peut se poursuivre sans hébergement.
 
 La modification ou suppression des fiches d’identité n’est pas proposée.

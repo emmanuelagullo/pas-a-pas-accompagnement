@@ -6,6 +6,8 @@ aucun paquet n'est installé ici.
 Les bases et comptes fictifs sont créés uniquement dans des dossiers temporaires.
 """
 import os
+import argparse
+import importlib.util
 from pathlib import Path
 import subprocess
 import sys
@@ -13,6 +15,7 @@ import tempfile
 
 RACINE = Path(__file__).resolve().parent.parent
 VERIFIER = r'''
+import os
 import django
 django.setup()
 from datetime import date
@@ -70,23 +73,34 @@ for route, args, texte in [
     response = client.get(chemin(route, *args), secure=True)
     assert response.status_code == 200, (route, response.status_code)
     assert texte in response.content.decode(), route
-response = client.get(chemin('personnes:fiche_pdf', p.pk), secure=True)
-assert response.status_code == 200 and response.content.startswith(b'%PDF-')
-assert 'no-store' in response['Cache-Control']
+if os.environ.get('SOLENNE_VERIFIER_PDF') == 'oui':
+    response = client.get(chemin('personnes:fiche_pdf', p.pk), secure=True)
+    assert response.status_code == 200 and response.content.startswith(b'%PDF-')
+    assert 'no-store' in response['Cache-Control']
 bd6.corriger_prevision(u, a, None, 'Retrait fictif', bd6.jeton(a))
 a.refresh_from_db()
 assert a.fin is None and a.fin_prevue is None
-print(settings.SETTINGS_MODULE + ' : ouverture, lectures BD, rapports, PDF et correction : OK')
+print(settings.SETTINGS_MODULE + ' : ouverture, lectures BD, rapports et correction : OK ; PDF : ' + ('OK' if os.environ.get('SOLENNE_VERIFIER_PDF') == 'oui' else 'NON TESTÉ (--sans-pdf)'))
 '''
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--sans-pdf', action='store_true', help='Valider les parcours HTML sans qualifier les moteurs PDF.')
+    args = parser.parse_args()
+    if not args.sans_pdf:
+        absents = [nom for nom in ('weasyprint', 'fpdf') if importlib.util.find_spec(nom) is None]
+        if absents:
+            parser.error('Dépendances PDF absentes : ' + ', '.join(absents) + '. '
+                'Installer les dépendances existantes de requirements-pdf.txt et pwa/requirements-pdf.txt '
+                '(fpdf est fourni par fpdf2), ou relancer explicitement avec --sans-pdf. '
+                'Aucune base de qualification créée.')
     for profil in ('pas_a_pas_accompagnement.settings_local',
                    'pas_a_pas_accompagnement.settings_serveur', 'pwa.settings'):
         with tempfile.TemporaryDirectory(prefix='solenne-profils-fictifs-') as temporaire:
             env = {k: v for k, v in os.environ.items() if not k.startswith(('ACCOMPAGNEMENT_', 'PWA_'))
                    and k not in {'DJANGO_SETTINGS_MODULE', 'DATABASE_URL'}}
-            env.update(DJANGO_SETTINGS_MODULE=profil, ACCOMPAGNEMENT_DONNEES=temporaire,
+            env.update(SOLENNE_VERIFIER_PDF='non' if args.sans_pdf else 'oui', DJANGO_SETTINGS_MODULE=profil, ACCOMPAGNEMENT_DONNEES=temporaire,
                 ACCOMPAGNEMENT_2FA='desactive', ACCOMPAGNEMENT_HOSTS='qualification.fictive.example',
                 ACCOMPAGNEMENT_CSRF_ORIGINS='https://qualification.fictive.example',
                 PWA_HOST='qualification.fictive.example', PWA_ORIGIN='https://qualification.fictive.example',

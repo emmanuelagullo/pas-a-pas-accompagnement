@@ -13,13 +13,37 @@ from .demonstration import generer, preparer_jeu_public
 
 
 class DemonstrationTests(TestCase):
+    def test_cas_limites_et_composition_sans_benefice_implicite(self):
+        from . import interventions
+        u=get_user_model().objects.create_user('recette-etendue')
+        suivis=generer(u);jour=timezone.localdate()
+        self.assertEqual(m.Accompagnement.objects.count(),51)
+        self.assertEqual(m.Personne.objects.filter(designation='Robin (fictif)').count(),2)
+        noe=m.Personne.objects.get(designation='Noé (fictif)')
+        self.assertTrue(suivis['Cam'].beneficiaires.filter(pk=noe.pk).exists())
+        self.assertFalse(suivis['Aïcha'].beneficiaires.filter(pk=noe.pk).exists())
+        self.assertTrue(suivis['Aïcha'].menage.appartenances.filter(personne=noe,debut=jour-timedelta(days=3)).exists())
+        self.assertEqual(suivis['Louise'].beneficiaires.count(),5)
+        self.assertEqual(suivis['Louise'].menage.appartenances.count(),6)
+        ines=m.Personne.objects.get(designation='Inès (fictif)')
+        self.assertFalse(ines.appartenances.exists());self.assertFalse(ines.accompagnements.exists())
+        self.assertEqual(ines.precision_naissance,'')
+        self.assertEqual(m.Intervenant.objects.count(),3)
+        for nom in ('Noor','Samira','Thomas','Robin A','Robin B','Léo'):
+            self.assertEqual(suivis[nom].menage.accompagnements.count(),5)
+        for a in suivis['Noor'].menage.accompagnements.filter(debut__lt=jour-timedelta(days=200)):
+            self.assertTrue(a.accords_hebergement.exists())
+            self.assertEqual(a.accords_repas.count(),2)
+        self.assertFalse(interventions.a_date(suivis['Alex'],jour).exists())
+        self.assertEqual(suivis['Alex'].interventions.filter(annule_le__isnull=False).count(),1)
+
     def test_coherence_et_operation_laissee_libre(self):
         u = get_user_model().objects.create_user('essai-prive')
         jour = timezone.localdate()
         suivis = generer(u)
-        self.assertEqual(m.Personne.objects.count(), 5)
-        self.assertEqual(m.Menage.objects.count(), 3)
-        self.assertEqual(m.Accompagnement.objects.filter(fin__isnull=True).count(), 3)
+        self.assertEqual(m.Personne.objects.count(), 36)
+        self.assertEqual(m.Menage.objects.count(), 18)
+        self.assertEqual(m.Accompagnement.objects.filter(fin__isnull=True).count(), 12)
         alex = suivis['Alex']
         self.assertFalse(alex.accords_hebergement.exists())
         accord = alex.accords_repas.get()
@@ -43,7 +67,7 @@ class DemonstrationTests(TestCase):
         self.assertEqual(thomas.bilans_sociaux.count(), 1)
         with self.assertRaises(ValidationError):
             generer(u)
-        self.assertEqual(m.Personne.objects.count(), 5)
+        self.assertEqual(m.Personne.objects.count(), 36)
 
     @override_settings(DEMONSTRATION_PUBLIQUE=True)
     def test_comptes_publics_droits_explicites_et_refus_de_reset(self):
@@ -81,7 +105,7 @@ class DemonstrationTests(TestCase):
         self.assertEqual(m.Personne.objects.count(), 0)
         # État du premier patch : le jeu dans l’espace habituel reste utilisable.
         generer(u)
-        self.assertEqual(m.Personne.objects.count(), 5)
+        self.assertEqual(m.Personne.objects.count(), 36)
         self.assertContains(self.client.get(reverse('decouverte')), 'Les Passerelles')
         self.assertEqual(self.client.post(reverse('installation_locale'), {}).status_code, 404)
         sans_droit = get_user_model().objects.create_user('sans-droit')
@@ -122,12 +146,13 @@ class DemonstrationStatistiquesTests(TestCase):
         generer(compte, reference=jour)
         debut, fin = jour - timedelta(days=60), jour + timedelta(days=1)
         chiffres = bilan(debut, fin)
+        # Ajouts : 2 × 28 = 56 nuitées ; trois petits déjeuners.
         for cle, attendu in {
-            'menages_accompagnes': 3, 'accompagnements': 3,
-            'personnes_avec_sejour': 4, 'sejours': 2,
-            'admissions': 2, 'sorties': 1,
-            'nuitees_theoriques': 159, 'nuits_distinctes': 159,
-            'nuits_hors_absences_declarees': 153, 'repas_distribues': 5,
+            'menages_accompagnes': 18, 'accompagnements': 18,
+            'personnes_avec_sejour': 6, 'sejours': 3,
+            'admissions': 3, 'sorties': 2,
+            'nuitees_theoriques': 215, 'nuits_distinctes': 215,
+            'nuits_hors_absences_declarees': 209, 'repas_distribues': 8,
         }.items():
             with self.subTest(indicateur=cle):
                 self.assertEqual(chiffres[cle], attendu)
@@ -148,12 +173,12 @@ class DemonstrationStatistiquesTests(TestCase):
                   'fin': (jour + timedelta(days=1)).isoformat()}
         page = self.client.get(reverse('statistiques'), params)
         self.assertEqual(page.status_code, 200)
-        self.assertContains(page, '159')
+        self.assertContains(page, '215')
         self.assertContains(self.client.get(reverse('personnes:liste')), 'Statistiques')
         export = self.client.get(reverse('statistiques'), {**params, 'format': 'csv'})
         self.assertEqual(export.status_code, 200)
         lignes = list(csv.reader(StringIO(export.content.decode('utf-8'))))
-        self.assertIn(['nuitees_theoriques', '159'], [ligne[-2:] for ligne in lignes])
+        self.assertIn(['nuitees_theoriques', '215'], [ligne[-2:] for ligne in lignes])
         compte.user_permissions.clear()
         compte = get_user_model().objects.get(pk=compte.pk)
         self.client.force_login(compte)
@@ -171,17 +196,17 @@ class DemonstrationStatistiquesTests(TestCase):
         repas = regrouper_exploration(exploration_repas(debut, fin),
                                       regroupement='categorie', categorie='service', mesure='quantite')
         self.assertEqual({ligne['service']: ligne['quantite'] for ligne in repas},
-                         {'petit_dejeuner': 0, 'dejeuner': 2, 'diner': 3})
+                         {'petit_dejeuner': 3, 'dejeuner': 2, 'diner': 3})
         affectations = regrouper_exploration(exploration_affectations(debut, fin),
                                             regroupement='categorie', categorie='lieu', mesure='nuitees')
-        self.assertEqual(sum(ligne['nuitees'] for ligne in affectations), 159)
-        self.assertEqual(len(affectations), 2)
+        self.assertEqual(sum(ligne['nuitees'] for ligne in affectations), 215)
+        self.assertEqual(len(affectations), 3)
         self.client.force_login(compte)
         params = {'debut': debut.isoformat(), 'fin': fin.isoformat(),
                   'regroupement': 'categorie'}
         for rapport, colonne, attendu in (
-            ('exploration_repas', 'quantite_distribuee', 5),
-            ('exploration_hebergement', 'nuitees_affectation_theoriques', 159),
+            ('exploration_repas', 'quantite_distribuee', 8),
+            ('exploration_hebergement', 'nuitees_affectation_theoriques', 215),
         ):
             with self.subTest(rapport=rapport):
                 page = self.client.get(reverse('statistiques'), {**params, 'rapport': rapport})

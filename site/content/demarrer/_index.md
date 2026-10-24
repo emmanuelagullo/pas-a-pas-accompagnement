@@ -3,7 +3,7 @@ title: "Démarrer avec Pas à Pas"
 description: "Choisir où découvrir le prototype et préparer un essai fictif."
 ---
 
-Commencez par [essayer Les Passerelles](../essayer/) pour découvrir le métier.
+Commencez par [essayer Établissement Les Passerelles](../essayer/) pour découvrir le métier.
 Le prototype reste réservé aux données fictives, y compris sur votre appareil.
 
 {{< parcours mode="service" titre="Avec un service partagé" >}}
@@ -21,7 +21,7 @@ La PWA fonctionne dans votre navigateur ; un programme existe pour Linux et Wind
 Les données restent propres à l’espace choisi, sans synchronisation entre appareils.
 
 [Choisir une version](../essayer/) puis [faire ses premiers pas](../premiers-pas/).
-Le bouton **Essayer avec Les Passerelles**, lorsqu’il est présent, ouvre un espace
+Le bouton **Essayer avec Établissement Les Passerelles**, lorsqu’il est présent, ouvre un espace
 distinct de votre espace habituel, avec des comptes publics.
 {{< /parcours >}}
 

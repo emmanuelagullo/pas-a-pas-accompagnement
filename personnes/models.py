@@ -868,3 +868,29 @@ class RevisionAffectationIntervenant(models.Model):
 
     class Meta:
         ordering = ['-enregistre_le', '-pk']
+
+
+class PropositionSaisie(models.Model):
+    CHAMPS = [('situation_familiale', 'Situation familiale'), ('rapports_parentaux', 'Rapports parentaux'),
+        ('fratrie', 'Fratrie déclarée'), ('ville', 'Ville'), ('pays', 'Pays'),
+        ('code_postal', 'Code postal'), ('fonction', 'Fonction professionnelle')]
+    champ = models.CharField(max_length=40, choices=CHAMPS)
+    valeur = models.CharField(max_length=160, validators=[RegexValidator(r'\S', 'Indiquez une proposition.')])
+    active = models.BooleanField(default=True)
+    revision = models.PositiveIntegerField(default=0, editable=False)
+
+    class Meta:
+        ordering = ['champ', 'valeur', 'pk']
+        constraints = [models.UniqueConstraint(fields=['champ', 'valeur'], name='proposition_saisie_unique')]
+
+
+class RevisionPropositionSaisie(models.Model):
+    proposition = models.ForeignKey(PropositionSaisie, on_delete=models.PROTECT, related_name='revisions')
+    avant = models.JSONField(default=dict)
+    apres = models.JSONField(default=dict)
+    motif = models.CharField(max_length=240)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    enregistre_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-enregistre_le', '-pk']

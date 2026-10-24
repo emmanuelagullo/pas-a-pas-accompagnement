@@ -74,7 +74,7 @@ viennent de `personnes/demonstration.py`, `templates/decouverte.html` et
 `DEMONSTRATION.md`, pas d’une sauvegarde distribuée.
 
 Le 20 octobre 2026, le HTML public de la PWA a été consulté : il ne proposait
-pas encore le sélecteur Les Passerelles. Le serveur Render n’a pas répondu
+pas encore le sélecteur Établissement Les Passerelles. Le serveur Render n’a pas répondu
 pendant la vérification. Les pages gardent donc les instructions conditionnelles
 et renvoient aux versions effectivement publiées, sans déclarer les déploiements
 à jour. Recontrôler les publications avant d’enlever cette réserve.

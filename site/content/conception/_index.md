@@ -25,7 +25,7 @@ La PWA et le serveur ont leurs propres déploiements : publier Hugo ne les met p
 
 Les parcours des Passerelles et de changement d’espace sont présents dans le code
 examiné (`32d71f1`). Le 20 octobre 2026, la page publique de la PWA ne proposait pas encore le
-sélecteur Les Passerelles. Le serveur Render n’a pas répondu pendant le contrôle.
+sélecteur Établissement Les Passerelles. Le serveur Render n’a pas répondu pendant le contrôle.
 La présence du parcours dans les programmes publiés reste à vérifier. Le [guide d’essai](../essayer/)
 indique les boutons à rechercher et les limites des anciennes versions.
 

@@ -1,10 +1,11 @@
 from . import textes_riches as tr
 from django import forms
+from .champs_saisie import FormulaireMetier
 from .models import SituationSociale, Personne
 from .forms_hebergement import date_champ
 
 
-class SituationForm(forms.Form):
+class SituationForm(FormulaireMetier):
     attendu = forms.CharField(widget=forms.HiddenInput)
     motif = forms.CharField(label="Motif de l’insertion rétroactive", max_length=240, required=False,
         help_text="Requis uniquement pour ajouter une situation oubliée avant une situation déjà renseignée.")
@@ -19,7 +20,7 @@ class SituationForm(forms.Form):
         self.fields["valeur"].choices=SituationSociale.VALEURS[dimension]
 
 
-class CorrectionForm(forms.Form):
+class CorrectionForm(FormulaireMetier):
     attendu = forms.CharField(widget=forms.HiddenInput)
     valeur = forms.ChoiceField()
     motif = forms.CharField(label="Motif de correction",max_length=240)
@@ -29,7 +30,7 @@ class CorrectionForm(forms.Form):
         self.fields["valeur"].choices=SituationSociale.VALEURS[dimension]
 
 
-class EvenementForm(forms.Form):
+class EvenementForm(FormulaireMetier):
     anterieur = forms.BooleanField(label="Ce fait appartient à l’histoire antérieure à cet accompagnement", required=False,
         help_text="Sa date et sa source sont conservées sans avancer le début de l’accompagnement.")
     beneficiaire = forms.ModelChoiceField(Personne.objects.none())
@@ -42,10 +43,10 @@ class EvenementForm(forms.Form):
         self.fields["beneficiaire"].queryset=accompagnement.beneficiaires.all()
 
 
-class BilanForm(forms.Form):
+class BilanForm(FormulaireMetier):
     date_effet = date_champ("Date du bilan")
     texte = tr.ChampTexte(label="Bilan court", max_length=2000)
 
 
-class ConsultationForm(forms.Form):
+class ConsultationForm(FormulaireMetier):
     date = date_champ("Situation à la date du")

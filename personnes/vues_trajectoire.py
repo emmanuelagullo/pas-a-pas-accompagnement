@@ -1,6 +1,7 @@
 from . import dossier
 """Vue dédiée à la trajectoire, sans exposer les informations non autorisées."""
 from django import forms
+from .champs_saisie import FormulaireMetier
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_GET
@@ -9,7 +10,7 @@ from .models import Accompagnement
 from . import social, trajectoire
 
 
-class Filtres(forms.Form):
+class Filtres(FormulaireMetier):
     beneficiaire = forms.ChoiceField(label='Bénéficiaire', required=False)
     debut = forms.DateField(label='Depuis (inclus)', required=False,
                             widget=forms.DateInput(attrs={'type': 'date'}))

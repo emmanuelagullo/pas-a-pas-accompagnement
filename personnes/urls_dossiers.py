@@ -10,8 +10,16 @@ from . import vues_partenaires as partenaires
 from . import vues_intervenants as intervenants
 from . import vues_interventions as interventions
 
+from . import vues_propositions as propositions
+
+from . import vues_recherche_intervenants
+
 app_name = 'dossiers'
 urlpatterns = [
+    path('recherche-intervenants/', vues_recherche_intervenants.rechercher, name='recherche_intervenants'),
+    path('propositions/', propositions.liste, name='propositions'),
+    path('propositions/nouvelle/', propositions.liste, {'action':'nouvelle'}, name='proposition_nouvelle'),
+    path('propositions/<int:pk>/modifier/', propositions.liste, {'action':'modifier'}, name='proposition_modifier'),
     path('prises/<uuid:pk>/interventions/', interventions.gerer, name='interventions'),
     path('prises/<uuid:pk>/interventions/nouvelle/', interventions.gerer, {'action':'nouvelle'}, name='intervention_nouvelle'),
     path('prises/<uuid:pk>/interventions/<int:affectation_pk>/corriger/', interventions.gerer, {'action':'correction'}, name='intervention_corriger'),

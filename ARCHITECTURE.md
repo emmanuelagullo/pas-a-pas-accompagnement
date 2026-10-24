@@ -399,3 +399,27 @@ auteur ; les dépendances de dates et consultations l'excluent explicitement.
 La présentation lit les fiches professionnelles à la date demandée ; une fiche
 absente n'est pas inventée. Les identités de répertoire restent stables et leurs
 anciens libellés libres ne sont jamais rapprochés automatiquement.
+
+
+## Saisie typée et propositions partagées
+
+champs_saisie adapte les formulaires métier sans modifier leurs règles de
+validation ni leurs cibles. Deux bases Django et une adaptation idempotente à
+l'affichage couvrent les champs ajoutés dynamiquement ; aucun monkey patch global.
+Les contrôles d'authentification gardent leur rendu indépendant. Les listes de
+propositions ne constituent ni un moteur de formulaires ni une table d'attributs
+de dossier : seules sept rubriques textuelles nommées sont autorisées.
+PropositionSaisie et son journal ne stockent aucun rapprochement automatique avec
+les valeurs individuelles ; désactiver une proposition ne corrige aucun dossier.
+La réservation CAS et le journal sont atomiques ; les droits restent volontaires.
+La recherche transverse des missions recoupe la fiche d'organisme du professionnel
+à date, et borne toute mission par sa prise en charge.
+
+
+La durée civile est une aide de formulaire, jamais une colonne redondante :
+seules les dates validées vont aux services. Les formulaires compatibles déclarent
+explicitement leur couple début/fin ; la création de prise vise sa fin prévue,
+pas sa clôture. Le serveur recalcule sans JS selon le mode choisi, vérifie le
+calendrier puis conserve toutes les validations et réservations métier existantes.
+Le script utilise des jours UTC pour éviter les écarts de changement d'heure.
+Les dates incohérentes ne sont jamais inversées automatiquement.

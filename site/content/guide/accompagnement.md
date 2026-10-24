@@ -70,7 +70,7 @@ Du 1er au 3 novembre correspond ainsi aux journées ou nuits des 1er et 2.
 Une fin non renseignée ne prouve pas une présence physique.
 
 Pour des données fictives, essayer le ménage de Samira dans
-[Les Passerelles](../decouvrir-passerelles/).
+[Établissement Les Passerelles](../decouvrir-passerelles/).
 
 ## Présenter les commentaires et le projet
 

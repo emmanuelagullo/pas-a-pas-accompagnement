@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% block titre %}Choisir mon espace — Pas à Pas{% endblock %}
 {% block contenu %}
-<h1>{% if espace_essai %}Revenir à mon espace habituel{% else %}Essayer avec Les Passerelles{% endif %}</h1>
+<h1>{% if espace_essai %}Revenir à mon espace habituel{% else %}Essayer avec Établissement Les Passerelles{% endif %}</h1>
 <p>Pas à Pas va fermer cette fenêtre puis ouvrir l’autre espace. Votre espace habituel et vos essais sont conservés séparément. Terminez d’abord votre saisie en cours.</p>
-{% if not espace_essai %}<p>Au premier accès, le jeu fictif Les Passerelles sera préparé avec ses comptes publics. Aux ouvertures suivantes, vous retrouverez vos essais. Aucune donnée de votre espace habituel n’est copiée ni remplacée.</p>{% endif %}
+{% if not espace_essai %}<p>Au premier accès, le jeu fictif Établissement Les Passerelles sera préparé avec ses comptes publics. Aux ouvertures suivantes, vous retrouverez vos essais. Aucune donnée de votre espace habituel n’est copiée ni remplacée.</p>{% endif %}
 <button type="button" id="changer-espace" data-espace="{{ destination }}">Fermer et ouvrir l’autre espace</button>
 <p id="aide-espace" role="status">Cette action utilise la fenêtre du programme. Dans un navigateur externe, fermez le programme puis relancez-le avec --essai pour essayer, ou sans --essai pour revenir. Conservez le même --paquet si vous aviez choisi un dossier personnalisé.</p>
 <script>

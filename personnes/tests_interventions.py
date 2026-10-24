@@ -192,6 +192,9 @@ class ConcurrenceMissions(Donnees, TransactionTestCase):
         if connection.vendor!='sqlite':self.skipTest('Copie locale SQLite uniquement.')
         self.preparer();call_command('autoriser_solenne',self.u.username,stdout=StringIO())
         self.u=get_user_model().objects.get(pk=self.u.pk)
+        from . import propositions
+        proposition=propositions.enregistrer(self.u,'ville','Ville fictive de copie',True,'Création fictive')
+        propositions.enregistrer(self.u,'ville',proposition.valeur,False,'Retrait fictif',objet=proposition,attendu=propositions.jeton(proposition))
         prof=intervenants.creer(self.u,date(2026,1,1),'Fictif',intervenants.jeton_creation(),**valeurs())
         x=interventions.affecter(self.u,self.a,date(2026,1,1),None,'referent',prof,None,'Fictif',bd6.jeton(self.a))
         interventions.affecter(self.u,self.a,date(2026,1,1),date(2026,2,1),'referent',prof,None,'Fictif',bd6.jeton(self.a),correction=x.pk,cloture=True,motif='Relais fictif')
@@ -204,6 +207,8 @@ class ConcurrenceMissions(Donnees, TransactionTestCase):
                 self.assertEqual(db.execute('SELECT intervenant_id,fin FROM personnes_affectationintervenant').fetchone(),(prof.pk.hex,'2026-02-01'))
                 self.assertEqual(db.execute('SELECT action FROM personnes_revisionaffectationintervenant ORDER BY id').fetchall(),[('ajout',),('cloture',)])
                 self.assertEqual(db.execute('SELECT nom FROM personnes_ficheintervenant').fetchone(),('Professionnelle fictive',))
+                self.assertEqual(db.execute('SELECT valeur,active FROM personnes_propositionsaisie').fetchone(),('Ville fictive de copie',0))
+                self.assertEqual(db.execute('SELECT COUNT(*) FROM personnes_revisionpropositionsaisie').fetchone(),(2,))
 
     def test_deux_affectations_concurrentes_un_seul_fait(self):
         from concurrent.futures import ThreadPoolExecutor

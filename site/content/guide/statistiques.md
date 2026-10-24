@@ -28,7 +28,7 @@ Les effectifs de personnes distinctes ne s'additionnent pas d'un mois à
 l'autre. Une comparaison entre périodes juxtapose des activités de même durée,
 mais ne mesure pas à elle seule une évolution des parcours sociaux.
 
-## Essayer avec Les Passerelles
+## Essayer avec Établissement Les Passerelles
 
 Dans un **jeu fictif fraîchement généré**, sélectionner la période allant de
 **J−60 à J+1** (J est la date de création du jeu, et non nécessairement la date
@@ -39,11 +39,11 @@ déclarées** et **5 repas distribués**. Les mois partiels et les exports doive
 restituer des totaux cohérents. Dans une démonstration partagée ou déjà modifiée,
 les valeurs peuvent différer.
 
-Consulter le [parcours Les Passerelles](../decouvrir-passerelles/) puis le
+Consulter le [parcours Établissement Les Passerelles](../decouvrir-passerelles/) puis le
 [travail du jour](../travail-du-jour/) pour comprendre l'origine des chiffres.
 Ces indicateurs ne constituent pas un bilan réglementaire validé pour des
 dossiers réels.
 
-## Explorer le scénario Les Passerelles
+## Explorer le scénario Établissement Les Passerelles
 
 Sur la période J−60 à J+1, sélectionner « Explorer les repas par mois et service » et « Total par catégorie » : le jeu initial comprend 2 déjeuners et 3 dîners effectivement distribués. Le rapport des nuitées par lieu présente les affectations théoriques, sans déduction des absences et sans preuve de présence physique. Les résultats sont agrégés, non nominatifs. Les captures publiques illustrent ces deux regroupements ; elles sont régénérées en CI sur une base jetable.

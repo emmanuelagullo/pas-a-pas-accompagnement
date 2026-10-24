@@ -14,6 +14,6 @@
 <div id="resultats-dossiers">{% include "dossiers/resultats.html" %}</div>
 <script src="{% static 'recherche-dossiers.js' %}" defer></script>
 {% else %}<p>Votre compte n’a pas encore de droit de consultation dans cet espace d’essai.</p>{% endif %}
-{% if perms.personnes.view_menage and perms.personnes.view_accompagnement and peut_personnes %}<p><a href="{% url 'decouverte' %}">Découvrir le scénario fictif Les Passerelles</a></p>{% endif %}
+{% if perms.personnes.view_menage and perms.personnes.view_accompagnement and peut_personnes %}<p><a href="{% url 'decouverte' %}">Découvrir le scénario fictif Établissement Les Passerelles</a></p>{% endif %}
 <p><a href="{% url 'dossiers:transferts' %}">Sauvegardes &amp; Transferts</a></p>
 </div>{% endblock %}

@@ -1,8 +1,9 @@
 from django import forms
+from .champs_saisie import FormulaireModeleMetier
 from .models import Personne
 
 
-class PersonneForm(forms.ModelForm):
+class PersonneForm(FormulaireModeleMetier):
     class Meta:
         model = Personne
         fields = ["designation", "prenom", "precision_naissance", "date_naissance", "annee_naissance"]

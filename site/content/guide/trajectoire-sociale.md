@@ -26,7 +26,7 @@ Un événement significatif n’entraîne **aucune modification automatique** d�
 situation déclarée. La comparaison n’est ni un score ni un jugement sur les
 personnes. Les dates d’effet restent distinctes des dates d’enregistrement.
 
-## Essai avec Les Passerelles
+## Essai avec Établissement Les Passerelles
 
 Dans l’[espace fictif](../decouvrir-passerelles/), ouvrir **Thomas** : son
 hébergement se termine, mais son accompagnement continue. Consulter les

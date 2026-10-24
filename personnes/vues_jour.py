@@ -2,6 +2,7 @@
 from datetime import timedelta
 from collections import Counter
 from django import forms
+from .champs_saisie import FormulaireMetier, FormulaireModeleMetier
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import ValidationError
@@ -22,7 +23,7 @@ def actifs(queryset, jour):
     return queryset.filter(debut__lte=jour).filter(Q(fin__isnull=True)|Q(fin__gt=jour))
 
 
-class LigneRepas(forms.Form):
+class LigneRepas(FormulaireMetier):
     accord = forms.ModelChoiceField(AccordRepas.objects.none(), widget=forms.HiddenInput)
     beneficiaire = forms.ModelChoiceField(Personne.objects.none(), widget=forms.HiddenInput)
     quantite = forms.IntegerField(label="Repas distribués", min_value=1, max_value=32767, required=False)
@@ -129,7 +130,7 @@ def jour(request):
         "date_service": date.isoformat() if date else ""})
 
 
-class ActionRelaisForm(forms.ModelForm):
+class ActionRelaisForm(FormulaireModeleMetier):
     class Meta:
         model = ActionRelais
         fields = ("libelle", "echeance")

@@ -15,7 +15,7 @@ droits du compte. Les formulaires peuvent préremplir le contexte connu ;
 vérifier les valeurs avant d'enregistrer. Une action absente peut correspondre
 à une permission non accordée.
 
-Dans Les Passerelles, comparer l'accueil de la famille de Samira à celui d'Alex,
+Dans Établissement Les Passerelles, comparer l'accueil de la famille de Samira à celui d'Alex,
 accompagné sans hébergement. Ne pas créer une nouvelle personne réelle dans
 l'espace partagé : utiliser exclusivement des données fictives.
 

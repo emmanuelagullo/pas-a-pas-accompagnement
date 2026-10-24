@@ -2,6 +2,7 @@
 from datetime import timedelta, date
 import csv
 from django import forms
+from .champs_saisie import FormulaireMetier
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import render, redirect, get_object_or_404
@@ -52,7 +53,7 @@ def bornes_periode(code, aujourd_hui):
     raise ValueError('Période prédéfinie inconnue')
 
 
-class PeriodeStatistiquesForm(forms.Form):
+class PeriodeStatistiquesForm(FormulaireMetier):
     debut = forms.DateField(label='Début inclus', widget=forms.DateInput(attrs={'type': 'date'}))
     fin = forms.DateField(label='Fin exclue', widget=forms.DateInput(attrs={'type': 'date'}))
 

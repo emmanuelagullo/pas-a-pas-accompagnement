@@ -2,6 +2,7 @@
 from urllib.parse import urlencode
 from datetime import date
 from django import forms
+from .champs_saisie import FormulaireMetier
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import ValidationError
@@ -69,7 +70,7 @@ def nouveau(request, nature, pk, prestation):
         else:
             form = AccordForm(request.POST if request.method == 'POST' else None, accompagnement=a, initial=initial)
     else:
-        form = forms.Form(request.POST if request.method == 'POST' else None, initial=initial)
+        form = FormulaireMetier(request.POST if request.method == 'POST' else None, initial=initial)
     champ = forms.ModelChoiceField(periodes, label='Prise en charge', empty_label='Choisir la prise en charge',
         help_text='Rattachement de cette prestation et bénéficiaires possibles. Aucune prise en charge ne sera créée.')
     champ.label_from_instance = lambda p: f'{p.debut:%d/%m/%Y} → {p.fin.strftime("%d/%m/%Y") if p.fin else "ouverte"} — {p.menage}'
@@ -78,7 +79,7 @@ def nouveau(request, nature, pk, prestation):
     champ.widget.attrs['data-periode-dossier'] = '1'
     form.fields = {'accompagnement': champ, **form.fields}
     if 'beneficiaires' in form.fields:
-        form.order_fields(['accompagnement', 'beneficiaires', 'debut', 'fin', 'arrivee_effectuee', 'admission', 'lieu', 'service', 'services', 'prestataire', 'attendu'])
+        form.order_fields(['accompagnement', 'beneficiaires', 'debut', 'fin', 'duree', 'calcul_periode', 'arrivee_effectuee', 'admission', 'lieu', 'service', 'services', 'prestataire', 'attendu'])
     statut = 200
     if request.method == 'POST' and form.is_valid() and a:
         d = form.cleaned_data.copy()

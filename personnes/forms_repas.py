@@ -1,10 +1,12 @@
 from django import forms
+from .champs_saisie import FormulaireMetier, FormulaireModeleMetier
 from .models import AccordRepas, Personne
 
 DATE = {"type": "date"}
 
 
-class AccordForm(forms.ModelForm):
+class AccordForm(FormulaireModeleMetier):
+    saisie_periode = ('debut', 'fin')
     beneficiaires = forms.ModelMultipleChoiceField(Personne.objects.none(), widget=forms.CheckboxSelectMultiple)
 
     class Meta:
@@ -17,7 +19,7 @@ class AccordForm(forms.ModelForm):
         self.fields["beneficiaires"].queryset = accompagnement.beneficiaires.all()
 
 
-class DistributionForm(forms.Form):
+class DistributionForm(FormulaireMetier):
     beneficiaire = forms.ModelChoiceField(Personne.objects.none())
     date = forms.DateField(widget=forms.DateInput(format="%Y-%m-%d", attrs=DATE))
     quantite = forms.IntegerField(label="Nombre de repas distribués", min_value=1, max_value=32767, initial=1,
@@ -28,11 +30,12 @@ class DistributionForm(forms.Form):
         self.fields["beneficiaire"].queryset = accord.beneficiaires.all()
 
 
-class AnnulationForm(forms.Form):
+class AnnulationForm(FormulaireMetier):
     motif = forms.CharField(label="Motif de l’annulation", max_length=240)
 
 
-class ServicesForm(forms.Form):
+class ServicesForm(FormulaireMetier):
+    saisie_periode = ('debut', 'fin')
     beneficiaires = forms.ModelMultipleChoiceField(Personne.objects.none(), widget=forms.CheckboxSelectMultiple)
     services = forms.MultipleChoiceField(label='Services à accorder', choices=AccordRepas.SERVICES, widget=forms.CheckboxSelectMultiple)
     debut = forms.DateField(label='Début inclus', widget=forms.DateInput(format='%Y-%m-%d', attrs=DATE))

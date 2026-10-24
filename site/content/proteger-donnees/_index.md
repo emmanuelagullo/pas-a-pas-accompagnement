@@ -13,7 +13,7 @@ du même appareil. [Comprendre les espaces](../guide/espaces-locaux/).
 
 Les copies ZIP complètes contiennent comptes et secrets sans chiffrement.
 Conservez-les hors appareil et ne les diffusez pas. Le site public ne distribue
-aucune sauvegarde privée : Les Passerelles est généré par le code applicatif.
+aucune sauvegarde privée : Établissement Les Passerelles est généré par le code applicatif.
 
 Pour examiner les prérequis d’un futur hébergement et les limites actuelles,
 consultez [Institutions et hébergement](../dsi/) et la [documentation technique](../conception/).

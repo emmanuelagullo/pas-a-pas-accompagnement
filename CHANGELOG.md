@@ -1,3 +1,15 @@
+## À venir — méta-lot A : fondations de saisie et recette
+
+- Aide durée/dates civiles pour les créations de prises, accords et périodes.
+- Repère Prestations distinct de la situation sociale/projet sur la même page.
+- Contrôles métier typés, adresses multilignes et liens de contact explicites.
+- Propositions de saisie configurables, datées dans leur journal et sans collecte automatique.
+- Valeurs proposées à la date choisie, départ possible de champs vides.
+- Recherche transverse des prises en charge par professionnel, organisme et rôle.
+- Scénario neuf Les Passerelles : 36 personnes, 18 ménages et 51 prises en charge.
+- Qualification des profils : prérequis PDF expliqués ; mode explicite sans PDF.
+- « Prise en charge » écrit en entier dans les textes d'interface.
+
 ## À venir — Solenne L4a
 
 - Répertoire daté des professionnels et lien vers leur organisme.

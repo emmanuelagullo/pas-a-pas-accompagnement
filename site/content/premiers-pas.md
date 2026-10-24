@@ -13,10 +13,10 @@ title: Premiers pas sur des données fictives
    reprend seulement l’identité disponible, l’identifiant et les dates.
 5. Retrouvez la fiche depuis la liste des personnes.
 
-## Découvrir le métier avec Les Passerelles
+## Découvrir le métier avec Établissement Les Passerelles
 
-Si votre version propose **Essayer avec Les Passerelles**, ouvrez cet espace
-distinct avec les comptes publics affichés, puis choisissez **Découvrir le scénario fictif Les Passerelles** depuis l’accueil. Sur
+Si votre version propose **Essayer avec Établissement Les Passerelles**, ouvrez cet espace
+distinct avec les comptes publics affichés, puis choisissez **Découvrir le scénario fictif Établissement Les Passerelles** depuis l’accueil. Sur
 le serveur jetable qui intègre cette version, le jeu est déjà préparé.
 
 Consultez le ménage de Samira, Lina et Adam, puis l’accord de déjeuner d’Alex.

@@ -142,7 +142,7 @@ from personnes.models import Personne,Sejour,AccordRepas,Menage
 c=Client(enforce_csrf_checks=True,HTTP_HOST='chrs-fictif.example',secure=True)
 assert c.get('/installer/',secure=True).status_code==404
 assert c.login(username='nadia',password='Demonstration-fictive-2026!')
-assert Personne.objects.count()==5 and Menage.objects.count()==3
+assert Personne.objects.count()==36 and Menage.objects.count()==18
 assert get_user_model().objects.count()==4
 assert not get_user_model().objects.filter(is_superuser=True).exists()
 assert Sejour.objects.filter(fin__isnull=True).count()==1

@@ -1,9 +1,9 @@
-{% extends "base.html" %}{% load textes %}{% load dossier %}
+{% extends "base.html" %}{% load saisie %}{% load textes %}{% load dossier %}
 {% block contenu %}{% include "suivi/_retour_dossier.html" %}
 <h1>Trajectoire d’accompagnement — {{ accompagnement.menage }}</h1>
 <p><a href="{% dossier_url 'suivi:social' accompagnement.pk %}">Situation et parcours sociaux</a></p>
 <p>Chronologie des faits enregistrés, et non évaluation ou score de la personne. Une absence de saisie ne signifie pas absence de progrès. Les dates de sortie sont exclues du séjour.</p>
-<form method="get">{% include "suivi/_contexte_dossier.html" %}{{ form.as_p }}<button type="submit">Afficher la trajectoire</button></form>
+<form method="get">{% include "suivi/_contexte_dossier.html" %}{% adapter_saisie form request.user %}{{ form.as_p }}<button type="submit">Afficher la trajectoire</button></form>
 {% if comparaison %}
 <h2>Situations aux bornes de la période</h2>
 <p>Comparaison descriptive des déclarations enregistrées à chaque date, sans jugement de progression. « Non renseigné » ne signifie pas absence de situation.</p>

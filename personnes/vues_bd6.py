@@ -2,6 +2,7 @@ from . import textes_riches as tr
 """Formulaires BD6 ; mêmes validations avec ou sans JavaScript."""
 from urllib.parse import urlencode
 from django import forms
+from .champs_saisie import FormulaireMetier
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core import signing
 from django.core.exceptions import ValidationError
@@ -19,7 +20,7 @@ from .forms_suivi import AccompagnementForm
 from .forms_hebergement import date_champ
 
 
-class EtatForm(forms.Form):
+class EtatForm(FormulaireMetier):
     attendu = forms.CharField(widget=forms.HiddenInput)
 
 
@@ -30,7 +31,7 @@ class PrevisionForm(EtatForm):
 
 class PremierePriseForm(AccompagnementForm):
     attendu = forms.CharField(widget=forms.HiddenInput)
-    rattachement = forms.ChoiceField(label='Rattachement de la prise', choices=[
+    rattachement = forms.ChoiceField(label='Rattachement de la prise en charge', choices=[
         ('existant', 'Utiliser un ménage de cette personne'), ('nouveau', 'Créer un ménage avec cette personne')],
         widget=forms.RadioSelect, help_text='La création ne sera faite qu’à la confirmation de ce formulaire.')
     menage = forms.ModelChoiceField(Menage.objects.none(), label='Ménage existant', required=False)
@@ -108,6 +109,8 @@ def retour(nature, pk, params=None, prise=None):
 
 
 def traiter(request, form, titre, action, url, objet, **contexte):
+    from .champs_saisie import adapter
+    adapter(form)
     statut = 200
     if request.method == 'POST' and form.is_valid():
         try:
@@ -253,7 +256,7 @@ def social(request, pk, dimension=None, fait_pk=None):
     faits = personne.situations_personnelles.select_related('auteur').order_by('-debut', '-pk')
     if dimension is None:
         date = timezone.localdate()
-        consultation = forms.Form(request.GET if 'date' in request.GET else None)
+        consultation = FormulaireMetier(request.GET if 'date' in request.GET else None)
         consultation.fields['date'] = date_champ('Situation à la date du')
         consultation.fields['date'].initial = date
         if 'date' in request.GET and consultation.is_valid():

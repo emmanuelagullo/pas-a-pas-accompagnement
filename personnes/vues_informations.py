@@ -1,5 +1,6 @@
 from . import textes_riches as tr
 from django import forms
+from .champs_saisie import FormulaireModeleMetier
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
@@ -10,7 +11,7 @@ from .social import droit
 from .vues_hebergement import traiter_hebergement
 
 
-class InformationsForm(forms.ModelForm):
+class InformationsForm(FormulaireModeleMetier):
     objectifs_courts = tr.ChampTexte(label='Objectifs à court terme', max_length=1000, required=False)
     objectifs_longs = tr.ChampTexte(label='Objectifs à plus long terme', max_length=1000, required=False)
     attendu = forms.CharField(widget=forms.HiddenInput)

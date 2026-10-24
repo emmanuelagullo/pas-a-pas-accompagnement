@@ -3,6 +3,7 @@ from urllib.parse import urlencode
 from collections import defaultdict
 
 from django import forms
+from .champs_saisie import FormulaireMetier
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
@@ -56,7 +57,7 @@ def recherche(request):
     return render(request, template, contexte)
 
 
-class NouveauMenageForm(forms.Form):
+class NouveauMenageForm(FormulaireMetier):
     libelle = forms.CharField(label='Libellé du ménage', max_length=160, help_text='Nom court affiché dans la recherche. Il ne désigne ni un chef de famille ni une responsabilité juridique.')
     premiere_personne = forms.ChoiceField(label='Première personne', choices=[('existante', 'Choisir une personne existante'), ('nouvelle', 'Créer une personne')])
     personne = forms.ModelChoiceField(Personne.objects.all(), required=False, label='Personne existante', help_text='À renseigner seulement si vous choisissez une personne existante. Ses autres appartenances sont conservées.')

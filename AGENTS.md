@@ -201,7 +201,7 @@ au produit ; ne pas les transformer en démonstration distribuable. Conserver le
 sessions de la source et vider seulement celles de la préparation restaurée.
 
 #SOC — démonstration métier : lire DEMONSTRATION.md. Le jeu est généré dans
-le produit via les services CHRS1–4. Aucun rôle professionnel fictif, aucun
+le produit via les services CHRS1–4. Les professionnels fictifs du répertoire sont distincts des comptes ; aucun
 ZIP privé distribué, aucun reset ni nouvelle restauration. Garder l’espace
 habituel intact, y compris les jeux chargés par le premier patch ; le bouton
 d’essai ouvre un autre espace persistant (stockage -essai / dossier essai-fictif),
@@ -332,3 +332,13 @@ légale. Préserver co-intervenants, portée temporelle du parent, annulation mo
 journaux atomiques et verrou ménage puis prise. Ne jamais convertir un ancien
 référent libre par rapprochement de nom. Les exports doivent réutiliser les
 mêmes sélections datées que la consultation.
+
+
+Saisie : utiliser les bases de champs_saisie et l'adaptation des champs dynamiques.
+Préserver codes textuels, valeurs inconnues, dates d'effet, source non recopiée,
+validation serveur et saisie sans JavaScript. Les propositions sont volontaires,
+journalisées et ne collectent jamais automatiquement une valeur de dossier.
+Les champs d'authentification conservent leurs attributs propres. Dans les textes
+visibles écrire « prise en charge » ; conserver routes et variables internes.
+Les jeux Les Passerelles enrichis ne sont créés que dans un espace neuf ; ne jamais
+réinitialiser, redater ni enrichir implicitement un ancien essai.

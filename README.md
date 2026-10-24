@@ -1144,3 +1144,65 @@ Le filtre date/rôle, le CSV et l'impression exploitent la même sélection.
 Les anciens noms libres restent visibles dans le projet, sans conversion ni
 rapprochement automatique. Les nouveaux droits s'attribuent explicitement avec
 `python3 manage.py autoriser_solenne IDENTIFIANT` après migration.
+
+
+## Méta-lot A — saisie, propositions et recherche par intervenant
+
+Les formulaires métier partagent des contrôles HTML adaptés : téléphone, courriel,
+dates ISO, quantités entières, montants décimaux acceptant virgule ou point,
+adresse multiligne, recherche et textes courts/longs. Les codes et identifiants
+restent du texte ; un code étranger et ses zéros initiaux ne sont pas convertis
+en nombre. Le navigateur n'est pas invité à remplir les coordonnées d'une personne
+accompagnée avec celles de l'opérateur. Les contrôles d'authentification gardent
+leurs attributs propres. Les validations serveur et les textes enrichis restent
+inchangés. Les liens de contact sont des actions explicites ; un champ téléphone
+composite reste lisible sans destination d'appel fabriquée.
+
+Depuis Partenaires, Propositions de saisie permet de configurer volontairement
+les listes pour situation familiale, rapports parentaux, fratrie, ville, pays,
+code postal et fonction. Les propositions actives utilisent un datalist natif,
+sans imposer un vocabulaire fermé ni convertir les valeurs déjà saisies. Création,
+modification et désactivation sont journalisées ; les formulaires périmés sont
+refusés. Aucun contenu de dossier n'est collecté dans une liste partagée.
+Les nouvelles rubriques à venir ajouteront seulement leurs propositions utiles.
+
+Les changements de famille, coordonnées, organisme ou professionnel proposent
+les valeurs applicables à la date choisie, et non une version postérieure.
+La provenance de la proposition est indiquée ; Partir de champs vides laisse le
+choix. La source n'est jamais recopiée sur une nouvelle déclaration. Un GET ne
+crée rien et un POST invalide conserve les valeurs saisies.
+
+La recherche Prises en charge par intervenant filtre missions, date, professionnel,
+organisme (y compris le rattachement professionnel à date), rôle et dossier ou
+bénéficiaire. HTML, pagination, impression et CSV réutilisent la même sélection.
+Les missions annulées et les périodes hors de la prise sont exclues. Les libellés
+d'identité de répertoire sont actuels ; une mission ne compte pas un bénéficiaire.
+Voir DEMONSTRATION.md pour les 36 personnes du nouveau scénario Les Passerelles.
+
+### Qualification des profils et PDF
+
+`python3 scripts/qualifier-solenne-profils.py` exige les moteurs déjà déclarés
+dans requirements-pdf.txt et pwa/requirements-pdf.txt. Le module Python `fpdf`
+est fourni par **fpdf2**, pas par une dépendance nouvelle. Les modules manquants
+sont signalés avant la création des bases temporaires. Pour exercer les trois
+configurations Django sans leurs PDF :
+`python3 scripts/qualifier-solenne-profils.py --sans-pdf`.
+Le résultat dit explicitement NON TESTÉ pour les PDF. Il ne qualifie pas Pyodide.
+
+
+### Aide durée / dates
+
+La création d'une prise en charge (fin prévue), les accords d'hébergement et de
+repas, et les périodes d'affectation/absence proposent une durée civile.
+Changer la durée recalcule la fin ; décaler le début conserve la durée affichée ;
+changer la fin recalcule la durée. Le début ne se déplace jamais silencieusement
+pour réparer une fin erronée. Début inclus, fin exclue : sept jours après le
+1er janvier donne le 8 janvier. Une fin vide demeure ouverte, sans durée zéro.
+Les calculs ne distribuent aucun repas, n'admettent personne et ne clôturent
+aucune prise. Les règles métier et droits restent contrôlés côté serveur.
+
+Le choix « Les dates » / « Le début et la durée » rend le même calcul accessible
+sans JavaScript ; avec JavaScript, le dernier champ modifié sélectionne le mode.
+Les aides disparaissent des données transmises aux services : seules les dates
+validées sont conservées. Les prolongations et corrections de fin prévue gardent
+leurs parcours dédiés et ne sont pas assimilées à cette saisie initiale.

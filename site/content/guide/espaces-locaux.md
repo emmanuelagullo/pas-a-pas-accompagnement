@@ -7,14 +7,14 @@ description: "Deux espaces distincts dans la PWA et les programmes récents."
 liste_auto: false
 ---
 
-Cette fiche concerne les versions proposant **Essayer avec Les Passerelles**.
+Cette fiche concerne les versions proposant **Essayer avec Établissement Les Passerelles**.
 [Choisir une version](../../essayer/). La démonstration partagée en ligne n’utilise
 pas ce sélecteur d’espaces locaux.
 
 ## Ouvrir l’essai
 
 Le bouton est accessible avant ou après la création de l’espace habituel.
-La première ouverture génère Les Passerelles dans un espace distinct, avec les
+La première ouverture génère Établissement Les Passerelles dans un espace distinct, avec les
 comptes publics affichés. Les réouvertures retrouvent vos changements, sans reset.
 Votre compte personnel de l’espace habituel n’est pas le compte public du jeu.
 

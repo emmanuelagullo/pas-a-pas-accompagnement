@@ -1,6 +1,6 @@
-# Les Passerelles — démonstration métier fictive
+# Établissement Les Passerelles — démonstration métier fictive
 
-Jeu mono-espace, sans table d’établissement : « Les Passerelles » est un cadre
+Jeu mono-espace, sans table d’établissement : « Établissement Les Passerelles » est un cadre
 narratif, pas un cloisonnement entre CHRS. Données fictives exclusivement.
 
 | Personnage | Parcours |
@@ -14,16 +14,16 @@ restauration. Les comptes publics `nadia`, `remi`, `camille` et l’accès histo
 `essai` ont les mêmes droits explicites CHRS1–7 et création de personnes, sans
 suppression ni administration. Ce ne sont pas des habilitations par service.
 Les écritures initiales passent par les services métier et leurs journaux.
-Les enfants ont des fiches et prestations explicites, sans âge enregistré,
+Les enfants ont des fiches et prestations explicites, avec des naissances explicitement fictives, sans
 filiation ni représentation légale déduite du ménage.
 
 ## Essayer et retrouver son espace habituel
 
 ### Dans la PWA
 
-Choisir **Essayer avec Les Passerelles**, même si l’espace habituel existe déjà
+Choisir **Essayer avec Établissement Les Passerelles**, même si l’espace habituel existe déjà
 ou si aucun compte n’y a encore été créé. Au premier accès, le jeu est généré
-dans un stockage distinct. Un bandeau **Espace d’essai Les Passerelles** et les
+dans un stockage distinct. Un bandeau **Espace d’essai Établissement Les Passerelles** et les
 comptes du jeu de départ sont affichés. Mot de passe public :
 `Demonstration-fictive-2026!`.
 
@@ -44,7 +44,7 @@ Exports, restauration, secours et mises à jour sélectionnent le même espace.
 
 ### Dans les programmes Linux/Windows
 
-Choisir **Essayer avec Les Passerelles**, puis **Fermer et ouvrir l’autre espace**.
+Choisir **Essayer avec Établissement Les Passerelles**, puis **Fermer et ouvrir l’autre espace**.
 La fenêtre ferme et le programme redémarre dans un dossier `essai-fictif`, à
 côté du paquet par défaut du produit. Le dossier habituel, même personnalisé,
 est conservé. Le bandeau et les comptes publics signalent l’espace d’essai.
@@ -85,7 +85,7 @@ et distingue les informations absentes des valeurs renseignées. Voir
 
 ## Découverte en cinq minutes
 
-Depuis l’accueil, ouvrir **Découvrir le scénario fictif Les Passerelles** :
+Depuis l’accueil, ouvrir **Découvrir le scénario fictif Établissement Les Passerelles** :
 ménage de Samira → accord et réalisation chez Alex → distribution d’un déjeuner
 aujourd’hui → affectations et absence de Samira → situation datée de Thomas.
 Un événement ou bilan fictif reste à ajouter chez Thomas. Le guide ne charge
@@ -93,11 +93,11 @@ ni ne remplace de données et conserve ses contrôles de permissions.
 
 ## Compatibilité avec le premier patch déjà appliqué
 
-Le premier patch pouvait charger Les Passerelles dans l’espace habituel lors
+Le premier patch pouvait charger Établissement Les Passerelles dans l’espace habituel lors
 de la création du compte. Ces espaces, leurs identifiants privés, leurs droits
 et leurs modifications sont **conservés sans migration ni déplacement**.
 Le nouveau bouton ouvre un autre espace d’essai ; le retour retrouve exactement
-l’ancien espace habituel, même s’il contient déjà Les Passerelles.
+l’ancien espace habituel, même s’il contient déjà Établissement Les Passerelles.
 
 La case de chargement initial est retirée. Le premier compte habituel garde
 les droits lecture/création de personnes antérieurs ; il ne reçoit plus CHRS1–7
@@ -229,7 +229,7 @@ la recette doit aussi vérifier les réponses HTTP et les textes absents.
 
 ## Qualification ergonomique CHRS13 — captures et parcours
 
-La CI `captures-demonstration` ouvre le serveur jetable Les Passerelles et
+La CI `captures-demonstration` ouvre le serveur jetable Établissement Les Passerelles et
 contrôle, dans Chromium, les titres de la relève, la séparation avec la date
 métier et les accès à la transmission et aux statistiques. Elle produit
 `travail-du-jour.png` en complément du cahier de liaison et des statistiques.
@@ -262,7 +262,7 @@ validation juridique des habilitations. Les informations libres dans les
 transmissions et actions de relève sont accessibles à tous les titulaires du
 droit de lecture correspondant : ne pas y consigner de détails sociaux sensibles.
 
-### Recette humaine à réaliser avec Les Passerelles
+### Recette humaine à réaliser avec Établissement Les Passerelles
 
 Pour chaque profil, chronométrer et compter les changements d'écran nécessaires
 pour accomplir la tâche ci-dessus ; noter les libellés ambigus, retours perdus,
@@ -304,7 +304,7 @@ d'affectation restent théoriques, et les exports ne sont pas nominatifs.
 
 ### Modèles personnels de rapports (CHRS16)
 
-Dans la démonstration jetable Les Passerelles, le parcours Chromium ouvre les statistiques des repas sur le mois courant, enregistre le modèle personnel « Repas du mois — démonstration », le rouvre et vérifie que la période relative est conservée et que le CSV reste disponible. La capture `modele-rapport.png` est produite dans les artefacts CI, sans ajout automatique à la galerie Hugo. Le modèle n’est créé que dans la base fictive jetable.
+Dans la démonstration jetable Établissement Les Passerelles, le parcours Chromium ouvre les statistiques des repas sur le mois courant, enregistre le modèle personnel « Repas du mois — démonstration », le rouvre et vérifie que la période relative est conservée et que le CSV reste disponible. La capture `modele-rapport.png` est produite dans les artefacts CI, sans ajout automatique à la galerie Hugo. Le modèle n’est créé que dans la base fictive jetable.
 
 ## BD3 — décisions sur les accords
 
@@ -316,3 +316,62 @@ prolongation, créer un accord fictif avec une fin prévue. Pour essayer une
 annulation, utiliser un accord sans admission ni distribution. Vérifier ensuite
 sa présence dans l’historique et son absence des propositions de distribution.
 Le parcours PWA CHRS5–7 reste indépendant de ces nouvelles décisions.
+
+
+## Scénario enrichi — méta-lot A, fondations
+
+Les **jeux nouvellement générés** contiennent 36 personnes, 18 ménages et 51
+prises en charge (12 ouvertes, 39 closes). Les anciens espaces d'essai,
+leurs droits et leurs modifications sont conservés sans enrichissement implicite.
+La page Découvrir Établissement Les Passerelles donne les parcours détaillés dans la BD.
+
+| Cas | Usage à essayer |
+| --- | --- |
+| Samira, Lina, Adam | Dates de naissance fictives ; contact de ménage explicite ; relais de référent et suivi extérieur ; prestations familiales conservées |
+| Thomas | Versions d'adresse, correction motivée d'un complément, professionnel référent, logement autonome après séjour |
+| Alex | Accompagnement sans hébergement ; orientation saisie par erreur puis annulée ; repas du jour toujours libre |
+| Noor | Retour après ancienne prise close ; deux co-référents ; trois petits déjeuners réalisés |
+| Inès | Dossier individuel sans ménage ni prise en charge ; naissance inconnue ; tester le premier accueil court |
+| Gabriel et Éva | Ménage avec deux bénéficiaires ; séjour terminé dans un lieu rattaché au répertoire ; aucune parenté déduite |
+| Yannis | Année de naissance estimée seule ; prise close sans hébergement |
+
+Trois organismes, trois identités professionnelles et des propositions de saisie
+fictives complètent le jeu. Les professionnels ne sont pas les comptes connectés.
+Aucune donnée personnelle de dossier ne nourrit automatiquement les propositions.
+Les comptes publics ne reçoivent ces droits que lors de la génération neuve.
+
+Contrat sur J−60 inclus à J+1 exclu : 18 ménages et 18 prises dans la fenêtre,
+trois séjours, six bénéficiaires de séjours, trois admissions et deux sorties,
+**215 nuitées théoriques, 209 hors absences déclarées et huit repas distribués**.
+Les 56 nuitées ajoutées correspondent à deux bénéficiaires × 28 nuits ; les
+repas ajoutés sont les trois petits déjeuners de Noor. L'ancienne prise de Noor
+est hors de cette fenêtre. Ces chiffres ne prouvent pas une présence physique.
+
+
+Le jeu élargi inclut 26 personnes supplémentaires, réparties entre personnes
+seules, duos et groupes de six. Deux fiches distinctes portent le même nom Robin ;
+les UUID les distinguent et aucun rapprochement n'est proposé. Les quatre anciennes
+prises de Noor et de trois autres ménages sont hors de la fenêtre de 60 jours.
+Les situations personnelles comportent informations inconnues, sans ressources
+explicitement déclarées et passages de l'emploi à la formation. Noé change de
+ménage : les bénéficiaires antérieurs restent conservés et aucune prise du
+nouveau ménage ne l'intègre automatiquement. Dans un groupe, un membre n'est pas
+bénéficiaire de la prise ; aucune prestation n'est déduite de sa présence.
+Les 36 fiches permettent aussi de tester la pagination des personnes et la
+recherche avec accents. Les projets des douze ménages ajoutés sont renseignés.
+
+
+### Des trajectoires avec quatre ou cinq prises en charge
+
+Robin A, Robin B, Léo, Noor, Samira et Thomas ont chacun cinq prises ; Gabriel,
+Maïa et Sol en ont quatre. Les 29 prises historiques supplémentaires sont hors
+de la fenêtre des 60 jours : son contrat chiffré reste inchangé. Chaque étape
+ajoutée comprend un accord d'hébergement avec séjours individuels clos, une
+absence close, deux services de repas avec distributions, un projet et un
+commentaire. Les appartenances anciennes nécessaires sont explicites et datées.
+La clôture de l'hébergement ne clôt pas automatiquement la prise.
+
+Dans une prise en charge, le repère **Prestations** rassemble Hébergement et
+Repas ; Situation sociale et projet reste un autre ensemble dans la même page.
+Le transport rejoindra le groupe Prestations quand son lot sera livré, sans
+ajout de page de passage ni de bouton factice dans cette version.

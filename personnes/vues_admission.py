@@ -127,7 +127,7 @@ def arriver(request, pk):
             form.add_error(None, ' '.join(erreur.messages))
             statut = 409
         except OperationalError:
-            form.add_error(None, 'Écriture non confirmée. Rechargez la prise avant de réessayer.')
+            form.add_error(None, 'Écriture non confirmée. Rechargez la prise en charge avant de réessayer.')
             statut = 409
         else:
             messages.success(request, 'Arrivée enregistrée.')

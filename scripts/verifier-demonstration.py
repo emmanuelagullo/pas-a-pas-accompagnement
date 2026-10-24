@@ -41,7 +41,7 @@ def ouvrir_programme(env, habituel, essai):
                 adresse = ligne.split(' : ', 1)[1].strip()
                 with urllib.request.urlopen(adresse+'connexion/', timeout=10) as r:
                     connexion = r.read().decode()
-                assert ('Espace d’essai Les Passerelles' in connexion) == essai
+                assert ('Espace d’essai Établissement Les Passerelles' in connexion) == essai
                 with urllib.request.urlopen(adresse+'essai-local/', timeout=10) as r:
                     selection = r.read().decode()
                 assert ('data-espace="habituel"' if essai else 'data-espace="essai"') in selection
@@ -148,7 +148,7 @@ def verifier():
         essai = paquet_par_defaut('pas-a-pas-accompagnement', environnement=env_local).parent/'essai-fictif'
         import sqlite3
         with sqlite3.connect(essai/'accompagnement.sqlite3') as db:
-            assert db.execute('SELECT count(*) FROM personnes_personne').fetchone()[0] == 5
+            assert db.execute('SELECT count(*) FROM personnes_personne').fetchone()[0] == 36
             assert db.execute('SELECT count(*) FROM identites_utilisateur').fetchone()[0] == 4
             db.execute("UPDATE personnes_personne SET designation='Essai conservé' WHERE designation='Alex (fictif)'")
         ouvrir_programme(env_local, source, False)
@@ -160,7 +160,7 @@ def verifier():
         verifier_commande_fenetre(env_local, source, True, restauration=True)
         assert signature(source) == avant, 'L’espace habituel a été modifié par l’essai'
         print('Programme : essai distinct, retour personnalisé, réouverture, commandes de fenêtre et blocages de restauration : OK')
-        print('Les Passerelles : copie, vérification, restauration, relations et reconnexion : OK')
+        print('Établissement Les Passerelles : copie, vérification, restauration, relations et reconnexion : OK')
 
 
 if __name__ == '__main__':

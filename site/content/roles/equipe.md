@@ -17,5 +17,5 @@ Le compte historique `essai` reste disponible avec les mêmes droits.
 
 [Suivre le parcours en cinq minutes](../../guide/decouvrir-passerelles/).
 [Comprendre les accès et leurs limites](../).
-Les Passerelles est un cadre narratif : il n’existe pas de table établissement
+Établissement Les Passerelles est un cadre narratif : il n’existe pas de table établissement
 qui isole ces données. Les personnes et les lieux sont entièrement fictifs.

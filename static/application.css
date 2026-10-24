@@ -179,3 +179,11 @@ main:has(.bd-dossier) { max-width: 76rem; }
 .social-actions { display: flex; flex-wrap: wrap; gap: .4rem 1rem; margin-top: .6rem; font-size: .85rem; }
 
 .bd-liste-prises .bd-lien-projet { flex: none; font-size: .85rem; text-decoration: underline; }
+
+/* La structure reste compacte ; les adresses se sélectionnent et se copient. */
+.bd-dossier address { font-style: normal; white-space: normal; }
+.bd-formulaire input[type="tel"], .bd-formulaire input[type="email"] { max-width: 100%; }
+.coordonnees-detail { display: grid; grid-template-columns: minmax(6rem, auto) minmax(0, 1fr); gap: .35rem 1rem; }
+.coordonnees-detail dd { margin: 0; overflow-wrap: anywhere; }
+.bd-rubrique-titre { font-size: 1.05rem; color: #365e50; border-bottom: 2px solid #d3e4dc; padding-bottom: .35rem; margin: 1rem 0 .7rem; }
+.bd-prestations .boite-entete h3 { margin: 0; font-size: 1.15rem; }

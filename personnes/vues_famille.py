@@ -4,6 +4,7 @@ from collections import Counter
 from urllib.parse import urlencode
 
 from django import forms
+from .champs_saisie import FormulaireMetier, FormulaireModeleMetier
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -21,7 +22,7 @@ from .forms_hebergement import date_champ
 from .exports import cellule_csv
 
 
-class DeclarationForm(forms.ModelForm):
+class DeclarationForm(FormulaireModeleMetier):
     attendu = forms.CharField(widget=forms.HiddenInput)
     debut = date_champ('Depuis quelle date cette situation est-elle vraie ?')
     motif = forms.CharField(label='Motif de correction ou d’ajout dans le passé', max_length=240, required=False)
@@ -40,7 +41,7 @@ class DeclarationForm(forms.ModelForm):
         }
 
 
-class ConsultationForm(forms.Form):
+class ConsultationForm(FormulaireMetier):
     date = date_champ('Situation à la date du')
 
 
@@ -62,10 +63,9 @@ def histoire(request, pk, action=None, fait_pk=None):
         correction = get_object_or_404(faits, pk=fait_pk) if fait_pk else None
         if correction:
             suivi.exiger(request.user, 'change_declarationfamiliale')
-        dernier = correction or faits.first()
-        initial = {c: getattr(dernier, c) for c in famille.CHAMPS} if dernier else {}
-        initial.update(attendu=attendu, debut=correction.debut if correction else timezone.localdate(),
-            source=correction.source if correction else '')
+        from .champs_saisie import valeurs_proposees
+        initial, proposition = valeurs_proposees(request, faits, famille.CHAMPS, correction)
+        initial["attendu"] = attendu
         # Ne pas donner l'instance persistée à ModelForm : les modifications
         # validées ne doivent être écrites que par le service et son journal.
         form = DeclarationForm(request.POST if request.method == 'POST' else None, initial=initial)
@@ -74,7 +74,7 @@ def histoire(request, pk, action=None, fait_pk=None):
             form.fields['debut'].help_text = 'La correction peut rectifier la date, sans traverser une autre déclaration. Les périodes voisines et leur avant/après sont conservés.'
         return traiter(request, form, 'Corriger une déclaration familiale' if correction else 'Enregistrer une situation familiale',
             lambda **d: famille.renseigner(request.user, personne, correction=correction.pk if correction else None, **d),
-            base, personne, explication='La situation est propre à cette personne. Les valeurs proposées reprennent la dernière déclaration ; vérifiez-les. Une valeur vide signifie non renseignée, pas zéro ou non. Le ménage et les prestations ne changent pas.')
+            base, personne, **proposition, explication='La situation est propre à cette personne. Les valeurs proposées reprennent la dernière déclaration ; vérifiez-les. Une valeur vide signifie non renseignée, pas zéro ou non. Le ménage et les prestations ne changent pas.')
     form = ConsultationForm(request.GET if 'date' in request.GET else None, initial={'date': timezone.localdate()})
     jour = form.cleaned_data['date'] if form.is_bound and form.is_valid() else timezone.localdate()
     declaration = famille.a_date([personne], jour).first() if not form.is_bound or form.is_valid() else None

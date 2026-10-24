@@ -1,5 +1,6 @@
 from . import textes_riches as tr
 from django import forms
+from .champs_saisie import FormulaireMetier
 from django.db import OperationalError
 from django.core.exceptions import ValidationError
 from django.contrib.auth.decorators import login_required, permission_required
@@ -11,7 +12,7 @@ from . import transmissions, dossier
 from .retour_service import date_service, url_jour, contexte_jour, suffixe_jour
 
 
-class TexteForm(forms.Form):
+class TexteForm(FormulaireMetier):
     contenu = tr.ChampTexte(label="Texte", widget=tr.WidgetTexte(attrs={"rows": 4}))
 
 

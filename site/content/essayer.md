@@ -1,5 +1,5 @@
 ---
-title: "Essayer avec Les Passerelles"
+title: "Essayer avec Établissement Les Passerelles"
 description: "Le même scénario fictif, partagé en ligne ou conservé sur cet appareil."
 ---
 
@@ -13,20 +13,20 @@ Utilisez les accès affichés sur la page de connexion : tous les visiteurs voie
 et peuvent modifier les mêmes essais. Les changements disparaissent à la
 recréation du service. Le démarrage peut demander de patienter.
 
-Le code de démarrage prépare **Les Passerelles**. Vérifiez que la version en ligne
-propose **Découvrir le scénario fictif Les Passerelles** à l’accueil ; sa présence
+Le code de démarrage prépare **Établissement Les Passerelles**. Vérifiez que la version en ligne
+propose **Découvrir le scénario fictif Établissement Les Passerelles** à l’accueil ; sa présence
 effective sur cette publication reste à confirmer.
 {{< /parcours >}}
 
 {{< parcours mode="appareil" titre="Sur cet appareil" >}}
-Dans les versions qui proposent **Essayer avec Les Passerelles**, ce bouton ouvre
+Dans les versions qui proposent **Essayer avec Établissement Les Passerelles**, ce bouton ouvre
 un autre espace persistant. Votre espace habituel reste intact. Les essais
 restent conservés lorsque vous revenez à cet espace.
 
 ### Dans votre navigateur
 
 [Ouvrir l’application navigateur](https://pas-a-pas-accompagnement.gitlabpages.inria.fr/pas-a-pas-accompagnement-pwa/),
-puis choisir **Essayer avec Les Passerelles**. Le chargement initial télécharge
+puis choisir **Essayer avec Établissement Les Passerelles**. Le chargement initial télécharge
 les ressources. Si ce bouton est absent, cette publication n’intègre pas encore
 ce parcours ; ne chargez pas de sauvegarde privée pour le remplacer.
 
@@ -43,7 +43,7 @@ n’est pas le programme. La présence du nouveau parcours dépend de la version
   La cible de construction est Ubuntu 24.04 avec GTK/WebKitGTK ; la compatibilité
   avec les autres distributions reste à vérifier.
 
-Ouvrez **Essayer avec Les Passerelles**, puis confirmez le changement d’espace.
+Ouvrez **Essayer avec Établissement Les Passerelles**, puis confirmez le changement d’espace.
 La fenêtre se ferme et se rouvre. [Comprendre le retour et la conservation des essais](../guide/espaces-locaux/).
 {{< /parcours >}}
 

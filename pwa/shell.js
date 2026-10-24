@@ -5,9 +5,9 @@ const BASE=new URL('./',import.meta.url).pathname;
 const status=document.querySelector('#status'),frame=document.querySelector('#app'),notice=document.querySelector('#notice');
 let worker,candidate,ready=false,registration,occupations=0,operation=false,proprietaire=false;
 const changement=document.querySelector('#changer-espace');
-changement.textContent=ESSAI?'Revenir à mon espace habituel':'Essayer avec Les Passerelles';
+changement.textContent=ESSAI?'Revenir à mon espace habituel':'Essayer avec Établissement Les Passerelles';
 changement.href=ESSAI?BASE:BASE+'essai.html';
-document.querySelector('#espace').textContent=ESSAI?'Espace d’essai Les Passerelles — distinct de votre espace habituel. Vos essais sont conservés.':'Espace habituel de ce navigateur — données conservées sur cet appareil.';
+document.querySelector('#espace').textContent=ESSAI?'Espace d’essai Établissement Les Passerelles — distinct de votre espace habituel. Vos essais sont conservés.':'Espace habituel de ce navigateur — données conservées sur cet appareil.';
 document.querySelector('#comptes-essai').hidden=!ESSAI;
 changement.onclick=e=>{
  if(!proprietaire||operation||occupations||candidate){e.preventDefault();notice.textContent='Terminez ou annulez l’opération en cours et fermez les autres onglets avant de changer d’espace.';}

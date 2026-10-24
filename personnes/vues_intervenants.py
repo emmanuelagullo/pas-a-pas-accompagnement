@@ -2,6 +2,7 @@
 import csv
 from urllib.parse import urlencode
 from django import forms
+from .champs_saisie import FormulaireModeleMetier
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -18,9 +19,10 @@ from .vues_famille import ConsultationForm
 from .vues_suivi import _uuid_valide
 from .forms_hebergement import date_champ
 from .exports import cellule_csv
+from .interventions import DROITS_LECTURE as DROITS_MISSIONS
 
 
-class FicheForm(forms.ModelForm):
+class FicheForm(FormulaireModeleMetier):
     debut = date_champ('Depuis quelle date ces renseignements sont-ils vrais ?')
     motif = forms.CharField(label='Motif de correction ou d’ajout dans le passé', max_length=240, required=False)
     attendu = forms.CharField(widget=forms.HiddenInput)
@@ -29,7 +31,7 @@ class FicheForm(forms.ModelForm):
         model = FicheIntervenant
         fields = ['debut', *intervenants.CHAMPS, 'source']
         help_texts = {'nom': 'Professionnel identifié, distinct d’un compte utilisateur et d’une personne accompagnée.',
-            'organisme': 'Organisation du répertoire, facultative. Ce lien ne donne aucun droit et ne crée aucune affectation à une prise.', 'source': 'Indiquez comment ces renseignements ont été confirmés.'}
+            'organisme': 'Organisation du répertoire, facultative. Ce lien ne donne aucun droit et ne crée aucune affectation à une prise en charge.', 'source': 'Indiquez comment ces renseignements ont été confirmés.'}
 
 
 class RechercheForm(ConsultationForm):
@@ -74,7 +76,7 @@ def liste(request):
     query = urlencode(params)
     for f in page:
         f.url = reverse('dossiers:intervenant', args=[f.intervenant_id]) + '?' + query
-    return render(request, 'dossiers/intervenants.html', {'form': form, 'page_obj': page, 'query_annuaire': query,
+    return render(request, 'dossiers/intervenants.html', {'form': form, 'page_obj': page, 'query_annuaire': query, 'peut_rechercher_missions':request.user.has_perms(DROITS_MISSIONS),
         'params_annuaire': {k:v for k,v in params.items() if k not in ('q','date')}, **nav})
 
 
@@ -95,9 +97,9 @@ def fiche(request, pk=None, action=None, fait_pk=None):
         corrigee = get_object_or_404(faits, pk=fait_pk) if fait_pk else None
         if corrigee:
             suivi.exiger(request.user, 'change_ficheintervenant')
-        precedente = corrigee or faits.first()
-        initial = {c: getattr(precedente, c) for c in intervenants.CHAMPS} if precedente else {}
-        initial.update(attendu=attendu, debut=corrigee.debut if corrigee else timezone.localdate(), source=corrigee.source if corrigee else '')
+        from .champs_saisie import valeurs_proposees
+        initial, proposition = valeurs_proposees(request, faits, intervenants.CHAMPS, corrigee)
+        initial["attendu"] = attendu
         form = FicheForm(request.POST if request.method == 'POST' else None, initial=initial)
         form.fields['motif'].required = bool(corrigee)
         if not request.user.has_perm('personnes.view_partenaire'):
@@ -106,11 +108,11 @@ def fiche(request, pk=None, action=None, fait_pk=None):
         return traiter(request, form, 'Corriger la fiche intervenant' if corrigee else 'Mettre à jour le professionnel' if objet else 'Créer un professionnel',
             lambda **d: intervenants.renseigner(request.user, objet, correction=corrigee.pk if corrigee else None, **d) if objet else intervenants.creer(request.user, **d),
             base if objet else lambda p: reverse('dossiers:intervenant', args=[p.pk]) + '?' + query,
-            objet or 'Répertoire des professionnels', annuler=base,
+            objet or 'Répertoire des professionnels', annuler=base, **proposition,
             explication='Vérifiez les renseignements proposés. Un changement crée une période ; une correction conserve l’avant/après. Les anciens textes des dossiers ne sont pas rapprochés automatiquement.')
     consultation = RechercheForm(params)
     courante = intervenants.a_date([objet], consultation.cleaned_data['date']).first() if consultation.is_valid() else None
     return render(request, 'dossiers/intervenant.html', {'objet': objet, 'fiche': courante, 'faits': faits,
-        'consultation': consultation, 'query_annuaire': query,
+        'consultation': consultation, 'query_annuaire': query, 'peut_rechercher_missions':request.user.has_perms(DROITS_MISSIONS),
         'params_annuaire': {k:v for k,v in params.items() if k not in ('q','date')},
         'retour': reverse('dossiers:intervenants') + '?' + query, 'revisions': objet.revisionficheintervenant_set.select_related('auteur'), **nav})

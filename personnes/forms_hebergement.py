@@ -1,4 +1,5 @@
 from django import forms
+from .champs_saisie import FormulaireMetier, FormulaireModeleMetier
 from .models import AccordHebergement, LieuHebergement, Personne
 from .forms_suivi import ClotureForm
 
@@ -7,7 +8,8 @@ def date_champ(label, required=True):
     return forms.DateField(label=label, required=required, widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}))
 
 
-class AccordForm(forms.Form):
+class AccordForm(FormulaireMetier):
+    saisie_periode = ('debut', 'fin')
     beneficiaires = forms.ModelMultipleChoiceField(Personne.objects.none(), widget=forms.CheckboxSelectMultiple)
     debut = date_champ("Début inclus")
     fin = date_champ("Fin exclue", False)
@@ -21,7 +23,8 @@ class AdmissionForm(AccordForm):
     fin = None
 
 
-class PeriodeForm(forms.Form):
+class PeriodeForm(FormulaireMetier):
+    saisie_periode = ('debut', 'fin')
     debut = date_champ("Début inclus")
     fin = date_champ("Fin exclue", False)
 
@@ -30,7 +33,7 @@ class AffectationForm(PeriodeForm):
     lieu = forms.ModelChoiceField(LieuHebergement.objects.all())
 
 
-class LieuForm(forms.ModelForm):
+class LieuForm(FormulaireModeleMetier):
     class Meta:
         model = LieuHebergement
         fields = ["libelle", "organisme", "partenaire"]
@@ -43,7 +46,7 @@ class LieuForm(forms.ModelForm):
             del self.fields['organisme']
 
 
-class ChangementLieuForm(forms.Form):
+class ChangementLieuForm(FormulaireMetier):
     debut = date_champ("Date du changement de lieu")
     lieu = forms.ModelChoiceField(LieuHebergement.objects.all(), label="Nouveau lieu")
     attendu = forms.CharField(widget=forms.HiddenInput)

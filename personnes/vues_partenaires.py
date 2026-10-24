@@ -2,6 +2,7 @@
 import csv
 from urllib.parse import urlencode
 from django import forms
+from .champs_saisie import FormulaireModeleMetier
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -18,9 +19,10 @@ from .vues_famille import ConsultationForm
 from .vues_suivi import _uuid_valide
 from .forms_hebergement import date_champ
 from .exports import cellule_csv
+from .interventions import DROITS_LECTURE as DROITS_MISSIONS
 
 
-class FicheForm(forms.ModelForm):
+class FicheForm(FormulaireModeleMetier):
     debut = date_champ('Depuis quelle date ces renseignements sont-ils vrais ?')
     motif = forms.CharField(label='Motif de correction ou d’ajout dans le passé', max_length=240, required=False)
     attendu = forms.CharField(widget=forms.HiddenInput)
@@ -75,7 +77,7 @@ def liste(request):
     query = urlencode(params)
     for f in page:
         f.url = reverse('dossiers:partenaire', args=[f.partenaire_id]) + '?' + query
-    return render(request, 'dossiers/partenaires.html', {'form': form, 'page_obj': page, 'query_annuaire': query,
+    return render(request, 'dossiers/partenaires.html', {'form': form, 'page_obj': page, 'query_annuaire': query, 'peut_rechercher_missions':request.user.has_perms(DROITS_MISSIONS),
         'params_annuaire': {k:v for k,v in params.items() if k not in ('q','date')}, **nav})
 
 
@@ -96,20 +98,20 @@ def fiche(request, pk=None, action=None, fait_pk=None):
         corrigee = get_object_or_404(faits, pk=fait_pk) if fait_pk else None
         if corrigee:
             suivi.exiger(request.user, 'change_fichepartenaire')
-        precedente = corrigee or faits.first()
-        initial = {c: getattr(precedente, c) for c in partenaires.CHAMPS} if precedente else {}
-        initial.update(attendu=attendu, debut=corrigee.debut if corrigee else timezone.localdate(), source=corrigee.source if corrigee else '')
+        from .champs_saisie import valeurs_proposees
+        initial, proposition = valeurs_proposees(request, faits, partenaires.CHAMPS, corrigee)
+        initial["attendu"] = attendu
         form = FicheForm(request.POST if request.method == 'POST' else None, initial=initial)
         form.fields['motif'].required = bool(corrigee)
         base = reverse('dossiers:partenaire', args=[pk]) + '?' + query if objet else reverse('dossiers:partenaires') + '?' + query
         return traiter(request, form, 'Corriger la fiche partenaire' if corrigee else 'Mettre à jour le partenaire' if objet else 'Créer un organisme partenaire',
             lambda **d: partenaires.renseigner(request.user, objet, correction=corrigee.pk if corrigee else None, **d) if objet else partenaires.creer(request.user, **d),
             base if objet else lambda p: reverse('dossiers:partenaire', args=[p.pk]) + '?' + query,
-            objet or 'Répertoire des organismes', annuler=base,
+            objet or 'Répertoire des organismes', annuler=base, **proposition,
             explication='Vérifiez les renseignements proposés. Un changement crée une période ; une correction conserve l’avant/après. Les anciens textes des dossiers ne sont pas rapprochés automatiquement.')
     consultation = RechercheForm(params)
     courante = partenaires.a_date([objet], consultation.cleaned_data['date']).first() if consultation.is_valid() else None
     return render(request, 'dossiers/partenaire.html', {'objet': objet, 'fiche': courante, 'faits': faits,
-        'consultation': consultation, 'query_annuaire': query,
+        'consultation': consultation, 'query_annuaire': query, 'peut_rechercher_missions':request.user.has_perms(DROITS_MISSIONS),
         'params_annuaire': {k:v for k,v in params.items() if k not in ('q','date')},
         'retour': reverse('dossiers:partenaires') + '?' + query, 'revisions': objet.revisionfichepartenaire_set.select_related('auteur'), **nav})

@@ -1,5 +1,6 @@
 """Décisions BD3 : formulaires français et retour au dossier validé."""
 from django import forms
+from .champs_saisie import FormulaireMetier
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
@@ -10,7 +11,7 @@ from .forms_hebergement import date_champ
 from .vues_hebergement import traiter_hebergement
 
 
-class DecisionForm(forms.Form):
+class DecisionForm(FormulaireMetier):
     motif = forms.CharField(label='Motif de la décision', max_length=240, widget=forms.Textarea(attrs={'rows': 3}))
     attendu = forms.CharField(widget=forms.HiddenInput)
     confirmer = forms.BooleanField(label='Je confirme cette décision pour tous les bénéficiaires de cet accord.')

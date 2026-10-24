@@ -53,13 +53,13 @@ def generer(compte, *, professionnels=None, reference=None):
     suivis = {}
     for nom, membres in [('Alex', ['Alex']), ('Samira, Lina et Adam', ['Samira', 'Lina', 'Adam']), ('Thomas', ['Thomas'])]:
         beneficiaires = [personnes[n] for n in membres]
-        menage = suivi.creer_menage(nadia, nom + ' — Les Passerelles (fictif)', beneficiaires, j(-60))
+        menage = suivi.creer_menage(nadia, nom + ' — Établissement Les Passerelles (fictif)', beneficiaires, j(-60))
         suivis[membres[0]] = suivi.ouvrir(nadia, menage, beneficiaires, j(-60))
     # Alex est accompagné sans hébergement. Le repas du jour reste à saisir.
     accord = repas.accorder(camille, suivis['Alex'], [personnes['Alex']], j(-7), None, 'dejeuner')
     for delta in (-2, -1):
         repas.distribuer(camille, accord, personnes['Alex'], j(delta), 1)
-    interne = h.creer_lieu(remi, 'Les Passerelles — unité A (fictive)')
+    interne = h.creer_lieu(remi, 'Établissement Les Passerelles — unité A (fictive)')
     partenaire = h.creer_lieu(remi, 'Appartement relais (fictif)', 'Association des Rives (fictive)')
     famille = [personnes[n] for n in ('Samira', 'Lina', 'Adam')]
     accord = h.accorder(remi, suivis['Samira'], famille, j(-40), None)
@@ -93,6 +93,8 @@ def generer(compte, *, professionnels=None, reference=None):
     transmissions.transmettre(remi, 'Relève fictive : vérifier les arrivées et les repas du jour.')
     transmissions.noter(nadia, 'Point fictif à reprendre lors du prochain entretien.', accompagnement=suivis['Alex'])
     transmissions.noter(remi, 'Retour fictif à confirmer avec la personne.', personne=thomas)
+    from .demonstration_enrichie import completer
+    completer(nadia, remi, camille, personnes, suivis, jour)
     return suivis
 
 

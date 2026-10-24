@@ -6,7 +6,7 @@ description: "Les permissions actuelles du prototype, sans rôles CHRS supposés
 Les comptes de connexion sont distincts des personnes accompagnées.
 La connexion seule ne donne pas le droit de consulter les fiches.
 
-Dans le jeu neuf **Les Passerelles**, Nadia, Rémi et Camille disposent des mêmes
+Dans le jeu neuf **Établissement Les Passerelles**, Nadia, Rémi et Camille disposent des mêmes
 permissions explicites : consulter et créer des personnes, intervenir sur les
 ménages et accompagnements, les repas, les séjours et les situations sociales.
 Les vues contrôlent ces permissions ; aucun de ces comptes n’a de droit
@@ -26,5 +26,5 @@ Les habilitations nécessaires aux dossiers réels restent à définir et qualif
 
 Les décisions de prolongation et d’annulation d’un accord exigent des droits
 spécifiques, en plus des droits de consultation. Ils ne sont pas ajoutés aux
-comptes existants lors d’une mise à jour. Les nouveaux jeux fictifs Les Passerelles
+comptes existants lors d’une mise à jour. Les nouveaux jeux fictifs Établissement Les Passerelles
 les attribuent explicitement ; les anciens espaces d’essai restent inchangés.

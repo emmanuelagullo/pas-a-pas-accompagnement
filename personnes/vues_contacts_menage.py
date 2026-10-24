@@ -2,6 +2,7 @@
 import csv
 from urllib.parse import urlencode
 from django import forms
+from .champs_saisie import FormulaireMetier
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -19,7 +20,7 @@ from .forms_hebergement import date_champ
 from .exports import cellule_csv
 
 
-class DesignationForm(forms.Form):
+class DesignationForm(FormulaireMetier):
     contact = forms.ModelChoiceField(Personne.objects.all(), required=False, widget=forms.HiddenInput)
     debut = date_champ('Depuis quelle date cette désignation est-elle vraie ?')
     source = forms.CharField(label='Source de la désignation', max_length=160,

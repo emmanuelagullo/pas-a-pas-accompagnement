@@ -52,7 +52,7 @@ def affecter(acteur, accompagnement, debut, fin, role, intervenant, organisme, s
         try:
             x = accompagnement.interventions.select_related('intervenant', 'organisme').get(pk=correction)
         except AffectationIntervenant.DoesNotExist:
-            raise ValidationError('Affectation étrangère à cette prise.')
+            raise ValidationError('Affectation étrangère à cette prise en charge.')
         avant = photographie(x)
         if x.annule_le:
             raise ValidationError('Cette affectation est annulée ; son historique reste conservé.')
@@ -98,7 +98,7 @@ def annuler(acteur,accompagnement,affectation,motif,attendu):
         'view_revisionaffectationintervenant','annuler_affectationintervenant')
     bd6.reserver(accompagnement,attendu)
     try:x=accompagnement.interventions.select_related('intervenant','organisme').get(pk=affectation.pk)
-    except AffectationIntervenant.DoesNotExist:raise ValidationError('Affectation étrangère à cette prise.')
+    except AffectationIntervenant.DoesNotExist:raise ValidationError('Affectation étrangère à cette prise en charge.')
     if x.annule_le or not motif.strip() or len(motif)>240:
         raise ValidationError('Affectation déjà annulée ou motif manquant/invalide.')
     avant=photographie(x);x.annule_le=timezone.now();x.annule_par=acteur;x.motif_annulation=motif.strip()

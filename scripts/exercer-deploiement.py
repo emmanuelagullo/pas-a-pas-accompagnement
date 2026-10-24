@@ -110,7 +110,7 @@ def exercer(mode, delai_demarrage=180, render=False):
                            'DJANGO_SETTINGS_MODULE': 'pas_a_pas_accompagnement.settings'}
             code = "from personnes.models import Personne; from django.contrib.auth import get_user_model; "
             if mode == 'ephemere':
-                code += "assert Personne.objects.count()==5; assert get_user_model().objects.count()==4; u=get_user_model().objects.get(username='essai'); assert not u.is_staff and not u.is_superuser"
+                code += "assert Personne.objects.count()==36; assert get_user_model().objects.count()==4; u=get_user_model().objects.get(username='essai'); assert not u.is_staff and not u.is_superuser"
             elif tour == 0:
                 code += "assert not Personne.objects.exists(); assert not get_user_model().objects.exists(); u=get_user_model().objects.create_user('ci-fictif'); Personne.objects.create(designation='Persistance fictive',cree_par=u)"
             else:

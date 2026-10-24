@@ -178,3 +178,18 @@ Nom, fonction et coordonnées du professionnel proviennent de sa fiche à date.
 Les organismes sont identifiés par UUID et libellé actuel ; le CSV n'est pas
 une photographie documentaire figée. Les missions annulées restent dans le
 journal, hors de cette sélection. Aucun rapprochement des anciens noms libres.
+
+
+## Recherche des prises en charge par intervenant
+
+Population : missions non annulées dans leurs périodes et celles de leur prise à
+la date choisie. Le filtre organisme sélectionne une cible directe d'organisme
+ou un professionnel dont la fiche appartient à cet organisme à cette date.
+Le filtre de dossier recherche libellé du ménage et noms des bénéficiaires
+explicites ; aucune appartenance actuelle n'est substituée à ces bénéficiaires.
+Une ligne du CSV représente une mission ; les compteurs distinguent missions et
+prises distinctes, sans total implicite de personnes. Fin propre et fin effective
+sont exportées séparément. Les colonnes organisme du CSV décrivent la cible
+directe de la mission ; le rattachement de la fiche professionnelle sert au filtre.
+Les libellés des identités sont actuels. Les champs libres hérités ne sont pas
+rapprochés automatiquement et ne participent pas à ce filtre structuré.

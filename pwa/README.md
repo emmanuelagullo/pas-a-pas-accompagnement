@@ -188,9 +188,9 @@ Chromium vérifie aussi ces médias et relations dans les copies exportées apr�
 restauration et secours. `scripts/jeu-technique-copies.py` est une sonde des bancs,
 jamais embarquée ni distribuée comme démonstration. Aucun rôle supplémentaire.
 
-## Essayer Les Passerelles dans un espace distinct
+## Essayer Établissement Les Passerelles dans un espace distinct
 
-**Essayer avec Les Passerelles** ouvre un stockage d’essai distinct, avec les
+**Essayer avec Établissement Les Passerelles** ouvre un stockage d’essai distinct, avec les
 comptes publics du jeu fictif. **Revenir à mon espace habituel** retrouve les
 données habituelles sans restauration. Vos essais restent conservés pour la
 prochaine ouverture. Le lien est accessible avant la création d’un compte.

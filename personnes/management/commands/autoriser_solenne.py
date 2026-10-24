@@ -3,7 +3,7 @@ from django.contrib.auth.models import Permission
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
-DROITS = {'view_declarationfamiliale', 'add_declarationfamiliale', 'change_declarationfamiliale',
+DROITS = {'view_propositionsaisie', 'add_propositionsaisie', 'change_propositionsaisie', 'view_revisionpropositionsaisie', 'view_declarationfamiliale', 'add_declarationfamiliale', 'change_declarationfamiliale',
     'view_revisiondeclarationfamiliale', 'corriger_prevision_accompagnement', 'view_evolutionpriseencharge',
     'view_coordonneespersonnelles', 'add_coordonneespersonnelles', 'change_coordonneespersonnelles',
     'view_revisioncoordonneespersonnelles', 'view_contactmenage', 'add_contactmenage',

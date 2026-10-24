@@ -1,6 +1,7 @@
 from . import textes_riches as tr
 from . import dossier
 from django import forms
+from .champs_saisie import FormulaireMetier
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
@@ -13,7 +14,7 @@ from .models import Accompagnement, CorrectionPeriode, RevisionTexteSocial
 from .suivi import exiger
 
 
-class PeriodeForm(forms.Form):
+class PeriodeForm(FormulaireMetier):
     debut = date_champ('Début inclus')
     fin = date_champ('Fin non comprise',False)
     source = forms.CharField(max_length=160,required=False,label='Source de l’information')
@@ -21,7 +22,7 @@ class PeriodeForm(forms.Form):
     attendu = forms.CharField(widget=forms.HiddenInput)
 
 
-class TexteForm(forms.Form):
+class TexteForm(FormulaireMetier):
     date_effet = date_champ('Date d’effet')
     texte = forms.CharField(max_length=2000,widget=forms.Textarea)
     source = forms.CharField(max_length=160,required=False,label='Source de l’information')

@@ -1,4 +1,5 @@
 from django import forms
+from .champs_saisie import FormulaireMetier
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
@@ -15,7 +16,7 @@ class SelectionSejours(forms.ModelMultipleChoiceField):
         return f"{', '.join(str(p) for p in sejour.beneficiaires.all())} — séjour du {sejour.debut:%d/%m/%Y}"
 
 
-class ActionForm(forms.Form):
+class ActionForm(FormulaireMetier):
     sejours = SelectionSejours(queryset=None, widget=forms.CheckboxSelectMultiple,
         help_text='Seuls les séjours cochés seront modifiés. Pour un ancien séjour collectif, tous ses bénéficiaires sont concernés.')
     action = forms.ChoiceField(label='Action')

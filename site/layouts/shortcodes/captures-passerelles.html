@@ -1,5 +1,5 @@
 {{- $captures := slice
-  (dict "file" "connexion.png" "alt" "Connexion à l’espace fictif Les Passerelles" "caption" "Un espace de démonstration explicitement fictif")
+  (dict "file" "connexion.png" "alt" "Connexion à l’espace fictif Établissement Les Passerelles" "caption" "Un espace de démonstration explicitement fictif")
   (dict "file" "travail-du-jour.png" "alt" "Travail du jour de l’équipe fictive" "caption" "La relève actuelle et la situation à la date consultée")
   (dict "file" "liaison.png" "alt" "Cahier de liaison de l’équipe fictive" "caption" "Les transmissions pour la relève de l’équipe")
   (dict "file" "statistiques.png" "alt" "Rapport statistique de la démonstration" "caption" "Des indicateurs calculés sur les prestations enregistrées")
@@ -12,7 +12,7 @@
   {{- end -}}
 {{- end -}}
 {{- with $disponibles }}
-<div class="screenshot-gallery" aria-label="Captures de la démonstration Les Passerelles">
+<div class="screenshot-gallery" aria-label="Captures de la démonstration Établissement Les Passerelles">
   {{ range . }}
   <figure>
     <a class="screenshot-link" href="{{ (printf "captures/%s" .file) | relURL }}" target="_blank" rel="noopener">

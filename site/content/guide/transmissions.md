@@ -15,7 +15,7 @@ dossier concerné. Dans les deux cas, n'enregistrer que les informations utiles,
 avec les droits requis. Les corrections sont tracées : elles ne doivent pas
 effacer silencieusement la contribution précédente.
 
-## Essayer avec Les Passerelles
+## Essayer avec Établissement Les Passerelles
 
 Avec les comptes fictifs de **Nadia** et **Rémi**, parcourir le cahier de
 liaison puis les notes du dossier d'Alex et de Thomas. Le scénario initial

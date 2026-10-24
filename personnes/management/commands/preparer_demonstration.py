@@ -17,4 +17,4 @@ class Command(BaseCommand):
             preparer_jeu_public()
         except ValidationError as erreur:
             raise CommandError(erreur.messages[0]) from erreur
-        self.stdout.write('Démonstration Les Passerelles préparée ; accès publics sur la connexion.')
+        self.stdout.write('Démonstration Établissement Les Passerelles préparée ; accès publics sur la connexion.')
