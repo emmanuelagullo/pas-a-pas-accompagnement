@@ -40,7 +40,8 @@ class CatalogueChampsTests(SimpleTestCase):
                     if isinstance(champ,forms.DateField):
                         self.assertEqual(w.input_type,'date',(spec.name,nom))
                         self.assertEqual(w.format,'%Y-%m-%d')
-                    if isinstance(champ,forms.IntegerField):self.assertEqual(w.attrs.get('inputmode'),'numeric')
+                    if isinstance(champ,forms.DecimalField):self.assertEqual(w.attrs.get('inputmode'),'decimal')
+                    elif isinstance(champ,forms.IntegerField):self.assertEqual(w.attrs.get('inputmode'),'numeric')
         self.assertGreater(nombre,150)
 
     def test_montant_francais_et_zero_inconnu_distincts(self):

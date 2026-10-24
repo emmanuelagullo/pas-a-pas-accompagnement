@@ -11,6 +11,9 @@ def adapter_saisie(form, acteur):
     adapter(form)
     if not acteur.has_perm('personnes.view_propositionsaisie'):return ''
     correspondances={'naissance_ville':'ville','naissance_pays':'pays'}
+    model=getattr(getattr(form,'_meta',None),'model',None)
+    aliases={'RessourcePersonnelle':{'libelle':'nature_ressource'},'DettePersonnelle':{'creancier':'type_creancier'},'CouvertureSociale':{'libelle':'nature_couverture'}}
+    if model:correspondances.update(aliases.get(model.__name__,{}))
     noms=[n for n,f in form.fields.items() if correspondances.get(n,n) in dict(PropositionSaisie.CHAMPS)
           and type(f.widget) in (forms.TextInput,PropositionInput)]
     propositions={n:[] for n in noms}

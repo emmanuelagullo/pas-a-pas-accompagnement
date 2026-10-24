@@ -13,7 +13,7 @@ d'audit. Ce prototype n'est pas une installation de production.
 
 ## Démonstration métier
 
-Le jeu fictif **Les Passerelles** est proposé sur le serveur jetable et,
+Le jeu fictif **Établissement Les Passerelles** est proposé sur le serveur jetable et,
 dans un espace d’essai distinct de la PWA et des programmes Linux/Windows,
 accessible même après la création de l’espace habituel.
 Voir [le parcours et les accès](DEMONSTRATION.md).
@@ -1238,3 +1238,8 @@ personne une fois ; un lien compte une fois pour les deux personnes, sans deveni
 un effectif de ménages, de bénéficiaires ou de présence. Les comptes existants
 ne reçoivent rien en migration : attribution volontaire après migration avec
 `python3 manage.py autoriser_solenne IDENTIFIANT`.
+
+Le dossier personnel propose aussi ressources et dettes, administration, pièces,
+couvertures sociales et protections déclarées : consultation datée, corrections,
+historiques, impression et CSV sous droits explicites (`autoriser_solenne`).
+Ces rubriques restent accessibles depuis le dossier ou sa prise en charge.

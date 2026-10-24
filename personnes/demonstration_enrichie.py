@@ -60,6 +60,8 @@ def completer(nadia, remi, camille, personnes, suivis, jour):
     population_elargie(nadia, personnes, suivis, jour, profs, source)
     parcours_repetes(nadia, remi, camille, suivis, jour)
     identites_et_liens(nadia, personnes, jour)
+    from .demonstration_dossier_complet import completer as completer_dossier
+    completer_dossier(nadia, personnes, jour, orgs, profs)
 
 
 def population_elargie(nadia, personnes, suivis, jour, profs, source):

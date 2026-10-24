@@ -93,3 +93,20 @@ la correction du lieu de naissance. Chez les deux Robin, le lien erroné reste
 dans l’historique et disparaît de la consultation courante. Le résumé à l’entrée
 restitue la date choisie ; il ne recopie pas automatiquement les valeurs actuelles.
 Les anciens essais sont conservés sans enrichissement automatique.
+
+### Ressources, administration et droits
+
+Le jeu neuf de l’**Établissement Les Passerelles** permet de tester les deux
+entrées du dossier personnel : **Ressources et dettes**, **Administration et droits**.
+Samira cumule plusieurs postes, une évolution de ressource et une correction
+du total de dette ; Maïa passe de deux ressources à une absence explicitement
+confirmée. Thomas possède des échéances annoncées dépassées qui ne mettent pas
+fin automatiquement aux déclarations. Les situations inconnues et les montants
+à zéro sont distincts. Les protections de Yannis et Gabriel distinguent organisme,
+professionnel désigné et interlocuteur. Une saisie erronée concernant Robin est
+annulée sans effacer son histoire. Tous les identifiants sont fictifs.
+
+Changer la date consultée, ouvrir l’historique puis revenir à la prise en charge
+permet de suivre ces évolutions sans quitter le parcours. Le rapport accessible
+depuis Statistiques propose filtres, CSV et impression ; les identifiants
+administratifs sont exclus par défaut. Les anciens espaces d’essai restent intacts.

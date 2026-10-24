@@ -19,12 +19,13 @@ import os
 import django
 django.setup()
 from datetime import date
+from decimal import Decimal
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.test import Client
 from django.urls import reverse
-from personnes import bd6, famille, coordonnees, ouverture_prise, contacts_menage, partenaires, intervenants, interventions, complements_identite, relations_personnelles
+from personnes import bd6, famille, coordonnees, ouverture_prise, contacts_menage, partenaires, intervenants, interventions, complements_identite, relations_personnelles, dossier_complet
 from personnes.models import Personne
 
 call_command('migrate', interactive=False, verbosity=0)
@@ -57,6 +58,18 @@ complements_identite.renseigner(u,p,date(2026,1,1),'Source fictive',bd6.jeton(p)
     nationalites=['Nationalité fictive A','Nationalité fictive B'],apatridie_declaree=None)
 proche=Personne.objects.create(designation='Proche fictif de qualification',cree_par=u)
 relations_personnelles.enregistrer(u,p,proche,date(2026,1,1),None,'proche','','Source fictive',bd6.jeton(p))
+d=dossier_complet
+admin={c:d.m.SituationAdministrative._meta.get_field(c).get_default() for c in d.ADMIN_CHAMPS}
+admin.update(numero_ss='SS-FICTIF-QUALIFICATION',qualification='Qualification fictive de recette')
+d.administration(u,p,date(2026,1,1),'Source fictive',bd6.jeton(p),**admin)
+for code,r in d.RUBRIQUES.items():
+    v={c:r.modele._meta.get_field(c).get_default() for c in r.champs}
+    v.update({'ressources':dict(libelle='Ressource fictive de recette',montant=Decimal('10.50'),periodicite='mensuelle'),
+        'dettes':dict(creancier='Créancier fictif de recette',montant=None),
+        'pieces':dict(type_document='Pièce fictive de recette'),
+        'couvertures':dict(libelle='Couverture fictive de recette',organisme=organisme,interlocuteur=professionnel),
+        'protections':dict(mesure='Mesure fictive de recette',representant_intervenant=professionnel)}[code])
+    d.enregistrer(u,code,p,date(2026,1,1),None,'Source fictive',bd6.jeton(p),**v)
 client = Client(HTTP_HOST=settings.ALLOWED_HOSTS[0])
 client.force_login(u, backend='django.contrib.auth.backends.ModelBackend')
 prefixe = settings.FORCE_SCRIPT_NAME or ''
@@ -69,6 +82,9 @@ for route, args, texte in [
     ('dossiers:contact_menage', [a.menage_id], 'Personne fictive de qualification'),
     ('dossiers:intervenants', [], 'Professionnel fictif de qualification'),
     ('dossiers:intervenant', [professionnel.pk], 'Travail social'),
+    ('dossiers:fiche_a', [p.pk,'economique'], 'Ressource fictive de recette'),
+    ('dossiers:fiche_a', [p.pk,'droits'], 'Qualification fictive de recette'),
+    ('dossiers:rapport_a', [], 'Ressource fictive de recette'),
     ('dossiers:complements_identite', [p.pk], 'Ville natale fictive'),
     ('dossiers:relations_personnelles', [p.pk], 'Proche fictif de qualification'),
     ('dossiers:rapport_complements_identite', [], 'Nationalité fictive B'),
@@ -82,6 +98,12 @@ for route, args, texte in [
     response = client.get(chemin(route, *args), secure=True)
     assert response.status_code == 200, (route, response.status_code)
     assert texte in response.content.decode(), route
+for code in ('pieces','couvertures','protections'):
+    r=client.get(chemin('dossiers:fiche_a',p.pk,'droits'),{'rubrique':code},secure=True)
+    assert r.status_code==200 and 'de recette' in r.content.decode()
+for code in (*d.RUBRIQUES,'administration'):
+    r=client.get(chemin('dossiers:rapport_a'),{'rubrique':code,'date':'2026-01-02','format':'csv'},secure=True)
+    assert r.status_code==200 and 'text/csv' in r['Content-Type']
 if os.environ.get('SOLENNE_VERIFIER_PDF') == 'oui':
     response = client.get(chemin('personnes:fiche_pdf', p.pk), secure=True)
     assert response.status_code == 200 and response.content.startswith(b'%PDF-')

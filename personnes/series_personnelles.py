@@ -2,11 +2,15 @@
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Model
+from datetime import date, datetime
+from decimal import Decimal
 from django.utils import timezone
 from . import bd6, suivi
 
 
 def valeur_journal(valeur):
+    if isinstance(valeur,(date,datetime)):return valeur.isoformat()
+    if isinstance(valeur,Decimal):return str(valeur)
     return {'id': str(valeur.pk), 'libelle': str(valeur)} if isinstance(valeur, Model) else valeur
 
 

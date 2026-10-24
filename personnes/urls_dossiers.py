@@ -17,8 +17,21 @@ from . import vues_recherche_intervenants
 from . import vues_complements_identite as identite_declaree
 from . import vues_relations_personnelles as relations
 
+from . import vues_dossier_complet as complet
+
 app_name = 'dossiers'
 urlpatterns = [
+    path('rapports/dossier-complet/',complet.rapport,name='rapport_a'),
+    path('personnes/<uuid:pk>/rubriques/<str:groupe>/',complet.fiche,name='fiche_a'),
+    path('personnes/<uuid:pk>/administration/nouvelle/',complet.administration,{'action':'nouveau'},name='administration_nouvelle'),
+    path('personnes/<uuid:pk>/administration/<int:fait_pk>/corriger/',complet.administration,{'action':'corriger'},name='administration_corriger'),
+    path('personnes/<uuid:pk>/declarations/<str:code>/nouveau/',complet.modifier,{'action':'nouveau'},name='fait_a_nouveau'),
+    path('personnes/<uuid:pk>/declarations/<str:code>/absence/',complet.modifier,{'action':'absence'},name='fait_a_absence'),
+    path('personnes/<uuid:pk>/declarations/<str:code>/<int:fait_pk>/changer/',complet.modifier,{'action':'changer'},name='fait_a_changer'),
+    path('personnes/<uuid:pk>/declarations/<str:code>/<int:fait_pk>/clore/',complet.modifier,{'action':'clore'},name='fait_a_clore'),
+    path('personnes/<uuid:pk>/declarations/<str:code>/<int:fait_pk>/corriger/',complet.modifier,{'action':'corriger'},name='fait_a_corriger'),
+    path('personnes/<uuid:pk>/declarations/<str:code>/<int:fait_pk>/annuler/',complet.modifier,{'action':'annuler'},name='fait_a_annuler'),
+
     path('rapports/identite/',identite_declaree.rapport,name='rapport_complements_identite'),
     path('rapports/relations/',relations.rapport,name='rapport_relations'),
     path('personnes/<uuid:pk>/identite-declaree/',identite_declaree.histoire,name='complements_identite'),

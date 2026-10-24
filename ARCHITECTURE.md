@@ -447,3 +447,36 @@ Une succession ferme l'ancien lien et ouvre le nouveau atomiquement. La fin
 réelle conserve les autres valeurs ; correction et annulation sont motivées.
 Les liens survivent aux changements de ménage et aux clôtures de prise.
 Le résumé à l'entrée est une restitution à date, pas un document figé.
+
+## Dossier personnel complet — fin du méta-lot A
+
+Les ressources, dettes, pièces administratives, couvertures et protections sont
+des déclarations personnelles datées, indépendantes des prises en charge. Les
+schémas sont fixes et typés ; le registre Python ne définit aucun champ dynamique.
+Plusieurs postes coexistent. Une absence ou une situation inconnue explicite se
+distingue d'une rubrique jamais renseignée. La fin d'effet est exclusive ; une
+échéance annoncée n'expire jamais automatiquement une déclaration.
+
+Chaque rubrique distingue ajout, insertion rétroactive, changement, correction
+motivée, fin effective et annulation motivée. Une déclaration globale d'absence
+ou d'inconnu demande confirmation avant de terminer les postes concernés. Les
+services réservent la personne par CAS avant lecture, sans verrou ménage ensuite ;
+les écritures et journaux avant/après sont atomiques. Les droits de lecture,
+ajout, modification et annulation restent explicites. Aucun droit n'est attribué
+par les migrations.
+
+La situation administrative conserve identifiants textuels, qualification, séjour
+déclaré et origines des périodes sans emploi/domicile, avec précision explicite.
+Les durées historiques seulement déclarées restent textuelles ; aucune date
+précise n'en est inventée. Une protection distingue portée déclarée, personne ou
+professionnel ou organisme désigné, et interlocuteur ; aucune mission, relation,
+appartenance ou qualité juridique n'est déduite.
+
+La BD expose deux entrées courtes : Ressources et dettes ; Administration et
+droits. Les droits sont consultés rubrique par rubrique sur la même page. La
+date, la cible et le retour de recherche sont conservés. Les déclarations de
+ressources projettent la synthèse sociale lorsque leurs droits le permettent,
+sans écraser les anciennes situations, dont les divergences restent lisibles.
+Les propositions de saisie sont volontaires et journalisées ; elles ne collectent
+ni identifiants ni montants de dossier. Les imprimés et CSV réutilisent la sélection
+datée du rapport.

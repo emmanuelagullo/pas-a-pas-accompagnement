@@ -212,3 +212,23 @@ personne. Le CSV expose les deux UUID et le rôle depuis la première extrémit�
 il n'impose aucun sens juridique. Les noms sont actuels, les périodes sont celles
 connues après corrections. Aucune dépendance aux appartenances ou à la file
 active d'accompagnement. HTML, pagination et CSV partagent la sélection.
+
+## Déclarations du dossier personnel
+
+Le rapport « Dossier personnel » porte sur les déclarations applicables à la
+date choisie, et non sur une file active de prises en charge. Une ligne représente
+un poste : une personne peut en avoir plusieurs. Le nombre de lignes n'est donc
+pas un effectif de personnes. Les annulations sont exclues du rapport courant
+et conservées dans les historiques. Le HTML pagine ; le CSV exporte toute la
+sélection. L'impression porte sur la page affichée.
+
+Les sommes de ressources portent uniquement sur les montants mensuels connus,
+séparés par devise. Les autres périodicités restent consultables et filtrables,
+sans conversion implicite. Les sommes partielles de dettes détaillées et les
+totaux déclarés sont présentés séparément : ils ne s'additionnent pas. Un montant
+inconnu n'est pas zéro ; une absence déclarée n'est pas une rubrique non saisie.
+Les filtres structurés comprennent état, devise, montant, organisme, périodicité,
+nature de dette, échéance et portée/représentant d'une protection selon la rubrique.
+Les identifiants administratifs ne participent à la recherche et au CSV que si
+leur inclusion a été explicitement demandée. Les échéances dépassées restent
+des prévisions à vérifier, sans effet automatique sur les droits déclarés.

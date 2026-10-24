@@ -1,3 +1,12 @@
+## À venir — fin du méta-lot A : dossier personnel complet
+
+- Ressources et créanciers multiples, montants/périodicités/devises explicites.
+- Administration, pièces, couvertures et protections déclarées structurées.
+- Dates, corrections, annulations, journaux, droits et concurrence ; reprise sans valeurs inventées.
+- Deux entrées compactes dans la BD, synthèse sociale sans double saisie.
+- Rapports datés, filtres, impressions et CSV ; identifiants exclus par défaut.
+- Cas fictifs complets de l’Établissement Les Passerelles et qualification des trois profils.
+
 ## À venir — méta-lot A02 : identité déclarée et relations personnelles
 
 - Compléments d'identité facultatifs, datés et corrigibles ; nationalités multiples.

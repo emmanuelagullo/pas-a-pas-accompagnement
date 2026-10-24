@@ -14,6 +14,12 @@ DROITS = {'view_complementidentite','add_complementidentite','change_complementi
     'change_ficheintervenant', 'view_revisionficheintervenant', 'view_affectationintervenant',
     'add_affectationintervenant', 'change_affectationintervenant', 'view_revisionaffectationintervenant', 'annuler_affectationintervenant'}
 
+# Droits des schémas personnels concrets du méta-lot A.
+DROITS.update({'view_situationadministrative','add_situationadministrative','change_situationadministrative','view_revisionsituationadministrative'})
+for nom in ('ressourcepersonnelle','dettepersonnelle','pieceadministrative','couverturesociale','protectionjuridique'):
+    DROITS.update({'view_'+nom,'add_'+nom,'change_'+nom,'annuler_'+nom,'view_revision'+nom})
+
+
 
 class Command(BaseCommand):
     help = 'Attribuer volontairement les droits livrés de reprise Solenne à un compte existant ; les droits CHRS restent indépendants.'

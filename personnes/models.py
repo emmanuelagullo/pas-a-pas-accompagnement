@@ -1,7 +1,7 @@
 import uuid
 from django.conf import settings
 from django.db import models
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, MinValueValidator
 
 
 class Personne(models.Model):
@@ -873,7 +873,10 @@ class RevisionAffectationIntervenant(models.Model):
 class PropositionSaisie(models.Model):
     CHAMPS = [('situation_familiale', 'Situation familiale'), ('rapports_parentaux', 'Rapports parentaux'),
         ('fratrie', 'Fratrie déclarée'), ('ville', 'Ville'), ('pays', 'Pays'),
-        ('code_postal', 'Code postal'), ('fonction', 'Fonction professionnelle')]
+        ('code_postal', 'Code postal'), ('fonction', 'Fonction professionnelle'),
+        ('nature_ressource','Nature de ressource'),('type_creancier','Type de créancier'),('type_document','Type de pièce'),
+        ('nature_couverture','Nature de couverture'),('regime','Régime déclaré'),('mesure','Mesure déclarée'),
+        ('qualification','Qualification déclarée'),('droit_sejour','Situation de séjour déclarée')]
     champ = models.CharField(max_length=40, choices=CHAMPS)
     valeur = models.CharField(max_length=160, validators=[RegexValidator(r'\S', 'Indiquez une proposition.')])
     active = models.BooleanField(default=True)
@@ -990,3 +993,194 @@ class RevisionRelationPersonnelle(models.Model):
     enregistre_le=models.DateTimeField(auto_now_add=True)
     class Meta:
         ordering=['-enregistre_le','-pk']
+
+
+class SituationAdministrative(Periode):
+    personne=models.ForeignKey(Personne,on_delete=models.PROTECT,related_name='situations_administratives')
+    numero_ss=models.CharField('Identifiant de sécurité sociale déclaré',max_length=40,blank=True)
+    numero_caf=models.CharField('Identifiant allocataire déclaré',max_length=80,blank=True)
+    qualification=models.CharField('Qualification déclarée',max_length=160,blank=True)
+    droit_sejour=models.CharField('Situation de séjour déclarée',max_length=160,blank=True)
+    echeance_sejour=models.DateField('Échéance prévue du droit de séjour',null=True,blank=True)
+    sans_emploi_duree_declaree=models.CharField('Durée déclarée sans emploi (si connue)',max_length=160,blank=True)
+    sans_domicile_duree_declaree=models.CharField('Durée déclarée sans domicile (si connue)',max_length=160,blank=True)
+    sans_emploi_depuis=models.DateField('Sans emploi depuis',null=True,blank=True)
+    precision_sans_emploi=models.CharField('Précision de cette date',max_length=10,choices=[('','Non renseignée'),('exacte','Date déclarée exacte'),('estimee','Date déclarée estimée')],blank=True)
+    sans_domicile_depuis=models.DateField('Sans domicile depuis',null=True,blank=True)
+    precision_sans_domicile=models.CharField('Précision de cette date',max_length=10,choices=[('','Non renseignée'),('exacte','Date déclarée exacte'),('estimee','Date déclarée estimée')],blank=True)
+    source=models.CharField('Source de l’information',max_length=160)
+    auteur=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT)
+    enregistre_le=models.DateTimeField(auto_now_add=True)
+
+    def clean(self):
+        super().clean()
+        from django.core.exceptions import ValidationError
+        from django.utils import timezone
+        for nom in ('sans_emploi','sans_domicile'):
+            date=getattr(self,nom+'_depuis');precision=getattr(self,'precision_'+nom)
+            if bool(date)!=bool(precision):raise ValidationError({'precision_'+nom:'Date et précision se renseignent ensemble ; ne pas inventer de date.'})
+            if date and self.debut and date>self.debut:raise ValidationError({nom+'_depuis':'Cette date ne peut pas suivre la date de la déclaration.'})
+        if self.echeance_sejour and not self.droit_sejour:raise ValidationError({'droit_sejour':'Précisez la situation à laquelle se rapporte l’échéance.'})
+
+    class Meta:
+        ordering=['-debut','-pk']
+        constraints=[models.CheckConstraint(condition=models.Q(fin__isnull=True)|models.Q(fin__gt=models.F('debut')),name='administration_periode'),
+            models.UniqueConstraint(fields=['personne','debut'],name='administration_date'),
+            models.UniqueConstraint(fields=['personne'],condition=models.Q(fin__isnull=True),name='administration_ouverte')]
+
+
+class JournalPersonnel(models.Model):
+    action=models.CharField(max_length=20,choices=[('ajout','Déclaration'),('insertion','Fait antérieur oublié'),('changement','Changement réel'),('correction','Correction'),('cloture','Fin effective'),('annulation','Annulation de saisie')])
+    avant=models.JSONField(default=list)
+    apres=models.JSONField(default=list)
+    motif=models.CharField(max_length=240,blank=True)
+    auteur=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT)
+    enregistre_le=models.DateTimeField(auto_now_add=True)
+    class Meta:
+        abstract=True
+        ordering=['-enregistre_le','-pk']
+
+
+class RevisionSituationAdministrative(JournalPersonnel):
+    personne=models.ForeignKey(Personne,on_delete=models.PROTECT)
+    situation=models.ForeignKey(SituationAdministrative,on_delete=models.PROTECT,related_name='revisions')
+
+
+class FaitPersonnelDate(Periode):
+    personne=models.ForeignKey(Personne,on_delete=models.PROTECT)
+    etat=models.CharField('État de la déclaration',max_length=10,choices=[('detail','Renseigné'),('aucun','Absence déclarée'),('inconnu','Non connu déclaré')],default='detail')
+    source=models.CharField('Source de l’information',max_length=160)
+    auteur=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT)
+    enregistre_le=models.DateTimeField(auto_now_add=True)
+    annule_le=models.DateTimeField(null=True,blank=True,editable=False)
+    annule_par=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT,null=True,blank=True,editable=False,related_name='+')
+    motif_annulation=models.CharField(max_length=240,blank=True,editable=False)
+
+    class Meta:
+        abstract=True
+        ordering=['-debut','-pk']
+        constraints=[models.CheckConstraint(condition=models.Q(fin__isnull=True)|models.Q(fin__gt=models.F('debut')),name='%(class)s_periode'),
+            models.CheckConstraint(condition=models.Q(annule_le__isnull=True,annule_par__isnull=True,motif_annulation='')|(models.Q(annule_le__isnull=False,annule_par__isnull=False)&~models.Q(motif_annulation='')),name='%(class)s_annulation')]
+
+    def verifier_details(self,champs):
+        from django.core.exceptions import ValidationError
+        if self.etat!='detail' and any(getattr(self,c) not in (None,'') for c in champs):
+            raise ValidationError('Une absence ou une information non connue ne porte aucun détail contradictoire.')
+
+
+class RessourcePersonnelle(FaitPersonnelDate):
+    libelle=models.CharField('Nature du revenu',max_length=160,blank=True)
+    organisme=models.ForeignKey(Partenaire,on_delete=models.PROTECT,null=True,blank=True)
+    montant=models.DecimalField('Montant déclaré',max_digits=14,decimal_places=2,null=True,blank=True,validators=[MinValueValidator(0)])
+    devise=models.CharField('Devise',max_length=3,default='EUR',validators=[RegexValidator(r'^[A-Z]{3}$','Utilisez trois lettres majuscules.')])
+    periodicite=models.CharField('Périodicité',max_length=12,blank=True,choices=[('','Non renseignée'),('mensuelle','Mensuelle'),('hebdomadaire','Hebdomadaire'),('annuelle','Annuelle'),('ponctuelle','Ponctuelle')])
+    def clean(self):
+        super().clean()
+        from django.core.exceptions import ValidationError
+        if self.etat=='detail' and not self.libelle.strip():raise ValidationError({'libelle':'Indiquez la nature du revenu.'})
+        self.verifier_details(('libelle','organisme_id','montant','periodicite'))
+    class Meta(FaitPersonnelDate.Meta):
+        abstract=False
+        permissions=[('annuler_ressourcepersonnelle','Annuler une ressource saisie par erreur')]
+        constraints=FaitPersonnelDate.Meta.constraints+[models.CheckConstraint(condition=models.Q(montant__isnull=True)|models.Q(montant__gte=0),name='ressource_montant_positif')]
+
+
+class DettePersonnelle(FaitPersonnelDate):
+    nature=models.CharField('Nature du montant',max_length=10,default='detail',choices=[('detail','Dette détaillée'),('total','Total de dette déclaré')])
+    creancier=models.CharField('Créancier ou type de créancier',max_length=160,blank=True)
+    organisme=models.ForeignKey(Partenaire,on_delete=models.PROTECT,null=True,blank=True)
+    montant=models.DecimalField('Solde de dette déclaré',max_digits=14,decimal_places=2,null=True,blank=True,validators=[MinValueValidator(0)])
+    devise=models.CharField('Devise',max_length=3,default='EUR',validators=[RegexValidator(r'^[A-Z]{3}$','Utilisez trois lettres majuscules.')])
+    reference=models.CharField('Référence de dette (facultative)',max_length=160,blank=True)
+    mensualite=models.DecimalField('Mensualité déclarée (même devise)',max_digits=14,decimal_places=2,null=True,blank=True,validators=[MinValueValidator(0)])
+    def clean(self):
+        super().clean()
+        from django.core.exceptions import ValidationError
+        if self.etat=='detail':
+            if self.nature=='detail' and not (self.creancier.strip() or self.organisme_id):raise ValidationError({'creancier':'Précisez le créancier ou choisissez un organisme.'})
+            if self.nature=='total' and (self.creancier or self.organisme_id or self.mensualite is not None or self.reference):raise ValidationError('Le total déclaré est distinct des créanciers et de leurs mensualités.')
+        self.verifier_details(('creancier','organisme_id','montant','mensualite','reference'))
+    class Meta(FaitPersonnelDate.Meta):
+        abstract=False
+        permissions=[('annuler_dettepersonnelle','Annuler une dette saisie par erreur')]
+        constraints=FaitPersonnelDate.Meta.constraints+[models.CheckConstraint(condition=models.Q(montant__isnull=True)|models.Q(montant__gte=0),name='dette_montant_positif'),models.CheckConstraint(condition=models.Q(mensualite__isnull=True)|models.Q(mensualite__gte=0),name='dette_mensualite_positive')]
+
+
+class PieceAdministrative(FaitPersonnelDate):
+    type_document=models.CharField('Type de pièce présentée',max_length=160,blank=True)
+    reference=models.CharField('Référence déclarée (facultative)',max_length=160,blank=True)
+    date_presentation=models.DateField('Date de présentation connue',null=True,blank=True)
+    echeance_prevue=models.DateField('Échéance prévue annoncée',null=True,blank=True)
+    def clean(self):
+        super().clean()
+        from django.core.exceptions import ValidationError
+        from django.utils import timezone
+        if self.etat=='detail' and not self.type_document.strip():raise ValidationError({'type_document':'Précisez le type de pièce.'})
+        if self.date_presentation and self.debut and self.date_presentation>self.debut:raise ValidationError({'date_presentation':'La présentation ne peut pas suivre la déclaration.'})
+        self.verifier_details(('type_document','reference','date_presentation','echeance_prevue'))
+    class Meta(FaitPersonnelDate.Meta):
+        abstract=False
+        permissions=[('annuler_pieceadministrative','Annuler une pièce saisie par erreur')]
+
+
+class CouvertureSociale(FaitPersonnelDate):
+    libelle=models.CharField('Couverture déclarée',max_length=160,blank=True)
+    regime=models.CharField('Régime déclaré',max_length=160,blank=True)
+    organisme=models.ForeignKey(Partenaire,on_delete=models.PROTECT,null=True,blank=True)
+    identifiant=models.CharField('Identifiant d’adhésion déclaré',max_length=80,blank=True)
+    interlocuteur=models.ForeignKey(Intervenant,on_delete=models.PROTECT,null=True,blank=True)
+    echeance_prevue=models.DateField('Échéance prévue annoncée',null=True,blank=True)
+    def clean(self):
+        super().clean()
+        from django.core.exceptions import ValidationError
+        if self.etat=='detail' and not self.libelle.strip():raise ValidationError({'libelle':'Précisez la couverture.'})
+        self.verifier_details(('libelle','regime','organisme_id','identifiant','interlocuteur_id','echeance_prevue'))
+    class Meta(FaitPersonnelDate.Meta):
+        abstract=False
+        permissions=[('annuler_couverturesociale','Annuler une couverture saisie par erreur')]
+
+
+class ProtectionJuridique(FaitPersonnelDate):
+    mesure=models.CharField('Mesure déclarée',max_length=160,blank=True)
+    domaine=models.CharField('Portée déclarée',max_length=16,blank=True,choices=[('','Non renseignée'),('biens','Biens'),('personne','Personne'),('biens_personne','Biens et personne'),('autre','Autre portée')])
+    precision_portee=models.TextField('Précisions sur la portée',max_length=1000,blank=True)
+    reference_decision=models.CharField('Référence de décision connue',max_length=160,blank=True)
+    date_decision=models.DateField('Date de décision connue',null=True,blank=True)
+    echeance_prevue=models.DateField('Échéance prévue annoncée',null=True,blank=True)
+    representant_intervenant=models.ForeignKey(Intervenant,on_delete=models.PROTECT,null=True,blank=True,related_name='mesures_representation',verbose_name='Professionnel représentant déclaré')
+    representant_personne=models.ForeignKey(Personne,on_delete=models.PROTECT,null=True,blank=True,related_name='representations_declarees')
+    organisme=models.ForeignKey(Partenaire,on_delete=models.PROTECT,null=True,blank=True)
+    interlocuteur=models.ForeignKey(Intervenant,on_delete=models.PROTECT,null=True,blank=True)
+    def clean(self):
+        super().clean()
+        from django.core.exceptions import ValidationError
+        from django.utils import timezone
+        if self.etat=='detail' and not self.mesure.strip():raise ValidationError({'mesure':'Précisez la mesure déclarée.'})
+        if sum(bool(v) for v in (self.representant_personne_id,self.representant_intervenant_id,self.organisme_id))>1:raise ValidationError('Choisissez un représentant personne, professionnel OU organisme ; le contact professionnel est distinct.')
+        if self.representant_personne_id and self.representant_personne_id==self.personne_id:raise ValidationError({'representant_personne':'Choisissez une autre personne pour ce rôle déclaré.'})
+        if self.date_decision and self.date_decision>timezone.localdate():raise ValidationError({'date_decision':'Une décision connue ne peut pas être future.'})
+        self.verifier_details(('mesure','domaine','precision_portee','reference_decision','date_decision','echeance_prevue','representant_personne_id','representant_intervenant_id','organisme_id','interlocuteur_id'))
+    class Meta(FaitPersonnelDate.Meta):
+        abstract=False
+        permissions=[('annuler_protectionjuridique','Annuler une mesure saisie par erreur')]
+        constraints=FaitPersonnelDate.Meta.constraints+[models.CheckConstraint(condition=models.Q(representant_personne__isnull=True,representant_intervenant__isnull=True)|models.Q(representant_personne__isnull=True,organisme__isnull=True)|models.Q(representant_intervenant__isnull=True,organisme__isnull=True),name='protection_representant_unique')]
+
+
+class RevisionRessourcePersonnelle(JournalPersonnel):
+    fait=models.ForeignKey(RessourcePersonnelle,on_delete=models.PROTECT,related_name="revisions")
+
+
+class RevisionDettePersonnelle(JournalPersonnel):
+    fait=models.ForeignKey(DettePersonnelle,on_delete=models.PROTECT,related_name="revisions")
+
+
+class RevisionPieceAdministrative(JournalPersonnel):
+    fait=models.ForeignKey(PieceAdministrative,on_delete=models.PROTECT,related_name="revisions")
+
+
+class RevisionCouvertureSociale(JournalPersonnel):
+    fait=models.ForeignKey(CouvertureSociale,on_delete=models.PROTECT,related_name="revisions")
+
+
+class RevisionProtectionJuridique(JournalPersonnel):
+    fait=models.ForeignKey(ProtectionJuridique,on_delete=models.PROTECT,related_name="revisions")

@@ -400,3 +400,35 @@ lien et la restitution à l'entrée dans le résumé. La date de début du lien 
 celle de la déclaration applicable, pas une filiation rétroactivement supposée
 depuis la naissance. Les prises plus anciennes peuvent donc ne pas avoir ce
 renseignement. Les anciens espaces ne sont pas enrichis automatiquement.
+
+## Tester ensemble le dossier personnel complet
+
+Dans un espace **neuf** de l'**Établissement Les Passerelles**, les 36 personnes,
+18 ménages et 51 prises en charge gardent leurs prestations et chiffres
+d'activité. Le dossier personnel comporte désormais aussi :
+
+- Samira : deux ressources dont un montant inconnu, évolution d'allocation,
+  deux créanciers et un total de dette corrigé (sans double comptage), deux
+  pièces et deux couvertures avec renouvellement annoncé.
+- Thomas : salaire puis rémunération de formation, aide ponctuelle, dette en
+  autre devise, échéances de pièce/couverture dépassées qui ne valent pas fin.
+- Noor : ressource mensuelle à zéro et ressource annuelle, absence de protection
+  explicitement déclarée ; Alex : absence de ressources et couverture inconnue.
+- Maïa : deux ressources puis absence globale confirmée, avec historique conservé.
+- Yannis : ressources/dettes inconnues, mesure fictive avec organisme et
+  interlocuteur ; Gabriel : professionnel désigné distinct de l'interlocuteur.
+- Robin A : protection saisie pour le mauvais homonyme puis annulée ; Robin B
+  reste un dossier distinct. Les identifiants administratifs sont tous inventés.
+
+Depuis le dossier ou une prise en charge, ouvrir **Ressources et dettes** ou
+**Administration et droits**. Changer la date pour comparer les situations,
+ouvrir les historiques, puis revenir à la même cible. Tester ajout, changement,
+correction motivée et fin réelle ; l'annulation reste une action séparée. Une
+déclaration globale d'absence demande confirmation avant de terminer plusieurs
+postes. Les anciens espaces d'essai ne sont pas enrichis automatiquement.
+
+Depuis Statistiques, ouvrir le rapport Dossier personnel : choisir une rubrique,
+une date et des filtres, comparer HTML et CSV, puis imprimer. Les montants connus
+sont partiels et séparés par devise ; un total déclaré de dette n'est pas ajouté
+aux créanciers. Les identifiants administratifs sont masqués par défaut dans ce
+rapport. Le parcours complet ne nécessite aucune nouvelle bibliothèque.

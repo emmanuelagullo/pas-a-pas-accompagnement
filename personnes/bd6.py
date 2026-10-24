@@ -158,6 +158,8 @@ def etat(acteur, personnes, date):
         accompagnement__debut__lte=date).filter(Q(fin__isnull=True) | Q(fin__gt=date)).filter(
         Q(accompagnement__fin__isnull=True) | Q(accompagnement__fin__gt=date)).select_related('accompagnement')) if acteur.has_perms(
             ['personnes.view_situationsociale', *dossier.DROITS]) else []
+    from . import dossier_complet
+    dossier_a=dossier_complet.syntheses(acteur,personnes,date)
     resultat = []
     for personne in personnes:
         lignes = []
@@ -169,10 +171,16 @@ def etat(acteur, personnes, date):
                 valeurs.add(fait.valeur)
             conflit = len(valeurs) > 1
             texte = 'Informations divergentes — à vérifier' if conflit else (fait.libelle_valeur if fait else temoins[0].libelle_valeur if temoins else 'Non renseigné')
-            lignes.append({'dimension': dimension, 'libelle': libelle, 'texte': texte, 'fait': fait,
+            projection=next((d for d in dossier_a.get(personne.pk,[]) if dimension=='ressources' and d['code']=='ressources' and d.get('valeur_sociale')),None)
+            ancienne_synthese=''
+            if projection:
+                nouveau=dict(SituationSociale.VALEURS['ressources'])[projection['valeur_sociale']]
+                if (fait or temoins) and texte!=nouveau:ancienne_synthese=texte
+                texte=nouveau
+            lignes.append({'projection':projection,'ancienne_synthese':ancienne_synthese,'dimension': dimension, 'libelle': libelle, 'texte': texte, 'fait': fait,
                            'anciens': temoins, 'conflit': conflit})
         resultat.append({'personne': personne, 'lignes': lignes, 'famille': declarations.get(personne.pk),
-            'coordonnees': contacts.get(personne.pk), 'identite_declaree':identites.get(personne.pk),
+            'coordonnees': contacts.get(personne.pk), 'dossier_a':dossier_a.get(personne.pk,[]), 'identite_declaree':identites.get(personne.pk),
             'liens_personnels':[{'libelle':r.libelle_depuis(personne),'autre':r.autre(personne)} for r in liens if personne.pk in (r.personne_a_id,r.personne_b_id)]})
     return resultat
 

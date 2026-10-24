@@ -57,7 +57,7 @@ def adapter(form):
             champ.widget = forms.Textarea(attrs={**w.attrs, 'rows':2})
         elif isinstance(w, forms.Textarea):
             w.attrs.setdefault('rows', 4)
-        elif nom in ('code_postal', 'numero_ss', 'numero_allocataire', 'identifiant'):
+        elif nom in ('code_postal', 'numero_ss', 'numero_caf', 'numero_allocataire', 'identifiant', 'reference', 'reference_decision'):
             w.attrs.setdefault('spellcheck', 'false')
     return form
 

@@ -353,3 +353,12 @@ sources/auteurs et les cibles immuables ; aucune création implicite de personne
 appartenance ou bénéficiaire. Les recherches/CSV ne doublent pas les liens et
 ne font pas d'une déclaration à date une file active. La fiche PDF reste soumise
 aux droits propres des compléments.
+
+Dossier complet : conserver les schémas typés des déclarations personnelles,
+leurs journaux atomiques et le CAS personne avant lecture. Ne pas additionner
+le total déclaré des dettes aux créanciers détaillés ni convertir monnaies ou
+périodicités implicitement. Inconnu, absence et zéro restent distincts. Une
+échéance prévue n'est jamais une fin effective. La déclaration globale d'absence
+exige confirmation ; les anciennes synthèses sociales sont conservées. Les
+identifiants administratifs sont exclus du rapport par défaut ; les inclure
+reste un choix explicite sous droits. Aucune déduction de pouvoirs juridiques.
