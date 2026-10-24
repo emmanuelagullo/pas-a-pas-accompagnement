@@ -9,13 +9,15 @@ from .statistiques import chevauche
 def mouvements(debut, fin):
     if fin <= debut:
         raise ValueError('La fin doit être postérieure au début.')
-    entrees = Sejour.objects.filter(debut__gte=debut, debut__lt=fin)
-    sorties = Sejour.objects.filter(fin__gte=debut, fin__lt=fin)
-    entrants = list(entrees.values_list('beneficiaires__pk', flat=True).exclude(beneficiaires__isnull=True))
-    sortants = list(sorties.values_list('beneficiaires__pk', flat=True).exclude(beneficiaires__isnull=True))
-    durees = [(s.fin - s.debut).days for s in sorties.only('debut', 'fin')]
+    from .continuite_hebergement import episodes
+    logique=list(episodes())
+    entrees=[s for s,f in logique if debut<=s.debut<fin]
+    sorties=[(s,f) for s,f in logique if f is not None and debut<=f<fin]
+    entrants=[p.pk for s in entrees for p in s.beneficiaires.all()]
+    sortants=[p.pk for s,f in sorties for p in s.beneficiaires.all()]
+    durees=[(f-s.debut).days for s,f in sorties]
     return {
-        'admissions_sejours': entrees.count(), 'sorties_sejours': sorties.count(),
+        'admissions_sejours': len(entrees), 'sorties_sejours': len(sorties),
         'beneficiaires_admissions': len(entrants), 'beneficiaires_sorties': len(sortants),
         'personnes_admises_distinctes': len(set(entrants)), 'personnes_sorties_distinctes': len(set(sortants)),
         'nuits_sejours_clos_total': sum(durees),

@@ -467,3 +467,48 @@ exacts, impression et CSV. La rubrique Entrées/sorties réutilise les dernière
 informations versionnées des prises et leur activité, sans inventer une date
 d'effet pour les anciens récits. Tous ces exemples restent fictifs ; les anciens
 espaces d'essai ne sont pas enrichis automatiquement.
+
+## Tester le méta-lot C : prestations et gestes quotidiens
+
+Ouvrir un espace neuf de l'**Établissement Les Passerelles**. Les nombres de
+personnes, ménages et prises en charge et le contrat d'activité des 60 derniers
+jours sont conservés. Le catalogue présente huit types fictifs/historiques :
+TAM1/TAM3/TAM10, autres transports/SNCF, bons restaurant et supermarché, produits
+en kg et accueil de jour en passages. Les cartes sont des titres remis, pas des
+trajets réalisés. Ce catalogue n'est pas créé dans une base ordinaire existante.
+
+- Samira : autorisation TAM3 avec quantité remise corrigée, autorisation TAM10
+  sans remise, bons restaurant remis mais déclarés non utilisés.
+- Noor : titre SNCF remis, bon supermarché déclaré utilisé, passage d'accueil
+  de jour sans nuitée artificielle ; futur service de déjeuner les mercredis
+  et vendredis, sans distribution automatique.
+- Thomas : remise TAM1 erronée annulée avec son historique conservé.
+- Yannis : produits alimentaires remis en kg pendant sa prise en charge, avec
+  quantité fractionnaire distincte des titres et repas.
+- Répertoire des lieux : établissement/chambre/place facultatifs et correction
+  motivée d'un libellé, sans déplacement implicite de personne.
+
+Dans la prise en charge, les aides restent dans **Prestations**. Autoriser ne
+remet rien ; Enregistrer une réalisation choisit personnes, date, quantité et
+source. Le plafond est global à la sélection, non par personne. Tester correction,
+annulation, prolongation et constat d'utilisation, puis le PDF ou relevé imprimable.
+Dans Travail du jour, choisir une date : le formulaire de réalisation conserve
+cette date et revient à ce travail après enregistrement. Les repas non autorisés
+ce jour de semaine ne sont pas proposés.
+
+Pour essayer les départs/absences/lieux partiels sur le séjour collectif de la
+famille de Samira, choisir **Continuer individuellement pour agir sur une
+personne**. Confirmer une date après les faits existants et un motif. L'histoire
+commune reste intacte avant cette date ; les nouveaux fragments conservent lieu
+et absence ouverts. Sélectionner ensuite un ou plusieurs séjours individuels
+pour absence, retour, changement de lieu ou sortie. Les compteurs d'admission
+ne sont pas augmentés par cette continuité. Les arrivées déjà individuelles
+gardent leur parcours direct.
+
+Statistiques propose prestations/remises/CSV et le détail individuel d'hébergement,
+avec nuits théoriques et hors absences déclarées. Les lignes de fragments ne sont
+pas des admissions supplémentaires. Le catalogue des aides et le répertoire des
+lieux sont accessibles depuis ces rubriques transversales. Les PDF restituent les
+données courantes sous droits ; les émissions numérotées, tarifs et rééditions
+figées arrivent avec le financement. Aucun ancien espace n'est enrichi ou remis
+à zéro automatiquement.

@@ -13,7 +13,7 @@ def droit(acteur, action):
 
 @serialiser("accompagnement")
 @transaction.atomic
-def accorder(acteur, accompagnement, beneficiaires, debut, fin, service, prestataire=""):
+def accorder(acteur, accompagnement, beneficiaires, debut, fin, service, prestataire="", jours_semaine=None):
     droit(acteur, "add_accordrepas")
     accompagnement = Accompagnement.objects.get(pk=accompagnement.pk)
     ids = {p.pk for p in beneficiaires}
@@ -21,7 +21,7 @@ def accorder(acteur, accompagnement, beneficiaires, debut, fin, service, prestat
         raise ValidationError("Choisissez des bénéficiaires de cet accompagnement.")
     if debut < accompagnement.debut or (accompagnement.fin and (fin is None or fin > accompagnement.fin)):
         raise ValidationError("La période accordée doit être comprise dans l’accompagnement.")
-    accord = AccordRepas(accompagnement=accompagnement, debut=debut, fin=fin, service=service, prestataire=prestataire, cree_par=acteur)
+    accord = AccordRepas(accompagnement=accompagnement, debut=debut, fin=fin, service=service, prestataire=prestataire, jours_semaine=jours_semaine or [], cree_par=acteur)
     accord.full_clean()
     accord.save()
     accord.beneficiaires.set(ids)
@@ -31,7 +31,7 @@ def accorder(acteur, accompagnement, beneficiaires, debut, fin, service, prestat
 
 @serialiser("accord")
 @transaction.atomic
-def distribuer(acteur, accord, beneficiaire, date, quantite):
+def distribuer(acteur, accord, beneficiaire, date, quantite, categorie_declaree=""):
     droit(acteur, "add_repasdistribue")
     exiger(acteur, "view_repasdistribue")
     accord = AccordRepas.objects.select_related("accompagnement").get(pk=accord.pk)
@@ -44,9 +44,11 @@ def distribuer(acteur, accord, beneficiaire, date, quantite):
     suivi = accord.accompagnement
     if date < suivi.debut or (suivi.fin and date >= suivi.fin):
         raise ValidationError("La distribution doit se situer dans l’accompagnement.")
+    if accord.jours_semaine and date.weekday() not in accord.jours_semaine:
+        raise ValidationError("Ce jour de semaine n’est pas autorisé par cet accord.")
     if date > timezone.localdate():
         raise ValidationError("Une distribution effective ne peut pas être future.")
-    repas = RepasDistribue(accord=accord, beneficiaire=beneficiaire, date=date, quantite=quantite, cree_par=acteur)
+    repas = RepasDistribue(accord=accord, beneficiaire=beneficiaire, date=date, quantite=quantite, categorie_declaree=categorie_declaree, cree_par=acteur)
     repas.full_clean()
     try:
         with transaction.atomic():
@@ -100,7 +102,7 @@ def jeton_services(accompagnement):
 
 
 @serialiser('accompagnement')
-def accorder_services(acteur, accompagnement, beneficiaires, debut, fin, services, attendu, prestataire=''):
+def accorder_services(acteur, accompagnement, beneficiaires, debut, fin, services, attendu, prestataire='', jours_semaine=None):
     from django.core import signing
     from .social import verrouiller
     droit(acteur, 'add_accordrepas')
@@ -117,4 +119,4 @@ def accorder_services(acteur, accompagnement, beneficiaires, debut, fin, service
     if not services or len(set(services)) != len(services) or not set(services).issubset(dict(AccordRepas.SERVICES)):
         raise ValidationError('Sélectionnez des services distincts parmi ceux proposés.')
     beneficiaires = list(beneficiaires)
-    return [accorder(acteur, a, beneficiaires, debut, fin, service, prestataire) for service in services]
+    return [accorder(acteur, a, beneficiaires, debut, fin, service, prestataire, jours_semaine) for service in services]

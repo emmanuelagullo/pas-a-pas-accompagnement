@@ -80,6 +80,9 @@ def clore(acteur, objet, fin):
             raise ValidationError("Des informations sociales datées seraient exclues de l’accompagnement.")
         if Sejour.objects.filter(accord__accompagnement=objet).filter(models.Q(fin__isnull=True) | models.Q(fin__gt=fin)).exists():
             raise ValidationError("Clôturez d’abord les séjours au plus tard à la fin de l’accompagnement.")
+        from .models import RemiseAide
+        if RemiseAide.objects.filter(accord__accompagnement=objet,annule_le__isnull=True,date__gte=fin).exists():
+            raise ValidationError('Des aides effectivement remises seraient exclues de la prise en charge.')
         if RepasDistribue.objects.filter(accord__accompagnement=objet, annule_le__isnull=True, date__gte=fin).exists():
             raise ValidationError("Des repas distribués existent à cette date ou après. Corrigez-les avant de clôturer.")
     objet.fin = fin

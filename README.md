@@ -7,8 +7,7 @@ Disponible : connexion, accueil, liste des personnes, création d'une identité
 incomplète, consultation et correction tracée de sa fiche. Pas de suppression de
 fiche. Les comptes professionnels sont distincts des personnes suivies.
 
-Non disponible : transports,
-documents joints, invitations. Une PWA fictive est disponible sous #SOC5a ; voir ci-dessous. La date et l'auteur de création ne sont pas un journal
+Non disponible : documents joints, invitations. Une PWA fictive est disponible sous #SOC5a ; voir ci-dessous. La date et l'auteur de création ne sont pas un journal
 d'audit. Ce prototype n'est pas une installation de production.
 
 ## Démonstration métier
@@ -1249,3 +1248,9 @@ longitudinaux. La ligne Parcours du dossier ou de la prise en charge ouvre ces
 rubriques sans parcours obligatoire. Les demandes refusées ne créent aucune
 prestation ; le suivi terminé n'empêche pas un nouvel accueil. Voir la recette
 d'ensemble dans DEMONSTRATION.md.
+
+Les prestations comprennent transports, bons et produits alimentaires et accueil
+de jour, avec unités explicites, autorisations et réalisations séparées. Les
+anciens séjours collectifs peuvent continuer individuellement, sans compter une
+nouvelle admission. Les repas peuvent être limités à certains jours de semaine.
+Voir la recette du méta-lot C dans DEMONSTRATION.md.

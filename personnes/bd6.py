@@ -224,6 +224,16 @@ def ajouter_membre(acteur, menage, debut, attendu, personne=None, designation=''
 
 def nombre_jours(periodes, jour):
     """Union des intervalles civils, sans multiplication par bénéficiaire ou service."""
+    periodes=list(periodes)
+    if any(getattr(p,'jours_semaine',[]) for p in periodes):
+        from datetime import timedelta
+        jours=set()
+        for p in periodes:
+            courant=p.debut;fin=p.fin or max(p.debut,jour)
+            while courant<fin:
+                if not p.jours_semaine or courant.weekday() in p.jours_semaine:jours.add(courant)
+                courant+=timedelta(days=1)
+        return len(jours)
     bornes = sorted((p.debut, p.fin or max(p.debut, jour)) for p in periodes)
     total, fin = 0, None
     for debut, borne in bornes:

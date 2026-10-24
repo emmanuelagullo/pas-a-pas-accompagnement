@@ -25,7 +25,7 @@ from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.test import Client
 from django.urls import reverse
-from personnes import bd6, famille, coordonnees, ouverture_prise, contacts_menage, partenaires, intervenants, interventions, complements_identite, relations_personnelles, dossier_complet, parcours
+from personnes import bd6, famille, coordonnees, ouverture_prise, contacts_menage, partenaires, intervenants, interventions, complements_identite, relations_personnelles, dossier_complet, parcours, aides
 from personnes.models import Personne
 
 call_command('migrate', interactive=False, verbosity=0)
@@ -78,6 +78,9 @@ for code, r in parcours.RUBRIQUES.items():
         'suivi':{'etat':'actif','raison':'Suivi fictif de recette'}}[code])
     e=parcours.creer(u,code,p,[p],date(2026,1,1),'Recette fictive',bd6.jeton(p),**v)
     if code=='demandes':parcours.lier(u,e,a,bd6.jeton(e),'Admission fictive confirmée')
+type_aide=aides.cataloguer(u,aides.jeton_catalogue(),'Source fictive',nature='transport',libelle='Titre fictif de qualification',unite='titre',fractionnable=False,precision='Aucun trajet déduit',actif=True)
+aide=aides.accorder(u,a,type_aide,[p],bd6.jeton(a),debut=date(2026,1,1),fin=None,quantite=Decimal('3'),prestataire=None,financeur=None,valeur_bon=None,devise='EUR',source='Décision fictive')
+aides.remettre(u,aide,[p],date(2026,1,2),Decimal('1'),'Remise fictive',bd6.jeton(aide))
 client = Client(HTTP_HOST=settings.ALLOWED_HOSTS[0])
 client.force_login(u, backend='django.contrib.auth.backends.ModelBackend')
 prefixe = settings.FORCE_SCRIPT_NAME or ''
@@ -119,9 +122,13 @@ for code in parcours.RUBRIQUES:
     assert client.get(chemin('dossiers:parcours_element',code,e.pk),secure=True).status_code==200
     r=client.get(chemin('dossiers:rapport_parcours'),{'rubrique':code,'date':'2026-01-02','format':'csv'},secure=True)
     assert r.status_code==200 and str(e.pk) in r.content.decode(),code
+assert client.get(chemin('dossiers:aide',aide.pk),secure=True).status_code==200
+assert client.get(chemin('dossiers:rapport_aides'),{'debut':'2026-01-01','fin':'2026-02-01','mode':'remises','format':'csv'},secure=True).status_code==200
 if os.environ.get('SOLENNE_VERIFIER_PDF') == 'oui':
     response = client.get(chemin('personnes:fiche_pdf', p.pk), secure=True)
     assert response.status_code == 200 and response.content.startswith(b'%PDF-')
+    pdf_aide=client.get(chemin('dossiers:aide_pdf',aide.pk),secure=True)
+    assert pdf_aide.status_code==200 and pdf_aide.content.startswith(b'%PDF-')
     assert 'no-store' in response['Cache-Control']
 bd6.corriger_prevision(u, a, None, 'Retrait fictif', bd6.jeton(a))
 a.refresh_from_db()

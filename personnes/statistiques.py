@@ -21,8 +21,10 @@ def bilan(debut, fin):
     # Les M2M peuvent produire des doublons : DISTINCT porte sur les identités.
     personnes = sejours.values_list('beneficiaires__pk', flat=True).exclude(beneficiaires__isnull=True).distinct().count()
     menages = accompagnements.values_list('menage_id', flat=True).distinct().count()
-    admissions = Sejour.objects.filter(debut__gte=debut, debut__lt=fin).count()
-    sorties = Sejour.objects.filter(fin__gte=debut, fin__lt=fin, fin__isnull=False).count()
+    from .continuite_hebergement import episodes
+    logique=list(episodes())
+    admissions=sum(debut<=s.debut<fin for s,f in logique)
+    sorties=sum(f is not None and debut<=f<fin for s,f in logique)
     # Chaque séjour contribue séparément. Les séjours concomitants sont
     # comptés deux fois : ce n'est PAS un indicateur de nuits uniques/personne.
     nuitees = 0
@@ -35,7 +37,7 @@ def bilan(debut, fin):
         'menages_accompagnes': menages,
         'accompagnements': accompagnements.count(),
         'personnes_avec_sejour': personnes,
-        'sejours': sejours.count(),
+        'sejours': sum(s.debut<fin and (f is None or f>debut) for s,f in logique),
         'admissions': admissions,
         'sorties': sorties,
         'nuitees_theoriques': nuitees,

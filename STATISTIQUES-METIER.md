@@ -265,3 +265,40 @@ HTML paginé, CSV de toute la même sélection, impression de la page courante.
 Les filtres ne transforment pas ces unités en file active de personnes. Les
 combinaisons historiques Solenne restent suivies dans la matrice externe ; ce
 rapport ne déclare pas achevé leur audit sémantique.
+
+## Prestations C : unités et continuités
+
+Les rapports d'aides séparent quatre natures, types, libellés photographiés et
+unités. Mode autorisations : plafonds globaux des accords chevauchant [début,fin[,
+sans proratisation et sans assimiler une quantité non chiffrée à zéro. Mode
+réalisations : remises actives dont la date appartient à la sélection. Une
+remise collective contribue sa quantité une seule fois, même avec plusieurs
+bénéficiaires. Financeur et prestataire sont des organismes annoncés, pas des
+imputations ou dépenses déduites. La valeur faciale par bon est exportée avec
+sa devise, sans être additionnée aux nombres de bons ni aux coûts.
+
+Les repas restent des quantités réellement distribuées, avec catégorie déclarée
+facultative. Les jours d'autorisation servent au contrôle de distribution et
+au travail du jour, pas à inventer des distributions. Les tableaux historiques
+de repas demeurent alimentés par les réalisations actives.
+
+Une continuité individuelle d'ancien séjour crée des fragments non chevauchants
+avec une filiation explicite. Les admissions/sorties et durées historiques de
+séjours portent sur l'épisode initial : début original, fin du dernier fragment
+si tous sont clos. Le passage technique à l'individuel n'est donc pas une sortie
+ou une admission. Les nuitées utilisent les périodes de chaque fragment et
+ses bénéficiaires, sans redoubler l'histoire commune antérieure.
+
+Le détail individuel d'hébergement fournit une ligne par personne/fragment,
+référence de l'épisode initial, dates du fragment, nuitées théoriques dans la
+sélection, nuits hors absences déclarées et lieux. Il expose les départs partiels,
+qui ne sont pas le compteur historique de sorties de l'épisode collectif. Les
+fragments concomitants restent distincts ; les nuits distinctes par personne
+sont toujours disponibles dans les indicateurs existants. Aucune de ces mesures
+ne prouve une présence physique attestée.
+
+HTML et CSV utilisent la même sélection ; CSV complet, impression de la page
+consultée pour les rapports paginés. Le détail d'hébergement borne sa période
+à deux ans pour contenir le calcul par nuit. La qualification sémantique de
+toutes les branches et combinaisons statistiques Java reste ouverte dans la
+matrice extérieure au dépôt.

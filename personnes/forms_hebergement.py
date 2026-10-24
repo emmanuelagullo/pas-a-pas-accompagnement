@@ -36,7 +36,7 @@ class AffectationForm(PeriodeForm):
 class LieuForm(FormulaireModeleMetier):
     class Meta:
         model = LieuHebergement
-        fields = ["libelle", "organisme", "partenaire"]
+        fields = ["libelle", "niveau", "parent", "organisme", "partenaire"]
         help_texts = {'organisme': 'Réutiliser une fiche du répertoire sans recopier ses coordonnées.',
             'partenaire': 'Seulement si aucun organisme du répertoire n’est choisi. Les anciens libellés restent conservés.'}
 

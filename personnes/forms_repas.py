@@ -6,12 +6,13 @@ DATE = {"type": "date"}
 
 
 class AccordForm(FormulaireModeleMetier):
+    jours_semaine=forms.TypedMultipleChoiceField(label='Jours autorisés (aucun choix : tous les jours)',choices=list(enumerate(['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'])),coerce=int,required=False,widget=forms.CheckboxSelectMultiple)
     saisie_periode = ('debut', 'fin')
     beneficiaires = forms.ModelMultipleChoiceField(Personne.objects.none(), widget=forms.CheckboxSelectMultiple)
 
     class Meta:
         model = AccordRepas
-        fields = ["beneficiaires", "debut", "fin", "service", "prestataire"]
+        fields = ["beneficiaires", "debut", "fin", "service", "prestataire", "jours_semaine"]
         widgets = {nom: forms.DateInput(format="%Y-%m-%d", attrs=DATE) for nom in ("debut", "fin")}
 
     def __init__(self, *args, accompagnement, **kwargs):
@@ -20,6 +21,7 @@ class AccordForm(FormulaireModeleMetier):
 
 
 class DistributionForm(FormulaireMetier):
+    categorie_declaree = forms.CharField(label="Catégorie déclarée (facultative)", max_length=80,required=False,help_text="Par exemple adulte, jeune ou bas âge ; aucune catégorie tarifaire n’est déduite de la naissance.")
     beneficiaire = forms.ModelChoiceField(Personne.objects.none())
     date = forms.DateField(widget=forms.DateInput(format="%Y-%m-%d", attrs=DATE))
     quantite = forms.IntegerField(label="Nombre de repas distribués", min_value=1, max_value=32767, initial=1,
@@ -35,6 +37,7 @@ class AnnulationForm(FormulaireMetier):
 
 
 class ServicesForm(FormulaireMetier):
+    jours_semaine=forms.TypedMultipleChoiceField(label='Jours autorisés (aucun choix : tous les jours)',choices=list(enumerate(['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'])),coerce=int,required=False,widget=forms.CheckboxSelectMultiple)
     saisie_periode = ('debut', 'fin')
     beneficiaires = forms.ModelMultipleChoiceField(Personne.objects.none(), widget=forms.CheckboxSelectMultiple)
     services = forms.MultipleChoiceField(label='Services à accorder', choices=AccordRepas.SERVICES, widget=forms.CheckboxSelectMultiple)

@@ -27,7 +27,7 @@ def etat(accord):
     nombre = accord.realisations.count() if isinstance(accord, m.AccordRepas) else accord.sejours.count()
     return [accord._meta.model_name, str(accord.pk), accord.revision, str(accord.debut), str(accord.fin),
             str(accord.annule_le), str(a.debut), str(a.fin),
-            sorted(str(pk) for pk in accord.beneficiaires.values_list('pk', flat=True)), nombre]
+            sorted(str(pk) for pk in accord.beneficiaires.values_list('pk', flat=True)), nombre, getattr(accord,'jours_semaine',[])]
 
 
 def jeton(accord):

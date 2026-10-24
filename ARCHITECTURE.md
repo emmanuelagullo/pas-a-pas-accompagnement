@@ -523,3 +523,67 @@ Les rapports utilisent une version applicable par élément, des filtres structu
 et un CSV de toute la sélection ; les anciens motifs d'entrée/sortie ont leur
 rapport propre sur la dernière information versionnée, explicitement distinct
 d'une restitution historique à date d'effet.
+
+## Prestations et continuité individuelle — méta-lot C
+
+TypeAide définit un catalogue simple de quatre natures fixes : transport, bon
+alimentaire, produits alimentaires et accueil de jour. Chaque type indique
+libellé, unité, fractionnement éventuel, explication et disponibilité. Les
+modifications sont motivées et journalisées ; chaque AccordAide conserve une
+photographie de la nature/libellé/unité/explication/fractionnement de son type.
+Modifier le catalogue ne change aucun accord existant. Aucun tarif, réseau ou
+nombre de trajets n'est déduit de ces titres. Les sigles historiques TAM1/3/10
+sont des cartes de 1/3/10 voyages dans les impressions Java ; les cartes remises
+ne sont pas des voyages effectués.
+
+AccordAide porte période, bénéficiaires explicites, plafond global facultatif,
+prestataire/financeur annoncés et source. La valeur faciale d'un bon est nullable,
+avec devise ; ce n'est ni un tarif facturé ni une imputation. RemiseAide porte
+une quantité globale pour sa propre sélection de bénéficiaires, une date réelle
+et une source. Les remises actives respectent le plafond s'il est chiffré, les
+périodes d'accord et de prise, les unités entières/fractionnables et le refus
+des réalisations futures. Vide n'est pas zéro. Une correction de personnes
+exige annulation/nouvelle remise ; corriger quantité/date conserve les cibles.
+Les annulations ne suppriment aucune ligne. Un accord ayant eu une remise est
+conservé, même si les remises ont été annulées.
+
+UsageAide est un constat déclaré versionné, distinct de la remise : quantité
+inconnue, zéro explicitement non utilisé, utilisation partielle ou complète.
+Il ne consomme pas une seconde fois le plafond. Les révisions avant/après
+conservent quantités, unités, sources, bénéficiaires et acteurs. Écritures
+liées : ménage avant CAS de prise/accord ; catalogue : CAS propre. Les plafonds
+restent vérifiés sous réservation et transaction unique.
+
+Les repas existants restent des repas, avec petit déjeuner/déjeuner/dîner.
+Jours autorisés facultatifs (vide : tous, compatibilité historique), validation
+à la distribution et sélection dans le travail du jour ; synthèse des jours
+autorisés par union civile. Catégorie déclarée facultative par distribution,
+sans déduction tarifaire depuis la naissance. Corrections de quantité/catégorie
+et de jours/prestataire motivées et journalisées ; des jours corrigés ne peuvent
+exclure une distribution active. Un changement réel de service utilise une
+nouvelle période, pas une correction d'erreur.
+
+Un ancien séjour collectif ouvert peut être continué individuellement à une
+date explicite après son admission et les périodes déjà datées. La période
+commune s'arrête à cette date ; un fragment par personne continue le même accord
+avec lieu et absence ouverts recopiés. ContinuiteSejour garde l'avant/après et
+la filiation des fragments. Aucun ancien séjour n'est converti par migration.
+Ce n'est pas une sortie suivie de nouvelles admissions : les compteurs historiques
+regroupent l'épisode initial, dont la sortie est celle du dernier fragment clos.
+Les nuitées et absences utilisent les fragments non chevauchants. Le détail
+individuel montre les dates de chaque départ et ses nuits ; ses lignes ne sont
+pas des admissions. Les corrections ne déplacent pas isolément la coupure.
+
+Les lieux ont un parent/type facultatifs, sans imposer quatre niveaux. Un
+changement effectif reste une affectation datée. Les corrections de libellé ou
+de rattachement ont un journal ; leurs rares mutations réservent le petit
+répertoire dans l'ordre des identifiants avant de revérifier l'absence de boucle.
+
+Form3 garde les prestations regroupées ; les aides complémentaires ont leurs
+autorisations et actions directes. Le travail du jour conserve date et retour
+après réalisation. Les rapports distinguent autorisations chevauchantes non
+proratisées, remises dans la période, repas et détail individuel d'hébergement.
+Les quantités sont séparées par nature/type/libellé/unité/catégorie, sans somme
+de bons, kg, cartes, repas ou euros. Les PDF serveur/bureau et texte PWA utilisent
+le socle existant, sans ressources externes ; ce sont des restitutions, pas des
+documents émis numérotés/figés ni une facturation.

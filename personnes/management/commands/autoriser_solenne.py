@@ -22,6 +22,8 @@ for nom in ('ressourcepersonnelle','dettepersonnelle','pieceadministrative','cou
 for racine, version, journal in (('demandeaccueil','versiondemande','revisiondemande'),('orientationparcours','versionorientation','revisionorientation'),('objectifparcours','versionobjectif','revisionobjectif'),('reperedossier','versionreperedossier','revisionreperedossier')):
     DROITS.update({'view_'+racine,'add_'+racine,'change_'+racine,'annuler_'+racine,'view_'+version,'view_'+journal})
 
+DROITS.update({'view_revisioncontinuite','change_continuitesejour','view_revisionservicerepas','view_revisionlieu','change_lieuhebergement','view_typeaide','add_typeaide','change_typeaide','view_revisiontypeaide','view_accordaide','add_accordaide','change_accordaide','annuler_accordaide','view_remiseaide','add_remiseaide','change_remiseaide','annuler_remiseaide','view_revisionaide','view_usageaide','add_usageaide','view_revisionrepas','view_continuitesejour','add_continuitesejour'})
+
 
 
 class Command(BaseCommand):

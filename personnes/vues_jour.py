@@ -51,6 +51,7 @@ def jour(request):
         accords = accords.filter(accompagnement__debut__lte=date).filter(Q(accompagnement__fin__isnull=True)|Q(accompagnement__fin__gt=date))
         existants = {(r.accord_id,r.beneficiaire_id): r for r in RepasDistribue.objects.filter(date=date,annule_le__isnull=True,accord__in=accords).select_related("beneficiaire")}
         for accord in accords.order_by("service", "pk"):
+            if accord.jours_semaine and date.weekday() not in accord.jours_semaine:continue
             for personne in accord.beneficiaires.all():
                 cle = (accord.pk, personne.pk)
                 actifs_ids.add(cle)

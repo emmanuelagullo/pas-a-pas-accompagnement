@@ -64,6 +64,8 @@ def completer(nadia, remi, camille, personnes, suivis, jour):
     completer_dossier(nadia, personnes, jour, orgs, profs)
     from .demonstration_parcours import completer as completer_parcours
     completer_parcours(nadia, personnes, suivis, jour, orgs, profs)
+    from .demonstration_c import completer as completer_c
+    completer_c(nadia, personnes, suivis, jour, orgs)
 
 
 def population_elargie(nadia, personnes, suivis, jour, profs, source):

@@ -28,3 +28,15 @@ externe refusée, backend PWA, erreur privée), tests du socle (Unicode, paginat
 vrai Pyodide et téléchargement Chromium hors ligne. Les parcours d'authentification
 et les copies conservent leurs limites et politiques. Cette fonction reste sur
 données fictives et ne qualifie pas l'exploitation de dossiers réels.
+
+## Restitutions des aides — méta-lot C
+
+L'autorisation d'aide et son relevé de réalisation peuvent être téléchargés en
+PDF sous les droits complets de lecture de cette prestation. Moteur HTML natif
+serveur/bureau et fiche texte du socle en PWA, même contenu sans ressource externe.
+Réponses privées no-store, nom de fichier fondé sur l'UUID, erreur de caractères
+sans diagnostic interne. Aucun fichier PDF n'est enregistré dans la base.
+Le document distingue autorisation, remises actives/annulées et utilisation
+déclarée ; il ne compte aucun trajet depuis une carte. Il restitue le courant :
+numérotation d'émission, montant facturé, signature habilitée et réédition figée
+relèvent du méta-lot D. Les impressions HTML restent également disponibles.

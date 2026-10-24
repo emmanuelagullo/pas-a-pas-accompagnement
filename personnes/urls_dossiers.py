@@ -1,3 +1,4 @@
+from . import vues_aides as aides, vues_complements_c as complements_c
 from . import vues_parcours as parcours
 from django.urls import path
 from . import vues_dossiers as vues
@@ -22,6 +23,26 @@ from . import vues_dossier_complet as complet
 
 app_name = 'dossiers'
 urlpatterns = [
+    path('aides/<uuid:pk>/pdf/', aides.pdf, name='aide_pdf'),
+    path('repas/<uuid:pk>/service/corriger/', complements_c.service_repas, name='corriger_service_repas'),
+    path('rapports/hebergement-individuel/', complements_c.rapport_hebergement, name='rapport_hebergement_individuel'),
+    path('lieux/', complements_c.lieu, name='lieux_c'),
+    path('lieux/<int:pk>/corriger/', complements_c.lieu, name='lieu_c_corriger'),
+    path('aides/types/', aides.catalogue, name='types_aides'),
+    path('aides/types/<uuid:pk>/', aides.catalogue, name='type_aide'),
+    path('rapports/aides/', aides.rapport, name='rapport_aides'),
+    path('prise/<uuid:pk>/aides/<str:nature>/accorder/', aides.accorder, name='aide_accorder'),
+    path('aides/<uuid:pk>/', aides.fiche, name='aide'),
+    path('aides/<uuid:pk>/remettre/', aides.action, {'action':'remettre'}, name='aide_remettre'),
+    path('aides/<uuid:pk>/corriger/', aides.action, {'action':'corriger'}, name='aide_corriger'),
+    path('aides/<uuid:pk>/prolonger/', aides.action, {'action':'prolonger'}, name='aide_prolonger'),
+    path('aides/<uuid:pk>/annuler/', aides.action, {'action':'annuler'}, name='aide_annuler'),
+    path('aides/<uuid:pk>/remise/<int:remise_pk>/corriger/', aides.action, {'action':'corriger_remise'}, name='aide_remise_corriger'),
+    path('aides/<uuid:pk>/remise/<int:remise_pk>/annuler/', aides.action, {'action':'annuler'}, name='aide_remise_annuler'),
+    path('aides/<uuid:pk>/remise/<int:remise_pk>/usage/', aides.action, {'action':'usage'}, name='aide_usage'),
+    path('sejour/<uuid:pk>/continuer/', complements_c.individualiser, name='individualiser_sejour'),
+    path('repas/<int:pk>/corriger/', complements_c.repas, name='corriger_distribution'),
+
     path('rapports/parcours/', parcours.rapport, name='rapport_parcours'),
     path('<str:nature>/<uuid:pk>/parcours/', parcours.hub, name='parcours'),
     path('<str:nature>/<uuid:pk>/parcours/<str:code>/nouveau/', parcours.nouveau, name='parcours_nouveau'),

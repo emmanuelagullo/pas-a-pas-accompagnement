@@ -1,5 +1,7 @@
 import uuid
+from decimal import Decimal
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.core.validators import RegexValidator, MinValueValidator
 
@@ -166,6 +168,7 @@ class AccordRepas(Periode):
     accompagnement = models.ForeignKey(Accompagnement, on_delete=models.PROTECT, related_name="accords_repas")
     beneficiaires = models.ManyToManyField(Personne, related_name="accords_repas")
     service = models.CharField("Service de repas", max_length=20, choices=SERVICES)
+    jours_semaine=models.JSONField('Jours autorisés de la semaine',default=list,blank=True)
     prestataire = models.CharField("Prestataire (facultatif)", max_length=160, blank=True)
     cree_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     cree_le = models.DateTimeField(auto_now_add=True)
@@ -182,12 +185,22 @@ class AccordRepas(Periode):
             (models.Q(annule_le__isnull=False, annule_par__isnull=False) & ~models.Q(motif_annulation=''))),
             name='accord_repas_annulation_coherente'), models.CheckConstraint(condition=models.Q(fin__isnull=True) | models.Q(fin__gt=models.F("debut")), name="accord_repas_periode_valide")]
 
+    def clean(self):
+        super().clean()
+        if not isinstance(self.jours_semaine,list) or any(type(j)!=int or j not in range(7) for j in self.jours_semaine) or len(set(self.jours_semaine))!=len(self.jours_semaine):
+            raise ValidationError({'jours_semaine':'Choisissez des jours distincts de lundi à dimanche.'})
+
+    def jours_affiches(self):
+        jours=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche']
+        return ', '.join(jours[j] for j in self.jours_semaine) if self.jours_semaine else 'Tous les jours'
+
 
 class RepasDistribue(models.Model):
     accord = models.ForeignKey(AccordRepas, on_delete=models.PROTECT, related_name="realisations")
     beneficiaire = models.ForeignKey(Personne, on_delete=models.PROTECT)
     date = models.DateField("Date de distribution")
     quantite = models.PositiveSmallIntegerField("Nombre de repas")
+    categorie_declaree=models.CharField('Catégorie déclarée',max_length=80,blank=True)
     cree_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="repas_saisis")
     cree_le = models.DateTimeField(auto_now_add=True)
     annule_le = models.DateTimeField(null=True, editable=False)
@@ -259,6 +272,7 @@ class EvolutionAccord(models.Model):
 
 class Sejour(Periode):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    origine_collective=models.ForeignKey('self',null=True,blank=True,on_delete=models.PROTECT,related_name='continuations',editable=False)
     accord = models.ForeignKey(AccordHebergement, on_delete=models.PROTECT, related_name="sejours")
     beneficiaires = models.ManyToManyField(Personne, related_name="sejours")
     revision = models.PositiveIntegerField(default=0, editable=False)
@@ -270,9 +284,12 @@ class Sejour(Periode):
 
 
 class LieuHebergement(models.Model):
+    revision_sociale=models.PositiveIntegerField(default=0,editable=False)
     cree_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     cree_le = models.DateTimeField(auto_now_add=True)
     libelle = models.CharField("Lieu / unité d’hébergement", max_length=160, validators=[RegexValidator(r"\S", "Indiquez un lieu.")])
+    parent=models.ForeignKey('self',on_delete=models.PROTECT,null=True,blank=True,related_name='sous_lieux')
+    niveau=models.CharField('Type de lieu',max_length=16,blank=True,choices=[('etablissement','Établissement'),('batiment','Bâtiment'),('logement','Logement'),('chambre','Chambre'),('place','Place')])
     partenaire = models.CharField("Opérateur extérieur (facultatif)", max_length=160, blank=True)
     organisme = models.ForeignKey('Partenaire', on_delete=models.PROTECT, null=True, blank=True,
         related_name='lieux', verbose_name='Organisme du répertoire (facultatif)')
@@ -282,12 +299,25 @@ class LieuHebergement(models.Model):
 
     def clean(self):
         super().clean()
+        self.verifier_arbre()
         if self.organisme_id and self.partenaire.strip():
             from django.core.exceptions import ValidationError
             raise ValidationError({'partenaire': 'Choisissez l’organisme du répertoire ou le libellé libre, pas les deux.'})
 
+    def verifier_arbre(self):
+        p=self.parent;vus={self.pk}
+        while p:
+            if p.pk in vus:raise ValidationError({'parent':'La hiérarchie ne peut pas former une boucle.'})
+            vus.add(p.pk);p=p.parent
+
+    def chemin(self):
+        vals=[self.libelle];p=self.parent;vus={self.pk}
+        while p and p.pk not in vus:
+            vus.add(p.pk);vals.append(p.libelle);p=p.parent
+        return ' / '.join(reversed(vals))
+
     def __str__(self):
-        return self.libelle + (" — " + self.partenaire if self.partenaire else "")
+        return self.chemin() + (" — " + self.partenaire if self.partenaire else "")
 
 
 class Affectation(Periode):
@@ -1326,3 +1356,120 @@ class RevisionObjectif(JournalPersonnel):
 
 class RevisionRepereDossier(JournalPersonnel):
     element = models.ForeignKey(RepereDossier, on_delete=models.PROTECT, related_name='revisions')
+
+
+class TypeAide(models.Model):
+    NATURES=[('transport','Transport'),('bon_alimentaire','Bon alimentaire'),('produits','Produits alimentaires'),('accueil_jour','Accueil de jour')]
+    id=models.UUIDField(primary_key=True,default=uuid.uuid4,editable=False)
+    revision_sociale=models.PositiveIntegerField(default=0,editable=False)
+    nature=models.CharField('Nature',max_length=20,choices=NATURES)
+    libelle=models.CharField('Titre ou aide',max_length=160)
+    unite=models.CharField('Unité comptée',max_length=40)
+    fractionnable=models.BooleanField('Unités fractionnables (par exemple kg)',default=False)
+    precision=models.CharField('Sens de l’unité',max_length=500,blank=True)
+    actif=models.BooleanField('Proposé pour les nouveaux accords',default=True)
+    cree_par=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT)
+    cree_le=models.DateTimeField(auto_now_add=True)
+    def __str__(self):return self.libelle+' — '+self.unite
+
+
+class RevisionTypeAide(JournalPersonnel):
+    type_aide=models.ForeignKey(TypeAide,on_delete=models.PROTECT,related_name='revisions')
+
+
+class AccordAide(Periode):
+    id=models.UUIDField(primary_key=True,default=uuid.uuid4,editable=False)
+    revision_sociale=models.PositiveIntegerField(default=0,editable=False)
+    accompagnement=models.ForeignKey(Accompagnement,on_delete=models.PROTECT,related_name='accords_aides')
+    beneficiaires=models.ManyToManyField(Personne,related_name='accords_aides')
+    type_aide=models.ForeignKey(TypeAide,on_delete=models.PROTECT)
+    nature=models.CharField(max_length=20,choices=TypeAide.NATURES,editable=False)
+    libelle=models.CharField(max_length=160,editable=False)
+    unite=models.CharField(max_length=40,editable=False)
+    fractionnable=models.BooleanField(default=False,editable=False)
+    precision=models.CharField(max_length=500,blank=True,editable=False)
+    quantite=models.DecimalField('Quantité totale autorisée',max_digits=14,decimal_places=3,null=True,blank=True,validators=[MinValueValidator(Decimal('0.001'))])
+    prestataire=models.ForeignKey(Partenaire,on_delete=models.PROTECT,null=True,blank=True,related_name='+')
+    financeur=models.ForeignKey(Partenaire,on_delete=models.PROTECT,null=True,blank=True,related_name='+')
+    valeur_bon=models.DecimalField('Valeur faciale d’un bon',max_digits=14,decimal_places=2,null=True,blank=True,validators=[MinValueValidator(0)])
+    devise=models.CharField('Devise de la valeur faciale',max_length=3,default='EUR',validators=[RegexValidator(r'^[A-Z]{3}$','Trois lettres majuscules.')])
+    source=models.CharField('Source de l’autorisation',max_length=160)
+    cree_par=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT)
+    cree_le=models.DateTimeField(auto_now_add=True)
+    annule_le=models.DateTimeField(null=True,editable=False)
+    annule_par=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT,null=True,related_name='+',editable=False)
+    motif_annulation=models.CharField(max_length=240,blank=True,editable=False)
+    class Meta:
+        ordering=['-debut','pk']
+        permissions=[('annuler_accordaide','Annuler un accord d’aide erroné')]
+        constraints=[models.CheckConstraint(condition=models.Q(fin__isnull=True)|models.Q(fin__gt=models.F('debut')),name='aide_periode_valide'),
+            models.CheckConstraint(condition=models.Q(quantite__isnull=True)|models.Q(quantite__gt=0),name='aide_quantite_positive'),
+            models.CheckConstraint(condition=models.Q(valeur_bon__isnull=True)|models.Q(valeur_bon__gte=0),name='aide_valeur_positive'),
+            models.CheckConstraint(condition=models.Q(annule_le__isnull=True,annule_par__isnull=True,motif_annulation='')|(models.Q(annule_le__isnull=False,annule_par__isnull=False)&~models.Q(motif_annulation='')),name='aide_annulation_coherente')]
+    def clean(self):
+        super().clean()
+        if self.valeur_bon is not None and self.nature!='bon_alimentaire':raise ValidationError({'valeur_bon':'La valeur faciale concerne seulement les bons alimentaires, pas un tarif.'})
+    def __str__(self):return self.libelle+' — '+str(self.debut)
+
+
+class RemiseAide(models.Model):
+    accord=models.ForeignKey(AccordAide,on_delete=models.PROTECT,related_name='remises')
+    beneficiaires=models.ManyToManyField(Personne,related_name='remises_aides')
+    date=models.DateField('Date de remise ou de réalisation')
+    quantite=models.DecimalField('Quantité réellement remise',max_digits=14,decimal_places=3,validators=[MinValueValidator(Decimal('0.001'))])
+    source=models.CharField('Source de la réalisation',max_length=160)
+    auteur=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT,related_name='+')
+    enregistre_le=models.DateTimeField(auto_now_add=True)
+    annule_le=models.DateTimeField(null=True,editable=False)
+    annule_par=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT,null=True,related_name='+',editable=False)
+    motif_annulation=models.CharField(max_length=240,blank=True,editable=False)
+    class Meta:
+        ordering=['-date','-pk']
+        permissions=[('annuler_remiseaide','Annuler une remise erronée')]
+        constraints=[models.CheckConstraint(condition=models.Q(quantite__gt=0),name='remise_aide_positive'),
+            models.CheckConstraint(condition=models.Q(annule_le__isnull=True,annule_par__isnull=True,motif_annulation='')|(models.Q(annule_le__isnull=False,annule_par__isnull=False)&~models.Q(motif_annulation='')),name='remise_annulation_coherente')]
+
+
+class UsageAide(models.Model):
+    remise=models.ForeignKey(RemiseAide,on_delete=models.PROTECT,related_name='usages')
+    version=models.PositiveIntegerField()
+    date=models.DateField('Date du constat d’utilisation')
+    quantite=models.DecimalField('Unités utilisées déclarées',max_digits=14,decimal_places=3,null=True,blank=True,validators=[MinValueValidator(0)])
+    source=models.CharField(max_length=160)
+    motif=models.CharField(max_length=240,blank=True)
+    auteur=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT)
+    enregistre_le=models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering=['-version']
+        constraints=[models.UniqueConstraint(fields=['remise','version'],name='usage_version_unique'),models.CheckConstraint(condition=models.Q(quantite__isnull=True)|models.Q(quantite__gte=0),name='usage_quantite_positive')]
+
+
+class RevisionAide(JournalPersonnel):
+    accord=models.ForeignKey(AccordAide,on_delete=models.PROTECT,related_name='revisions')
+    remise=models.ForeignKey(RemiseAide,on_delete=models.PROTECT,null=True,related_name='revisions')
+
+
+class RevisionRepas(JournalPersonnel):
+    repas=models.ForeignKey(RepasDistribue,on_delete=models.PROTECT,related_name='revisions')
+
+
+class ContinuiteSejour(models.Model):
+    origine=models.OneToOneField(Sejour,on_delete=models.PROTECT,related_name='individualisation')
+    date=models.DateField()
+    motif=models.CharField(max_length=240)
+    avant=models.JSONField()
+    apres=models.JSONField()
+    auteur=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT)
+    enregistre_le=models.DateTimeField(auto_now_add=True)
+
+
+class RevisionLieu(JournalPersonnel):
+    lieu=models.ForeignKey(LieuHebergement,on_delete=models.PROTECT,related_name='revisions')
+
+
+class RevisionServiceRepas(JournalPersonnel):
+    accord=models.ForeignKey(AccordRepas,on_delete=models.PROTECT,related_name='revisions_service')
+
+
+class RevisionContinuite(JournalPersonnel):
+    continuite=models.ForeignKey(ContinuiteSejour,on_delete=models.PROTECT,related_name='revisions')

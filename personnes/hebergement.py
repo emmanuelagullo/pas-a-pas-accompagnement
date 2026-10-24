@@ -82,13 +82,16 @@ def admettre(acteur, accord, beneficiaires, debut):
 
 
 @transaction.atomic
-def creer_lieu(acteur, libelle, partenaire="", organisme=None):
+def creer_lieu(acteur, libelle, partenaire="", organisme=None, parent=None, niveau=""):
     droit(acteur, "add_lieuhebergement")
     exiger(acteur, "view_lieuhebergement")
     if organisme is not None:
         exiger(acteur, 'view_partenaire')
-    lieu = LieuHebergement(libelle=libelle, partenaire=partenaire, organisme=organisme, cree_par=acteur)
+    lieu = LieuHebergement(libelle=libelle, partenaire=partenaire, organisme=organisme, parent=parent, niveau=niveau, cree_par=acteur)
     lieu.full_clean(); lieu.save()
+    from .models import RevisionLieu
+    from .series_personnelles import valeur_journal
+    RevisionLieu.objects.create(lieu=lieu,action='ajout',avant=[],apres=[{c:valeur_journal(getattr(lieu,c)) for c in ('libelle','parent','niveau','partenaire','organisme')}],auteur=acteur)
     return lieu
 
 
@@ -183,3 +186,26 @@ def admettre_individuellement(acteur, accord, beneficiaires, debut):
     if not ids or not ids.issubset(set(accord.beneficiaires.values_list("pk", flat=True))):
         raise ValidationError("Sélectionnez des bénéficiaires de cet accord.")
     return [admettre(acteur, accord, [p], debut) for p in sorted({p.pk: p for p in personnes}.values(), key=lambda p: str(p.pk))]
+
+
+def corriger_lieu(acteur,lieu,attendu,motif,**valeurs):
+    droit(acteur,'change_lieuhebergement');exiger(acteur,'view_lieuhebergement','view_revisionlieu')
+    from . import bd6
+    from .models import RevisionLieu
+    from .series_personnelles import valeur_journal
+    if set(valeurs)!=set(('libelle','parent','niveau','partenaire','organisme')):raise ValidationError('Précisez tous les champs du lieu.')
+    if valeurs['organisme']:exiger(acteur,'view_partenaire')
+    if not motif.strip() or len(motif)>240:raise ValidationError('Expliquez la correction du lieu.')
+    with transaction.atomic():
+        # Répertoire petit, mutations rares : ordre stable pour empêcher deux
+        # corrections concurrentes de fabriquer ensemble une boucle de parents.
+        for pk in LieuHebergement.objects.order_by('pk').values_list('pk',flat=True):
+            if pk==lieu.pk:bd6.reserver(lieu,attendu)
+            else:LieuHebergement.objects.filter(pk=pk).update(revision_sociale=F('revision_sociale')+1)
+        if valeurs['parent'] is not None:valeurs['parent']=LieuHebergement.objects.get(pk=valeurs['parent'].pk)
+        avant=[{c:valeur_journal(getattr(lieu,c)) for c in valeurs}]
+        for c,v in valeurs.items():setattr(lieu,c,v)
+        lieu.full_clean();apres=[{c:valeur_journal(getattr(lieu,c)) for c in valeurs}]
+        if avant==apres:raise ValidationError('Aucune modification.')
+        lieu.save();RevisionLieu.objects.create(lieu=lieu,action='correction',avant=avant,apres=apres,motif=motif.strip(),auteur=acteur)
+        return lieu

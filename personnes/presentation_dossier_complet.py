@@ -12,7 +12,7 @@ def valeur(f,v):
     if isinstance(v,dict):return v.get('libelle','')+' · '+v.get('id','')
     if f.choices:return dict(f.choices).get(v,v)
     if isinstance(v,date):return date_format(v,'SHORT_DATE_FORMAT')
-    if isinstance(v,Decimal):return number_format(v,2)
+    if isinstance(v,Decimal):return number_format(v,getattr(f,'decimal_places',2))
     return v
 
 

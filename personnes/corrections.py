@@ -76,6 +76,8 @@ def dates_dependantes(a):
         incluse(a, x.debut, point=True)
         if x.fin:
             incluse(a, x.debut, x.fin)
+    for r in m.RemiseAide.objects.filter(accord__accompagnement=a,annule_le__isnull=True):incluse(a,r.date,point=True)
+    if a.accords_aides.filter(annule_le__isnull=True,debut__lt=a.debut).exists():raise ValidationError('Un accord d’aide commence avant la prise en charge.')
     from .social import date_evenement
     for e in m.EvenementSocial.objects.filter(accompagnement=a):date_evenement(a, e.date_effet)
     for modele,champ in [(m.SituationSociale,'debut'),(m.BilanSocial,'date_effet')]:
@@ -101,6 +103,8 @@ def valider(objet):
             # Admission ouverte sous un accord borné permise, sans prolongation.
             incluse(objet,s.debut,point=True)
     elif nature=='sejour':
+        if hasattr(objet,'individualisation') and objet.fin!=objet.individualisation.date or objet.origine_collective_id and objet.debut!=objet.origine_collective.fin:
+            raise ValidationError('La date de continuité ne se corrige pas indépendamment de ses fragments ; les autres dates restent corrigibles.')
         incluse(objet.accord,objet.debut,point=True)
         incluse(objet.accord.accompagnement,objet.debut,objet.fin)
         for periode in list(objet.affectations.all())+list(objet.absences.all()):incluse(objet,periode.debut,periode.fin)

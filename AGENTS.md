@@ -372,3 +372,15 @@ du dossier ne bloque rien. Préserver les récits enrichis existants et ne pas
 les découper automatiquement. Les rapports de dernières informations de prise
 ne deviennent pas des histoires à date d'effet. Respecter les droits des ménages,
 prises et répertoires dans les contextes et exports.
+
+Prestations C : garder unités et libellés photographiés dans chaque accord ;
+le catalogue ne réécrit pas l'histoire. Plafond global, remise et usage déclaré
+sont distincts ; zéro et inconnu ne se confondent pas. Ne pas multiplier une
+remise collective par ses bénéficiaires, des cartes par leur nombre de voyages,
+ni des bons par un tarif supposé. Conserver droits, CAS sous verrou ménage et
+journaux atomiques. Les jours de repas s'appliquent à la saisie et au travail
+du jour. Une continuité individuelle ne devient pas une nouvelle admission ;
+préserver les compteurs d'épisodes et les nuitées de fragments. Les départs
+partiels se lisent dans le détail individuel. Les corrections de lieux doivent
+rester sans cycles et journalisées. Les PDF de restitution ne sont pas des
+documents émis ou figés ; le méta-lot D porte ces usages.

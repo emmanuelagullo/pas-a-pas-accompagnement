@@ -1,3 +1,13 @@
+## À venir — méta-lot C : prestations et gestes quotidiens
+
+- Transports, bons/produits alimentaires et accueil de jour à unités explicites.
+- Autorisations, remises partielles, usage déclaré, corrections et annulations.
+- Catalogue et révisions, plafonds globaux, bénéficiaires, sources et concurrence.
+- Jours de repas, catégories déclarées et corrections journalisées du service.
+- Continuité individuelle des anciens séjours collectifs sans fausse admission.
+- Hiérarchie facultative et corrections des lieux, rapports, CSV et PDF sous droits.
+- Scénario neuf enrichi sans modification du contrat d’activité existant.
+
 ## À venir — méta-lot B : demandes et parcours longitudinal
 
 - Demandes avant admission, états datés, bénéficiaires et rôles explicites.

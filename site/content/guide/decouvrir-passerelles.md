@@ -131,3 +131,22 @@ Le rapport Parcours fournit les filtres, états, cohortes et délais vers les pr
 débutées, ainsi que l’impression et le CSV. Les coordonnées de destination sont
 réutilisées depuis les répertoires à la date consultée. Les anciens espaces
 d’essai ne sont pas modifiés : ouvrir un espace neuf pour retrouver ce scénario.
+
+### Prestations et gestes quotidiens
+
+Le jeu neuf de l’**Établissement Les Passerelles** propose transports, bons et
+produits alimentaires et accueil de jour dans le groupe **Prestations** de la
+prise en charge. Samira a une remise de cartes corrigée et des bons remis mais
+non utilisés ; Thomas a une remise annulée ; Yannis reçoit une quantité de
+produits en kg. Noor a un accueil de jour sans nuitée artificielle et un futur
+service de repas les mercredis et vendredis. Une autorisation ne remet rien et
+un titre remis ne prouve aucun trajet. Les quantités collectives ne sont pas
+multipliées par le nombre de personnes.
+
+Le travail du jour conserve la date choisie après réalisation. Rapports, CSV
+et PDF distinguent autorisation, remise et utilisation déclarée. Pour un ancien
+séjour collectif, l’action **Continuer individuellement** conserve l’histoire
+commune puis permet d’agir sur une personne ou une sélection, sans fausse
+nouvelle admission. Les lieux peuvent être organisés en établissement, chambre
+et place sans imposer cette hiérarchie. Les tarifs et documents émis numérotés
+seront complétés avec le financement. Les anciens essais restent inchangés.
