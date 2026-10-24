@@ -302,3 +302,18 @@ consultée pour les rapports paginés. Le détail d'hébergement borne sa pério
 à deux ans pour contenir le calcul par nuit. La qualification sémantique de
 toutes les branches et combinaisons statistiques Java reste ouverte dans la
 matrice extérieure au dépôt.
+
+## Coûts et financements — D
+
+Le rapport dédié retient uniquement la dernière version du calcul de chaque
+prestation non annulée. Il distingue composantes et imputations, et impose une
+phase. Les composantes sont sélectionnées à leur date de prix (quantité totale
+rattachée à cette date) ; les imputations sont sélectionnées par chevauchement
+de la période du calcul et ne sont pas proratisées. Ce ne sont ni des charges
+comptables à rattacher à l'exercice ni des règlements. Les totaux sont séparés
+par devise. Les quantités d'unités hétérogènes ne sont pas additionnées. Un coût
+n'est pas répété pour chacun de ses financeurs. Versions historiques et documents
+figés restent consultables dans la prestation. Les CSV protègent les cellules
+textuelles des formules. Le montant ancien `prix_total`, tronqué aux entiers dans
+FormStats.java:1600, est modernisé par un total décimal ; pas de conversion FRF/EUR
+à partir de la seule date.

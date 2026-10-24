@@ -1473,3 +1473,133 @@ class RevisionServiceRepas(JournalPersonnel):
 
 class RevisionContinuite(JournalPersonnel):
     continuite=models.ForeignKey(ContinuiteSejour,on_delete=models.PROTECT,related_name='revisions')
+
+
+# Financements D : versions de calcul immuables, séparées des faits de prestation.
+class TarifPrestation(models.Model):
+    id=models.UUIDField(primary_key=True,default=uuid.uuid4,editable=False)
+    libelle=models.CharField('Nom du tarif',max_length=160)
+    revision_sociale=models.PositiveIntegerField(default=0,editable=False)
+    cree_par=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT)
+    class Meta:
+        ordering=['libelle','pk']
+    def __str__(self):return self.libelle
+
+
+class VersionTarif(Periode):
+    tarif=models.ForeignKey(TarifPrestation,on_delete=models.PROTECT,related_name='versions')
+    version=models.PositiveIntegerField()
+    libelle=models.CharField(max_length=160)
+    unite=models.CharField('Unité facturée',max_length=60)
+    categorie=models.CharField('Catégorie déclarée (facultative)',max_length=80,blank=True)
+    montant=models.DecimalField('Prix unitaire',max_digits=14,decimal_places=4,validators=[MinValueValidator(0)])
+    devise=models.CharField(max_length=3,default='EUR',validators=[RegexValidator(r'^[A-Z]{3}$','Trois lettres majuscules.')])
+    prestataire=models.ForeignKey(Partenaire,on_delete=models.PROTECT,null=True,blank=True)
+    actif=models.BooleanField('Proposer ce tarif',default=True)
+    source=models.CharField(max_length=160)
+    motif=models.CharField(max_length=240)
+    action=models.CharField(max_length=16,choices=[('definition','Définition'),('changement','Nouveau prix'),('correction','Correction d’erreur')])
+    auteur=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT)
+    enregistre_le=models.DateTimeField(auto_now_add=True)
+    class Meta:
+        default_permissions=('view','add')
+        ordering=['-version']
+        constraints=[models.CheckConstraint(condition=models.Q(fin__isnull=True)|models.Q(fin__gt=models.F('debut')),name='tarif_periode_valide'),models.UniqueConstraint(fields=['tarif','version'],name='tarif_version_unique'),models.CheckConstraint(condition=models.Q(montant__gte=0),name='tarif_prix_positif')]
+    def __str__(self):return f'{self.libelle} · v{self.version} du {self.debut} · {self.montant} {self.devise}/{self.unite}'
+
+
+class FinancementPrestation(models.Model):
+    id=models.UUIDField(primary_key=True,default=uuid.uuid4,editable=False)
+    revision_sociale=models.PositiveIntegerField(default=0,editable=False)
+    accompagnement=models.ForeignKey(Accompagnement,on_delete=models.PROTECT,related_name='financements')
+    hebergement=models.OneToOneField(AccordHebergement,on_delete=models.PROTECT,null=True,blank=True,related_name='financement')
+    repas=models.OneToOneField(AccordRepas,on_delete=models.PROTECT,null=True,blank=True,related_name='financement')
+    aide=models.OneToOneField(AccordAide,on_delete=models.PROTECT,null=True,blank=True,related_name='financement')
+    cree_par=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT)
+    class Meta:
+        default_permissions=('view','add')
+        constraints=[models.CheckConstraint(condition=models.Q(hebergement__isnull=False,repas__isnull=True,aide__isnull=True)|models.Q(hebergement__isnull=True,repas__isnull=False,aide__isnull=True)|models.Q(hebergement__isnull=True,repas__isnull=True,aide__isnull=False),name='financement_cible_unique')]
+    @property
+    def accord(self):return self.hebergement or self.repas or self.aide
+    @property
+    def nature(self):return 'hebergement' if self.hebergement_id else 'repas' if self.repas_id else 'aide'
+
+
+class VersionFinancement(Periode):
+    emetteur=models.ForeignKey(Partenaire,on_delete=models.PROTECT,null=True,blank=True,related_name='+',verbose_name='Établissement / organisme émetteur')
+    mentions=models.TextField('Mentions particulières du document',max_length=2000,blank=True)
+    financement=models.ForeignKey(FinancementPrestation,on_delete=models.PROTECT,related_name='versions')
+    version=models.PositiveIntegerField()
+    devise=models.CharField(max_length=3,default='EUR',validators=[RegexValidator(r'^[A-Z]{3}$','Trois lettres majuscules.')])
+    prestataire=models.ForeignKey(Partenaire,on_delete=models.PROTECT,null=True,blank=True,related_name='+')
+    prescripteur=models.ForeignKey(Partenaire,on_delete=models.PROTECT,null=True,blank=True,related_name='+')
+    facturation=models.ForeignKey(Partenaire,on_delete=models.PROTECT,null=True,blank=True,related_name='+',verbose_name='Destinataire de facturation')
+    signataire=models.ForeignKey(Intervenant,on_delete=models.PROTECT,null=True,blank=True)
+    reference=models.CharField('Référence de décision / convention',max_length=100,blank=True)
+    source=models.CharField(max_length=160)
+    motif=models.CharField(max_length=240)
+    action=models.CharField(max_length=16,choices=[('definition','Définition'),('changement','Nouvelle décision'),('correction','Correction d’erreur')])
+    auteur=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT)
+    enregistre_le=models.DateTimeField(auto_now_add=True)
+    class Meta:
+        default_permissions=('view','add')
+        ordering=['-version']
+        constraints=[models.CheckConstraint(condition=models.Q(fin__isnull=True)|models.Q(fin__gt=models.F('debut')),name='calcul_periode_valide'),models.UniqueConstraint(fields=['financement','version'],name='financement_version_unique')]
+
+
+class LigneCout(models.Model):
+    PHASES=[('prevu','Prévu'),('autorise','Autorisé'),('realise','Réalisé documenté')]
+    version=models.ForeignKey(VersionFinancement,on_delete=models.PROTECT,related_name='lignes')
+    phase=models.CharField(max_length=10,choices=PHASES)
+    date=models.DateField('Date du prix applicable')
+    libelle=models.CharField('Composante de coût',max_length=160)
+    unite=models.CharField('Unité facturée',max_length=60)
+    categorie=models.CharField('Catégorie déclarée',max_length=80,blank=True)
+    quantite=models.DecimalField(max_digits=14,decimal_places=3,validators=[MinValueValidator(0)])
+    prix=models.DecimalField('Prix unitaire',max_digits=14,decimal_places=4,validators=[MinValueValidator(0)])
+    montant=models.DecimalField(max_digits=20,decimal_places=2,editable=False)
+    tarif=models.ForeignKey(VersionTarif,on_delete=models.PROTECT,null=True,blank=True)
+    justification=models.CharField('Origine de la quantité / pièce justificative',max_length=240)
+    class Meta:
+        default_permissions=('view',)
+        ordering=['phase','pk']
+        constraints=[models.CheckConstraint(condition=models.Q(quantite__gte=0,prix__gte=0,montant__gte=0),name='couts_non_negatifs')]
+
+
+class ImputationFinancement(models.Model):
+    version=models.ForeignKey(VersionFinancement,on_delete=models.PROTECT,related_name='imputations')
+    phase=models.CharField(max_length=10,choices=LigneCout.PHASES)
+    financeur=models.ForeignKey(Partenaire,on_delete=models.PROTECT)
+    budget=models.CharField('Budget / dispositif / imputation',max_length=160)
+    montant=models.DecimalField('Montant affecté',max_digits=20,decimal_places=2,validators=[MinValueValidator(0)])
+    reference=models.CharField('Référence de décision',max_length=100,blank=True)
+    class Meta:
+        default_permissions=('view',)
+        constraints=[models.CheckConstraint(condition=models.Q(montant__gte=0),name='imputation_non_negative')]
+
+
+class DocumentFinancement(models.Model):
+    MODELES=[('engagement','Bon d’engagement'),('prescription','Bon de prescription'),('releve','Relevé de coûts')]
+    version=models.ForeignKey(VersionFinancement,on_delete=models.PROTECT,related_name='documents')
+    modele=models.CharField(max_length=16,choices=MODELES)
+    date=models.DateField('Date d’émission')
+    phase=models.CharField(max_length=10,choices=LigneCout.PHASES)
+    remplace=models.OneToOneField('self',on_delete=models.PROTECT,null=True,blank=True,related_name='remplacement')
+    contenu=models.JSONField()
+    empreinte=models.CharField(max_length=64)
+    auteur=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT)
+    enregistre_le=models.DateTimeField(auto_now_add=True)
+    class Meta:
+        default_permissions=('view','add')
+        ordering=['-pk']
+    @property
+    def numero(self):return f'PAP-{self.pk:08d}'
+
+
+class AnnulationDocument(models.Model):
+    document=models.OneToOneField(DocumentFinancement,on_delete=models.PROTECT,related_name='annulation')
+    motif=models.CharField(max_length=240)
+    auteur=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT)
+    enregistre_le=models.DateTimeField(auto_now_add=True)
+    class Meta:
+        default_permissions=('view','add')

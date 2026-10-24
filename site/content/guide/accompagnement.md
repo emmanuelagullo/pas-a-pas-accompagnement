@@ -86,3 +86,20 @@ de prise en charge et du projet. La fiche PDF d’identité reste une fiche
 d’identité : elle n’ajoute pas implicitement les notes du dossier.
 Les détails de saisie et de correction sont expliqués dans
 [Transmettre une information à l’équipe](../transmissions/#écrire-et-corriger).
+
+### Financement et documents d'une prestation
+
+Depuis le détail de l'hébergement, des repas ou d'une autre prestation, ouvrir
+**Financement, tarifs et documents** si vos droits le permettent. Cette rubrique
+facultative distingue le prévu, l'autorisé et le réalisé documenté. Choisir un
+tarif daté peut préremplir un prix ; les quantités restent à vérifier. Les faits
+enregistrés peuvent proposer des quantités, sans inventer un coût ou un paiement.
+Les chambres, nuitées de personnes et catégories déclarées de repas restent
+séparées. Plusieurs financeurs peuvent se répartir une phase, avec reliquat visible.
+
+Un bon d'engagement, un bon de prescription ou un relevé reçoit un numéro et
+conserve son contenu et les coordonnées utilisés lors de l'émission. Une erreur
+s'annule avec motif puis peut être remplacée ; l'ancien document reste accessible.
+La réédition PDF ne reprend pas les coordonnées courantes. Le scénario fictif de
+l'**Établissement Les Passerelles** permet de tester ces corrections sur Samira,
+ainsi qu'un accueil de jour gratuit pour Noor. Il ne crée ni signature ni paiement.

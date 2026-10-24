@@ -81,6 +81,12 @@ for code, r in parcours.RUBRIQUES.items():
 type_aide=aides.cataloguer(u,aides.jeton_catalogue(),'Source fictive',nature='transport',libelle='Titre fictif de qualification',unite='titre',fractionnable=False,precision='Aucun trajet déduit',actif=True)
 aide=aides.accorder(u,a,type_aide,[p],bd6.jeton(a),debut=date(2026,1,1),fin=None,quantite=Decimal('3'),prestataire=None,financeur=None,valeur_bon=None,devise='EUR',source='Décision fictive')
 aides.remettre(u,aide,[p],date(2026,1,2),Decimal('1'),'Remise fictive',bd6.jeton(aide))
+from personnes import financements
+financements.enregistrer(u,aide,financements.jeton(aide),'Convention fictive','definition',
+    [dict(phase='autorise',date=date(2026,1,1),libelle='Titre fictif',unite='titre',categorie='',quantite=Decimal('3'),prix=Decimal('2.10'),tarif=None,justification='Décision fictive de qualification')],
+    [dict(phase='autorise',financeur=organisme,budget='Mobilité fictive',montant=Decimal('6.30'),reference='FICTIF')],
+    debut=date(2026,1,1),fin=None,devise='EUR',emetteur=organisme,mentions='Mention fictive de qualification',prestataire=organisme,prescripteur=organisme,facturation=organisme,signataire=professionnel,reference='QUALIFICATION-FICTIVE',source='Convention fictive')
+document_financement=financements.emettre(u,aide,financements.jeton(aide),'engagement','autorise',date(2026,1,2))
 client = Client(HTTP_HOST=settings.ALLOWED_HOSTS[0])
 client.force_login(u, backend='django.contrib.auth.backends.ModelBackend')
 prefixe = settings.FORCE_SCRIPT_NAME or ''
@@ -88,6 +94,8 @@ def chemin(route, *args):
     url = reverse(route, args=args)
     return url[len(prefixe):] if prefixe and url.startswith(prefixe) else url
 for route, args, texte in [
+    ('dossiers:financement',['aide',aide.pk],'Mobilité fictive'),
+    ('dossiers:document_financement',[document_financement.pk],document_financement.numero),
     ('dossiers:prise', ['personne', p.pk, a.pk], 'Ville fictive'),
     ('dossiers:famille', [p.pk], 'Célibataire'),
     ('dossiers:contact_menage', [a.menage_id], 'Personne fictive de qualification'),
@@ -129,6 +137,9 @@ if os.environ.get('SOLENNE_VERIFIER_PDF') == 'oui':
     assert response.status_code == 200 and response.content.startswith(b'%PDF-')
     pdf_aide=client.get(chemin('dossiers:aide_pdf',aide.pk),secure=True)
     assert pdf_aide.status_code==200 and pdf_aide.content.startswith(b'%PDF-')
+    pdf_financement=client.get(chemin('dossiers:document_financement',document_financement.pk),{'format':'pdf'},secure=True)
+    assert pdf_financement.status_code==200 and pdf_financement.content.startswith(b'%PDF-')
+    assert 'no-store' in pdf_financement['Cache-Control']
     assert 'no-store' in response['Cache-Control']
 bd6.corriger_prevision(u, a, None, 'Retrait fictif', bd6.jeton(a))
 a.refresh_from_db()

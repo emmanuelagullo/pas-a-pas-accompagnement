@@ -1,3 +1,4 @@
+from . import vues_financements as financements
 from . import vues_aides as aides, vues_complements_c as complements_c
 from . import vues_parcours as parcours
 from django.urls import path
@@ -23,6 +24,13 @@ from . import vues_dossier_complet as complet
 
 app_name = 'dossiers'
 urlpatterns = [
+    path('tarifs/', financements.tarifs, name='tarifs'),
+    path('tarifs/<uuid:pk>/', financements.tarifs, name='tarif'),
+    path('financement/<str:nature>/<uuid:pk>/', financements.fiche, name='financement'),
+    path('financement/<str:nature>/<uuid:pk>/calcul/', financements.calcul, name='financement_calcul'),
+    path('financement/<str:nature>/<uuid:pk>/emettre/', financements.emission, name='financement_emission'),
+    path('documents-financement/<int:pk>/', financements.document, name='document_financement'),
+    path('rapports/financements/', financements.rapport, name='rapport_financements'),
     path('aides/<uuid:pk>/pdf/', aides.pdf, name='aide_pdf'),
     path('repas/<uuid:pk>/service/corriger/', complements_c.service_repas, name='corriger_service_repas'),
     path('rapports/hebergement-individuel/', complements_c.rapport_hebergement, name='rapport_hebergement_individuel'),

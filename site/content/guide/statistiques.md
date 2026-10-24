@@ -47,3 +47,12 @@ dossiers réels.
 ## Explorer le scénario Établissement Les Passerelles
 
 Sur la période J−60 à J+1, sélectionner « Explorer les repas par mois et service » et « Total par catégorie » : le jeu initial comprend 2 déjeuners et 3 dîners effectivement distribués. Le rapport des nuitées par lieu présente les affectations théoriques, sans déduction des absences et sans preuve de présence physique. Les résultats sont agrégés, non nominatifs. Les captures publiques illustrent ces deux regroupements ; elles sont régénérées en CI sur une base jetable.
+
+### Coûts et financements
+
+Le rapport dédié permet de consulter et exporter les dernières versions des
+calculs, une phase à la fois et des totaux séparés par devise. Les composantes suivent leur date de
+prix ; les imputations sont retenues lorsque leur période chevauche la période
+recherchée, sans proratisation. Financeur et budget filtrent les imputations ;
+unité et catégorie filtrent les composantes. Les montants ne prouvent pas un
+paiement et les anciennes versions restent accessibles dans chaque prestation.

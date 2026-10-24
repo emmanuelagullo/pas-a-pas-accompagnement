@@ -40,3 +40,15 @@ Le document distingue autorisation, remises actives/annulées et utilisation
 déclarée ; il ne compte aucun trajet depuis une carte. Il restitue le courant :
 numérotation d'émission, montant facturé, signature habilitée et réédition figée
 relèvent du méta-lot D. Les impressions HTML restent également disponibles.
+
+## Documents financiers émis — méta-lot D
+
+Les trois gabarits engagement/prescription/relevé figent les textes et coordonnées
+lors de l'émission, dans `DocumentFinancement`. Le numéro PAP et l'empreinte du
+contenu sont restitués ; les rééditions réutilisent le contenu conservé, même si
+le calcul ou le répertoire a été corrigé. Une annulation est affichée en tête,
+sans modifier ce contenu. La stabilité porte sur le contenu métier, pas sur les
+octets PDF ni une signature électronique. Aucun PDF binaire n'est stocké, aucun
+rendu distant n'est utilisé. Droits complets de financement et de la prestation
+contrôlés avant lecture ; réponses privées no-store, caractères non représentables
+refusés avec message 422 privé, sans diagnostic interne.

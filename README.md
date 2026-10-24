@@ -1254,3 +1254,50 @@ de jour, avec unités explicites, autorisations et réalisations séparées. Les
 anciens séjours collectifs peuvent continuer individuellement, sans compter une
 nouvelle admission. Les repas peuvent être limités à certains jours de semaine.
 Voir la recette du méta-lot C dans DEMONSTRATION.md.
+
+## Financements et documents — méta-lot D
+
+Dans le détail d'une prestation (hébergement, repas, transports et autres aides),
+**Financement, tarifs et documents** ouvre un calcul facultatif. La BD conserve
+ses trois étapes ; aucune saisie financière n'est requise pour réaliser une
+prestation. `autoriser_solenne IDENTIFIANT` attribue volontairement les nouveaux
+droits, après migration ; aucun droit n'est ajouté automatiquement aux comptes.
+
+Un catalogue propose des prix datés, en décimaux avec devise et unité explicites.
+Choisir un tarif puis **Reprendre les tarifs choisis** préremplit sa composante ;
+la quantité globale reste à vérifier. **Proposer les quantités réalisées depuis
+les faits** reprend les remises actives, repas distribués par catégorie déclarée
+ou personnes-nuitées des fragments de séjour. Il faut encore vérifier la période,
+l'unité conventionnelle et le prix. Les absences ne sont pas déduites de cette
+suggestion de séjour ; aucune chambre facturée ni dépense n'en est déduite.
+L'aperçu JavaScript est indicatif ; le serveur calcule en Decimal et arrondit
+chaque ligne au centième, à mi-chemin vers le haut. Tout fonctionne sans JavaScript.
+
+Prévu, autorisé et réalisé documenté sont trois phases distinctes. Plusieurs
+financeurs/budgets peuvent recevoir des montants dans chacune ; leur somme ne
+dépasse pas son coût, et le reliquat reste visible. Une quantité ou un prix
+inconnu ne devient pas zéro. Les différentes devises ne sont jamais converties
+ou additionnées. Une nouvelle décision ou correction conserve la version entière
+précédente, ses lignes, imputations, auteur, source et motif.
+
+Trois gabarits sont disponibles : bon d'engagement, bon de prescription et
+relevé de coûts. Les bons portent sur l'autorisé ; le relevé permet chacune des
+phases. Émetteur, prestataire, prescripteur, destinataire de facturation et
+signataire professionnel sont explicites et distincts du compte de saisie.
+Les mentions particulières complètent les données structurées sans les remplacer.
+Chaque émission reçoit un numéro PAP et conserve son contenu, les coordonnées
+à la date d'émission et une empreinte. Modifier ensuite un tarif ou répertoire
+ne réécrit aucun document. Une erreur s'annule avec motif puis peut recevoir un
+nouveau document lié ; l'original demeure consultable avec son statut d'annulation.
+Aucune signature électronique, facture, règlement ou comptabilité générale n'est créé.
+
+Les rapports/CSV exploitent les dernières versions, une phase à la fois : coûts
+à leur date de prix, ou imputations dont la période chevauche celle demandée,
+sans proratisation. Filtres prestation, devise, unité/catégorie, financeur/budget,
+prescripteur et signataire ; le filtrage financeur ne multiplie pas les coûts.
+Les anciennes versions restent dans la prestation et les documents émis.
+Les copies existantes conservent toutes ces tables sans nouveau format.
+
+Un prix déjà utilisé peut être conservé lors d’une correction de quantité dans
+la même phase et à la même date de calcul, même si le catalogue a été corrigé
+depuis ; il reste explicitement lié à sa version de tarif d’origine.

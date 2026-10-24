@@ -306,3 +306,12 @@ Premier prototype : création et consultation d'une personne fictive.
 - #SOC CHRS11 : exploration chronologique filtrable de l'accompagnement,
   par bénéficiaire et dates d'effet, sans score ni nouveau stockage social ;
   droits de lecture distincts selon les catégories de faits.
+
+## Reprise Solenne — méta-lot D
+
+- Financement facultatif depuis chaque prestation, tarifs datés/versionnés,
+  propositions de quantités depuis les faits, phases et imputations explicites.
+- Calculs décimaux et corrections conservées, rapports et CSV par devise/budget.
+- Bons/relevés numérotés, contenu et coordonnées figés, annulation motivée et
+  remplacement lié ; réédition PDF serveur, bureau et PWA.
+- Scénario neuf Établissement Les Passerelles enrichi, anciens essais conservés.

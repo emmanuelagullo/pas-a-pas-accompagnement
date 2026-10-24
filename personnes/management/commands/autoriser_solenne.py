@@ -24,6 +24,10 @@ for racine, version, journal in (('demandeaccueil','versiondemande','revisiondem
 
 DROITS.update({'view_revisioncontinuite','change_continuitesejour','view_revisionservicerepas','view_revisionlieu','change_lieuhebergement','view_typeaide','add_typeaide','change_typeaide','view_revisiontypeaide','view_accordaide','add_accordaide','change_accordaide','annuler_accordaide','view_remiseaide','add_remiseaide','change_remiseaide','annuler_remiseaide','view_revisionaide','view_usageaide','add_usageaide','view_revisionrepas','view_continuitesejour','add_continuitesejour'})
 
+for nom in ('tarifprestation','versiontarif','financementprestation','versionfinancement','documentfinancement','annulationdocument'):
+    DROITS.update({'view_'+nom,'add_'+nom})
+DROITS.update({'change_tarifprestation','view_lignecout','view_imputationfinancement'})
+
 
 
 class Command(BaseCommand):

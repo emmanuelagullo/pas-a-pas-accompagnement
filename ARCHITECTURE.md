@@ -587,3 +587,35 @@ Les quantités sont séparées par nature/type/libellé/unité/catégorie, sans 
 de bons, kg, cartes, repas ou euros. Les PDF serveur/bureau et texte PWA utilisent
 le socle existant, sans ressources externes ; ce sont des restitutions, pas des
 documents émis numérotés/figés ni une facturation.
+
+## Financements de prestations (D)
+
+`FinancementPrestation` cible exactement un accord hébergement/repas/aide, sans
+GenericForeignKey ni nouvelle notion de dossier. Sous verrou ménage, un jeton
+signé vérifie cible/période/bénéficiaires et révision du financement. Les versions
+complètes `VersionFinancement`, `LigneCout` et `ImputationFinancement` sont écrites
+atomiquement, sans droits de modification/suppression de version. Les écritures
+ne modifient aucune prestation. Une nouvelle décision et une correction sont
+distinguées dans la version avec motif. Les trois phases ne s'additionnent pas.
+
+`TarifPrestation` sérialise ses nouvelles `VersionTarif` par CAS. À une date,
+prendre d'abord la dernière date d'effet puis sa dernière correction ; une fin
+corrigée ne ressuscite pas l'ancienne version. Un prix futur ne masque pas un
+prix antérieur. Un nouveau prix prend une nouvelle date ; une correction porte
+sur une date existante. Une ligne référencée conserve libellé/unité/catégorie/prix
+et exige la même devise et le même prestataire éventuel. Les calculs précédents
+ne sont jamais recalculés lors d'une correction du catalogue.
+
+`DocumentFinancement` utilise sa clé séquentielle pour un numéro stable, conserve
+un contenu JSON de restitution (gabarit version 1), titre/lignes textuelles et
+SHA-256 canonique. Les données de recherche restent dans les modèles typés,
+le JSON sert uniquement à la réédition. `AnnulationDocument` conserve motif/auteur/
+horodatage sans modifier le contenu émis. Un remplacement exige l'annulation,
+la même prestation et un lien unique. Émission/annulation consomment aussi le
+jeton du financement. La réédition n'interroge pas les répertoires courants.
+Les PDF serveur/bureau/PWA réutilisent les moteurs communs, sans nouvelle
+bibliothèque, configuration ou ressource réseau.
+
+Un prix déjà utilisé peut être conservé lors d’une correction de quantité dans
+la même phase et à la même date de calcul, même si le catalogue a été corrigé
+depuis ; il reste explicitement lié à sa version de tarif d’origine.

@@ -384,3 +384,14 @@ préserver les compteurs d'épisodes et les nuitées de fragments. Les départs
 partiels se lisent dans le détail individuel. Les corrections de lieux doivent
 rester sans cycles et journalisées. Les PDF de restitution ne sont pas des
 documents émis ou figés ; le méta-lot D porte ces usages.
+
+Financements D : ne jamais dériver un paiement d'une imputation ni une réalisation
+physique d'une ligne de coût. Garder phases/devises/unités séparées, prix décimaux,
+arrondi par ligne et reliquat explicite. Une suggestion depuis les faits reste à
+confirmer ; les personnes-nuitées ne sont pas des chambres et les absences ne
+sont pas implicitement déduites. Les versions de tarifs et de calcul sont conservées,
+les corrections datées ne ressuscitent pas un ancien prix. Les documents émis
+photographient coordonnées et contenu ; leur annulation est une ligne séparée,
+jamais une réécriture. Numéro et lien de remplacement restent uniques. Préserver
+le verrou ménage, CAS, droits volontaires, contexte BD/date/retour, PDF privés et
+copies ; tester `personnes.tests_meta_d` et les trois profils Solenne.

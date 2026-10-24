@@ -512,3 +512,17 @@ lieux sont accessibles depuis ces rubriques transversales. Les PDF restituent le
 données courantes sous droits ; les émissions numérotées, tarifs et rééditions
 figées arrivent avec le financement. Aucun ancien espace n'est enrichi ou remis
 à zéro automatiquement.
+
+### Financements et documents (jeu neuf, D)
+
+Dans une prestation d'hébergement de Samira, ouvrir **Financement, tarifs et
+documents** : chambres et petits déjeuners séparés, prévu/autorisé, deux financeurs
+et reliquat. Le premier bon est annulé pour erreur de quantité ; son remplacement
+utilise le calcul corrigé. Le catalogue change ensuite le prix de chambre : ouvrir
+l'ancien document vérifie que son prix et ses coordonnées restent conservés.
+Les repas de Samira montrent des catégories explicitement déclarées et un tarif
+petite enfance à zéro. Son transport TAM3 distingue quantité autorisée et remises
+documentées, avec un relevé numéroté. L'accueil de jour de Noor montre une gratuité
+explicite ; les autres prestations peuvent rester sans coût connu. Aucune recette
+ne demande de contacter un organisme, signer ou payer. Ces compléments concernent
+uniquement les nouveaux espaces Établissement Les Passerelles.
