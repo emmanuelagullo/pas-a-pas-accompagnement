@@ -307,3 +307,12 @@ métier. Une modification du format exige les essais de reprise et de conflits.
 Les fichiers JS embarqués sont reconstruits avec le lock de outils/editeur ;
 conserver leurs licences et tester scripts/verifier-editeur-textes.cjs ainsi
 que le vrai parcours PWA. Ne pas assimiler Chromium à WebView2/WebKitGTK.
+
+## Solenne — contacts et personnes
+
+Le contact désigné du ménage est facultatif et daté, sans responsabilité légale
+ou professionnelle implicite. Il peut être extérieur au ménage ; ne créer ni
+appartenance ni bénéficiaire depuis ce rôle. Le service réserve le ménage avant
+lecture et réutilise la chronologie typée ; les journaux gardent UUID/libellés
+avant/après. Un retrait est une nouvelle période sans contact, pas une suppression.
+Préserver les retours BD, droits distincts, copies et la restitution à l'entrée.

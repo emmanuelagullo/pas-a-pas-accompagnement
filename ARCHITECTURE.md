@@ -357,3 +357,14 @@ préchargées par date et par droit ; aucune requête par personne ajoutée au r
 La fiche PDF reçoit une projection déjà autorisée, sans requête ni droits implicites
 dans le moteur commun. Les règles de chronologie et d'export sont partagées
 uniquement entre ces deux usages établis ; aucun changement du wheel.
+
+## Solenne L2b — série datée au niveau ménage
+
+ContactMenage et RevisionContactMenage réutilisent l'algorithme de chronologie
+avec une cible ménage explicitement fournie par le service. La réservation CAS
+porte sur Menage.revision ; aucune écriture de personne n'est acquise ensuite.
+Les journaux des trois usages restent typés et distincts. Les références aux
+personnes conservent UUID et libellé au moment de la saisie dans l'avant/après.
+Une absence de ligne signifie non renseigné ; une ligne avec contact nul est un
+retrait explicite depuis sa date d'effet. Aucune donnée ancienne ni permission
+n'est déduite du libellé du ménage, de l'ordre des membres ou de son créateur.

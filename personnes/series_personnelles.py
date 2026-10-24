@@ -1,18 +1,23 @@
 """Chronologie commune à deux histoires personnelles typées, sans moteur de champs."""
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Model
 from django.utils import timezone
 from . import bd6, suivi
 
 
-def photographie(personne, modele, champs):
+def valeur_journal(valeur):
+    return {'id': str(valeur.pk), 'libelle': str(valeur)} if isinstance(valeur, Model) else valeur
+
+
+def photographie(personne, modele, champs, champ_cible='personne'):
     return [{'id': x.pk, 'debut': x.debut.isoformat(), 'fin': x.fin.isoformat() if x.fin else None,
-        **{champ: getattr(x, champ) for champ in champs}, 'source': x.source}
-        for x in modele.objects.filter(personne=personne).order_by('debut', 'pk')]
+        **{champ: valeur_journal(getattr(x, champ)) for champ in champs}, 'source': x.source}
+        for x in modele.objects.filter(**{champ_cible: personne}).order_by('debut', 'pk')]
 
 
 @transaction.atomic
-def enregistrer(acteur, personne, debut, source, attendu, motif, correction, valeurs, *, modele, journal, champs, lien):
+def enregistrer(acteur, personne, debut, source, attendu, motif, correction, valeurs, *, modele, journal, champs, lien, champ_cible='personne'):
     # Les droits sont chargés avant d'ouvrir la transaction : la réservation
     # personnelle est bien sa première requête SQL, même pour un compte neuf.
     bd6.reserver(personne, attendu)
@@ -24,18 +29,18 @@ def enregistrer(acteur, personne, debut, source, attendu, motif, correction, val
         raise ValidationError({'source': 'Indiquez la source de cette information.'})
     if len(motif) > 240:
         raise ValidationError({'motif': 'Le motif est limité à 240 caractères.'})
-    avant = photographie(personne, modele, champs)
-    serie = list(modele.objects.filter(personne=personne).order_by('debut', 'pk'))
+    avant = photographie(personne, modele, champs, champ_cible)
+    serie = list(modele.objects.filter(**{champ_cible: personne}).order_by('debut', 'pk'))
     if correction is not None:
         suivi.exiger(acteur, 'change_' + modele._meta.model_name)
         fait = next((x for x in serie if x.pk == correction), None)
         if fait is None:
-            raise ValidationError('Cette information ne correspond pas à cette personne.')
+            raise ValidationError('Cette information ne correspond pas à ce dossier.')
         action = 'correction'
         if fait.debut == debut and fait.source == source.strip() and all(getattr(fait, c) == valeurs[c] for c in champs):
             raise ValidationError('Aucune modification de cette information.')
     else:
-        fait = modele(personne=personne, auteur=acteur)
+        fait = modele(**{champ_cible: personne}, auteur=acteur)
         action = 'insertion' if any(x.debut > debut for x in serie) else 'changement'
         serie.append(fait)
     if action != 'changement':
@@ -60,6 +65,6 @@ def enregistrer(acteur, personne, debut, source, attendu, motif, correction, val
     for x in sorted(serie, key=lambda x: x.fin is None):
         x.full_clean()
         x.save()
-    journal.objects.create(personne=personne, **{lien: fait}, action=action,
-        avant=avant, apres=photographie(personne, modele, champs), motif=motif.strip(), auteur=acteur)
+    journal.objects.create(**{champ_cible: personne, lien: fait}, action=action,
+        avant=avant, apres=photographie(personne, modele, champs, champ_cible), motif=motif.strip(), auteur=acteur)
     return fait

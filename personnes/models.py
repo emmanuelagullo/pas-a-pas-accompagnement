@@ -687,3 +687,34 @@ class RevisionCoordonneesPersonnelles(models.Model):
 
     class Meta:
         ordering = ['-enregistre_le', '-pk']
+
+
+class ContactMenage(Periode):
+    menage = models.ForeignKey(Menage, on_delete=models.PROTECT, related_name='contacts_designes')
+    contact = models.ForeignKey(Personne, on_delete=models.PROTECT, null=True, blank=True,
+        related_name='designations_contact', verbose_name='Personne de contact')
+    source = models.CharField('Source de la désignation', max_length=160)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    enregistre_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-debut', '-pk']
+        constraints = [
+            models.CheckConstraint(condition=models.Q(fin__isnull=True) | models.Q(fin__gt=models.F('debut')), name='contact_menage_periode_valide'),
+            models.UniqueConstraint(fields=['menage', 'debut'], name='contact_menage_date_unique'),
+            models.UniqueConstraint(fields=['menage'], condition=models.Q(fin__isnull=True), name='contact_menage_ouvert_unique'),
+        ]
+
+
+class RevisionContactMenage(models.Model):
+    menage = models.ForeignKey(Menage, on_delete=models.PROTECT)
+    designation = models.ForeignKey(ContactMenage, on_delete=models.PROTECT, related_name='revisions')
+    action = models.CharField(max_length=20, choices=RevisionDeclarationFamiliale._meta.get_field('action').choices)
+    avant = models.JSONField(default=list)
+    apres = models.JSONField(default=list)
+    motif = models.CharField(max_length=240, blank=True)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    enregistre_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-enregistre_le', '-pk']

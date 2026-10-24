@@ -1,3 +1,9 @@
+## À venir — Solenne L2b
+
+- Contact du ménage choisi explicitement, daté, retirable et corrigeable avec historique.
+- Synthèse BD, consultation à date, résumé à l’entrée et CSV sous droits dédiés.
+- Aucune responsabilité juridique, appartenance ou prestation attribuée par ce rôle.
+
 ## À venir — Solenne L3a
 
 - Adresses et coordonnées individuelles datées, avec corrections et historique.

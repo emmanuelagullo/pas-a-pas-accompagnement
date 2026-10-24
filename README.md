@@ -1089,3 +1089,18 @@ Pour vérifier les vraies vues Django dans trois configurations isolées :
 PDF natif et pwa/requirements-pdf.txt déjà disponibles). Ce banc migre des bases
 fictives temporaires et exerce ouverture, BD, rapports et PDF. Il ne remplace pas
 une observation dans un navigateur, WebView ou dans le vrai Worker Pyodide.
+
+## Solenne L2b — contact désigné du ménage
+
+Dans Composition du ménage, « Consulter ou désigner » ouvre le contact daté.
+Le choix passe par une recherche des personnes déjà connues, sans création
+implicite. Le contact peut être membre ou extérieur au ménage. Le retrait est
+une nouvelle désignation « aucun contact », pas une suppression des anciennes.
+Les corrections motivées peuvent rectifier la personne ou la date, sans traverser
+une autre désignation. Date, source, auteur et avant/après restent consultables.
+Ce rôle ne crée ni appartenance, ni bénéficiaire, ni responsabilité juridique.
+Il ne remplace ni le référent professionnel ni le représentant légal.
+La consultation à date propose un CSV et une page imprimable ; le résumé de prise
+reprend le contact à l'entrée. Les coordonnées personnelles de ce contact restent
+soumises à leurs droits distincts. Attribution volontaire des nouveaux droits :
+`python3 manage.py autoriser_solenne IDENTIFIANT`, après migration.

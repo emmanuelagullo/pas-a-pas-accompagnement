@@ -21,7 +21,7 @@ from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.test import Client
 from django.urls import reverse
-from personnes import bd6, famille, coordonnees, ouverture_prise
+from personnes import bd6, famille, coordonnees, ouverture_prise, contacts_menage
 from personnes.models import Personne
 
 call_command('migrate', interactive=False, verbosity=0)
@@ -40,6 +40,7 @@ famille.renseigner(u, p, date(2026, 1, 1), 'Entretien fictif', bd6.jeton(p),
 coordonnees.renseigner(u, p, date(2026, 1, 1), 'Entretien fictif', bd6.jeton(p),
     rue='Rue fictive', code_postal='00100', ville='Ville fictive', pays='Pays fictif',
     telephone='', courriel='personne@example.invalid', fax='')
+contacts_menage.designer(u, a.menage, p, date(2026, 1, 1), 'Choix fictif', bd6.jeton(a.menage))
 client = Client(HTTP_HOST=settings.ALLOWED_HOSTS[0])
 client.force_login(u, backend='django.contrib.auth.backends.ModelBackend')
 prefixe = settings.FORCE_SCRIPT_NAME or ''
@@ -49,6 +50,7 @@ def chemin(route, *args):
 for route, args, texte in [
     ('dossiers:prise', ['personne', p.pk, a.pk], 'Ville fictive'),
     ('dossiers:famille', [p.pk], 'Célibataire'),
+    ('dossiers:contact_menage', [a.menage_id], 'Personne fictive de qualification'),
     ('dossiers:coordonnees', [p.pk], '00100'),
     ('dossiers:rapport_familles', [], 'Célibataire'),
     ('dossiers:rapport_coordonnees', [], 'Ville fictive')]:
