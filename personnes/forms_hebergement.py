@@ -33,7 +33,14 @@ class AffectationForm(PeriodeForm):
 class LieuForm(forms.ModelForm):
     class Meta:
         model = LieuHebergement
-        fields = ["libelle", "partenaire"]
+        fields = ["libelle", "organisme", "partenaire"]
+        help_texts = {'organisme': 'Réutiliser une fiche du répertoire sans recopier ses coordonnées.',
+            'partenaire': 'Seulement si aucun organisme du répertoire n’est choisi. Les anciens libellés restent conservés.'}
+
+    def __init__(self, *args, acteur=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if acteur is None or not acteur.has_perm('personnes.view_partenaire'):
+            del self.fields['organisme']
 
 
 class ChangementLieuForm(forms.Form):

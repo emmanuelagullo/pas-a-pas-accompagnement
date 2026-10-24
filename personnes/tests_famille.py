@@ -213,6 +213,9 @@ class FamilleConcurrenceTests(Donnees, TransactionTestCase):
             self.assertEqual(EvolutionPriseEnCharge.objects.get().action, 'prolongation')
             self.assertEqual(Accompagnement.objects.get(pk=a.pk).fin_prevue, date(2026, 6, 1))
             self.assertFalse(DeclarationFamiliale.objects.exists())
+            from .models import ContactMenage, Partenaire
+            self.assertFalse(ContactMenage.objects.exists())
+            self.assertFalse(Partenaire.objects.exists())
             self.assertFalse(get_user_model().objects.get(pk=u.pk).user_permissions.exists())
             self.assertEqual(Personne.objects.get(pk=p.pk).designation, 'Ancienne fictive')
         finally:

@@ -7,14 +7,14 @@ from django.db.models import F, Q
 from django.utils import timezone
 from . import suivi, dossier
 from .models import (Personne, Menage, Accompagnement, SituationSociale, SituationPersonnelle,
-    RevisionSituationPersonnelle, EvolutionPriseEnCharge, CommentaireDossier, Appartenance)
+    RevisionSituationPersonnelle, EvolutionPriseEnCharge, CommentaireDossier, Appartenance, Partenaire)
 from .verrous_metier import serialiser
 
 SEL = 'bd6-etat-v1'
 
 
 def revision(objet):
-    return objet.revision if isinstance(objet, Menage) else objet.revision_sociale
+    return objet.revision if isinstance(objet, (Menage, Partenaire)) else objet.revision_sociale
 
 
 def jeton(objet):
@@ -30,7 +30,7 @@ def reserver(objet, attendu):
         raise ValidationError('État non vérifiable. Rechargez le formulaire.')
     if not isinstance(etat, list) or len(etat) != 3 or etat[:2] != [objet._meta.model_name, str(objet.pk)]:
         raise ValidationError('Ce formulaire ne concerne pas cette cible.')
-    champ = 'revision' if isinstance(objet, Menage) else 'revision_sociale'
+    champ = 'revision' if isinstance(objet, (Menage, Partenaire)) else 'revision_sociale'
     if type(objet).objects.filter(pk=objet.pk, **{champ: etat[2]}).update(**{champ: F(champ) + 1}) != 1:
         raise ValidationError('La situation a changé. Rechargez avant de réessayer.')
     objet.refresh_from_db()

@@ -316,3 +316,10 @@ appartenance ni bénéficiaire depuis ce rôle. Le service réserve le ménage a
 lecture et réutilise la chronologie typée ; les journaux gardent UUID/libellés
 avant/après. Un retrait est une nouvelle période sans contact, pas une suppression.
 Préserver les retours BD, droits distincts, copies et la restitution à l'entrée.
+
+Le répertoire Partenaire représente des organisations/services, pas les comptes
+ni les personnes accompagnées. Les fiches sont datées et leurs corrections
+journalisées. Ne pas rapprocher automatiquement un ancien libellé libre.
+La réservation d'une fiche de répertoire n'acquiert aucun verrou de ménage.
+Les nouveaux lieux peuvent référencer l'organisme sans recopier ses coordonnées.
+Les droits et exports du répertoire ne donnent aucun accès implicite aux dossiers.

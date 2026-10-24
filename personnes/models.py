@@ -274,6 +274,17 @@ class LieuHebergement(models.Model):
     cree_le = models.DateTimeField(auto_now_add=True)
     libelle = models.CharField("Lieu / unité d’hébergement", max_length=160, validators=[RegexValidator(r"\S", "Indiquez un lieu.")])
     partenaire = models.CharField("Opérateur extérieur (facultatif)", max_length=160, blank=True)
+    organisme = models.ForeignKey('Partenaire', on_delete=models.PROTECT, null=True, blank=True,
+        related_name='lieux', verbose_name='Organisme du répertoire (facultatif)')
+
+    class Meta:
+        constraints = [models.CheckConstraint(condition=models.Q(organisme__isnull=True) | models.Q(partenaire=''), name='lieu_operateur_non_ambigu')]
+
+    def clean(self):
+        super().clean()
+        if self.organisme_id and self.partenaire.strip():
+            from django.core.exceptions import ValidationError
+            raise ValidationError({'partenaire': 'Choisissez l’organisme du répertoire ou le libellé libre, pas les deux.'})
 
     def __str__(self):
         return self.libelle + (" — " + self.partenaire if self.partenaire else "")
@@ -709,6 +720,59 @@ class ContactMenage(Periode):
 class RevisionContactMenage(models.Model):
     menage = models.ForeignKey(Menage, on_delete=models.PROTECT)
     designation = models.ForeignKey(ContactMenage, on_delete=models.PROTECT, related_name='revisions')
+    action = models.CharField(max_length=20, choices=RevisionDeclarationFamiliale._meta.get_field('action').choices)
+    avant = models.JSONField(default=list)
+    apres = models.JSONField(default=list)
+    motif = models.CharField(max_length=240, blank=True)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    enregistre_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-enregistre_le', '-pk']
+
+
+class Partenaire(models.Model):
+    """Organisation ou service stable ; la fiche datée porte ses renseignements."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    libelle = models.CharField(max_length=160)
+    revision = models.PositiveIntegerField(default=0, editable=False)
+    cree_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    cree_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['libelle', 'pk']
+
+    def __str__(self):
+        return self.libelle
+
+
+class FichePartenaire(Periode):
+    partenaire = models.ForeignKey(Partenaire, on_delete=models.PROTECT, related_name='fiches')
+    nom = models.CharField('Nom de l’organisme ou du service', max_length=160, validators=[RegexValidator(r'\S', 'Indiquez un nom.')])
+    rue = models.CharField('Adresse — rue et complément', max_length=240, blank=True)
+    code_postal = models.CharField('Code postal', max_length=20, blank=True)
+    ville = models.CharField('Ville', max_length=160, blank=True)
+    pays = models.CharField('Pays', max_length=160, blank=True)
+    telephone = models.CharField('Téléphone', max_length=80, blank=True)
+    courriel = models.EmailField('Courriel', blank=True)
+    fax = models.CharField('Fax (si utile)', max_length=80, blank=True)
+    informations = models.TextField('Informations pratiques', max_length=1000, blank=True)
+    source = models.CharField('Source de l’information', max_length=160)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    enregistre_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-debut', '-pk']
+        constraints = [
+            models.CheckConstraint(condition=models.Q(fin__isnull=True) | models.Q(fin__gt=models.F('debut')), name='fiche_partenaire_periode_valide'),
+            models.UniqueConstraint(fields=['partenaire', 'debut'], name='fiche_partenaire_date_unique'),
+            models.UniqueConstraint(fields=['partenaire'], condition=models.Q(fin__isnull=True), name='fiche_partenaire_ouverte_unique'),
+        ]
+
+
+class RevisionFichePartenaire(models.Model):
+    partenaire = models.ForeignKey(Partenaire, on_delete=models.PROTECT)
+    fiche = models.ForeignKey(FichePartenaire, on_delete=models.PROTECT, related_name='revisions')
     action = models.CharField(max_length=20, choices=RevisionDeclarationFamiliale._meta.get_field('action').choices)
     avant = models.JSONField(default=list)
     apres = models.JSONField(default=list)

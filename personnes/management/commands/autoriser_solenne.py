@@ -7,7 +7,8 @@ DROITS = {'view_declarationfamiliale', 'add_declarationfamiliale', 'change_decla
     'view_revisiondeclarationfamiliale', 'corriger_prevision_accompagnement', 'view_evolutionpriseencharge',
     'view_coordonneespersonnelles', 'add_coordonneespersonnelles', 'change_coordonneespersonnelles',
     'view_revisioncoordonneespersonnelles', 'view_contactmenage', 'add_contactmenage',
-    'change_contactmenage', 'view_revisioncontactmenage'}
+    'change_contactmenage', 'view_revisioncontactmenage', 'view_partenaire', 'add_partenaire',
+    'view_fichepartenaire', 'add_fichepartenaire', 'change_fichepartenaire', 'view_revisionfichepartenaire'}
 
 
 class Command(BaseCommand):

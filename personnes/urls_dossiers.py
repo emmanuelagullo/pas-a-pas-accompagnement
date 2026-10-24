@@ -6,9 +6,15 @@ from . import vues_bd6 as bd6
 from . import vues_famille as famille
 from . import vues_coordonnees as coordonnees
 from . import vues_contacts_menage as contacts
+from . import vues_partenaires as partenaires
 
 app_name = 'dossiers'
 urlpatterns = [
+    path('partenaires/', partenaires.liste, name='partenaires'),
+    path('partenaires/nouveau/', partenaires.fiche, {'action': 'creer'}, name='partenaire_creer'),
+    path('partenaires/<uuid:pk>/', partenaires.fiche, name='partenaire'),
+    path('partenaires/<uuid:pk>/changer/', partenaires.fiche, {'action': 'changer'}, name='partenaire_changer'),
+    path('partenaires/<uuid:pk>/<int:fait_pk>/corriger/', partenaires.fiche, {'action': 'corriger'}, name='partenaire_corriger'),
     path('menage/<uuid:pk>/contact/', contacts.histoire, name='contact_menage'),
     path('menage/<uuid:pk>/contact/nouveau/', contacts.histoire, {'action': 'nouveau'}, name='contact_nouveau'),
     path('menage/<uuid:pk>/contact/<int:fait_pk>/corriger/', contacts.histoire, {'action': 'correction'}, name='contact_corriger'),

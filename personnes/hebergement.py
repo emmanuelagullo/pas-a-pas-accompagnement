@@ -82,10 +82,12 @@ def admettre(acteur, accord, beneficiaires, debut):
 
 
 @transaction.atomic
-def creer_lieu(acteur, libelle, partenaire=""):
+def creer_lieu(acteur, libelle, partenaire="", organisme=None):
     droit(acteur, "add_lieuhebergement")
     exiger(acteur, "view_lieuhebergement")
-    lieu = LieuHebergement(libelle=libelle, partenaire=partenaire, cree_par=acteur)
+    if organisme is not None:
+        exiger(acteur, 'view_partenaire')
+    lieu = LieuHebergement(libelle=libelle, partenaire=partenaire, organisme=organisme, cree_par=acteur)
     lieu.full_clean(); lieu.save()
     return lieu
 

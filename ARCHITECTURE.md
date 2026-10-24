@@ -368,3 +368,17 @@ personnes conservent UUID et libellé au moment de la saisie dans l'avant/après
 Une absence de ligne signifie non renseigné ; une ligne avec contact nul est un
 retrait explicite depuis sa date d'effet. Aucune donnée ancienne ni permission
 n'est déduite du libellé du ménage, de l'ordre des membres ou de son créateur.
+
+## Solenne L3b — identités stables du répertoire
+
+Partenaire porte l'UUID et une révision ; FichePartenaire et son journal portent
+les renseignements datés. La création réserve l'UUID signé par INSERT comme
+première requête ; un échec de fiche/journal annule l'identité. La mise à jour
+réutilise la chronologie typée en réservant uniquement la révision de partenaire,
+sans verrou de personne ou ménage. Le libellé d'index est dérivé de la fiche
+applicable aujourd'hui ; les recherches à date utilisent le nom de la fiche.
+LieuHebergement.organisme est un lien protégé facultatif, exclusif du libellé
+libre pour les nouvelles saisies. Les données anciennes restent inchangées.
+Le répertoire ne transforme ni une organisation en personne, ni une fiche
+professionnelle en compte utilisateur. Les liens de retour BD restent signés
+et ne servent jamais d'autorisation d'accès aux partenaires ou aux dossiers.

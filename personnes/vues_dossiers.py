@@ -185,7 +185,7 @@ def detail(request, nature, pk, prise_pk=None):
             accords = accords.filter(beneficiaires=objet)
             seuls = seuls.filter(beneficiaires=objet)
         if lieux:
-            accords = accords.prefetch_related(Prefetch('affectations', queryset=Affectation.objects.select_related('lieu').order_by('-debut', '-pk'), to_attr='lieux_dossier'))
+            accords = accords.prefetch_related(Prefetch('affectations', queryset=Affectation.objects.select_related('lieu', 'lieu__organisme').order_by('-debut', '-pk'), to_attr='lieux_dossier'))
         if request.user.has_perm('personnes.view_absence'):
             accords = accords.prefetch_related(Prefetch('absences', queryset=Absence.objects.order_by('-debut', '-pk'), to_attr='absences_dossier'))
         sejours = list(accords)

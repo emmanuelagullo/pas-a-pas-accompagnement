@@ -1,3 +1,9 @@
+## À venir — Solenne L3b
+
+- Organismes partenaires : répertoire recherché, fiches datées, corrections et historique.
+- Consultation à date, export CSV et réutilisation par les nouveaux lieux, sans conversion automatique des anciens libellés.
+- Retours signés depuis la prise et droits propres au répertoire.
+
 ## À venir — Solenne L2b
 
 - Contact du ménage choisi explicitement, daté, retirable et corrigeable avec historique.

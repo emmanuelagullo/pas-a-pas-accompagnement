@@ -23,7 +23,7 @@ def contexte(request, a):
         accords_h = list(a.accords_hebergement.select_related('annule_par').prefetch_related('beneficiaires').order_by('-debut', 'pk'))
         qs = Sejour.objects.filter(accord__accompagnement=a).select_related('accord').prefetch_related('beneficiaires')
         if lieux:
-            qs = qs.prefetch_related(Prefetch('affectations', queryset=Affectation.objects.select_related('lieu').order_by('-debut', '-pk'), to_attr='lieux_dossier'))
+            qs = qs.prefetch_related(Prefetch('affectations', queryset=Affectation.objects.select_related('lieu', 'lieu__organisme').order_by('-debut', '-pk'), to_attr='lieux_dossier'))
         if droits.has_perm('personnes.view_absence'):
             qs = qs.prefetch_related(Prefetch('absences', queryset=Absence.objects.order_by('-debut', '-pk'), to_attr='absences_dossier'))
         sejours = list(qs)

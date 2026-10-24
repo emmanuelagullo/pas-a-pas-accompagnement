@@ -1104,3 +1104,23 @@ La consultation à date propose un CSV et une page imprimable ; le résumé de p
 reprend le contact à l'entrée. Les coordonnées personnelles de ce contact restent
 soumises à leurs droits distincts. Attribution volontaire des nouveaux droits :
 `python3 manage.py autoriser_solenne IDENTIFIANT`, après migration.
+
+## Solenne L3b — répertoire des organismes partenaires
+
+L'entrée Partenaires et le lien depuis Projet ouvrent un répertoire recherché
+par nom ou ville à une date choisie. Une organisation/service possède une identité
+stable et des fiches datées : nom, adresse, téléphone, courriel, fax et consignes.
+Changements, ajouts de faits antérieurs et corrections motivées conservent les
+périodes voisines et l'avant/après. Les homonymes ne sont jamais fusionnés.
+La consultation est imprimable et les mêmes résultats peuvent être exportés en CSV.
+Le retour signé vers la prise conserve les sélections et la recherche d'origine.
+
+À la création d'un lieu, l'organisme du répertoire peut remplacer la saisie de
+son libellé libre : ses coordonnées ne sont pas recopiées dans le lieu. Les
+anciens opérateurs libres restent lisibles, sans rapprochement automatique.
+Les droits du répertoire sont distincts des droits des personnes accompagnées.
+Après migration : attribution volontaire par `python3 manage.py autoriser_solenne
+IDENTIFIANT`. Les lieux existants et les anciens comptes ne sont pas modifiés.
+Le répertoire concerne les organismes et services ; il ne crée pas encore des
+identités de professionnels ni leurs affectations datées aux prises. Les tarifs,
+financements et versions figées des bons restent des lots séparés.

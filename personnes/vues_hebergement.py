@@ -109,7 +109,7 @@ def lieu(request):
     identifiant = request.GET.get('accord', '')
     accord = get_object_or_404(AccordHebergement, pk=identifiant) if _uuid_valide(identifiant) else None
     retour = reverse('suivi:accord_hebergement', args=[accord.pk]) if accord else reverse('suivi:liste')
-    return traiter_hebergement(request, LieuForm(request.POST if request.method == 'POST' else None),
+    return traiter_hebergement(request, LieuForm(request.POST if request.method == 'POST' else None, acteur=request.user),
         'Créer un lieu d’hébergement', lambda **d: h.creer_lieu(request.user, **d), accompagnement=accord.accompagnement if accord else None, retour=retour)
 
 
