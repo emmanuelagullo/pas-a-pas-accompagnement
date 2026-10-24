@@ -85,6 +85,19 @@ class CorrectionsTests(TestCase):
         self.assertContains(reponse,'&lt;script&gt;fictif&lt;/script&gt;')
         self.assertNotContains(reponse,'<script>fictif</script>')
 
+    def test_correction_evenement_simple_et_bilan_enrichi(self):
+        evenement=social.evenement(self.u,self.a,self.p,date(2026,1,3),'Événement fictif','Source fictive')
+        bilan=social.bilan(self.u,self.a,date(2026,1,3),'Bilan fictif')
+        page=self.client.get(reverse('suivi:corriger_saisie',args=['evenementsocial',evenement.pk]))
+        self.assertEqual(page.status_code,200)
+        self.assertContains(page,'name="texte"')
+        self.assertNotContains(page,'data-texte-riche="1"')
+        self.assertNotContains(page,'name="texte_document"')
+        page=self.client.get(reverse('suivi:corriger_saisie',args=['bilansocial',bilan.pk]))
+        self.assertEqual(page.status_code,200)
+        self.assertContains(page,'data-texte-riche="1"')
+        self.assertContains(page,'name="texte_document"')
+
 
 from django.test import TransactionTestCase
 

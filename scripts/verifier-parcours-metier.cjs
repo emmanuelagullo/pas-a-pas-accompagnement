@@ -43,8 +43,10 @@ module.exports = async function verifierParcoursMetier(app) {
   await cliquerLienPwa(historique.getByRole('link', {name:'Situation et parcours sociaux', exact:true}));
   await app.getByRole('heading', {name:/Situation et parcours sociaux — Thomas/}).waitFor();
   await cliquerLienPwa(app.getByRole('link', {name:'Corriger cet événement', exact:true}));
-  // Le textarea est masqué après activation de l’éditeur enrichi.
-  const evenement = app.locator('.edition-texte .ProseMirror');
+  // L’événement social reste un texte simple ; seuls les commentaires et
+  // bilans de ce parcours activent l’éditeur enrichi.
+  await app.getByRole('heading', {name:/Corriger une saisie/}).waitFor();
+  const evenement = app.locator('textarea[name=texte]:not([data-texte-riche])');
   await evenement.waitFor();
   await evenement.fill('Installation fictive — texte rectifié pendant l’essai.');
   await app.locator('[name=motif]').fill('Correction fictive du parcours navigateur');
