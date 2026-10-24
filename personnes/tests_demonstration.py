@@ -29,6 +29,12 @@ class DemonstrationTests(TestCase):
         self.assertFalse(ines.appartenances.exists());self.assertFalse(ines.accompagnements.exists())
         self.assertEqual(ines.precision_naissance,'')
         self.assertEqual(m.Intervenant.objects.count(),3)
+        self.assertEqual(m.DemandeAccueil.objects.count(),10)
+        self.assertEqual(m.DemandeAccueil.objects.filter(accompagnement__isnull=False).count(),5)
+        self.assertEqual(m.OrientationParcours.objects.count(),3)
+        self.assertEqual(m.ObjectifParcours.objects.filter(annule_le__isnull=False).count(),1)
+        self.assertTrue(m.RevisionDemande.objects.filter(action='correction').exists())
+        self.assertTrue(m.ObjectifParcours.objects.filter(accompagnement__fin__isnull=False,versions__etat='encours',versions__fin__isnull=True).exists())
         for nom in ('Noor','Samira','Thomas','Robin A','Robin B','Léo'):
             self.assertEqual(suivis[nom].menage.accompagnements.count(),5)
         for a in suivis['Noor'].menage.accompagnements.filter(debut__lt=jour-timedelta(days=200)):

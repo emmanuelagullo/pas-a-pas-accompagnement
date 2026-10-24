@@ -1,3 +1,13 @@
+## À venir — méta-lot B : demandes et parcours longitudinal
+
+- Demandes avant admission, états datés, bénéficiaires et rôles explicites.
+- Ouverture/liaison atomique d'une prise depuis une demande acceptée.
+- Orientations proposées/réalisées et objectifs thématisés suivis dans le temps.
+- Repère de suivi du dossier sans clôture ni blocage implicite.
+- Changements, corrections, annulations, historiques, droits et concurrence.
+- Activité versionnée, rapports, cohortes/délais, impressions et CSV.
+- Parcours compact et scénario complet de l’Établissement Les Passerelles.
+
 ## À venir — fin du méta-lot A : dossier personnel complet
 
 - Ressources et créanciers multiples, montants/périodicités/devises explicites.

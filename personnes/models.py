@@ -531,6 +531,7 @@ class InformationsAccompagnement(models.Model):
     objectifs_courts_document = models.JSONField(null=True, blank=True, editable=False)
     objectifs_longs = models.TextField('Objectifs à plus long terme', max_length=1000, blank=True)
     objectifs_longs_document = models.JSONField(null=True, blank=True, editable=False)
+    activite = models.CharField('Activité de la prise en charge', max_length=16, blank=True, choices=[('chrs','CHRS'),('urgence','Urgence'),('autre','Autre activité')])
     animaux = models.CharField('Animaux — information pratique pour l’accueil', max_length=500, blank=True)
     motif = models.CharField('Motif de mise à jour', max_length=240)
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
@@ -876,6 +877,7 @@ class PropositionSaisie(models.Model):
         ('code_postal', 'Code postal'), ('fonction', 'Fonction professionnelle'),
         ('nature_ressource','Nature de ressource'),('type_creancier','Type de créancier'),('type_document','Type de pièce'),
         ('nature_couverture','Nature de couverture'),('regime','Régime déclaré'),('mesure','Mesure déclarée'),
+        ('groupe_demande','Groupe demandeur déclaré'),('dernier_hebergement_duree','Durée déclarée du dernier hébergement'),('motif_demande','Motif de demande'),('motif_decision','Motif de décision'),('provenance','Provenance'),('dernier_hebergement_type','Type du dernier hébergement'),('type_destination','Type de destination'),('theme','Thème d’objectif'),('motif_orientation','Motif d’orientation'),
         ('qualification','Qualification déclarée'),('droit_sejour','Situation de séjour déclarée')]
     champ = models.CharField(max_length=40, choices=CHAMPS)
     valeur = models.CharField(max_length=160, validators=[RegexValidator(r'\S', 'Indiquez une proposition.')])
@@ -1184,3 +1186,143 @@ class RevisionCouvertureSociale(JournalPersonnel):
 
 class RevisionProtectionJuridique(JournalPersonnel):
     fait=models.ForeignKey(ProtectionJuridique,on_delete=models.PROTECT,related_name="revisions")
+
+
+class ElementParcours(models.Model):
+    """Identité stable et bénéficiaires explicitement choisis, sans prestation implicite."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    personne = models.ForeignKey(Personne, null=True, blank=True, on_delete=models.PROTECT, related_name='%(class)s_elements')
+    menage = models.ForeignKey(Menage, null=True, blank=True, on_delete=models.PROTECT, related_name='%(class)s_elements')
+    beneficiaires = models.ManyToManyField(Personne, related_name='%(class)s_benefices')
+    revision_sociale = models.PositiveIntegerField(default=0, editable=False)
+    cree_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='+')
+    cree_le = models.DateTimeField(auto_now_add=True)
+    annule_le = models.DateTimeField(null=True, editable=False)
+    annule_par = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.PROTECT, related_name='+', editable=False)
+    motif_annulation = models.CharField(max_length=240, blank=True, editable=False)
+
+    class Meta:
+        abstract = True
+        ordering = ['-cree_le', 'pk']
+        constraints = [models.CheckConstraint(condition=(models.Q(personne__isnull=False, menage__isnull=True) | models.Q(personne__isnull=True, menage__isnull=False)), name='%(class)s_cible_unique'),
+            models.CheckConstraint(condition=(models.Q(annule_le__isnull=True, annule_par__isnull=True, motif_annulation='') | (models.Q(annule_le__isnull=False, annule_par__isnull=False) & ~models.Q(motif_annulation=''))), name='%(class)s_annulation_coherente')]
+
+    @property
+    def cible(self):return self.personne or self.menage
+    def __str__(self):return str(self.cible)
+
+
+class DemandeAccueil(ElementParcours):
+    class Meta(ElementParcours.Meta):
+        permissions = [('annuler_demandeaccueil', 'Annuler une saisie erronée du parcours')]
+
+    accompagnement = models.OneToOneField(Accompagnement, null=True, blank=True, on_delete=models.PROTECT, related_name='demande_accueil')
+
+
+class OrientationParcours(ElementParcours):
+    class Meta(ElementParcours.Meta):
+        permissions = [('annuler_orientationparcours', 'Annuler une saisie erronée du parcours')]
+
+    demande = models.ForeignKey(DemandeAccueil, null=True, blank=True, on_delete=models.PROTECT, related_name='orientations')
+    accompagnement = models.ForeignKey(Accompagnement, null=True, blank=True, on_delete=models.PROTECT, related_name='orientations_parcours')
+
+
+class ObjectifParcours(ElementParcours):
+    class Meta(ElementParcours.Meta):
+        permissions = [('annuler_objectifparcours', 'Annuler une saisie erronée du parcours')]
+
+    accompagnement = models.ForeignKey(Accompagnement, null=True, blank=True, on_delete=models.PROTECT, related_name='objectifs_parcours')
+
+
+class RepereDossier(ElementParcours):
+    class Meta(ElementParcours.Meta):
+        permissions = [('annuler_reperedossier', 'Annuler un état de suivi erroné')]
+        constraints = [*ElementParcours.Meta.constraints,
+            models.UniqueConstraint(fields=['personne'], condition=models.Q(personne__isnull=False, annule_le__isnull=True), name='repere_personne_unique'),
+            models.UniqueConstraint(fields=['menage'], condition=models.Q(menage__isnull=False, annule_le__isnull=True), name='repere_menage_unique')]
+
+
+class VersionParcours(Periode):
+    source = models.CharField('Source de l’information', max_length=160)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='+')
+    enregistre_le = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        abstract = True
+        ordering = ['-debut', '-pk']
+        constraints = [models.CheckConstraint(condition=models.Q(fin__isnull=True) | models.Q(fin__gt=models.F('debut')), name='%(class)s_periode_valide'),
+            models.UniqueConstraint(fields=['element', 'debut'], name='%(class)s_date_unique'),
+            models.UniqueConstraint(fields=['element'], condition=models.Q(fin__isnull=True), name='%(class)s_ouverte_unique')]
+
+
+class VersionDemande(VersionParcours):
+    element = models.ForeignKey(DemandeAccueil, on_delete=models.PROTECT, related_name='versions')
+    etat = models.CharField('État de la demande', max_length=16, choices=[('attente','En attente'),('acceptee','Acceptée'),('refusee','Refusée'),('retiree','Retirée')])
+    groupe_demande = models.CharField('Personne seule ou groupe demandeur déclaré', max_length=160, blank=True)
+    motif_demande = models.CharField('Motif de la demande', max_length=160)
+    motif_decision = models.CharField('Motif de la décision ou du retrait', max_length=160, blank=True)
+    demandeur = models.CharField('Demande exprimée par', max_length=16, choices=[('personne','La personne'),('menage','Le ménage'),('professionnel','Un professionnel'),('organisme','Un organisme'),('autre','Autre / non précisé')])
+    demandeur_professionnel = models.ForeignKey(Intervenant, null=True, blank=True, on_delete=models.PROTECT, related_name='+')
+    demandeur_organisme = models.ForeignKey(Partenaire, null=True, blank=True, on_delete=models.PROTECT, related_name='+')
+    precision_demandeur = models.CharField('Précision sur le demandeur', max_length=160, blank=True)
+    prescripteur = models.ForeignKey(Intervenant, null=True, blank=True, on_delete=models.PROTECT, related_name='+')
+    organisme_orienteur = models.ForeignKey(Partenaire, null=True, blank=True, on_delete=models.PROTECT, related_name='+')
+    provenance = models.CharField('Provenance déclarée', max_length=160, blank=True)
+    dernier_hebergement_type = models.CharField('Type du dernier hébergement déclaré', max_length=160, blank=True)
+    dernier_hebergement_lieu = models.CharField('Lieu du dernier hébergement déclaré', max_length=160, blank=True)
+    dernier_hebergement_duree = models.CharField('Durée déclarée dans le dernier hébergement', max_length=160, blank=True)
+    accueil_prevu = models.DateField('Date d’accueil annoncée', null=True, blank=True)
+    activite = models.CharField('Activité demandée', max_length=16, blank=True, choices=[('chrs','CHRS'),('urgence','Urgence'),('autre','Autre activité')])
+    def clean(self):
+        super().clean()
+        if self.demandeur_professionnel_id and self.demandeur != 'professionnel' or self.demandeur_organisme_id and self.demandeur != 'organisme':
+            raise ValidationError('Le demandeur identifié doit correspondre au type choisi.')
+        if self.etat in ('refusee','retiree') and not self.motif_decision.strip():raise ValidationError({'motif_decision':'Expliquez le refus ou le retrait.'})
+
+
+class VersionOrientation(VersionParcours):
+    element = models.ForeignKey(OrientationParcours, on_delete=models.PROTECT, related_name='versions')
+    etat = models.CharField('État de l’orientation', max_length=16, choices=[('proposee','Proposée'),('realisee','Réalisée'),('refusee','Refusée'),('abandonnee','Abandonnée')])
+    destination = models.CharField('Destination', max_length=160)
+    type_destination = models.CharField('Type de solution ou de service', max_length=160, blank=True)
+    organisme = models.ForeignKey(Partenaire, null=True, blank=True, on_delete=models.PROTECT, related_name='+')
+    interlocuteur = models.ForeignKey(Intervenant, null=True, blank=True, on_delete=models.PROTECT, related_name='+')
+    motif_orientation = models.CharField('Motif de l’orientation', max_length=160)
+    resultat = models.CharField('Résultat ou motif de refus/abandon', max_length=500, blank=True)
+    date_prevue = models.DateField('Date annoncée', null=True, blank=True)
+    def clean(self):
+        super().clean()
+        if self.etat != 'proposee' and not self.resultat.strip():raise ValidationError({'resultat':'Précisez le résultat effectif de cette orientation.'})
+
+
+class VersionObjectif(VersionParcours):
+    element = models.ForeignKey(ObjectifParcours, on_delete=models.PROTECT, related_name='versions')
+    etat = models.CharField('Avancement', max_length=16, choices=[('encours','En cours'),('atteint','Atteint'),('suspendu','Suspendu'),('abandonne','Abandonné')])
+    theme = models.CharField('Thème', max_length=160)
+    titre = models.CharField('Objectif', max_length=160)
+    horizon = models.CharField('Horizon', max_length=8, choices=[('court','Court terme'),('long','Plus long terme')])
+    echeance = models.DateField('Échéance visée', null=True, blank=True)
+    texte = models.TextField('Démarche et bilan de progression', max_length=4000, blank=True)
+    texte_document = models.JSONField(null=True, blank=True, editable=False)
+
+
+class VersionRepereDossier(VersionParcours):
+    element = models.ForeignKey(RepereDossier, on_delete=models.PROTECT, related_name='versions')
+    etat = models.CharField('État du suivi du dossier', max_length=16, choices=[('actif','Suivi actif'),('veille','En veille'),('termine','Suivi terminé')])
+    raison = models.CharField('Raison du changement de suivi', max_length=240)
+
+
+class RevisionDemande(JournalPersonnel):
+    element = models.ForeignKey(DemandeAccueil, on_delete=models.PROTECT, related_name='revisions')
+    action = models.CharField(max_length=16, choices=[*JournalPersonnel._meta.get_field('action').choices,('liaison','Liaison à une prise en charge'),('deliaison','Correction de liaison')])
+
+
+class RevisionOrientation(JournalPersonnel):
+    element = models.ForeignKey(OrientationParcours, on_delete=models.PROTECT, related_name='revisions')
+
+
+class RevisionObjectif(JournalPersonnel):
+    element = models.ForeignKey(ObjectifParcours, on_delete=models.PROTECT, related_name='revisions')
+
+
+class RevisionRepereDossier(JournalPersonnel):
+    element = models.ForeignKey(RepereDossier, on_delete=models.PROTECT, related_name='revisions')

@@ -124,7 +124,7 @@ def traiter(request, form, titre, action, url, objet, **contexte):
             statut = 409
         else:
             return redirect(url(resultat) if callable(url) else url)
-    return render(request, 'dossiers/form_bd6.html', {'form': form, 'titre': titre, 'objet': objet,
+    return render(request, contexte.pop('gabarit', 'dossiers/form_bd6.html'), {'form': form, 'titre': titre, 'objet': objet,
         'retour': url if isinstance(url, str) else contexte.pop('annuler', ''), **contexte}, status=statut)
 
 
@@ -148,10 +148,22 @@ def nouvelle(request, nature, pk):
         form = AccompagnementForm(request.POST if request.method == 'POST' else None, initial=initial)
         form.fields['attendu'] = forms.CharField(widget=forms.HiddenInput, initial=initial['attendu'])
         form.fields['beneficiaires'].queryset = Personne.objects.filter(appartenances__menage=objet).distinct()
+    demande = None
+    if request.GET.get('demande'):
+        from . import parcours
+        from .models import DemandeAccueil
+        parcours.exiger(request.user,'demandes','change')
+        try:demande_pk=forms.UUIDField().clean(request.GET['demande'])
+        except forms.ValidationError:
+            from django.http import Http404
+            raise Http404
+        demande=get_object_or_404(parcours.elements('demandes',objet),pk=demande_pk)
+        form.fields['attendu_demande']=forms.CharField(widget=forms.HiddenInput,initial=bd6.jeton(demande))
+        if not form.is_bound:form.initial['beneficiaires']=list(demande.beneficiaires.values_list('pk',flat=True))
     def action(**d):
         nouveau = d.pop('rattachement', 'existant') == 'nouveau'
         menage = d.pop('menage', objet if nature == 'menage' else None)
-        return ouverture_prise.ouvrir(request.user, objet, menage=menage, creer_menage=nouveau, **d)
+        return ouverture_prise.ouvrir(request.user, objet, menage=menage, creer_menage=nouveau, demande=demande, **d)
     return traiter(request, form, 'Nouvelle prise en charge', action,
         lambda a: retour(nature, pk, parametres_retour(request), prise=a), objet, annuler=retour(nature, pk, parametres_retour(request)),
         explication='Choisissez les bénéficiaires et la prévision. Aucune prestation n’est créée automatiquement.')

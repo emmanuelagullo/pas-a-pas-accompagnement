@@ -24,8 +24,13 @@ def jeton(objet):
 
 
 def ouvrir(acteur, objet, beneficiaires, debut, fin_prevue, attendu, menage=None,
-           creer_menage=False, libelle_menage=''):
+           creer_menage=False, libelle_menage='', demande=None, attendu_demande=None):
     suivi.exiger(acteur, 'view_personne', 'view_menage', 'view_accompagnement', 'add_accompagnement')
+    if demande is not None:
+        from . import parcours
+        parcours.exiger(acteur,'demandes','change')
+        if demande.cible.pk != objet.pk or demande.cible._meta.model_name != objet._meta.model_name:
+            raise ValidationError('Cette demande ne concerne pas le dossier choisi.')
     try:
         etat = signing.loads(attendu, salt=SEL, max_age=86400)
         if etat['nature'] != objet._meta.model_name or etat['cible'] != str(objet.pk):
@@ -63,6 +68,9 @@ def ouvrir(acteur, objet, beneficiaires, debut, fin_prevue, attendu, menage=None
                 ids = set(Appartenance.objects.filter(menage=menage).values_list('personne_id', flat=True))
                 if not personnes or not {p.pk for p in personnes}.issubset(ids):
                     raise ValidationError({'beneficiaires': 'Le rattachement des bénéficiaires a changé. Rechargez le dossier.'})
-            return suivi.ouvrir(acteur, menage, personnes, debut, fin_prevue, identifiant=identifiant)
+            a = suivi.ouvrir(acteur, menage, personnes, debut, fin_prevue, identifiant=identifiant)
+            if demande is not None:
+                parcours.lier(acteur,demande,a,attendu_demande,'Ouverture explicitement confirmée depuis la demande acceptée')
+            return a
     except IntegrityError as erreur:
         raise ValidationError('Cette confirmation a déjà été utilisée. Rechargez le dossier.') from erreur

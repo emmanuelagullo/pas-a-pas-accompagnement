@@ -19,6 +19,9 @@ DROITS.update({'view_situationadministrative','add_situationadministrative','cha
 for nom in ('ressourcepersonnelle','dettepersonnelle','pieceadministrative','couverturesociale','protectionjuridique'):
     DROITS.update({'view_'+nom,'add_'+nom,'change_'+nom,'annuler_'+nom,'view_revision'+nom})
 
+for racine, version, journal in (('demandeaccueil','versiondemande','revisiondemande'),('orientationparcours','versionorientation','revisionorientation'),('objectifparcours','versionobjectif','revisionobjectif'),('reperedossier','versionreperedossier','revisionreperedossier')):
+    DROITS.update({'view_'+racine,'add_'+racine,'change_'+racine,'annuler_'+racine,'view_'+version,'view_'+journal})
+
 
 
 class Command(BaseCommand):

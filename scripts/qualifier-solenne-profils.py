@@ -25,7 +25,7 @@ from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.test import Client
 from django.urls import reverse
-from personnes import bd6, famille, coordonnees, ouverture_prise, contacts_menage, partenaires, intervenants, interventions, complements_identite, relations_personnelles, dossier_complet
+from personnes import bd6, famille, coordonnees, ouverture_prise, contacts_menage, partenaires, intervenants, interventions, complements_identite, relations_personnelles, dossier_complet, parcours
 from personnes.models import Personne
 
 call_command('migrate', interactive=False, verbosity=0)
@@ -70,6 +70,14 @@ for code,r in d.RUBRIQUES.items():
         'couvertures':dict(libelle='Couverture fictive de recette',organisme=organisme,interlocuteur=professionnel),
         'protections':dict(mesure='Mesure fictive de recette',representant_intervenant=professionnel)}[code])
     d.enregistrer(u,code,p,date(2026,1,1),None,'Source fictive',bd6.jeton(p),**v)
+for code, r in parcours.RUBRIQUES.items():
+    v={c:r.version._meta.get_field(c).get_default() for c in r.champs}
+    v.update({'demandes':{'etat':'acceptee','motif_demande':'Accueil fictif de recette','demandeur':'personne'},
+        'orientations':{'etat':'proposee','destination':'Destination fictive de recette','motif_orientation':'Besoin fictif'},
+        'objectifs':{'etat':'encours','theme':'Thème fictif','titre':'Objectif fictif de recette','horizon':'court'},
+        'suivi':{'etat':'actif','raison':'Suivi fictif de recette'}}[code])
+    e=parcours.creer(u,code,p,[p],date(2026,1,1),'Recette fictive',bd6.jeton(p),**v)
+    if code=='demandes':parcours.lier(u,e,a,bd6.jeton(e),'Admission fictive confirmée')
 client = Client(HTTP_HOST=settings.ALLOWED_HOSTS[0])
 client.force_login(u, backend='django.contrib.auth.backends.ModelBackend')
 prefixe = settings.FORCE_SCRIPT_NAME or ''
@@ -104,6 +112,13 @@ for code in ('pieces','couvertures','protections'):
 for code in (*d.RUBRIQUES,'administration'):
     r=client.get(chemin('dossiers:rapport_a'),{'rubrique':code,'date':'2026-01-02','format':'csv'},secure=True)
     assert r.status_code==200 and 'text/csv' in r['Content-Type']
+for code in parcours.RUBRIQUES:
+    r=client.get(chemin('dossiers:parcours','personne',p.pk),{'rubrique':code},secure=True)
+    assert r.status_code==200, (code,r.status_code)
+    e=parcours.RUBRIQUES[code].racine.objects.get()
+    assert client.get(chemin('dossiers:parcours_element',code,e.pk),secure=True).status_code==200
+    r=client.get(chemin('dossiers:rapport_parcours'),{'rubrique':code,'date':'2026-01-02','format':'csv'},secure=True)
+    assert r.status_code==200 and str(e.pk) in r.content.decode(),code
 if os.environ.get('SOLENNE_VERIFIER_PDF') == 'oui':
     response = client.get(chemin('personnes:fiche_pdf', p.pk), secure=True)
     assert response.status_code == 200 and response.content.startswith(b'%PDF-')

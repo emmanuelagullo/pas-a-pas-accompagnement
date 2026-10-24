@@ -232,3 +232,36 @@ nature de dette, échéance et portée/représentant d'une protection selon la r
 Les identifiants administratifs ne participent à la recherche et au CSV que si
 leur inclusion a été explicitement demandée. Les échéances dépassées restent
 des prévisions à vérifier, sans effet automatique sur les droits déclarés.
+
+## Demandes, orientations, objectifs et suivi
+
+Le rapport Parcours compte les éléments dont une version est applicable à la
+date choisie, une ligne par demande/orientation/objectif/repère. Une demande
+collective reste une demande, pas autant de demandes que de bénéficiaires. Les
+annulations sont exclues du courant et conservées dans les fiches et journaux.
+Les états se ventilent dans la sélection ; motifs, provenance, type du dernier
+hébergement, destination, thème, horizon, activité, organisme et professionnel
+se filtrent selon la rubrique. Les filtres nommés « exact » comparent le libellé
+complet sans distinction de casse. Le filtre textuel transversal reste distinct.
+
+La cohorte est bornée par la date de première déclaration de chaque élément ;
+le statut retenu est celui applicable à la date de référence. Une admission
+comptée est une prise liée ayant débuté à cette date. Le délai est le nombre de
+jours civils entre première déclaration et début de prise, y compris zéro ;
+la moyenne exclut les demandes sans début de prise. Cela ne mesure ni une arrivée
+d'hébergement ni une présence effective. Aucun rapprochement automatique des
+anciennes prises et demandes n'est effectué. Les droits des prises sont requis
+pour filtrer ou exporter leur association et calculer ces délais.
+
+Entrées/sorties des prises : une ligne par prise ayant des informations
+versionnées, avec la dernière version saisie, motifs/provenance/destination et
+activité explicite. Les prises sans fiche d'information ne sont pas assimilées
+à des réponses vides et n'entrent pas dans ce rapport. Les anciens récits n'ont
+pas de date d'effet : ce rapport ne prétend pas reconstruire leur contenu ancien
+à la date de référence. Le filtre ouverte/close s'applique à la période réelle
+de la prise ; son activité n'est pas déduite d'un lieu ou d'une demande.
+
+HTML paginé, CSV de toute la même sélection, impression de la page courante.
+Les filtres ne transforment pas ces unités en file active de personnes. Les
+combinaisons historiques Solenne restent suivies dans la matrice externe ; ce
+rapport ne déclare pas achevé leur audit sémantique.

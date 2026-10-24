@@ -1,4 +1,4 @@
-{% load textes %}<dl><dt>Référent professionnel</dt><dd>{{ information.referent|default:"Non renseigné" }}</dd>
+{% load textes %}<dl><dt>Activité</dt><dd>{{ information.get_activite_display|default:"Non renseignée" }}</dd><dt>Référent professionnel</dt><dd>{{ information.referent|default:"Non renseigné" }}</dd>
 <dt>Provenance à l’entrée</dt><dd>{{ information.provenance|default:"Non renseignée" }}</dd>
 <dt>Motif d’entrée</dt><dd>{{ information.motif_entree|default:"Non renseigné" }}</dd>
 <dt>Orientation à la sortie</dt><dd>{{ information.orientation_sortie|default:"Non renseignée" }}</dd>

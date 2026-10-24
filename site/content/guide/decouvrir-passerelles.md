@@ -110,3 +110,24 @@ Changer la date consultée, ouvrir l’historique puis revenir à la prise en ch
 permet de suivre ces évolutions sans quitter le parcours. Le rapport accessible
 depuis Statistiques propose filtres, CSV et impression ; les identifiants
 administratifs sont exclus par défaut. Les anciens espaces d’essai restent intacts.
+
+### Avant et entre les prises en charge
+
+Dans le jeu neuf de l’**Établissement Les Passerelles**, dix demandes permettent
+de suivre l’attente, l’acceptation, le refus et le retrait. Inès a une demande
+acceptée sans prise en charge ; une acceptation ne vaut donc pas arrivée. Le
+formulaire habituel permet ensuite de confirmer l’ouverture, le ménage et les
+bénéficiaires. Les demandes refusées ne créent aucune prestation.
+
+Depuis la ligne **Parcours**, choisir demandes, orientations, objectifs ou suivi
+du dossier sur la même page. Samira possède plusieurs orientations aux résultats
+différents ; Thomas poursuit un objectif après la clôture de sa prise en charge d’origine,
+et son suivi passe en veille puis redevient actif. Un changement d’activité
+CHRS/urgence ne clôture pas définitivement son dossier. Les récits de projet
+existants restent disponibles. Les changements et corrections ont leurs dates,
+sources et historiques ; l’état « suivi terminé » ne bloque aucun nouvel accueil.
+
+Le rapport Parcours fournit les filtres, états, cohortes et délais vers les prises
+débutées, ainsi que l’impression et le CSV. Les coordonnées de destination sont
+réutilisées depuis les répertoires à la date consultée. Les anciens espaces
+d’essai ne sont pas modifiés : ouvrir un espace neuf pour retrouver ce scénario.

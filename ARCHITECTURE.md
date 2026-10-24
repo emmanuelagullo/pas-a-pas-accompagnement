@@ -480,3 +480,46 @@ sans écraser les anciennes situations, dont les divergences restent lisibles.
 Les propositions de saisie sont volontaires et journalisées ; elles ne collectent
 ni identifiants ni montants de dossier. Les imprimés et CSV réutilisent la sélection
 datée du rapport.
+
+## Demandes, orientations et projet longitudinal — méta-lot B
+
+DemandeAccueil, OrientationParcours, ObjectifParcours et RepereDossier ont une
+identité stable, une cible personne ou ménage exclusive et des bénéficiaires
+explicitement choisis. Une erreur de cible s'annule et se ressaisit ; aucune
+appartenance, personne ou prestation n'est créée depuis une démarche. Les quatre
+séries de versions sont des schémas Django fixes, pas des attributs configurables.
+Dates d'effet et fins exclues permettent les changements et insertions antérieures ;
+une correction motivée ne traverse pas une autre version. Les échéances et dates
+annoncées peuvent être futures et ne changent aucun état automatiquement.
+
+Les journaux avant/après sont atomiques. Création sous CAS du dossier ; mutations
+sous CAS de l'élément. Les permissions sont chargées avant la transaction. La
+liaison demande/prise réserve le ménage puis la demande ; elle exige une acceptation
+à l'admission et actuellement, les mêmes bénéficiaires et le même ménage lorsqu'il
+est la cible. L'ouverture existante crée/rattache explicitement le ménage et la
+prise, puis lie la demande dans la même transaction : un conflit annule tout.
+Retirer une liaison erronée est motivé et conserve la prise en charge. Aucun
+séjour, accord ou arrivée d'hébergement n'en découle.
+
+Une orientation a sa destination, son organisme/interlocuteur, une prévision et
+un résultat effectif distincts. Plusieurs orientations peuvent coexister. Un
+objectif est personnel ou collectif, thématisé, daté et suivi par état/horizon ;
+son récit enrichi et ses versions sont conservés. La prise de contexte est un
+repère d'origine, sans borne de fin imposée à la démarche longitudinale. Les
+anciens récits de projet/bilans ne sont ni parsés ni remplacés. Le repère de suivi
+actif/veille/terminé ne bloque aucune correction, ouverture ou prestation.
+
+L'activité CHRS/urgence/autre est une information versionnée de la prise ; vide
+signifie non renseigné. Une activité demandée n'est pas copiée silencieusement
+dans cette information. Un changement d'activité ne vaut pas sortie définitive
+du dossier. Les anciennes informations sont conservées sans activité inventée.
+
+La BD garde une ligne d'accès au parcours et un aperçu borné des demandes en
+attente/acceptées sans prise. La même page sélectionne demandes, orientations,
+objectifs ou suivi. Les actions portent sur l'élément, les précisions facultatives
+occupent un seul groupe, et les retours conservent cible/date/recherche/prise.
+Les coordonnées des répertoires sont restituées à la date choisie sous leurs droits.
+Les rapports utilisent une version applicable par élément, des filtres structurés
+et un CSV de toute la sélection ; les anciens motifs d'entrée/sortie ont leur
+rapport propre sur la dernière information versionnée, explicitement distinct
+d'une restitution historique à date d'effet.

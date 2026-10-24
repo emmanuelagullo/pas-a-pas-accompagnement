@@ -1243,3 +1243,9 @@ Le dossier personnel propose aussi ressources et dettes, administration, pièces
 couvertures sociales et protections déclarées : consultation datée, corrections,
 historiques, impression et CSV sous droits explicites (`autoriser_solenne`).
 Ces rubriques restent accessibles depuis le dossier ou sa prise en charge.
+
+Le parcours distingue demandes avant admission, orientations et objectifs
+longitudinaux. La ligne Parcours du dossier ou de la prise en charge ouvre ces
+rubriques sans parcours obligatoire. Les demandes refusées ne créent aucune
+prestation ; le suivi terminé n'empêche pas un nouvel accueil. Voir la recette
+d'ensemble dans DEMONSTRATION.md.

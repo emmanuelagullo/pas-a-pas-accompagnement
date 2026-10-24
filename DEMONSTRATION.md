@@ -432,3 +432,38 @@ une date et des filtres, comparer HTML et CSV, puis imprimer. Les montants connu
 sont partiels et séparés par devise ; un total déclaré de dette n'est pas ajouté
 aux créanciers. Les identifiants administratifs sont masqués par défaut dans ce
 rapport. Le parcours complet ne nécessite aucune nouvelle bibliothèque.
+
+## Tester le méta-lot B en entier
+
+Dans un espace neuf de l'**Établissement Les Passerelles**, les 36 personnes,
+18 ménages et 51 prises en charge sont conservés. Dix demandes montrent le
+parcours avant admission : cinq demandes acceptées explicitement liées aux
+prises existantes, celle d'Inès acceptée sans prise ni prestation, celle de
+Robin A en attente, celles d'Alex/Robin B refusées et celle de Maïa retirée.
+Le motif de refus d'Alex est corrigé avec l'avant/après. Demandeur, prescripteur
+et auteur de saisie sont distincts dans les exemples collectifs.
+
+Depuis le dossier, la ligne Parcours et l'aperçu des demandes conduisent à la
+même page de rubriques. Une demande acceptée permet d'ouvrir la prise par le
+formulaire habituel, ou d'associer une prise existante, après confirmation.
+Une erreur ou un formulaire périmé ne laisse ni ménage ni prise orpheline.
+La liaison ne crée aucun séjour : l'arrivée reste une action d'hébergement.
+
+Samira a deux orientations avec résultats différents ; Inès a une proposition
+future sans admission. Chaque orientation s'imprime avec destination et contacts
+datés. Les objectifs de Samira/Thomas/Noor/Yannis montrent réalisation, suspension,
+poursuite et abandon ; Thomas conserve aussi un objectif à long terme provenant
+d'une prise ancienne close. Un objectif du mauvais Robin est annulé. Les récits
+anciens de projet et de bilan restent disponibles.
+
+Le suivi de Thomas passe en veille puis redevient actif ; les autres états de
+suivi ne ferment aucune prise. Son ancienne activité CHRS et l'activité urgence
+plus récente illustrent un relais sans sortie définitive du dossier.
+
+Tester les changements à leur date, une correction motivée et l'historique ;
+revenir ensuite à la personne ou à la prise de départ. Dans Statistiques, le
+rapport Parcours propose états, cohortes, délais vers une prise débutée, filtres
+exacts, impression et CSV. La rubrique Entrées/sorties réutilise les dernières
+informations versionnées des prises et leur activité, sans inventer une date
+d'effet pour les anciens récits. Tous ces exemples restent fictifs ; les anciens
+espaces d'essai ne sont pas enrichis automatiquement.

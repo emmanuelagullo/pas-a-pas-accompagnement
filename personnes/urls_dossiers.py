@@ -1,3 +1,4 @@
+from . import vues_parcours as parcours
 from django.urls import path
 from . import vues_dossiers as vues
 from . import vues_prestations_dossier as prestations
@@ -21,6 +22,15 @@ from . import vues_dossier_complet as complet
 
 app_name = 'dossiers'
 urlpatterns = [
+    path('rapports/parcours/', parcours.rapport, name='rapport_parcours'),
+    path('<str:nature>/<uuid:pk>/parcours/', parcours.hub, name='parcours'),
+    path('<str:nature>/<uuid:pk>/parcours/<str:code>/nouveau/', parcours.nouveau, name='parcours_nouveau'),
+    path('parcours/<str:code>/<uuid:pk>/', parcours.element, name='parcours_element'),
+    path('parcours/<str:code>/<uuid:pk>/changer/', parcours.modifier, {'action':'changer'}, name='parcours_changer'),
+    path('parcours/<str:code>/<uuid:pk>/<int:version_pk>/corriger/', parcours.modifier, {'action':'corriger'}, name='parcours_corriger'),
+    path('parcours/<str:code>/<uuid:pk>/annuler/', parcours.modifier, {'action':'annuler'}, name='parcours_annuler'),
+    path('demande/<uuid:pk>/liaison/', parcours.liaison, name='demande_liaison'),
+
     path('rapports/dossier-complet/',complet.rapport,name='rapport_a'),
     path('personnes/<uuid:pk>/rubriques/<str:groupe>/',complet.fiche,name='fiche_a'),
     path('personnes/<uuid:pk>/administration/nouvelle/',complet.administration,{'action':'nouveau'},name='administration_nouvelle'),

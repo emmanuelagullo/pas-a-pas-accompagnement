@@ -8,7 +8,7 @@ from .corrections import motif_valide
 from .verrous_metier import serialiser
 
 CHAMPS = ('referent', 'provenance', 'motif_entree', 'orientation_sortie', 'motif_sortie',
-          'destination_sortie', 'objectifs_courts', 'objectifs_longs', 'animaux')
+          'destination_sortie', 'objectifs_courts', 'objectifs_longs', 'animaux', 'activite')
 
 
 def jeton(accompagnement, information):
@@ -28,7 +28,7 @@ def enregistrer(acteur, accompagnement, attendu, motif, **donnees):
     if etat != [str(a.pk), derniere.pk if derniere else None]:
         raise ValidationError('Ces informations ont changé. Rechargez l’accompagnement.')
     motif = motif_valide(motif)
-    valeurs = {champ: donnees[champ].strip() for champ in CHAMPS}
+    valeurs = {champ: (donnees.get(champ, getattr(derniere, champ, '')) if champ == 'activite' else donnees[champ]).strip() for champ in CHAMPS}
     for champ in ('objectifs_courts', 'objectifs_longs'):
         valeurs.update(tr.colonnes(champ, donnees[champ], max_length=1000))
     if valeurs == {champ: getattr(derniere, champ) if derniere else (None if champ.endswith('_document') else '') for champ in valeurs}:

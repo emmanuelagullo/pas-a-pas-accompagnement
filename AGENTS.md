@@ -362,3 +362,13 @@ périodicités implicitement. Inconnu, absence et zéro restent distincts. Une
 exige confirmation ; les anciennes synthèses sociales sont conservées. Les
 identifiants administratifs sont exclus du rapport par défaut ; les inclure
 reste un choix explicite sous droits. Aucune déduction de pouvoirs juridiques.
+
+Parcours B : conserver cible et bénéficiaires immuables, chronologies typées,
+CAS et journaux atomiques. Admission liée = demande acceptée, mêmes bénéficiaires ;
+verrou ménage puis demande. L'ouverture et sa liaison échouent ensemble. Ne
+déduire ni séjour, ni sortie, ni prescription, ni état juridique d'une demande
+ou d'une orientation. Objectifs et suivi survivent aux prises ; l'état terminé
+du dossier ne bloque rien. Préserver les récits enrichis existants et ne pas
+les découper automatiquement. Les rapports de dernières informations de prise
+ne deviennent pas des histoires à date d'effet. Respecter les droits des ménages,
+prises et répertoires dans les contextes et exports.
