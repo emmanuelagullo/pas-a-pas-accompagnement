@@ -315,3 +315,15 @@ Premier prototype : création et consultation d'une personne fictive.
 - Bons/relevés numérotés, contenu et coordonnées figés, annulation motivée et
   remplacement lié ; réédition PDF serveur, bureau et PWA.
 - Scénario neuf Établissement Les Passerelles enrichi, anciens essais conservés.
+
+## Reprise Solenne — méta-lot E
+
+- Appels 115 autonomes, anonymes ou identifiés, suites/corrections conservées,
+  liens explicites au parcours, annulations et synthèses PDF de version.
+- Relève datée et recherchable, notes des prestations, actions explicitement
+  liées, corrigées, réalisées, rouvertes ou annulées avec historique.
+- Exploration de douze populations, croisements et critères personnels cohérents,
+  classes min/max, configurations privées, CSV et PDF, unités/totaux distincts.
+- Jeu neuf Établissement Les Passerelles : quinze appels et cas limites de relève.
+- Démarrage sans fenêtre : diagnostic séparé de préparation du scénario fictif ;
+  recette d'ouverture bornée à 120 s, sans nouvelle limite dans l'application.

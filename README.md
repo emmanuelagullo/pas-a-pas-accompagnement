@@ -1301,3 +1301,67 @@ Les copies existantes conservent toutes ces tables sans nouveau format.
 Un prix déjà utilisé peut être conservé lors d’une correction de quantité dans
 la même phase et à la même date de calcul, même si le catalogue a été corrigé
 depuis ; il reste explicitement lié à sa version de tarif d’origine.
+
+## Appels 115, relève et exploration — méta-lot E
+
+Depuis **Travail du jour**, ouvrir **Appels 115** ou **Saisir un appel**. Un appel
+peut rester anonyme : aucune personne, aucun ménage ni aucune prise en charge ne
+sont créés automatiquement. Le dossier donne aussi accès aux appels explicitement
+rattachés. Date et heure d'appel sont distinctes de la saisie ; une heure inconnue
+reste vide. Le téléphone utilise le contrôle de saisie adapté, sans appel lancé.
+Identité déclarée ou répertoire, personnes concernées, ménage éventuel, demande
+principale, autres demandes, réponses et orientation restent séparés. Aucun tiers
+appelant n'est automatiquement bénéficiaire. Un rappel effectué est un nouvel
+appel ; une suite peut compléter l'identification ou la réponse. Une date/heure
+connue erronée et une erreur de personnes exigent une correction motivée.
+
+Chaque suite/correction conserve la version précédente. Les liens vers une demande
+ou une prise en charge existante sont explicites et vérifiés ; ils ne créent
+aucune admission. Une annulation conserve l'appel, ses versions et ses liens
+annulés. Le PDF restitue la version sélectionnée ; il n'est pas un document
+financier émis. Les propositions de saisie 115 sont administrées volontairement
+par le mécanisme existant ; aucune liste n'est collectée depuis les dossiers.
+Les trois fichiers de demandes/réponses référencés par Form3 Java ne figurent pas
+dans les listes disponibles ; les exemples proposés sont explicitement fictifs.
+
+Le **Cahier de liaison** et les notes de prestations distinguent la date déclarée
+et l'horodatage de saisie. Sans date déclarée ancienne, la recherche utilise et
+signale la date de saisie, sans réécrire l'histoire. Recherche période/auteur/texte,
+PDF de relève et annulation motivée complètent les versions enrichies existantes.
+Les notes restent à une seule cible (personne, prise en charge, séjour ou accord
+hébergement/repas/aide) et exigent ses droits. Une action de relève peut être liée
+explicitement à une transmission, une note ou un appel ; jamais créée par lecture
+ou déduite du texte. Correction, réalisation, réouverture et annulation sont
+journalisées. Annuler une action ne la déclare pas réalisée. Les échéances restent
+des prévisions, pas des faits effectués.
+
+**Statistiques → Explorer et croiser les populations** propose douze populations :
+personnes, ménages, prises, demandes, épisodes de séjour, distributions de repas,
+remises, appels, ressources, dettes, composantes de coût et imputations. Deux axes,
+jusqu'à vingt critères combinés par ET (égalité, ensemble de valeurs, contenu,
+inconnu, comparaisons numériques/dates), classes numériques sur les deux axes,
+CSV et PDF partagent les mêmes paramètres validés. Les situations personnelles
+sont lues à une référence explicite ; états des prises/demandes/appels et calculs
+financiers sont les dernières versions connues. Les critères personnels d'un
+ménage doivent être vérifiés par la même personne. Les quantités collectives ne
+sont pas attribuées ou multipliées par personne dans une ventilation sociale.
+
+Objets, personnes et ménages distincts, sommes, minima, maxima et moyennes connus
+ne sont pas confondus. Une moyenne exclut les valeurs inconnues, dont le nombre
+reste indiqué ; un ensemble totalement inconnu ne produit pas un faux zéro.
+Les devises, périodicités, phases et totaux de dettes versus créanciers restent
+séparés. Une première entrée connue ne signifie pas première entrée absolue.
+Les personnes-nuitées de séjour n'excluent pas implicitement les absences.
+Les ventilations multiples ne sont pas additives : le total est recalculé sur
+les objets distincts. Les configurations personnelles (dates fixes ou périodes
+relatives) se conservent dans ModeleRapport sans résultat nominatif stocké ; leur
+recalcul vérifie les droits actuels. 10 000 objets et 2 000 cellules au maximum,
+avec refus explicite au-delà, jamais de résultat silencieusement tronqué.
+
+Après migration, `python3 manage.py autoriser_solenne IDENTIFIANT` attribue
+volontairement aussi les droits de cahier, notes, relève, appels et modèles.
+Aucun compte, droit ou nouveau scénario n'est ajouté à une base existante par
+migration. Le jeu neuf Établissement Les Passerelles ajoute quinze appels,
+identifications/corrections, relais et modèles privés ; populations et anciennes
+prestations restent conservées. Les comptes de lecture limités ont des accès
+transversaux adaptés à leurs droits. Ces fonctions n'interconnectent aucun SI-SIAO.

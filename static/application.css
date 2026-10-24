@@ -187,3 +187,8 @@ main:has(.bd-dossier) { max-width: 76rem; }
 .coordonnees-detail dd { margin: 0; overflow-wrap: anywhere; }
 .bd-rubrique-titre { font-size: 1.05rem; color: #365e50; border-bottom: 2px solid #d3e4dc; padding-bottom: .35rem; margin: 1rem 0 .7rem; }
 .bd-prestations .boite-entete h3 { margin: 0; font-size: 1.15rem; }
+
+/* Un tableau croisé se consulte sans élargir la page sur un petit écran. */
+.tableau-defilant { max-width: 100%; overflow-x: auto; }
+.tableau-defilant table { border-collapse: collapse; width: 100%; }
+.tableau-defilant th, .tableau-defilant td { padding: .5rem .7rem; text-align: left; border-bottom: 1px solid #cadbd3; overflow-wrap: anywhere; }

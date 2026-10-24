@@ -52,3 +52,16 @@ octets PDF ni une signature électronique. Aucun PDF binaire n'est stocké, aucu
 rendu distant n'est utilisé. Droits complets de financement et de la prestation
 contrôlés avant lecture ; réponses privées no-store, caractères non représentables
 refusés avec message 422 privé, sans diagnostic interne.
+
+## Appels, relève et exploration — E
+
+La synthèse d'appel peut restituer une ancienne version sélectionnée ; les
+répertoires sont des identités liées et leurs libellés courants peuvent avoir été
+corrigés. Ce document reste une restitution, pas une émission financière figée.
+La relève indique date déclarée ou repli explicite sur la saisie, auteur initial,
+dernière correction et annulation éventuelle. L'exploration conserve dans son PDF
+les paramètres de population, période, référence, mesures et classes, les totaux
+recalculés et les unités. Même rendu de contenu en HTML/texte natif ou PWA, sans
+réseau, privé no-store ; caractères non représentables refusés sans diagnostic.
+Les tests PDF PWA se déclarent ignorés si la dépendance facultative fpdf2 manque,
+sans réduire le contrat des profils où elle est installée.

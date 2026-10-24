@@ -49,7 +49,7 @@ def individualiser(acteur,sejour,date,motif,attendu):
 
 def episodes():
     """Épisodes initiaux pour les compteurs historiques ; fragments pour les nuitées."""
-    for s in m.Sejour.objects.filter(origine_collective__isnull=True).prefetch_related('continuations','beneficiaires'):
+    for s in m.Sejour.objects.filter(origine_collective__isnull=True).select_related('accord__accompagnement').prefetch_related('continuations__beneficiaires','beneficiaires'):
         enfants=list(s.continuations.all())
         fin=(None if any(x.fin is None for x in enfants) else max(x.fin for x in enfants)) if enfants else s.fin
         yield s,fin

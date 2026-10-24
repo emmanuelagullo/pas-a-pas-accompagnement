@@ -526,3 +526,21 @@ documentées, avec un relevé numéroté. L'accueil de jour de Noor montre une g
 explicite ; les autres prestations peuvent rester sans coût connu. Aucune recette
 ne demande de contacter un organisme, signer ou payer. Ces compléments concernent
 uniquement les nouveaux espaces Établissement Les Passerelles.
+
+### Appels, relève et croisements (jeu neuf, E)
+
+L'Établissement Les Passerelles propose quinze appels, dont un doublon annulé.
+Le premier appel pour Samira reste d'abord anonyme puis identifie explicitement
+les trois personnes ; il est lié à une prise existante sans admission nouvelle.
+Le rappel du lendemain est un autre appel, de l'autre côté de minuit. Noor,
+Thomas et Alex ont aussi un appel identifié ; d'autres restent anonymes, avec
+heure connue/inconnue, demande alimentaire/hébergement, réponse inconnue ou
+absence de réponse déclarée. Un effectif déclaré zéro est distinct d'un effectif
+non renseigné. L'heure d'un appel est corrigée en conservant sa première version.
+
+Une action de rappel erronée est annulée sans être déclarée réalisée ; une autre
+est clôturée puis rouverte avec motif. Une transmission porte une date déclarée
+corrigée, distincte de l'enregistrement. Depuis le compte Nadia, deux modèles
+personnels illustrent demandes/réponses et classes horaires (nuit/journée/soir).
+Ils conservent les paramètres, pas les résultats. Les autres comptes n'héritent
+pas de modèles privés. Les anciens espaces d'essai restent intégralement conservés.

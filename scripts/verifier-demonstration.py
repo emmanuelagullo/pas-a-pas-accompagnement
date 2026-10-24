@@ -29,7 +29,7 @@ def ouvrir_programme(env, habituel, essai):
             recus.put(ligne)
     threading.Thread(target=lire, daemon=True).start()
     try:
-        limite = time.monotonic() + 60
+        limite = time.monotonic() + 120
         while time.monotonic() < limite:
             try:
                 ligne = recus.get(timeout=.25)

@@ -395,3 +395,20 @@ photographient coordonnées et contenu ; leur annulation est une ligne séparée
 jamais une réécriture. Numéro et lien de remplacement restent uniques. Préserver
 le verrou ménage, CAS, droits volontaires, contexte BD/date/retour, PDF privés et
 copies ; tester `personnes.tests_meta_d` et les trois profils Solenne.
+
+E — 115 et relève : un appel n'est ni un séjour ni une demande admise. Garder
+heure inconnue, date du fait et horodatage de saisie distincts. Rappel = nouvel
+appel ; identification ultérieure et correction ne se confondent pas. Vérifier
+les cibles et leurs droits, y compris anciennes versions/PDF. Aucune création ou
+fusion de personne/ménage depuis téléphone ou libellé. Les listes manquantes ne
+s'inventent pas ; les propositions locales sont volontaires et versionnées.
+Notes : une cible SQL, dates nullable héritées, corrections et annulations
+conservées. Une action de relève est explicite, ne se déduit pas du texte, et
+son annulation n'est pas une réalisation. Garder le CAS dans les formulaires.
+Exploration : registre fermé, droits revalidés, critères personnels sur la même
+personne, totaux distincts recalculés et unités/phases non mélangées. Ne jamais
+présenter un compteur maximum familial ancien comme des personnes distinctes,
+ni une première entrée connue comme absolue. Les classes modernes ont une fin
+exclue et refusent les chevauchements. Tester personnes.tests_meta_e et les trois
+profils ; distinguer couverture fonctionnelle et audit sémantique exhaustif,
+qui ne se conclut pas par la seule existence d'un explorateur générique.

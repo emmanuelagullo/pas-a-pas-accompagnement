@@ -469,6 +469,7 @@ class RevisionTexteSocial(models.Model):
 
 
 class Transmission(models.Model):
+    date_fait=models.DateField("Date de la contribution (si connue)",null=True,blank=True)
     """Message transversal d'équipe, distinct des dossiers individuels."""
     id = models.BigAutoField(primary_key=True)
     contenu = models.TextField()
@@ -481,6 +482,10 @@ class Transmission(models.Model):
 
 
 class NotePartagee(models.Model):
+    accord_hebergement=models.ForeignKey('AccordHebergement',on_delete=models.PROTECT,null=True,blank=True,related_name='notes')
+    accord_repas=models.ForeignKey('AccordRepas',on_delete=models.PROTECT,null=True,blank=True,related_name='notes')
+    accord_aide=models.ForeignKey('AccordAide',on_delete=models.PROTECT,null=True,blank=True,related_name='notes')
+    date_fait=models.DateField("Date de la contribution (si connue)",null=True,blank=True)
     """Contribution libre liée à un seul objet métier."""
     id = models.BigAutoField(primary_key=True)
     contenu = models.TextField()
@@ -493,15 +498,18 @@ class NotePartagee(models.Model):
 
     class Meta:
         ordering = ["-cree_le", "-pk"]
-        constraints = [models.CheckConstraint(
-            condition=(
-                models.Q(personne__isnull=False, accompagnement__isnull=True, sejour__isnull=True)
-                | models.Q(personne__isnull=True, accompagnement__isnull=False, sejour__isnull=True)
-                | models.Q(personne__isnull=True, accompagnement__isnull=True, sejour__isnull=False)
-            ), name="note_exactement_une_cible")]
+        constraints = [models.CheckConstraint(condition=(
+            models.Q(personne__isnull=False,accompagnement__isnull=True,sejour__isnull=True,accord_hebergement__isnull=True,accord_repas__isnull=True,accord_aide__isnull=True) |
+            models.Q(personne__isnull=True,accompagnement__isnull=False,sejour__isnull=True,accord_hebergement__isnull=True,accord_repas__isnull=True,accord_aide__isnull=True) |
+            models.Q(personne__isnull=True,accompagnement__isnull=True,sejour__isnull=False,accord_hebergement__isnull=True,accord_repas__isnull=True,accord_aide__isnull=True) |
+            models.Q(personne__isnull=True,accompagnement__isnull=True,sejour__isnull=True,accord_hebergement__isnull=False,accord_repas__isnull=True,accord_aide__isnull=True) |
+            models.Q(personne__isnull=True,accompagnement__isnull=True,sejour__isnull=True,accord_hebergement__isnull=True,accord_repas__isnull=False,accord_aide__isnull=True) |
+            models.Q(personne__isnull=True,accompagnement__isnull=True,sejour__isnull=True,accord_hebergement__isnull=True,accord_repas__isnull=True,accord_aide__isnull=False)), name="note_exactement_une_cible")]
 
 
 class RevisionContribution(models.Model):
+    ancienne_date=models.DateField(null=True,blank=True)
+    nouvelle_date=models.DateField(null=True,blank=True)
     transmission = models.ForeignKey(Transmission, on_delete=models.PROTECT, null=True, blank=True, related_name="revisions")
     id = models.BigAutoField(primary_key=True)
     note = models.ForeignKey(NotePartagee, on_delete=models.PROTECT, null=True, blank=True, related_name="revisions")
@@ -533,6 +541,13 @@ class ModeleRapport(models.Model):
 
 
 class ActionRelais(models.Model):
+    annule_le=models.DateTimeField(null=True,blank=True,editable=False)
+    annule_par=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT,null=True,blank=True,related_name='+',editable=False)
+    motif_annulation=models.CharField(max_length=240,blank=True,editable=False)
+    revision_sociale=models.PositiveIntegerField(default=0,editable=False)
+    transmission=models.ForeignKey('Transmission',on_delete=models.PROTECT,null=True,blank=True,related_name='actions')
+    note=models.ForeignKey('NotePartagee',on_delete=models.PROTECT,null=True,blank=True,related_name='actions')
+    appel=models.ForeignKey('Appel115',on_delete=models.PROTECT,null=True,blank=True,related_name='actions')
     id = models.BigAutoField(primary_key=True)
     """Action explicite d'équipe, distincte d'une transmission informative."""
     libelle = models.CharField(max_length=240)
@@ -543,6 +558,7 @@ class ActionRelais(models.Model):
     terminee_par = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.PROTECT, related_name="actions_relais_terminees")
 
     class Meta:
+        permissions=[('annuler_actionrelais','Annuler une action de relève erronée')]
         ordering = ["echeance", "cree_le", "pk"]
 
 
@@ -902,7 +918,7 @@ class RevisionAffectationIntervenant(models.Model):
 
 
 class PropositionSaisie(models.Model):
-    CHAMPS = [('situation_familiale', 'Situation familiale'), ('rapports_parentaux', 'Rapports parentaux'),
+    CHAMPS = [('motif_principal','Demande principale 115'),('lieu_appel','Lieu / origine d’appel 115'),('demande_secondaire115','Demande secondaire 115'),('reponse115','Réponse 115'),('situation_familiale', 'Situation familiale'), ('rapports_parentaux', 'Rapports parentaux'),
         ('fratrie', 'Fratrie déclarée'), ('ville', 'Ville'), ('pays', 'Pays'),
         ('code_postal', 'Code postal'), ('fonction', 'Fonction professionnelle'),
         ('nature_ressource','Nature de ressource'),('type_creancier','Type de créancier'),('type_document','Type de pièce'),
@@ -1603,3 +1619,104 @@ class AnnulationDocument(models.Model):
     enregistre_le=models.DateTimeField(auto_now_add=True)
     class Meta:
         default_permissions=('view','add')
+
+
+class Appel115(models.Model):
+    id=models.UUIDField(primary_key=True,default=uuid.uuid4,editable=False)
+    revision_sociale=models.PositiveIntegerField(default=0,editable=False)
+    auteur=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT)
+    enregistre_le=models.DateTimeField(auto_now_add=True)
+    annule_le=models.DateTimeField(null=True,blank=True,editable=False)
+    annule_par=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT,null=True,blank=True,related_name='+',editable=False)
+    motif_annulation=models.CharField(max_length=240,blank=True,editable=False)
+    class Meta:
+        default_permissions=('view','add')
+        permissions=[('annuler_appel115','Annuler un appel saisi par erreur')]
+        ordering=['-enregistre_le','pk']
+        constraints=[models.CheckConstraint(condition=models.Q(annule_le__isnull=True,annule_par__isnull=True,motif_annulation='')|(models.Q(annule_le__isnull=False,annule_par__isnull=False)&~models.Q(motif_annulation='')),name='appel_annulation_coherente')]
+
+
+class VersionAppel115(models.Model):
+    TYPES=[('personne','Personne concernée'),('tiers','Tiers / proche'),('professionnel','Professionnel'),('organisme','Organisme / service'),('inconnu','Appelant non identifié')]
+    appel=models.ForeignKey(Appel115,on_delete=models.PROTECT,related_name='versions')
+    version=models.PositiveIntegerField()
+    date=models.DateField('Date de l’appel')
+    heure=models.TimeField('Heure de l’appel (si connue)',null=True,blank=True)
+    type_appelant=models.CharField(max_length=16,choices=TYPES)
+    appelant_personne=models.ForeignKey(Personne,on_delete=models.PROTECT,null=True,blank=True,related_name='+')
+    appelant_intervenant=models.ForeignKey(Intervenant,on_delete=models.PROTECT,null=True,blank=True,related_name='+')
+    appelant_organisme=models.ForeignKey(Partenaire,on_delete=models.PROTECT,null=True,blank=True,related_name='+')
+    appelant_libre=models.CharField('Nom déclaré de l’appelant (hors répertoire)',max_length=160,blank=True)
+    telephone=models.CharField('Téléphone de rappel déclaré',max_length=80,blank=True)
+    lieu_appel=models.CharField('Lieu / origine de l’appel',max_length=160,blank=True)
+    menage=models.ForeignKey(Menage,on_delete=models.PROTECT,null=True,blank=True)
+    beneficiaires=models.ManyToManyField(Personne,related_name='appels115')
+    adultes_declares=models.PositiveSmallIntegerField('Adultes déclarés lors de l’appel',null=True,blank=True)
+    enfants_declares=models.PositiveSmallIntegerField('Enfants déclarés lors de l’appel',null=True,blank=True)
+    grossesses_declarees=models.PositiveSmallIntegerField('Grossesses déclarées lors de l’appel',null=True,blank=True)
+    motif_principal=models.CharField('Demande principale',max_length=160)
+    details=models.TextField('Détails de la demande',blank=True,max_length=4000)
+    details_document=models.JSONField(null=True,blank=True,editable=False)
+    demandes_secondaires=models.JSONField('Autres demandes',default=list,blank=True)
+    reponses=models.JSONField('Réponses apportées',default=list,blank=True)
+    etat_reponse=models.CharField('État de la réponse',max_length=16,choices=[('inconnue','Non renseignée'),('sans_reponse','Aucune réponse apportée déclarée'),('apportee','Réponse apportée')],default='inconnue')
+    orientation=models.ForeignKey(Partenaire,on_delete=models.PROTECT,null=True,blank=True,related_name='+',verbose_name='Organisme vers lequel orienter')
+    orientation_declaree=models.CharField('Orientation déclarée hors répertoire',max_length=160,blank=True)
+    information_complementaire=models.CharField('Information complémentaire propre à l’appel',max_length=500,blank=True)
+    source=models.CharField(max_length=160)
+    action=models.CharField(max_length=16,choices=[('saisie','Saisie de l’appel'),('suite','Suite / identification ultérieure'),('correction','Correction d’erreur')])
+    motif=models.CharField(max_length=240,blank=True)
+    auteur=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT)
+    enregistre_le=models.DateTimeField(auto_now_add=True)
+    class Meta:
+        default_permissions=('view','add')
+        ordering=['-version']
+        constraints=[models.UniqueConstraint(fields=['appel','version'],name='appel_version_unique')]
+    def clean(self):
+        super().clean()
+        from django.utils import timezone
+        if self.date and self.date>timezone.localdate():raise ValidationError({'date':'Un appel effectué ne peut pas être futur.'})
+        for c in ('demandes_secondaires','reponses'):
+            v=getattr(self,c)
+            if not isinstance(v,list) or len(v)>30 or any(not isinstance(s,str) or not s.strip() or len(s)>160 for s in v) or len({s.strip().casefold() for s in v})!=len(v):raise ValidationError({c:'Au plus 30 éléments distincts, de 160 caractères chacun.'})
+        appelants=[self.appelant_personne_id,self.appelant_intervenant_id,self.appelant_organisme_id,bool(self.appelant_libre.strip())]
+        if sum(bool(x) for x in appelants)>1:raise ValidationError('Choisissez une seule identité d’appelant, du répertoire ou déclarée librement.')
+        if self.type_appelant=='inconnu' and any(appelants):raise ValidationError({'type_appelant':'Un appelant identifié ne peut pas être déclaré inconnu.'})
+        if self.appelant_personne_id and self.type_appelant not in ('personne','tiers') or self.appelant_intervenant_id and self.type_appelant!='professionnel' or self.appelant_organisme_id and self.type_appelant!='organisme':raise ValidationError({'type_appelant':'Le type et l’identité de l’appelant doivent correspondre.'})
+        if bool(self.reponses)!=(self.etat_reponse=='apportee'):raise ValidationError({'reponses':'Indiquez les réponses lorsque l’état est « Réponse apportée » ; sinon laissez la liste vide.'})
+        if self.orientation_id and self.orientation_declaree.strip():raise ValidationError({'orientation_declaree':'Choisissez le répertoire ou une orientation déclarée, pas les deux.'})
+
+
+class LienAppelParcours(models.Model):
+    appel=models.ForeignKey(Appel115,on_delete=models.PROTECT,related_name='liens')
+    demande=models.ForeignKey(DemandeAccueil,on_delete=models.PROTECT,null=True,blank=True)
+    accompagnement=models.ForeignKey(Accompagnement,on_delete=models.PROTECT,null=True,blank=True)
+    auteur=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT)
+    motif=models.CharField(max_length=240)
+    enregistre_le=models.DateTimeField(auto_now_add=True)
+    annule_le=models.DateTimeField(null=True,editable=False)
+    annule_par=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT,null=True,related_name='+',editable=False)
+    motif_annulation=models.CharField(max_length=240,blank=True,editable=False)
+    class Meta:
+        default_permissions=('view','add')
+        permissions=[('annuler_lienappelparcours','Annuler un lien erroné d’appel au parcours')]
+        constraints=[models.CheckConstraint(condition=models.Q(demande__isnull=True,accompagnement__isnull=False)|models.Q(demande__isnull=False,accompagnement__isnull=True),name='appel_lien_cible_unique'),models.UniqueConstraint(fields=['appel','demande'],condition=models.Q(annule_le__isnull=True),name='appel_demande_active_unique'),models.UniqueConstraint(fields=['appel','accompagnement'],condition=models.Q(annule_le__isnull=True),name='appel_prise_active_unique')]
+
+
+class RevisionAppel115(JournalPersonnel):
+    appel=models.ForeignKey(Appel115,on_delete=models.PROTECT,related_name='revisions')
+
+
+class AnnulationContribution(models.Model):
+    transmission=models.OneToOneField(Transmission,on_delete=models.PROTECT,null=True,blank=True,related_name='annulation')
+    note=models.OneToOneField(NotePartagee,on_delete=models.PROTECT,null=True,blank=True,related_name='annulation')
+    auteur=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT)
+    motif=models.CharField(max_length=240)
+    enregistre_le=models.DateTimeField(auto_now_add=True)
+    class Meta:
+        default_permissions=('view','add')
+        constraints=[models.CheckConstraint(condition=models.Q(transmission__isnull=True,note__isnull=False)|models.Q(transmission__isnull=False,note__isnull=True),name='annulation_contribution_cible')]
+
+
+class RevisionActionRelais(JournalPersonnel):
+    action_relais=models.ForeignKey(ActionRelais,on_delete=models.PROTECT,related_name='revisions')

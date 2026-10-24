@@ -87,6 +87,18 @@ financements.enregistrer(u,aide,financements.jeton(aide),'Convention fictive','d
     [dict(phase='autorise',financeur=organisme,budget='Mobilité fictive',montant=Decimal('6.30'),reference='FICTIF')],
     debut=date(2026,1,1),fin=None,devise='EUR',emetteur=organisme,mentions='Mention fictive de qualification',prestataire=organisme,prescripteur=organisme,facturation=organisme,signataire=professionnel,reference='QUALIFICATION-FICTIVE',source='Convention fictive')
 document_financement=financements.emettre(u,aide,financements.jeton(aide),'engagement','autorise',date(2026,1,2))
+from personnes import appels115,transmissions,releve
+from personnes.models import VersionAppel115
+from django.contrib.auth.models import Permission
+u.user_permissions.add(*Permission.objects.filter(content_type__app_label='personnes',codename__in=['view_transmission','add_transmission','view_notepartagee','add_notepartagee','view_actionrelais','add_actionrelais','change_actionrelais']))
+u=get_user_model().objects.get(pk=u.pk)
+v={c:VersionAppel115._meta.get_field(c).get_default() for c in appels115.CHAMPS}
+v.update(date=date(2026,1,2),type_appelant='personne',appelant_personne=p,motif_principal='Demande fictive de qualification',source='Écoute fictive',etat_reponse='apportee',reponses=['Information fictive'],demandes_secondaires=['Repas fictif'])
+appel115=appels115.ecrire(u,appels115.creation(),[p],action='saisie',**v)
+appels115.lier(u,appel115,appels115.jeton(appel115),'Lien fictif explicite',accompagnement=a)
+transmission=transmissions.transmettre(u,'Relève fictive de qualification',date(2026,1,2))
+releve.creer_action(u,'Action fictive explicite',None,transmission=transmission)
+transmissions.noter(u,'Note fictive de prestation',accord_aide=aide,date_fait=date(2026,1,2))
 client = Client(HTTP_HOST=settings.ALLOWED_HOSTS[0])
 client.force_login(u, backend='django.contrib.auth.backends.ModelBackend')
 prefixe = settings.FORCE_SCRIPT_NAME or ''
@@ -94,6 +106,10 @@ def chemin(route, *args):
     url = reverse(route, args=args)
     return url[len(prefixe):] if prefixe and url.startswith(prefixe) else url
 for route, args, texte in [
+    ('dossiers:appel115',[appel115.pk],'Demande fictive de qualification'),
+    ('suivi:notes',['accord_aide',aide.pk],'Note fictive de prestation'),
+    ('dossiers:releve_recherche',[],'Rechercher et imprimer la relève'),
+    ('dossiers:explorer',[],'Explorer les populations'),
     ('dossiers:financement',['aide',aide.pk],'Mobilité fictive'),
     ('dossiers:document_financement',[document_financement.pk],document_financement.numero),
     ('dossiers:prise', ['personne', p.pk, a.pk], 'Ville fictive'),
@@ -139,6 +155,10 @@ if os.environ.get('SOLENNE_VERIFIER_PDF') == 'oui':
     assert pdf_aide.status_code==200 and pdf_aide.content.startswith(b'%PDF-')
     pdf_financement=client.get(chemin('dossiers:document_financement',document_financement.pk),{'format':'pdf'},secure=True)
     assert pdf_financement.status_code==200 and pdf_financement.content.startswith(b'%PDF-')
+    pdf_appel=client.get(chemin('dossiers:appel115_pdf',appel115.pk),secure=True)
+    assert pdf_appel.status_code==200 and pdf_appel.content.startswith(b'%PDF-')
+    pdf_releve=client.get(chemin('dossiers:releve_recherche'),{'debut':'2026-01-01','fin':'2026-02-01','format':'pdf'},secure=True)
+    assert pdf_releve.status_code==200 and pdf_releve.content.startswith(b'%PDF-')
     assert 'no-store' in pdf_financement['Cache-Control']
     assert 'no-store' in response['Cache-Control']
 bd6.corriger_prevision(u, a, None, 'Retrait fictif', bd6.jeton(a))

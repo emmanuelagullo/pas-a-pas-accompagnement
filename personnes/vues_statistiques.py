@@ -1,3 +1,4 @@
+from django.urls import reverse
 """Consultation des statistiques agrégées CHRS10."""
 from datetime import timedelta, date
 import csv
@@ -148,6 +149,8 @@ def statistiques(request):
     modele = None
     if request.GET.get('modele'):
         modele = get_object_or_404(ModeleRapport, pk=request.GET['modele'], auteur=request.user)
+    if modele and modele.parametres.get('exploration'):
+        return redirect(reverse('dossiers:explorer')+'?modele='+str(modele.pk))
     selection = modele.parametres if modele else request.GET
     periode_choisie = selection.get('periode', '')
     if periode_choisie in PERIODES:
@@ -280,7 +283,7 @@ def statistiques(request):
     periode = formulaire.cleaned_data if formulaire.is_valid() else {}
     return render(request, 'suivi/statistiques.html', {
         'formulaire': formulaire, 'resultats': resultats,
-        'modeles_rapports': ModeleRapport.objects.filter(auteur=request.user),
+        'modeles_rapports': [x for x in ModeleRapport.objects.filter(auteur=request.user) if not x.parametres.get('exploration')],
         'modele_actif': modele,
         'regroupement': regroupement, 'regroupements': REGROUPEMENTS_EXPLORATION,
         'exploration_hebergement': exploration_hebergement,

@@ -28,6 +28,8 @@ for nom in ('tarifprestation','versiontarif','financementprestation','versionfin
     DROITS.update({'view_'+nom,'add_'+nom})
 DROITS.update({'change_tarifprestation','view_lignecout','view_imputationfinancement'})
 
+DROITS.update({'view_transmission','add_transmission','change_transmission','view_notepartagee','add_notepartagee','change_notepartagee','view_actionrelais','add_actionrelais','change_actionrelais','view_appel115','add_appel115','annuler_appel115','view_versionappel115','add_versionappel115','view_revisionappel115','view_lienappelparcours','add_lienappelparcours','annuler_lienappelparcours','view_annulationcontribution','add_annulationcontribution','view_revisionactionrelais','annuler_actionrelais','view_modelerapport','add_modelerapport'})
+
 
 
 class Command(BaseCommand):

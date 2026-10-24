@@ -13,7 +13,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
-from .models import AccordRepas, RepasDistribue, Sejour, Accompagnement, Personne, Transmission, ActionRelais
+from .models import AccordRepas, RepasDistribue, Sejour, Accompagnement, Personne, Transmission, ActionRelais, NotePartagee, Appel115
 from .forms_social import ConsultationForm
 from . import repas
 from .retour_service import date_service, url_jour
@@ -105,7 +105,7 @@ def jour(request):
                 "absence_ouverte": next((a for a in (absences or []) if a.fin is None), None), "sejour":s,"lieux":lieux,"absences":absences,"accord_expire":s.accord.fin and s.accord.fin<=date})
     # Le cahier transversal est consultable sans exposer les notes individuelles.
     # Les dernières transmissions restent accessibles indépendamment de la date métier.
-    transmissions_recentes = (list(Transmission.objects.select_related("auteur")[:8])
+    transmissions_recentes = (list(Transmission.objects.filter(annulation__isnull=True).select_related("auteur")[:8])
                              if request.user.has_perm("personnes.view_transmission") else [])
     # Les échéances affichées sont celles des accords connus, pas des obligations
     # ou des tâches générées automatiquement. Les fins sont exclusives.
@@ -116,7 +116,7 @@ def jour(request):
             if fin and date <= fin <= date + timedelta(days=7):
                 echeances.append({"menage": ligne["sejour"].accord.accompagnement.menage,
                                   "accord": ligne["sejour"].accord, "fin": fin})
-    actions_relais = (ActionRelais.objects.filter(terminee_le__isnull=True).select_related("auteur")
+    actions_relais = (ActionRelais.objects.filter(terminee_le__isnull=True,annule_le__isnull=True).select_related("auteur")
                      if request.user.has_perm("personnes.view_actionrelais") else ActionRelais.objects.none())
     aujourd_hui = timezone.localdate()
     actions_en_retard = actions_relais.filter(echeance__lt=aujourd_hui)
@@ -150,15 +150,29 @@ def actions(request):
             from django.core.exceptions import PermissionDenied
             raise PermissionDenied
         if form.is_valid():
-            action = form.save(commit=False)
-            action.auteur = request.user
-            action.save()
-            if request.POST.get("retour") == "jour":
-                return redirect(url_jour(request.POST.get("date_service")))
-            return redirect("suivi:actions_relais")
-    ouvertes = ActionRelais.objects.filter(terminee_le__isnull=True).select_related("auteur")
+            from . import releve
+            from django.http import Http404
+            contexte={}
+            for nom,model in [('transmission',Transmission),('note',NotePartagee),('appel',Appel115)]:
+                valeur=request.GET.get(nom)
+                if valeur:
+                    try:pk=(forms.UUIDField() if nom=='appel' else forms.IntegerField(min_value=1)).clean(valeur)
+                    except forms.ValidationError:raise Http404
+                    contexte[nom]=get_object_or_404(model,pk=pk)
+            try:action=releve.creer_action(request.user,**form.cleaned_data,**contexte)
+            except (ValidationError,OperationalError) as erreur:
+                form.add_error(None,erreur if isinstance(erreur,ValidationError) else 'Écriture non confirmée ; rechargez avant de réessayer.')
+            else:
+                if contexte.get('appel') and request.POST.get('retour')!='jour':
+                    from .vues_appels115 import url,navigation
+                    from urllib.parse import urlencode
+                    return redirect(url(contexte['appel'],urlencode(navigation(request))))
+                if request.POST.get("retour") == "jour":return redirect(url_jour(request.POST.get("date_service")))
+                return redirect("suivi:actions_relais")
+    ouvertes = ActionRelais.objects.filter(terminee_le__isnull=True,annule_le__isnull=True).select_related("auteur")
     aujourd_hui = timezone.localdate()
     return render(request, "suivi/actions_relais.html", {"form": form,
+        "terminees":ActionRelais.objects.filter(Q(terminee_le__isnull=False)|Q(annule_le__isnull=False)).prefetch_related("revisions__auteur")[:50],
         "actions_en_retard": ouvertes.filter(echeance__lt=aujourd_hui),
         "actions_du_jour": ouvertes.filter(echeance=aujourd_hui),
         "actions_autres": ouvertes.filter(Q(echeance__isnull=True) | Q(echeance__gt=aujourd_hui)),
@@ -171,12 +185,12 @@ def actions(request):
 @login_required
 @permission_required("personnes.change_actionrelais", raise_exception=True)
 def terminer_action(request, pk):
-    with transaction.atomic():
-        action = get_object_or_404(ActionRelais.objects.select_for_update(), pk=pk)
-        if action.terminee_le is None:
-            action.terminee_le = timezone.now()
-            action.terminee_par = request.user
-            action.save(update_fields=["terminee_le", "terminee_par"])
+    from . import releve
+    action=get_object_or_404(ActionRelais,pk=pk)
+    try:releve.terminer(request.user,action,request.POST.get('attendu'))
+    except (ValidationError,OperationalError):
+        from django.http import HttpResponse
+        return HttpResponse('Action modifiée ou écriture non confirmée ; rechargez avant de réessayer.',status=409)
     if request.POST.get("retour") == "jour":
         return redirect(url_jour(request.POST.get("date_service")))
     return redirect("suivi:actions_relais")

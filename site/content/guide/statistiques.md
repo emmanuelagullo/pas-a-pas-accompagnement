@@ -56,3 +56,27 @@ prix ; les imputations sont retenues lorsque leur période chevauche la période
 recherchée, sans proratisation. Financeur et budget filtrent les imputations ;
 unité et catégorie filtrent les composantes. Les montants ne prouvent pas un
 paiement et les anciennes versions restent accessibles dans chaque prestation.
+
+### Explorer les populations et croiser les critères
+
+**Explorer et croiser les populations** complète les rapports spécialisés :
+choisir d'abord ce qui est compté (personnes, ménages, prises en charge, demandes,
+séjours, repas, remises, appels, ressources, dettes, coûts ou imputations).
+Choisir ensuite la mesure et les deux axes. Les critères s'ajoutent dans la même
+page ; les critères personnels sont vérifiés par la même personne, même si le
+ménage comporte plusieurs membres. Pour classer des nombres, saisir des classes
+avec minimum inclus et maximum exclu. Les valeurs inconnues restent visibles.
+
+Les montants restent séparés par devise et périodicité ou phase. Les cellules
+avec plusieurs valeurs ne s'additionnent pas forcément ; le total est recalculé.
+Un effectif déclaré par appel n'est pas un nombre de personnes distinctes.
+Les modèles personnels conservent les paramètres et se recalculent sous les
+droits actuels, avec dates fixes ou période relative. CSV et PDF reprennent
+les mêmes critères. Les limites de calcul produisent un refus explicite,
+sans tronquer silencieusement un tableau.
+
+Le scénario neuf de l'**Établissement Les Passerelles** propose quinze appels
+et, pour Nadia, deux modèles personnels sur les demandes/réponses et horaires.
+Les autres comptes ne voient pas ses modèles privés. Aucun compteur ne permet
+de déduire une première admission absolue ou une sortie définitive à partir
+d'un historique incomplet.

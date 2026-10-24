@@ -1,3 +1,4 @@
+from . import vues_appels115 as appels115,vues_exploration as exploration,vues_releve as releve
 from . import vues_financements as financements
 from . import vues_aides as aides, vues_complements_c as complements_c
 from . import vues_parcours as parcours
@@ -24,6 +25,19 @@ from . import vues_dossier_complet as complet
 
 app_name = 'dossiers'
 urlpatterns = [
+    path('appels115/',appels115.journal,name='appels115'),
+    path('appels115/nouveau/',appels115.saisir,name='appel115_nouveau'),
+    path('appels115/<uuid:pk>/',appels115.fiche,name='appel115'),
+    path('appels115/<uuid:pk>/modifier/',appels115.saisir,name='appel115_modifier'),
+    path('appels115/<uuid:pk>/lier/',appels115.action,{'action':'lier'},name='appel115_lier'),
+    path('appels115/<uuid:pk>/annuler/',appels115.action,{'action':'annuler'},name='appel115_annuler'),
+    path('appels115/<uuid:pk>/liens/<int:lien_pk>/annuler/',appels115.action,{'action':'delier'},name='appel115_delier'),
+    path('appels115/<uuid:pk>/pdf/',appels115.pdf,name='appel115_pdf'),
+    path('explorer/',exploration.explorer,name='explorer'),
+    path('explorer/modeles/<int:pk>/supprimer/',exploration.supprimer_modele,name='explorer_supprimer_modele'),
+    path('releve/recherche/',releve.recherche,name='releve_recherche'),
+    path('releve/<str:nature>/<int:pk>/annuler/',releve.annuler,name='contribution_annuler'),
+    path('releve/actions/<int:pk>/',releve.action,name='action_corriger'),
     path('tarifs/', financements.tarifs, name='tarifs'),
     path('tarifs/<uuid:pk>/', financements.tarifs, name='tarif'),
     path('financement/<str:nature>/<uuid:pk>/', financements.fiche, name='financement'),

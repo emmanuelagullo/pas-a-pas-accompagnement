@@ -152,6 +152,7 @@ def main():
         etape_demarrage('migrations de la base locale')
         call_command("migrate", interactive=False, verbosity=0)
         if nouveau_essai:
+            etape_demarrage('préparation du scénario fictif')
             from personnes.demonstration import preparer_jeu_public
             preparer_jeu_public()
         if args.essai:

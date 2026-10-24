@@ -61,3 +61,18 @@ La **situation à la date choisie** affiche explicitement la date de consultatio
 Pour poursuivre l’analyse, les liens vers les ménages et les statistiques
 restent soumis aux autorisations existantes. Les statistiques portent sur une
 période et ne décrivent pas une présence physique certaine.
+
+### Appels 115 et relève
+
+Les comptes autorisés peuvent **Saisir un appel** ou consulter **Appels 115**.
+Aucun dossier ni hébergement n'est obligatoire : l'appel peut être anonyme.
+Personnes concernées, tiers appelant, demande, réponses et orientation sont
+séparés. Une suite peut identifier les personnes ou compléter une réponse ;
+un rappel effectué est un nouvel appel. Le lien ultérieur à une demande ou
+prise en charge existante reste une confirmation explicite, sans admission créée.
+
+Le cahier permet aussi de rechercher par date, auteur ou texte et d'imprimer
+une sélection. Les notes de chaque prestation gardent leur cible. Une **action de
+relève** peut être liée à une contribution ou un appel ; elle reste volontaire.
+Une action réalisée, une action erronée annulée et une action rouverte sont
+des états différents, avec leurs motifs et auteurs conservés.

@@ -619,3 +619,48 @@ bibliothèque, configuration ou ressource réseau.
 Un prix déjà utilisé peut être conservé lors d’une correction de quantité dans
 la même phase et à la même date de calcul, même si le catalogue a été corrigé
 depuis ; il reste explicitement lié à sa version de tarif d’origine.
+
+## 115, relève et exploration (E)
+
+Appel115 est indépendant des périodes de prestation. VersionAppel115 porte un
+événement daté, heure facultative, personnes explicitement concernées et valeurs
+nominales multiples validées. CAS du parent avant écriture ; anciennes versions
+conservées. Une suite ne déplace pas une date/heure déjà connue et ne retire pas
+une personne identifiée ; une correction motivée le peut si les liens explicites
+restent cohérents. LienAppelParcours référence une demande ou une prise existante,
+avec annulation séparée ; aucune écriture d'admission implicite. Les écritures
+ne prennent pas de verrou ménage après celui d'appel : elles ne modifient aucun
+objet lié. Les droits des cibles et répertoires sont contrôlés avant restitution,
+y compris pour une ancienne version et son PDF. Téléphone et libellés ne servent
+jamais de clés de rapprochement.
+
+Transmission/NotePartagee reçoivent une date_fait nullable, sans inventer de dates
+pour l'existant. RevisionContribution conserve avant/après de cette date avec les
+textes enrichis ; le jeton et le CAS incluent la date. AnnulationContribution
+conserve le statut hors du contenu. Une note n'a toujours qu'une cible, contrainte
+SQL étendue aux trois accords. ActionRelais reçoit un contexte facultatif,
+révision CAS et RevisionActionRelais. Réalisation et annulation ont des états
+séparés ; les historiques précisent aussi la réouverture. Les anciens POST de
+clôture sans jeton restent idempotents et conditionnels ; les formulaires livrés
+transmettent le jeton de révision. Les journaux sont atomiques avec les écritures.
+
+Exploration utilise un registre fermé de populations/champs des modèles métier,
+jamais un chemin ORM ou du SQL transmis par le client. Les données personnelles
+utiles sont chargées par domaine à la référence, selon droits ; identifiants
+administratifs et textes libres ne deviennent pas des axes de regroupement.
+Les conditions personnelles multiples et leurs croisements s'évaluent sur le
+même bénéficiaire. Les cellules dédoublonnent les objets et participants ; le
+total global est recalculé sur la sélection. Unités/devises/périodicités/phases
+sont préservées. Les valeurs inconnues sont distinctes de zéro. Les épisodes de
+séjour utilisent la continuité déjà livrée ; seuls leurs fragments produisent
+les nuitées de personnes. Les champs de date de saisie et date du fait sont séparés.
+
+Les modèles d'exploration réutilisent ModeleRapport, privés par auteur, avec
+schema=1/exploration=true et paramètres validés seulement. Une version inconnue
+est refusée ; les modèles historiques gardent leur parcours. Toute lecture est
+recalculée et revalidée sous les droits du compte courant. Les limites d'objets,
+cellules, filtres et classes sont explicites ; aucun total de résultat tronqué.
+Les PDF textuels de restitution réutilisent les moteurs existants et refusent
+les ressources externes. La recette native accorde 120 s à chaque ouverture,
+migrations/scénario compris ; le lanceur journalise séparément ces deux phases
+uniquement en mode sans fenêtre. Aucun délai de fonctionnement n'est ajouté.

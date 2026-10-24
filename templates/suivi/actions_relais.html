@@ -5,4 +5,4 @@
 <h2>En retard</h2>{% include "suivi/_liste_actions.html" with actions=actions_en_retard %}
 <h2>À traiter aujourd’hui</h2>{% include "suivi/_liste_actions.html" with actions=actions_du_jour %}
 <h2>À venir ou sans échéance</h2>{% include "suivi/_liste_actions.html" with actions=actions_autres %}
-{% endblock %}
+{% if terminees %}<details><summary>Actions terminées</summary>{% include 'suivi/_liste_actions.html' with actions=terminees %}</details>{% endif %}{% endblock %}

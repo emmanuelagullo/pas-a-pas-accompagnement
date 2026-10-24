@@ -317,3 +317,46 @@ figés restent consultables dans la prestation. Les CSV protègent les cellules
 textuelles des formules. Le montant ancien `prix_total`, tronqué aux entiers dans
 FormStats.java:1600, est modernisé par un total décimal ; pas de conversion FRF/EUR
 à partir de la seule date.
+
+## Exploration transversale et appels 115 — E
+
+Les appels sont des événements distincts : dernière version de chaque appel non
+annulé, sélection sur sa date déclarée ; heure inconnue distincte de minuit.
+Appelant, origine, demandes principales/secondaires, réponses et complément
+115 restent des dimensions structurées. Une liste vide de réponses ne signifie
+pas automatiquement « sans réponse » : cet état est déclaré séparément. Les
+sommes d'adultes/enfants/grossesses déclarés par appel ne sont pas des personnes
+uniques. Les personnes identifiées se dédoublonnent par UUID, indépendamment du
+nombre de rappels ou des versions d'un appel. Aucun appel n'est une nuitée.
+
+L'explorateur porte sur douze populations et permet deux axes, filtres combinés,
+classes sur deux axes et somme/min/max/moyenne des quantités connues compatibles.
+Les situations personnelles se lisent à la référence indiquée ; les filtres de
+saisie et ceux du fait sont différents. Les modèles relatifs recalculent leurs
+dates et référence à chaque ouverture. L'ensemble des champs administratifs
+identifiants reste dans les éditions dédiées, sous droits, pas dans les axes.
+Un axe ou filtre incompatible avec une population est refusé. Un modèle n'est
+jamais un résultat figé ou une autorisation d'accès durable.
+
+Une cellule personnelle ne reçoit que les bénéficiaires qui vérifient ses
+critères, et deux critères personnels portent sur la même personne. Une quantité
+collective demeure celle de l'objet sélectionné, sans répartition fictive ; une
+ventilation multi-valeurs peut la répéter dans plusieurs cellules. Le total global
+repart des objets distincts. Les ressources restent par devise/périodicité ; les
+dettes détaillées ne s'additionnent pas au total déclaré. Coûts et imputations
+restent séparés par devise/phase, sans somme prévu + autorisé + réalisé.
+L'imputation est retenue par chevauchement de sa période, sans proratisation.
+
+Convention moderne des classes : minimum inclus, maximum exclu. Les anciennes
+listes d'âge contiennent des bornes inclusives, chevauchements et même des
+étiquettes dont les chiffres ne concordent pas ; elles ne sont pas importées
+aveuglément. Inconnus et hors classes sont visibles. Une naissance estimée ne
+produit pas un âge exact. Une première entrée connue/retour connu ne garantit
+pas la complétude historique du dossier ; une clôture de prise n'est jamais
+une sortie définitive de l'établissement inférée.
+
+L'explorateur complète les rapports spécialisés des lots A–D et les rapports
+CHRS. La qualification de toutes les combinaisons du moteur Java reste à
+terminer ; l'existence de cet explorateur ne constitue pas une preuve de
+reproduction exhaustive de chacune d'elles. Les listes 115 absentes et leurs
+libellés d'usage réels restent explicitement non vérifiés.
