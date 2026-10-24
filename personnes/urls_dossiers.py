@@ -4,9 +4,14 @@ from . import vues_prestations_dossier as prestations
 
 from . import vues_bd6 as bd6
 from . import vues_famille as famille
+from . import vues_coordonnees as coordonnees
 
 app_name = 'dossiers'
 urlpatterns = [
+    path('rapports/coordonnees/', coordonnees.rapport, name='rapport_coordonnees'),
+    path('personne/<uuid:pk>/coordonnees/', coordonnees.histoire, name='coordonnees'),
+    path('personne/<uuid:pk>/coordonnees/nouvelles/', coordonnees.histoire, {'action': 'nouvelles'}, name='coordonnees_nouvelles'),
+    path('personne/<uuid:pk>/coordonnees/<int:fait_pk>/corriger/', coordonnees.histoire, {'action': 'correction'}, name='coordonnees_corriger'),
     path('rapports/familles/', famille.rapport, name='rapport_familles'),
     path('personne/<uuid:pk>/famille/', famille.histoire, name='famille'),
     path('personne/<uuid:pk>/famille/nouvelle/', famille.histoire, {'action': 'nouvelle'}, name='famille_nouvelle'),

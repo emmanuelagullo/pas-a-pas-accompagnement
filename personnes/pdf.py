@@ -3,12 +3,12 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 
 
-def produire(personne, *, navigateur=False):
+def produire(personne, *, navigateur=False, coordonnees=None):
     from pas_communs.pdf import fiche_texte, rendre_html
     from django.conf import settings
-    contexte = {'personne': personne, 'edite_le': timezone.localtime()}
+    contexte = {'personne': personne, 'edite_le': timezone.localtime(), 'coordonnees': coordonnees}
     if navigateur:
-        return fiche_texte('Pas à Pas — Fiche personne', [
+        lignes = [
             'Données fictives uniquement',
             'Nom d’usage ou identifiant provisoire : '+personne.designation,
             'Prénom : '+(personne.prenom or 'Non renseigné'),
@@ -16,7 +16,14 @@ def produire(personne, *, navigateur=False):
             'Identifiant de la fiche : '+str(personne.pk),
             'Fiche créée le : '+timezone.localtime(personne.cree_le).strftime('%d/%m/%Y à %H:%M'),
             'Éditée le : '+contexte['edite_le'].strftime('%d/%m/%Y à %H:%M'),
-        ])
+        ]
+        if coordonnees:
+            lignes += ['Coordonnées déclarées depuis le '+coordonnees.debut.strftime('%d/%m/%Y'),
+                'Adresse : '+(coordonnees.adresse or 'Non renseignée'),
+                'Téléphone : '+(coordonnees.telephone or 'Non renseigné'),
+                'Courriel : '+(coordonnees.courriel or 'Non renseigné'),
+                'Fax : '+(coordonnees.fax or 'Non renseigné'), 'Source : '+coordonnees.source]
+        return fiche_texte('Pas à Pas — Fiche personne', lignes)
     def refuser(url):
         # Aucun réseau, fichier ou média autorisé dans cette fiche sans images.
         raise ValueError('Ressource externe interdite dans la fiche personne.')

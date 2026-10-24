@@ -1062,3 +1062,30 @@ attribué aux comptes existants par la migration. Les jeux nouvellement génér�
 Les Passerelles incluent une déclaration familiale fictive ; les anciens jeux
 restent inchangés. L2 n'est pas clos : les relations personnelles datées, le
 contact désigné du ménage et les compléments d'identité restent à livrer.
+
+## Reprise Solenne — L3a : coordonnées personnelles
+
+« Détail et historique des coordonnées » donne accès à l'adresse déclarée
+(rue, code postal, ville, pays), au téléphone, au courriel et au fax facultatif.
+Les coordonnées sont datées et sourcées par personne, avec changements réels,
+insertions de faits antérieurs et corrections motivées de valeurs ou de dates.
+Un changement n'altère ni les lieux de séjour, ni le ménage, ni les partenaires.
+Les numéros, adresses et codes étrangers sont acceptés sans interprétation de
+nationalité ou de résidence ; aucun appel, message ou envoi automatique.
+
+La fiche PDF inclut les coordonnées applicables aujourd'hui seulement avec les
+droits correspondants, pour les deux moteurs de rendu natif/navigateur. Le
+rapport « Coordonnées personnelles à une date » propose des filtres exacts de
+ville, pays et code postal, avec HTML imprimable et CSV identiques. Sa population
+est celle des fiches enregistrées aujourd'hui, pas une population présente à la
+date choisie. Les valeurs déclarées ne sont pas une nomenclature géographique.
+Après migration, réexécuter volontairement `python3 manage.py autoriser_solenne
+IDENTIFIANT` pour les comptes choisis. Les anciens jeux et droits restent inchangés.
+L3 n'est pas clos : répertoires de partenaires, coordonnées partagées du ménage,
+intervenants et coordonnées figées dans les bons restent à traiter.
+
+Pour vérifier les vraies vues Django dans trois configurations isolées :
+`python3 scripts/qualifier-solenne-profils.py` (dépendances des profils serveur,
+PDF natif et pwa/requirements-pdf.txt déjà disponibles). Ce banc migre des bases
+fictives temporaires et exerce ouverture, BD, rapports et PDF. Il ne remplace pas
+une observation dans un navigateur, WebView ou dans le vrai Worker Pyodide.

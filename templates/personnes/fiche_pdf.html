@@ -6,4 +6,4 @@
 <dt>Identifiant de la fiche</dt><dd>{{ personne.pk }}</dd>
 <dt>Fiche créée le</dt><dd>{{ personne.cree_le|date:"d/m/Y à H:i" }}</dd>
 <dt>Éditée le</dt><dd>{{ edite_le|date:"d/m/Y à H:i" }}</dd></dl>
-</body></html>
+{% if coordonnees %}<h2>Coordonnées déclarées</h2>{% include 'dossiers/_coordonnees_personnelles.html' %}{% endif %}</body></html>

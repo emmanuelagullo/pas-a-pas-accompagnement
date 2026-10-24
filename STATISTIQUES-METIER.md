@@ -153,3 +153,14 @@ Les enfants déclarés par plusieurs adultes ne sont pas dédoublonnables sans l
 identités et relations ; aucun total d'enfants n'est donc calculé. Les identités
 restent actuelles, les situations sont datées selon les connaissances corrigées
 aujourd'hui. Une déclaration effacée par correction reste dans son journal.
+
+## Coordonnées personnelles à une date (Solenne L3a)
+
+Population : fiches personnes enregistrées aujourd'hui, avec les coordonnées
+applicables à la date. Les filtres nom/prénom, ville, pays et code postal sont
+communs à l'écran et au CSV ; les trois champs géographiques sont comparés sur
+leur valeur complète, sans distinction de casse. Regroupement par libellés de
+ville et pays déclarés, avec une personne par fiche ; aucune géolocalisation,
+déduction de nationalité ni présomption de présence physique. Les variantes de
+libellés restent distinctes dans les regroupements. Les valeurs vides et les
+personnes sans coordonnées applicables sont visibles hors filtre géographique.

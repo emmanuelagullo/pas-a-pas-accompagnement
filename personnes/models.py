@@ -647,3 +647,43 @@ class RevisionDeclarationFamiliale(models.Model):
 
     class Meta:
         ordering = ['-enregistre_le', '-pk']
+
+
+class CoordonneesPersonnelles(Periode):
+    personne = models.ForeignKey(Personne, on_delete=models.PROTECT, related_name='coordonnees')
+    rue = models.CharField('Adresse déclarée — rue et complément', max_length=240, blank=True)
+    code_postal = models.CharField('Code postal', max_length=20, blank=True)
+    ville = models.CharField('Ville', max_length=160, blank=True)
+    pays = models.CharField('Pays', max_length=160, blank=True)
+    telephone = models.CharField('Téléphone', max_length=80, blank=True)
+    courriel = models.EmailField('Courriel', blank=True)
+    fax = models.CharField('Fax (si utile)', max_length=80, blank=True)
+    source = models.CharField('Source de l’information', max_length=160)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    enregistre_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-debut', '-pk']
+        constraints = [
+            models.CheckConstraint(condition=models.Q(fin__isnull=True) | models.Q(fin__gt=models.F('debut')), name='coordonnees_periode_valide'),
+            models.UniqueConstraint(fields=['personne', 'debut'], name='coordonnees_date_unique'),
+            models.UniqueConstraint(fields=['personne'], condition=models.Q(fin__isnull=True), name='coordonnees_ouverte_unique'),
+        ]
+
+    @property
+    def adresse(self):
+        return ' · '.join(x for x in [self.rue, ' '.join(x for x in [self.code_postal, self.ville] if x), self.pays] if x)
+
+
+class RevisionCoordonneesPersonnelles(models.Model):
+    personne = models.ForeignKey(Personne, on_delete=models.PROTECT)
+    coordonnees = models.ForeignKey(CoordonneesPersonnelles, on_delete=models.PROTECT, related_name='revisions')
+    action = models.CharField(max_length=20, choices=RevisionDeclarationFamiliale._meta.get_field('action').choices)
+    avant = models.JSONField(default=list)
+    apres = models.JSONField(default=list)
+    motif = models.CharField(max_length=240, blank=True)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    enregistre_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-enregistre_le', '-pk']

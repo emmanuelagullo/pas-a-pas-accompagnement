@@ -4,11 +4,13 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
 DROITS = {'view_declarationfamiliale', 'add_declarationfamiliale', 'change_declarationfamiliale',
-    'view_revisiondeclarationfamiliale', 'corriger_prevision_accompagnement', 'view_evolutionpriseencharge'}
+    'view_revisiondeclarationfamiliale', 'corriger_prevision_accompagnement', 'view_evolutionpriseencharge',
+    'view_coordonneespersonnelles', 'add_coordonneespersonnelles', 'change_coordonneespersonnelles',
+    'view_revisioncoordonneespersonnelles'}
 
 
 class Command(BaseCommand):
-    help = 'Attribuer volontairement les droits Solenne L1/L2a à un compte existant ; les droits CHRS restent indépendants.'
+    help = 'Attribuer volontairement les droits Solenne L1/L2a/L3a à un compte existant ; les droits CHRS restent indépendants.'
 
     def add_arguments(self, parser):
         parser.add_argument('identifiant')
@@ -23,4 +25,4 @@ class Command(BaseCommand):
         except get_user_model().DoesNotExist as erreur:
             raise CommandError('Compte inconnu ; aucun compte créé.') from erreur
         compte.user_permissions.add(*permissions)
-        self.stdout.write('Droits Solenne L1/L2a attribués explicitement, sans administration ni suppression.')
+        self.stdout.write('Droits Solenne L1/L2a/L3a attribués explicitement, sans administration ni suppression.')

@@ -1,3 +1,9 @@
+## À venir — Solenne L3a
+
+- Adresses et coordonnées individuelles datées, avec corrections et historique.
+- Consultation BD, recherche géographique à date, CSV et fiche PDF sous droits explicites.
+- Chronologie réutilisée entre deux tables métier typées ; aucun nouveau format ni dépendance.
+
 ## À venir — Solenne L2a
 
 - Déclarations familiales individuelles datées, distinctes de la composition du ménage.

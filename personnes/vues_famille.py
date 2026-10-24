@@ -18,6 +18,7 @@ from . import bd6, famille, suivi
 from .models import Personne, DeclarationFamiliale
 from .vues_bd6 import navigation_histoire, traiter
 from .forms_hebergement import date_champ
+from .exports import cellule_csv
 
 
 class DeclarationForm(forms.ModelForm):
@@ -89,11 +90,6 @@ class RapportForm(ConsultationForm):
         help_text='Valeur déclarée complète, sans distinction de majuscules. Vide : toutes les valeurs.')
     renseignement = forms.ChoiceField(label='Déclaration', choices=[('', 'Toutes les personnes'),
         ('connue', 'Avec une déclaration applicable'), ('inconnue', 'Sans déclaration applicable')], required=False)
-
-
-def cellule_csv(valeur):
-    valeur = '' if valeur is None else str(valeur)
-    return "'" + valeur if valeur.lstrip().startswith(('=', '+', '-', '@', '\t', '\r', '\n')) else valeur
 
 
 @never_cache

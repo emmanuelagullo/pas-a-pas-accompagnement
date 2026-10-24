@@ -55,8 +55,11 @@ def fiche_pdf(request, pk):
     from django.http import HttpResponse
     from .pdf import produire
     personne = get_object_or_404(Personne, pk=pk)
+    from . import coordonnees
+    from django.utils import timezone
+    contact = coordonnees.a_date([personne], timezone.localdate()).first() if request.user.has_perms(coordonnees.DROITS_LECTURE) else None
     try:
-        contenu = produire(personne, navigateur=getattr(settings, 'MODE_PWA', False))
+        contenu = produire(personne, navigateur=getattr(settings, 'MODE_PWA', False), coordonnees=contact)
     except ValueError:
         return HttpResponse('La fiche ne peut pas être générée avec les caractères présents.', status=422)
     response = HttpResponse(contenu, content_type='application/pdf')

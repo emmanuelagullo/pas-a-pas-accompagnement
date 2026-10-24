@@ -341,3 +341,19 @@ conservent automatiquement ces tables ; aucune dépendance commune n'est ajouté
 Les rapports et sorties CSV restent soumis aux droits des déclarations et des
 historiques. Les cellules textuelles CSV commençant comme une formule sont
 neutralisées ; la restitution HTML échappe les déclarations.
+
+## Solenne L3a — coordonnées et chronologie partagée
+
+CoordonneesPersonnelles et son journal restent des tables métier typées,
+indépendantes de DeclarationFamiliale. Les deux services utilisent le même petit
+algorithme de séries personnelles : réservation avant lecture, bornes dérivées,
+refus du changement d'ordre par correction et journal avant/après atomique.
+Cette réutilisation ne crée ni champs configurables, ni stockage attribut/valeur,
+ni nouveau moteur d'événements. Les wrappers métier contrôlent leurs propres
+droits avant la transaction ; le service ne reçoit aucun modèle choisi par le web.
+Les réservations communes de personne refusent aussi un ancien formulaire ouvert
+avant la modification d'une autre rubrique personnelle. Les lectures BD sont
+préchargées par date et par droit ; aucune requête par personne ajoutée au rendu.
+La fiche PDF reçoit une projection déjà autorisée, sans requête ni droits implicites
+dans le moteur commun. Les règles de chronologie et d'export sont partagées
+uniquement entre ces deux usages établis ; aucun changement du wheel.
