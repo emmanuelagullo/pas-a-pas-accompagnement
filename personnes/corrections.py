@@ -72,6 +72,10 @@ def dates_dependantes(a):
     for r in m.RepasDistribue.objects.filter(accord__accompagnement=a,annule_le__isnull=True):
         incluse(a,r.date,point=True)
     for s in m.Sejour.objects.filter(accord__accompagnement=a):incluse(a,s.debut,s.fin)
+    for x in m.AffectationIntervenant.objects.filter(accompagnement=a,annule_le__isnull=True):
+        incluse(a, x.debut, point=True)
+        if x.fin:
+            incluse(a, x.debut, x.fin)
     from .social import date_evenement
     for e in m.EvenementSocial.objects.filter(accompagnement=a):date_evenement(a, e.date_effet)
     for modele,champ in [(m.SituationSociale,'debut'),(m.BilanSocial,'date_effet')]:

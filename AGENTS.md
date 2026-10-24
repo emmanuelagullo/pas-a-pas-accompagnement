@@ -323,3 +323,12 @@ journalisées. Ne pas rapprocher automatiquement un ancien libellé libre.
 La réservation d'une fiche de répertoire n'acquiert aucun verrou de ménage.
 Les nouveaux lieux peuvent référencer l'organisme sans recopier ses coordonnées.
 Les droits et exports du répertoire ne donnent aucun accès implicite aux dossiers.
+
+
+Les professionnels sont distincts des comptes, des personnes accompagnées et du
+contact du ménage. Une mission est attachée à la prise, avec une cible exclusive
+professionnel/organisme et un rôle explicite ; ne pas inférer de représentation
+légale. Préserver co-intervenants, portée temporelle du parent, annulation motivée,
+journaux atomiques et verrou ménage puis prise. Ne jamais convertir un ancien
+référent libre par rapprochement de nom. Les exports doivent réutiliser les
+mêmes sélections datées que la consultation.

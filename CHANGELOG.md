@@ -1,3 +1,10 @@
+## À venir — Solenne L4a
+
+- Répertoire daté des professionnels et lien vers leur organisme.
+- Missions de référent, orientation, suivi extérieur et prescription dans la prise.
+- Fins réelles, corrections et annulations motivées ; journal, droits et conflits.
+- Synthèse BD, résumé, filtre date/rôle, impression et CSV cohérents.
+
 ## À venir — Solenne L3b
 
 - Organismes partenaires : répertoire recherché, fiches datées, corrections et historique.

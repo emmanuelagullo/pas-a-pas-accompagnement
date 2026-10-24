@@ -382,3 +382,20 @@ libre pour les nouvelles saisies. Les données anciennes restent inchangées.
 Le répertoire ne transforme ni une organisation en personne, ni une fiche
 professionnelle en compte utilisateur. Les liens de retour BD restent signés
 et ne servent jamais d'autorisation d'accès aux partenaires ou aux dossiers.
+
+
+## Solenne L4a — professionnels et missions
+
+Intervenant est une identité stable indépendante d'auth.User et de Personne.
+FicheIntervenant utilise la chronologie typée et le jeton de révision du répertoire,
+sans verrou de ménage ; le lien Partenaire ne copie pas ses coordonnées.
+AffectationIntervenant porte un rôle dans une prise et exactement une cible :
+professionnel ou organisme. Les mutations réservent ménage puis prise, contrôlent
+le jeton BD et écrivent un journal atomique. Les chevauchements d'une même cible
+pour un même rôle sont refusés ; les co-intervenants restent possibles.
+Les périodes sont semi-ouvertes et bornées par la prise, y compris lorsqu'une
+mission n'a pas de fin propre. Une annulation motivée conserve le fait et son
+auteur ; les dépendances de dates et consultations l'excluent explicitement.
+La présentation lit les fiches professionnelles à la date demandée ; une fiche
+absente n'est pas inventée. Les identités de répertoire restent stables et leurs
+anciens libellés libres ne sont jamais rapprochés automatiquement.

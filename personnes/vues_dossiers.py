@@ -272,11 +272,14 @@ def detail(request, nature, pk, prise_pk=None):
     if prise and prise.fin:
         from datetime import timedelta
         date_sociale -= timedelta(days=1)
+    from . import interventions
+    lecture_interventions = request.user.has_perms(interventions.DROITS_LECTURE)
+    interventions_courantes = interventions.presentation(request.user, prise, date_sociale) if prise and lecture_interventions else []
     commentaire_cible = prise or objet
     from . import contacts_menage
     contact_designe = contacts_menage.a_date([objet], jour).first() if nature == 'menage' and request.user.has_perms(contacts_menage.DROITS_LECTURE) else None
     commentaires = commentaire_cible.commentaires_dossier.select_related('auteur') if request.user.has_perm('personnes.view_commentairedossier') else []
-    return render(request, 'dossiers/prise.html' if prise else 'dossiers/detail.html', {'prise': prise,
+    return render(request, 'dossiers/prise.html' if prise else 'dossiers/detail.html', {'prise': prise, 'lecture_interventions': lecture_interventions, 'interventions_courantes': interventions_courantes,
         'parametres_navigation': {k: v for k, v in params.items() if k not in ('prise', 'ecran', 'accompagnement')}, 'selection_prise': selection_prise, 'commentaires': commentaires, 'commentaire': commentaires[0] if commentaires else None,
         'etat_social': bd6.etat(request.user, personnes_sociales, date_sociale), 'date_sociale': date_sociale,
         'etat_entree': bd6.etat(request.user, personnes_sociales, prise.debut) if prise else [],

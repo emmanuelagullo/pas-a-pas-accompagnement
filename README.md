@@ -1121,6 +1121,26 @@ anciens opérateurs libres restent lisibles, sans rapprochement automatique.
 Les droits du répertoire sont distincts des droits des personnes accompagnées.
 Après migration : attribution volontaire par `python3 manage.py autoriser_solenne
 IDENTIFIANT`. Les lieux existants et les anciens comptes ne sont pas modifiés.
-Le répertoire concerne les organismes et services ; il ne crée pas encore des
-identités de professionnels ni leurs affectations datées aux prises. Les tarifs,
-financements et versions figées des bons restent des lots séparés.
+Les tarifs, financements et versions figées des bons restent des lots séparés.
+
+
+## Solenne L4a — professionnels et missions datées
+
+Le répertoire Professionnels, accessible depuis Partenaires, conserve nom,
+fonction, organisme, téléphone, courriel et fax dans des fiches datées corrigibles.
+Une identité professionnelle ne crée ni compte utilisateur ni personne accompagnée.
+Depuis Projet, « Professionnels et organismes de cette prise » permet d'affecter
+un professionnel ou un organisme comme référent professionnel, service orienteur,
+suivi extérieur ou prescripteur. Plusieurs intervenants sont possibles. Chacun a
+son début, sa fin éventuelle et sa source ; aucun remplacement n'est implicite.
+La synthèse de la prise et son résumé restituent les missions à leur date.
+
+Une fin de mission réelle, une correction motivée et une annulation de saisie
+erronée sont trois opérations distinctes. L'annulation conserve le fait et son
+journal mais le retire des consultations courantes. Les missions ouvertes restent
+bornées par la prise ; une clôture ne réécrit pas leur fin propre. La correction
+des dates de la prise vérifie les missions enregistrées non annulées.
+Le filtre date/rôle, le CSV et l'impression exploitent la même sélection.
+Les anciens noms libres restent visibles dans le projet, sans conversion ni
+rapprochement automatique. Les nouveaux droits s'attribuent explicitement avec
+`python3 manage.py autoriser_solenne IDENTIFIANT` après migration.

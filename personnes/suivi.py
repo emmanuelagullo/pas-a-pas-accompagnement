@@ -72,6 +72,8 @@ def clore(acteur, objet, fin):
         raise ValidationError("Cette période est déjà close.")
     if accompagnement:
         from .models import RepasDistribue, Sejour, SituationSociale, EvenementSocial, BilanSocial
+        if objet.interventions.filter(annule_le__isnull=True).filter(models.Q(debut__gte=fin) | models.Q(fin__gt=fin)).exists():
+            raise ValidationError('Des missions professionnelles datées seraient exclues de la prise.')
         if (SituationSociale.objects.filter(accompagnement=objet, debut__gte=fin).exists()
             or EvenementSocial.objects.filter(accompagnement=objet, date_effet__gte=fin).exists()
             or BilanSocial.objects.filter(accompagnement=objet, date_effet__gte=fin).exists()):

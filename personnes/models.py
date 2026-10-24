@@ -782,3 +782,89 @@ class RevisionFichePartenaire(models.Model):
 
     class Meta:
         ordering = ['-enregistre_le', '-pk']
+
+
+class Intervenant(models.Model):
+    """Professionnel stable, distinct d’un compte et d’une personne accompagnée."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    libelle = models.CharField(max_length=160)
+    revision = models.PositiveIntegerField(default=0, editable=False)
+    cree_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    cree_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['libelle', 'pk']
+
+    def __str__(self):
+        return self.libelle
+
+
+class FicheIntervenant(Periode):
+    intervenant = models.ForeignKey(Intervenant, on_delete=models.PROTECT, related_name='fiches')
+    nom = models.CharField('Nom du professionnel', max_length=160, validators=[RegexValidator(r'\S', 'Indiquez un nom.')])
+    fonction = models.CharField('Fonction', max_length=160, blank=True)
+    organisme = models.ForeignKey(Partenaire, on_delete=models.PROTECT, null=True, blank=True, related_name='professionnels', verbose_name='Organisme ou service')
+    telephone = models.CharField('Téléphone professionnel', max_length=80, blank=True)
+    courriel = models.EmailField('Courriel professionnel', blank=True)
+    fax = models.CharField('Fax (si utile)', max_length=80, blank=True)
+    source = models.CharField('Source de l’information', max_length=160)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    enregistre_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-debut', '-pk']
+        constraints = [
+            models.CheckConstraint(condition=models.Q(fin__isnull=True) | models.Q(fin__gt=models.F('debut')), name='fiche_intervenant_periode'),
+            models.UniqueConstraint(fields=['intervenant', 'debut'], name='fiche_intervenant_date'),
+            models.UniqueConstraint(fields=['intervenant'], condition=models.Q(fin__isnull=True), name='fiche_intervenant_ouverte')]
+
+
+class RevisionFicheIntervenant(models.Model):
+    intervenant = models.ForeignKey(Intervenant, on_delete=models.PROTECT)
+    fiche = models.ForeignKey(FicheIntervenant, on_delete=models.PROTECT, related_name='revisions')
+    action = models.CharField(max_length=20, choices=RevisionDeclarationFamiliale._meta.get_field('action').choices)
+    avant = models.JSONField(default=list)
+    apres = models.JSONField(default=list)
+    motif = models.CharField(max_length=240, blank=True)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    enregistre_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-enregistre_le', '-pk']
+
+
+class AffectationIntervenant(Periode):
+    ROLES = [('referent', 'Référent professionnel'), ('orienteur', 'Service orienteur'),
+        ('suivi_exterieur', 'Suivi social extérieur'), ('prescripteur', 'Prescripteur')]
+    accompagnement = models.ForeignKey(Accompagnement, on_delete=models.PROTECT, related_name='interventions')
+    role = models.CharField('Rôle dans cette prise', max_length=30, choices=ROLES)
+    intervenant = models.ForeignKey(Intervenant, on_delete=models.PROTECT, null=True, blank=True)
+    organisme = models.ForeignKey(Partenaire, on_delete=models.PROTECT, null=True, blank=True)
+    source = models.CharField('Source de l’affectation', max_length=160)
+    annule_le = models.DateTimeField(null=True, blank=True, editable=False)
+    annule_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True, related_name='+', editable=False)
+    motif_annulation = models.CharField(max_length=240, blank=True, editable=False)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    enregistre_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-debut', '-pk']
+        permissions = [('annuler_affectationintervenant', 'Annuler une affectation professionnelle saisie par erreur')]
+        constraints = [
+            models.CheckConstraint(condition=models.Q(fin__isnull=True) | models.Q(fin__gt=models.F('debut')), name='intervention_periode'),
+            models.CheckConstraint(condition=(models.Q(intervenant__isnull=False, organisme__isnull=True) | models.Q(intervenant__isnull=True, organisme__isnull=False)), name='intervention_cible_unique'),
+            models.CheckConstraint(condition=models.Q(annule_le__isnull=True,annule_par__isnull=True,motif_annulation='') | (models.Q(annule_le__isnull=False,annule_par__isnull=False) & ~models.Q(motif_annulation='')), name='intervention_annulation_coherente')]
+
+
+class RevisionAffectationIntervenant(models.Model):
+    accompagnement = models.ForeignKey(Accompagnement, on_delete=models.PROTECT)
+    affectation = models.ForeignKey(AffectationIntervenant, on_delete=models.PROTECT, related_name='revisions')
+    action = models.CharField(max_length=20, choices=[('ajout', 'Affectation'), ('insertion', 'Fait antérieur oublié'), ('correction', 'Correction'), ('cloture', 'Fin de mission'), ('annulation','Annulation de saisie erronée')])
+    avant = models.JSONField(default=dict)
+    apres = models.JSONField(default=dict)
+    motif = models.CharField(max_length=240, blank=True)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    enregistre_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-enregistre_le', '-pk']

@@ -21,7 +21,7 @@ from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.test import Client
 from django.urls import reverse
-from personnes import bd6, famille, coordonnees, ouverture_prise, contacts_menage, partenaires
+from personnes import bd6, famille, coordonnees, ouverture_prise, contacts_menage, partenaires, intervenants, interventions
 from personnes.models import Personne
 
 call_command('migrate', interactive=False, verbosity=0)
@@ -44,6 +44,11 @@ contacts_menage.designer(u, a.menage, p, date(2026, 1, 1), 'Choix fictif', bd6.j
 organisme = partenaires.creer(u, date(2026, 1, 1), 'Source fictive', partenaires.jeton_creation(),
     nom='Organisme fictif de qualification', rue='', code_postal='', ville='Ville partenaire fictive', pays='',
     telephone='', courriel='', fax='', informations='')
+professionnel = intervenants.creer(u, date(2026, 1, 1), 'Source fictive', intervenants.jeton_creation(),
+    nom='Professionnel fictif de qualification', fonction='Travail social', organisme=organisme,
+    telephone='', courriel='professionnel@example.invalid', fax='')
+interventions.affecter(u, a, date(2026, 1, 1), None, 'referent', professionnel, None,
+    'Décision fictive', bd6.jeton(a))
 client = Client(HTTP_HOST=settings.ALLOWED_HOSTS[0])
 client.force_login(u, backend='django.contrib.auth.backends.ModelBackend')
 prefixe = settings.FORCE_SCRIPT_NAME or ''
@@ -54,6 +59,9 @@ for route, args, texte in [
     ('dossiers:prise', ['personne', p.pk, a.pk], 'Ville fictive'),
     ('dossiers:famille', [p.pk], 'Célibataire'),
     ('dossiers:contact_menage', [a.menage_id], 'Personne fictive de qualification'),
+    ('dossiers:intervenants', [], 'Professionnel fictif de qualification'),
+    ('dossiers:intervenant', [professionnel.pk], 'Travail social'),
+    ('dossiers:interventions', [a.pk], 'Professionnel fictif de qualification'),
     ('dossiers:partenaires', [], 'Organisme fictif de qualification'),
     ('dossiers:partenaire', [organisme.pk], 'Ville partenaire fictive'),
     ('dossiers:coordonnees', [p.pk], '00100'),

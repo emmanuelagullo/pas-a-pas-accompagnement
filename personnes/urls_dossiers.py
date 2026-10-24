@@ -7,9 +7,21 @@ from . import vues_famille as famille
 from . import vues_coordonnees as coordonnees
 from . import vues_contacts_menage as contacts
 from . import vues_partenaires as partenaires
+from . import vues_intervenants as intervenants
+from . import vues_interventions as interventions
 
 app_name = 'dossiers'
 urlpatterns = [
+    path('prises/<uuid:pk>/interventions/', interventions.gerer, name='interventions'),
+    path('prises/<uuid:pk>/interventions/nouvelle/', interventions.gerer, {'action':'nouvelle'}, name='intervention_nouvelle'),
+    path('prises/<uuid:pk>/interventions/<int:affectation_pk>/corriger/', interventions.gerer, {'action':'correction'}, name='intervention_corriger'),
+    path('prises/<uuid:pk>/interventions/<int:affectation_pk>/clore/', interventions.gerer, {'action':'clore'}, name='intervention_clore'),
+    path('prises/<uuid:pk>/interventions/<int:affectation_pk>/annuler/', interventions.gerer, {'action':'annuler'}, name='intervention_annuler'),
+    path('intervenants/', intervenants.liste, name='intervenants'),
+    path('intervenants/nouveau/', intervenants.fiche, {'action': 'creer'}, name='intervenant_creer'),
+    path('intervenants/<uuid:pk>/', intervenants.fiche, name='intervenant'),
+    path('intervenants/<uuid:pk>/changer/', intervenants.fiche, {'action': 'changer'}, name='intervenant_changer'),
+    path('intervenants/<uuid:pk>/<int:fait_pk>/corriger/', intervenants.fiche, {'action': 'corriger'}, name='intervenant_corriger'),
     path('partenaires/', partenaires.liste, name='partenaires'),
     path('partenaires/nouveau/', partenaires.fiche, {'action': 'creer'}, name='partenaire_creer'),
     path('partenaires/<uuid:pk>/', partenaires.fiche, name='partenaire'),

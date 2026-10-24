@@ -164,3 +164,17 @@ ville et pays déclarés, avec une personne par fiche ; aucune géolocalisation,
 déduction de nationalité ni présomption de présence physique. Les variantes de
 libellés restent distinctes dans les regroupements. Les valeurs vides et les
 personnes sans coordonnées applicables sont visibles hors filtre géographique.
+
+
+## Missions professionnelles par prise (Solenne L4a)
+
+La consultation et le CSV portent sur les missions non annulées d'une seule
+prise à la date choisie, éventuellement filtrées par rôle. La borne de fin est
+exclue ; une mission sans fin propre n'est applicable que pendant la prise.
+Le CSV distingue fin propre et fin effective tenant compte de la prise.
+Une ligne représente une mission, pas une personne accompagnée ni un ménage ;
+les co-intervenants ne constituent donc pas une file active additionnable.
+Nom, fonction et coordonnées du professionnel proviennent de sa fiche à date.
+Les organismes sont identifiés par UUID et libellé actuel ; le CSV n'est pas
+une photographie documentaire figée. Les missions annulées restent dans le
+journal, hors de cette sélection. Aucun rapprochement des anciens noms libres.
