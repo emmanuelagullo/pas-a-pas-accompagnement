@@ -118,11 +118,19 @@ const server=(tls?require('node:https'):http).createServer(options,(req,res)=>{
   await page.locator('#export').click();const zipEssai=await (await sauvegardeEssai).path();
   require('node:child_process').execFileSync(process.env.PWA_PYTHON||'python3',['-c',`import sys,zipfile,sqlite3,tempfile
 from pathlib import Path
+from contextlib import closing
 with zipfile.ZipFile(sys.argv[1]) as z,tempfile.TemporaryDirectory() as t:
  z.extract('accompagnement.sqlite3',t)
- with sqlite3.connect(Path(t)/'accompagnement.sqlite3') as db:
-  assert db.execute('SELECT count(*) FROM personnes_personne').fetchone()[0]==6
-  assert db.execute('SELECT count(*) FROM identites_utilisateur').fetchone()[0]==4
+ with closing(sqlite3.connect(Path(t)/'accompagnement.sqlite3')) as db:
+  # Scénario enrichi : 36 personnes, puis le dossier créé par cette recette.
+  personnes=db.execute('SELECT count(*) FROM personnes_personne').fetchone()[0]
+  comptes=db.execute('SELECT count(*) FROM identites_utilisateur').fetchone()[0]
+  assert personnes==37, f'Copie essai : 37 personnes attendues, {personnes} obtenues'
+  assert comptes==4, f'Copie essai : 4 comptes attendus, {comptes} obtenus'
+  assert db.execute('SELECT count(*) FROM personnes_personne WHERE designation=?',('Essai séparé conservé',)).fetchone()[0]==1
+  assert db.execute('SELECT count(*) FROM personnes_personne WHERE designation=?',('Personne fictive conservée',)).fetchone()[0]==0
+  assert db.execute('PRAGMA quick_check').fetchone()[0]=='ok'
+  assert db.execute('PRAGMA foreign_key_check').fetchone() is None
 `,zipEssai]);
   await page.locator('#restore-file').setInputFiles(zipEssai);
   await page.locator('#confirm').waitFor({state:'visible',timeout:120000});
