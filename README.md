@@ -1017,3 +1017,21 @@ Sans JavaScript, les textes simples restent éditables ; les textes enrichis
 restent consultables en texte simple, avec édition protégée. Aucun CDN ni
 compte supplémentaire. Voir [TEXTES-ENRICHIS.md](TEXTES-ENRICHIS.md) pour les
 versions, copies, restitutions, profils et limites de qualification.
+
+## Reprise Solenne — L1 : gestes courants de la BD
+
+Depuis un dossier personne, « Nouvelle prise » propose de choisir un ménage
+connu ou de confirmer sa création avec cette personne. Ménage, appartenance et
+prise sont enregistrés ensemble ; aucune prestation n'est créée. Un formulaire
+signé ne peut confirmer qu'une seule ouverture. La création du ménage exige
+ses droits habituels ; les anciennes appartenances ne sont pas prolongées.
+
+Dans la prise, la clôture est directement accessible et refuse toujours les
+séjours ouverts ou les faits qui seraient exclus. « Corriger la fin prévue »
+rectifie une erreur, avec motif et historique, y compris le retrait d'une
+prévision ; « Prolonger » reste une nouvelle décision vers une date plus tardive.
+Pour autoriser volontairement la correction sur un compte déjà créé :
+`python3 manage.py autoriser_bd6 IDENTIFIANT`. La migration n'accorde aucun droit.
+Les accords, séjours et distributions ne changent pas avec une prévision.
+Absence/retour et lieu sont accessibles parmi les actions du séjour sélectionné.
+Le résumé distingue lieu actuel, dernier lieu connu et lieu non renseigné.

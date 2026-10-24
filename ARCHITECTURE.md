@@ -311,3 +311,19 @@ Les jetons de retour incluent l’écran et le parent ; ils ne remplacent pas le
 droits. Les routes historiques restent accessibles aux historiques existants.
 Aucune nouvelle dépendance ni changement du format ZIP : les nouvelles tables
 et migrations accompagnent les sauvegardes complètes serveur/bureau/PWA.
+
+## Solenne L1 — ouverture et prévisions
+
+`ouverture_prise` réserve les UUID de ménage et de prise dans un contexte signé
+lié au dossier. Pour un nouveau ménage, l'INSERT de cet UUID est la première
+écriture et précède les validations dans la même transaction ; la contrainte
+primaire interdit le rejeu sans verrou personne puis ménage. Pour un ménage
+existant, la réservation conditionnelle de sa révision précède les lectures.
+Les services CHRS et leurs journaux sont réutilisés ; un échec annule tout.
+Les formulaires ouverts avant ce changement doivent être rechargés.
+
+EvolutionPriseEnCharge distingue prolongation et correction ; une nouvelle fin
+nulle signifie retrait motivé de prévision. Les anciennes lignes deviennent des
+prolongations. La correction dispose d'un droit explicite, non attribué par la
+migration. La clôture BD réserve l'état de la prise puis réutilise suivi.clore.
+Aucune modification du socle, des formats de copies ou des profils d'exécution.

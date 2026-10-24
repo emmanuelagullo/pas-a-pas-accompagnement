@@ -1,3 +1,9 @@
+## À venir — Solenne L1
+
+- Première prise avec création/rattachement explicite et atomique du ménage, sans double confirmation.
+- Correction motivée des prévisions, clôture directe, gestes quotidiens accessibles et lieux correctement datés.
+- Journaux, droits volontaires, formulaires périmés et copies conservés.
+
 ## BD5 — attendre les navigations du banc PWA
 
 ## À venir — textes narratifs

@@ -5,7 +5,7 @@ from django.db import transaction
 
 DROITS = {'view_situationpersonnelle', 'add_situationpersonnelle', 'change_situationpersonnelle',
           'view_revisionsituationpersonnelle', 'view_commentairedossier', 'add_commentairedossier',
-          'prolonger_accompagnement', 'view_evolutionpriseencharge'}
+          'prolonger_accompagnement', 'corriger_prevision_accompagnement', 'view_evolutionpriseencharge'}
 
 
 class Command(BaseCommand):

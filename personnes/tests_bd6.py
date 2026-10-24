@@ -216,7 +216,9 @@ class BD6Tests(Donnees, TestCase):
 
     def test_creation_prise_avec_prevision_et_pdf(self):
         url = reverse('dossiers:nouvelle_prise', args=['menage', self.m.pk])
-        page = self.client.post(url, {'beneficiaires': [str(self.p.pk)], 'debut': '2026-05-01', 'fin_prevue': '2026-06-01'})
+        token = self.client.get(url).context['form'].initial['attendu']
+        page = self.client.post(url, {'beneficiaires': [str(self.p.pk)], 'debut': '2026-05-01',
+            'fin_prevue': '2026-06-01', 'attendu': token})
         self.assertEqual(page.status_code, 302)
         nouvelle = Accompagnement.objects.get(debut=date(2026, 5, 1))
         self.assertIn(str(nouvelle.pk), page.url)
@@ -376,6 +378,7 @@ class BD6Reprise(TransactionTestCase):
         call_command('autoriser_bd6', self.u.username, stdout=StringIO())
         self.u = get_user_model().objects.get(pk=self.u.pk)
         bd6.prolonger(self.u, self.a, date(2026, 6, 1), 'Prévision fictive', bd6.jeton(self.a))
+        bd6.corriger_prevision(self.u, self.a, None, 'Retrait de la prévision fictive', bd6.jeton(self.a))
         fait = bd6.renseigner(self.u, self.p, 'emploi', 'emploi', date(2026, 1, 1), 'Source fictive', bd6.jeton(self.p))
         bd6.renseigner(self.u, self.p, 'emploi', 'formation', fait.debut, 'Source corrigée fictive', bd6.jeton(self.p),
             motif='Correction fictive', correction=fait.pk)
@@ -393,8 +396,9 @@ class BD6Reprise(TransactionTestCase):
             destination = racine / 'restauree'
             paquets.installer_copie(preparation, destination)
             with closing(sqlite3.connect(destination / paquets.PROFIL.base)) as db:
-                self.assertEqual(db.execute('SELECT fin_prevue FROM personnes_accompagnement').fetchone(), ('2026-06-01',))
-                self.assertEqual(db.execute('SELECT count(*) FROM personnes_evolutionpriseencharge').fetchone(), (1,))
+                self.assertEqual(db.execute('SELECT fin_prevue FROM personnes_accompagnement').fetchone(), (None,))
+                self.assertEqual(db.execute('SELECT action, nouvelle_fin FROM personnes_evolutionpriseencharge ORDER BY id').fetchall(),
+                    [('prolongation', '2026-06-01'), ('correction', None)])
                 self.assertEqual(db.execute('SELECT count(*) FROM personnes_revisionsituationpersonnelle').fetchone(), (2,))
                 self.assertEqual(db.execute('SELECT texte FROM personnes_commentairedossier ORDER BY id').fetchall(),
                     [('Version initiale fictive',), ('Version suivante fictive',)])

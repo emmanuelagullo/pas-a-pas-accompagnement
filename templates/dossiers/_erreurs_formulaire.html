@@ -1,0 +1,1 @@
+{% if form.errors %}<div class="erreurs-formulaire" role="alert"><p>Vérifiez les informations suivantes :</p><ul>{% for champ in form %}{% if champ.errors %}<li><a href="#{{ champ.id_for_label }}">{{ champ.label }}</a> : {{ champ.errors|striptags }}</li>{% endif %}{% endfor %}{% for erreur in form.non_field_errors %}<li>{{ erreur }}</li>{% endfor %}</ul></div>{% endif %}

@@ -137,7 +137,8 @@ class Accompagnement(Periode):
     class Meta:
         ordering = ["-debut", "id"]
         constraints = [models.CheckConstraint(condition=models.Q(fin__isnull=True) | models.Q(fin__gt=models.F("debut")), name="accompagnement_periode_valide"), models.CheckConstraint(condition=models.Q(fin_prevue__isnull=True) | models.Q(fin_prevue__gt=models.F("debut")), name="prise_fin_prevue_valide")]
-        permissions = [("prolonger_accompagnement", "Prolonger la fin prévue d’une prise en charge")]
+        permissions = [("prolonger_accompagnement", "Prolonger la fin prévue d’une prise en charge"),
+            ("corriger_prevision_accompagnement", "Corriger une prévision erronée de prise en charge")]
 
 
 class EvenementSuivi(models.Model):
@@ -532,7 +533,8 @@ class InformationsAccompagnement(models.Model):
 class EvolutionPriseEnCharge(models.Model):
     accompagnement = models.ForeignKey(Accompagnement, on_delete=models.PROTECT, related_name="evolutions_prevision")
     ancienne_fin = models.DateField(null=True)
-    nouvelle_fin = models.DateField()
+    nouvelle_fin = models.DateField(null=True, blank=True)
+    action = models.CharField(max_length=20, choices=[('prolongation', 'Prolongation'), ('correction', 'Correction de prévision')], default='prolongation')
     motif = models.CharField(max_length=240)
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     enregistre_le = models.DateTimeField(auto_now_add=True)

@@ -13,7 +13,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
-from . import bd6, dossier, suivi
+from . import bd6, dossier, suivi, ouverture_prise
 from .models import Personne, Menage, Accompagnement, SituationPersonnelle, SituationSociale, CommentaireDossier
 from .forms_suivi import AccompagnementForm
 from .forms_hebergement import date_champ
@@ -26,6 +26,35 @@ class EtatForm(forms.Form):
 class PrevisionForm(EtatForm):
     fin_prevue = date_champ('Nouvelle fin prévue exclue')
     motif = forms.CharField(label='Motif', max_length=240)
+
+
+class PremierePriseForm(AccompagnementForm):
+    attendu = forms.CharField(widget=forms.HiddenInput)
+    rattachement = forms.ChoiceField(label='Rattachement de la prise', choices=[
+        ('existant', 'Utiliser un ménage de cette personne'), ('nouveau', 'Créer un ménage avec cette personne')],
+        widget=forms.RadioSelect, help_text='La création ne sera faite qu’à la confirmation de ce formulaire.')
+    menage = forms.ModelChoiceField(Menage.objects.none(), label='Ménage existant', required=False)
+    libelle_menage = forms.CharField(label='Nom du nouveau ménage', max_length=160, required=False,
+        help_text='Seulement pour créer un ménage. Ce nom ne désigne ni un chef de famille ni un représentant légal.')
+
+    def __init__(self, *args, acteur, personne, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['beneficiaires'].queryset = Personne.objects.filter(pk=personne.pk)
+        self.fields['menage'].queryset = ouverture_prise.menages_personne(personne)
+        if not acteur.has_perms(['personnes.add_menage', 'personnes.add_appartenance']):
+            self.fields['rattachement'].choices = [('existant', 'Utiliser un ménage de cette personne')]
+        if self.is_bound:
+            nouveau = self.data.get('rattachement') == 'nouveau'
+            self.fields['menage'].disabled = nouveau
+            self.fields['libelle_menage'].disabled = not nouveau
+
+    def clean(self):
+        d = super().clean()
+        if d.get('rattachement') == 'existant' and not d.get('menage'):
+            self.add_error('menage', 'Choisissez le ménage de rattachement.')
+        elif d.get('rattachement') == 'nouveau' and not d.get('libelle_menage'):
+            self.add_error('libelle_menage', 'Nommez le ménage dont vous confirmez la création.')
+        return d
 
 
 class CommentaireForm(EtatForm):
@@ -84,7 +113,11 @@ def traiter(request, form, titre, action, url, objet, **contexte):
         try:
             resultat = action(**form.cleaned_data)
         except (ValidationError, OperationalError) as erreur:
-            form.add_error(None, ' '.join(erreur.messages) if isinstance(erreur, ValidationError) else 'Écriture non confirmée. Rechargez avant de réessayer.')
+            if isinstance(erreur, ValidationError) and hasattr(erreur, 'error_dict'):
+                for champ, messages in erreur.message_dict.items():
+                    form.add_error(champ if champ in form.fields else None, messages)
+            else:
+                form.add_error(None, ' '.join(erreur.messages) if isinstance(erreur, ValidationError) else 'Écriture non confirmée. Rechargez avant de réessayer.')
             statut = 409
         else:
             return redirect(url(resultat) if callable(url) else url)
@@ -100,22 +133,59 @@ def nouvelle(request, nature, pk):
     objet = objet_dossier(request, nature, pk)
     suivi.exiger(request.user, 'add_accompagnement')
     jour = timezone.localdate()
-    menages = Menage.objects.filter(appartenances__personne=objet).distinct() if nature == 'personne' else Menage.objects.filter(pk=pk)
-    form = AccompagnementForm(request.POST if request.method == 'POST' else None,
-        initial={'debut': jour, 'beneficiaires': [pk] if nature == 'personne' else list(objet.appartenances.filter(debut__lte=jour).filter(Q(fin__isnull=True) | Q(fin__gt=jour)).values_list('personne_id', flat=True))})
-    # La vue personne n’autorise pas à choisir d’autres bénéficiaires implicitement.
+    initial = {'debut': jour, 'attendu': ouverture_prise.jeton(objet),
+        'beneficiaires': [pk] if nature == 'personne' else list(objet.appartenances.filter(debut__lte=jour).filter(Q(fin__isnull=True) | Q(fin__gt=jour)).values_list('personne_id', flat=True))}
     if nature == 'personne':
-        form.fields['beneficiaires'].queryset = Personne.objects.filter(pk=pk)
-        form.fields['menage'] = forms.ModelChoiceField(menages, label='Ménage de rattachement',
-            help_text='Rattachement explicite, même pour une prise en charge individuelle. Créez d’abord un ménage si nécessaire.')
+        menages = list(ouverture_prise.menages_personne(objet))
+        initial.update(rattachement='existant' if menages else 'nouveau',
+            libelle_menage=str(objet), menage=menages[0] if len(menages) == 1 else None)
+        form = PremierePriseForm(request.POST if request.method == 'POST' else None,
+            initial=initial, acteur=request.user, personne=objet)
     else:
+        form = AccompagnementForm(request.POST if request.method == 'POST' else None, initial=initial)
+        form.fields['attendu'] = forms.CharField(widget=forms.HiddenInput, initial=initial['attendu'])
         form.fields['beneficiaires'].queryset = Personne.objects.filter(appartenances__menage=objet).distinct()
     def action(**d):
-        menage = d.pop('menage', objet)
-        return suivi.ouvrir(request.user, menage, **d)
+        nouveau = d.pop('rattachement', 'existant') == 'nouveau'
+        menage = d.pop('menage', objet if nature == 'menage' else None)
+        return ouverture_prise.ouvrir(request.user, objet, menage=menage, creer_menage=nouveau, **d)
     return traiter(request, form, 'Nouvelle prise en charge', action,
         lambda a: retour(nature, pk, parametres_retour(request), prise=a), objet, annuler=retour(nature, pk, parametres_retour(request)),
         explication='Choisissez les bénéficiaires et la prévision. Aucune prestation n’est créée automatiquement.')
+
+
+@never_cache
+@require_http_methods(['GET', 'POST'])
+@login_required
+@permission_required(dossier.DROITS, raise_exception=True)
+def corriger_prevision(request, nature, pk, prise_pk):
+    objet = objet_dossier(request, nature, pk)
+    a = get_object_or_404(objet.accompagnements, pk=prise_pk)
+    suivi.exiger(request.user, 'corriger_prevision_accompagnement', 'view_evolutionpriseencharge')
+    form = PrevisionForm(request.POST if request.method == 'POST' else None,
+        initial={'attendu': bd6.jeton(a), 'fin_prevue': a.fin_prevue})
+    form.fields['fin_prevue'].required = False
+    form.fields['fin_prevue'].help_text = 'Laissez vide pour retirer une prévision saisie par erreur. La clôture effective et les prestations restent inchangées.'
+    return traiter(request, form, 'Corriger une erreur de fin prévue',
+        lambda **d: bd6.corriger_prevision(request.user, a, **d),
+        retour(nature, pk, parametres_retour(request), prise=a), objet,
+        explication='Ce formulaire rectifie une erreur. Pour une nouvelle décision accordant plus de temps, utilisez Prolonger.')
+
+
+@never_cache
+@require_http_methods(['GET', 'POST'])
+@login_required
+@permission_required(dossier.DROITS, raise_exception=True)
+def clore(request, nature, pk, prise_pk):
+    objet = objet_dossier(request, nature, pk)
+    a = get_object_or_404(objet.accompagnements, pk=prise_pk)
+    suivi.exiger(request.user, 'change_accompagnement')
+    from .forms_suivi import ClotureForm
+    form = ClotureForm(request.POST if request.method == 'POST' else None, initial={'fin': timezone.localdate()})
+    form.fields['attendu'] = forms.CharField(widget=forms.HiddenInput, initial=bd6.jeton(a))
+    return traiter(request, form, 'Clôturer la prise en charge', lambda **d: bd6.clore_prise(request.user, a, **d),
+        retour(nature, pk, parametres_retour(request), prise=a), objet,
+        explication='Indiquez le premier jour hors prise en charge. Les séjours doivent être clos au préalable ; aucun accord ni fait réalisé n’est modifié automatiquement.')
 
 
 @never_cache

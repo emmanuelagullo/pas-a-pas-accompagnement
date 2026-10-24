@@ -11,13 +11,19 @@ def exiger(acteur, *droits):
 
 
 @transaction.atomic
-def creer_menage(acteur, libelle, personnes, debut):
+def creer_menage(acteur, libelle, personnes, debut, *, identifiant=None):
     exiger(acteur, "view_personne", "view_menage", "add_menage", "add_appartenance")
     if not personnes:
         raise ValidationError("Sélectionnez au moins une personne.")
-    menage = Menage(libelle=libelle, cree_par=acteur)
+    menage = Menage(libelle=libelle, cree_par=acteur, **({'pk': identifiant} if identifiant else {}))
+    # Dans une confirmation signée, l'INSERT réservé est la première requête
+    # SQL : pas de conversion de verrou lecture→écriture sur SQLite. La
+    # validation reste dans la transaction et annule l'INSERT en cas d'erreur.
+    if identifiant:
+        menage.save(force_insert=True)
     menage.full_clean()
-    menage.save()
+    if not identifiant:
+        menage.save()
     EvenementSuivi.objects.create(menage=menage, type="menage_cree", auteur=acteur, date_effet=debut)
     for personne in personnes:
         ajouter_appartenance(acteur, menage, personne, debut)
@@ -39,11 +45,12 @@ def ajouter_appartenance(acteur, menage, personne, debut, fin=None):
 
 @serialiser("menage")
 @transaction.atomic
-def ouvrir(acteur, menage, beneficiaires, debut, fin_prevue=None):
+def ouvrir(acteur, menage, beneficiaires, debut, fin_prevue=None, *, identifiant=None):
     exiger(acteur, "view_personne", "view_menage", "view_accompagnement", "add_accompagnement")
     if not beneficiaires:
         raise ValidationError("Sélectionnez au moins un bénéficiaire.")
-    objet = Accompagnement(menage=menage, debut=debut, fin_prevue=fin_prevue, cree_par=acteur)
+    objet = Accompagnement(menage=menage, debut=debut, fin_prevue=fin_prevue, cree_par=acteur,
+        **({'pk': identifiant} if identifiant else {}))
     objet.full_clean()
     objet.save()
     objet.beneficiaires.set(beneficiaires)

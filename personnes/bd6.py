@@ -55,6 +55,36 @@ def prolonger(acteur, accompagnement, fin_prevue, motif, attendu):
         nouvelle_fin=fin_prevue, motif=motif, auteur=acteur)
 
 
+@serialiser('accompagnement')
+@transaction.atomic
+def corriger_prevision(acteur, accompagnement, fin_prevue, motif, attendu):
+    suivi.exiger(acteur, 'view_personne', 'view_menage', 'view_accompagnement',
+        'corriger_prevision_accompagnement', 'view_evolutionpriseencharge')
+    reserver(accompagnement, attendu)
+    if accompagnement.fin:
+        raise ValidationError('Cette prise est close. Sa prévision historique ne peut plus être modifiée ici.')
+    if not motif.strip() or len(motif) > 240:
+        raise ValidationError({'motif': 'Expliquez l’erreur de prévision (240 caractères maximum).'})
+    if fin_prevue == accompagnement.fin_prevue:
+        raise ValidationError({'fin_prevue': 'La prévision est inchangée.'})
+    if fin_prevue is not None and fin_prevue <= accompagnement.debut:
+        raise ValidationError({'fin_prevue': 'La fin prévue doit être postérieure au début.'})
+    ancienne = accompagnement.fin_prevue
+    accompagnement.fin_prevue = fin_prevue
+    accompagnement.full_clean()
+    accompagnement.save(update_fields=['fin_prevue'])
+    EvolutionPriseEnCharge.objects.create(accompagnement=accompagnement, ancienne_fin=ancienne,
+        nouvelle_fin=fin_prevue, action='correction', motif=motif.strip(), auteur=acteur)
+
+
+@serialiser('accompagnement')
+@transaction.atomic
+def clore_prise(acteur, accompagnement, fin, attendu):
+    suivi.exiger(acteur, 'view_personne', 'view_menage', 'view_accompagnement', 'change_accompagnement')
+    reserver(accompagnement, attendu)
+    suivi.clore(acteur, accompagnement, fin)
+
+
 def photographie(personne, dimension):
     return [{'id': x.pk, 'debut': x.debut.isoformat(), 'fin': x.fin.isoformat() if x.fin else None,
              'valeur': x.valeur, 'source': x.source}
@@ -195,11 +225,18 @@ def resume_prestations(a, sejours, repas, jour, lieux=False):
         if any(s.fin is None for s in sejours):
             texte += ' à ce jour · ouvert'
         if lieux:
-            affectations = sorted([x for s in sejours for x in getattr(s, 'lieux_dossier', [])], key=lambda x: x.debut, reverse=True)
-            if affectations:
-                texte += ' — ' + str(affectations[0].lieu)
-                if len({x.lieu_id for x in affectations}) > 1:
-                    texte += '…'
+            actuelles = [x for s in sejours if s.debut <= jour and (s.fin is None or s.fin > jour)
+                for x in getattr(s, 'lieux_dossier', []) if x.debut <= jour and (x.fin is None or x.fin > jour)]
+            connues = sorted([x for s in sejours for x in getattr(s, 'lieux_dossier', [])
+                if x.debut <= jour], key=lambda x: (x.debut, x.pk), reverse=True)
+            if actuelles:
+                noms = list(dict.fromkeys(str(x.lieu) for x in actuelles))
+                texte += ' — Lieu actuel : ' + ' ; '.join(noms)
+            elif connues:
+                derniere = connues[0]
+                texte += f' — Dernier lieu connu : {derniere.lieu} (depuis le {derniere.debut:%d/%m/%Y})'
+            else:
+                texte += ' — Lieu non renseigné'
         morceaux.append(texte)
     if repas:
         texte = f'Repas {nombre_jours(repas, jour)} jours accordés'
