@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Aller-retour privé du jeu métier via les commandes de copie existantes."""
+from contextlib import closing
 import json
 import os
 import queue
@@ -147,13 +148,13 @@ def verifier():
         from pas_communs.local import paquet_par_defaut
         essai = paquet_par_defaut('pas-a-pas-accompagnement', environnement=env_local).parent/'essai-fictif'
         import sqlite3
-        with sqlite3.connect(essai/'accompagnement.sqlite3') as db:
+        with closing(sqlite3.connect(essai/'accompagnement.sqlite3')) as db, db:
             assert db.execute('SELECT count(*) FROM personnes_personne').fetchone()[0] == 36
             assert db.execute('SELECT count(*) FROM identites_utilisateur').fetchone()[0] == 4
             db.execute("UPDATE personnes_personne SET designation='Essai conservé' WHERE designation='Alex (fictif)'")
         ouvrir_programme(env_local, source, False)
         ouvrir_programme(env_local, source, True)
-        with sqlite3.connect(essai/'accompagnement.sqlite3') as db:
+        with closing(sqlite3.connect(essai/'accompagnement.sqlite3')) as db, db:
             assert db.execute("SELECT count(*) FROM personnes_personne WHERE designation='Essai conservé'").fetchone()[0] == 1
         verifier_commande_fenetre(env_local, source)
         verifier_commande_fenetre(env_local, source, True)

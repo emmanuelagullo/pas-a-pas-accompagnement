@@ -1,3 +1,4 @@
+from contextlib import closing
 from datetime import date
 from decimal import Decimal as D
 from io import StringIO
@@ -261,12 +262,13 @@ class MetaCTransactions(TransactionTestCase):
         s.annuler(self.u,a,bd6.jeton(a),'Erreur fictive',remise=r.pk)
         with tempfile.TemporaryDirectory() as tmp:
             path=Path(tmp)/'copie.sqlite3'
-            with sqlite3.connect(path) as db:connection.connection.backup(db)
-            with sqlite3.connect(path) as db:
+            with closing(sqlite3.connect(path)) as db, db:connection.connection.backup(db)
+            with closing(sqlite3.connect(path)) as db, db:
                 self.assertEqual(D(str(db.execute('SELECT quantite FROM personnes_remiseaide').fetchone()[0])),D('2.750'))
                 self.assertEqual(db.execute('SELECT unite FROM personnes_accordaide').fetchone()[0],'kg')
                 self.assertEqual(db.execute('SELECT motif_annulation FROM personnes_remiseaide').fetchone()[0],'Erreur fictive')
                 self.assertEqual(db.execute('SELECT COUNT(*) FROM personnes_revisionaide').fetchone()[0],4)
+            with self.assertRaises(sqlite3.ProgrammingError):db.execute('SELECT 1')
 
     def test_migration_conserve_repas_anciens_sans_types_inventes(self):
         from django.db import connection

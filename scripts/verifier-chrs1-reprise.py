@@ -1,3 +1,4 @@
+from contextlib import closing
 import tempfile, subprocess, os, sqlite3, sys
 from pathlib import Path
 python=sys.executable
@@ -9,9 +10,9 @@ with tempfile.TemporaryDirectory() as t:
         return subprocess.check_output([python,'manage.py',*args],env=environnement,text=True)
     cmd('migrate','personnes','0001','--noinput')
     cmd('migrate','identites','0002','--noinput')
-    cmd('shell','-c',"from django.contrib.auth import get_user_model; from personnes.models import Personne; u=get_user_model().objects.create_user('historique',password='Mot-fictif-12345'); p=Personne.objects.create(designation='Historique fictif',cree_par=u); print(p.pk)")
+    cmd('shell','-c',"from django.contrib.auth import get_user_model; from django.db import connection; from django.db.migrations.executor import MigrationExecutor; Personne=MigrationExecutor(connection).loader.project_state([('personnes','0001_initial')]).apps.get_model('personnes','Personne'); u=get_user_model().objects.create_user('historique',password='Mot-fictif-12345'); p=Personne.objects.create(designation='Historique fictif',cree_par_id=u.pk); print(p.pk)")
     db=source/'accompagnement.sqlite3'
-    with sqlite3.connect(db) as c: avant=c.execute('select id,designation from personnes_personne').fetchall(); mot=c.execute('select password from identites_utilisateur').fetchone()
+    with closing(sqlite3.connect(db)) as c, c: avant=c.execute('select id,designation from personnes_personne').fetchall(); mot=c.execute('select password from identites_utilisateur').fetchone()
     # Archive historique puis reprise et migration dans une autre copie.
     cmd('sauvegarder_paquet',str(racine/'ancienne.zip'))
     cmd('restaurer_copie',str(racine/'ancienne.zip'),str(racine/'ancienne-restauree'))
@@ -30,7 +31,7 @@ with tempfile.TemporaryDirectory() as t:
     cmd('shell','-c',"from personnes import corrections as c; from personnes.models import AccordRepas, BilanSocial; from django.contrib.auth import get_user_model; from datetime import date; u=get_user_model().objects.get(); a=AccordRepas.objects.get(); c.periode(u,a,date(2026,1,2),a.fin,'Erreur fictive',c.jeton(a)); b=BilanSocial.objects.get(); c.texte(u,b,date(2026,1,19),'Bilan corrigé fictif','Erreur fictive',c.jeton(b))")
     cmd('sauvegarder_paquet',str(racine/'nouvelle.zip'))
     cmd('restaurer_copie',str(racine/'nouvelle.zip'),str(racine/'restauree'))
-    with sqlite3.connect(racine/'restauree'/'accompagnement.sqlite3') as c:
+    with closing(sqlite3.connect(racine/'restauree'/'accompagnement.sqlite3')) as c, c:
         assert c.execute('select id,designation from personnes_personne').fetchall()==avant
         assert c.execute('select password from identites_utilisateur').fetchone()==mot
         assert c.execute('select count(*) from personnes_accompagnement_beneficiaires').fetchone()==(1,)

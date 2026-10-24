@@ -1,4 +1,5 @@
 """Recettes métier du méta-lot B : parcours complets, conflits et exploitation."""
+from contextlib import closing
 import csv
 from datetime import date
 from io import StringIO
@@ -260,13 +261,14 @@ class ParcoursTransactionsTests(TransactionTestCase):
         s.annuler(self.u,'objectifs',o,'Erreur fictive sauvegardée',bd6.jeton(o))
         with tempfile.TemporaryDirectory() as tmp:
             p=Path(tmp)/'copie.sqlite3'
-            with sqlite3.connect(p) as db:connection.connection.backup(db)
-            with sqlite3.connect(p) as db:
+            with closing(sqlite3.connect(p)) as db, db:connection.connection.backup(db)
+            with closing(sqlite3.connect(p)) as db, db:
                 self.assertEqual(db.execute('SELECT accompagnement_id FROM personnes_demandeaccueil').fetchone()[0],a.pk.hex)
                 self.assertEqual(json.loads(db.execute('SELECT texte_document FROM personnes_versionobjectif').fetchone()[0]),doc)
                 self.assertEqual(db.execute('SELECT motif_annulation FROM personnes_objectifparcours').fetchone()[0],'Erreur fictive sauvegardée')
                 self.assertEqual(db.execute('SELECT COUNT(*) FROM personnes_demandeaccueil_beneficiaires').fetchone()[0],1)
                 self.assertEqual(db.execute('SELECT COUNT(*) FROM personnes_revisiondemande').fetchone()[0],2)
+            with self.assertRaises(sqlite3.ProgrammingError):db.execute('SELECT 1')
 
     def test_migration_preserve_recits_et_ne_cree_ni_demandes_ni_droits(self):
         from django.db import connection

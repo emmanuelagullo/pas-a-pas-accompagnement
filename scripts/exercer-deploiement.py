@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Exercer les vrais scripts de démarrage Unix, dans un espace fictif isolé."""
+from contextlib import closing
 import argparse
 import http.client
 import json
@@ -126,7 +127,7 @@ def exercer(mode, delai_demarrage=180, render=False):
             copie = preparer_restauration(copies[0], temp, profil=PROFIL)
             assert (copie.etape/'accompagnement.sqlite3').is_file()
             import sqlite3
-            with sqlite3.connect(copie.etape/'accompagnement.sqlite3') as sql:
+            with closing(sqlite3.connect(copie.etape/'accompagnement.sqlite3')) as sql, sql:
                 assert sql.execute('SELECT designation FROM personnes_personne').fetchall() == [('Persistance fictive',)]
             assert (copie.etape/'secret-key').read_bytes() == cles[-1]
 
