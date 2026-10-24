@@ -1,3 +1,11 @@
+## À venir — méta-lot A02 : identité déclarée et relations personnelles
+
+- Compléments d'identité facultatifs, datés et corrigibles ; nationalités multiples.
+- Liens déclarés lisibles depuis les deux personnes, indépendants des ménages.
+- Changement, fin réelle, correction et annulation avec journal et conflits.
+- Synthèse BD, résumé à l'entrée, PDF sous droits, recherches datées et CSV.
+- Scénario fictif complété sans réinitialiser les anciens essais.
+
 ## À venir — méta-lot A : fondations de saisie et recette
 
 - Aide durée/dates civiles pour les créations de prises, accords et périodes.

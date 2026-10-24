@@ -10,11 +10,13 @@ def adapter_saisie(form, acteur):
     if not hasattr(form, 'fields'):return ''
     adapter(form)
     if not acteur.has_perm('personnes.view_propositionsaisie'):return ''
-    noms=[n for n,f in form.fields.items() if n in dict(PropositionSaisie.CHAMPS)
+    correspondances={'naissance_ville':'ville','naissance_pays':'pays'}
+    noms=[n for n,f in form.fields.items() if correspondances.get(n,n) in dict(PropositionSaisie.CHAMPS)
           and type(f.widget) in (forms.TextInput,PropositionInput)]
     propositions={n:[] for n in noms}
-    for x in PropositionSaisie.objects.filter(champ__in=noms,active=True):
-        propositions[x.champ].append(x.valeur)
+    for x in PropositionSaisie.objects.filter(champ__in=[correspondances.get(n,n) for n in noms],active=True):
+        for n in noms:
+            if correspondances.get(n,n)==x.champ:propositions[n].append(x.valeur)
     for n in noms:
         if propositions[n]:form.fields[n].widget=PropositionInput(attrs=form.fields[n].widget.attrs,propositions=propositions[n])
     return ''

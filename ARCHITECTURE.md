@@ -423,3 +423,27 @@ pas sa clôture. Le serveur recalcule sans JS selon le mode choisi, vérifie le
 calendrier puis conserve toutes les validations et réservations métier existantes.
 Le script utilise des jours UTC pour éviter les écarts de changement d'heure.
 Les dates incohérentes ne sont jamais inversées automatiquement.
+
+
+## Identité déclarée et relations indépendantes des prises
+
+ComplementIdentite est une série personnelle typée, avec nationalites comme
+collection JSON spécifique de libellés (pas un moteur d'attributs). L'apatridie
+est une déclaration nullable séparée ; ni nationalité ni sexe ne sont déduits.
+La chronologie et son journal réutilisent series_personnelles sous réservation
+personnelle. Les valeurs datées ne réécrivent pas le nom/la naissance de Personne.
+
+RelationPersonnelle porte une paire canonique ordonnée de UUID et un sens
+explicite ; le rôle présenté est relatif à la personne consultée. Les mutations
+réservent les deux personnes dans l'ordre des UUID, avec le CAS de la personne
+portant le formulaire, et invalident la révision sociale de l'autre. Tous les
+contrôles de chevauchement et journaux ont lieu sous ces réservations. Aucun
+verrou de ménage, prise ou répertoire n'est acquis ensuite. Les lectures depuis
+les deux extrémités partagent le même fait. Les filiations inverses superposées
+sur une même paire sont refusées ; aucune généalogie ni habilitation légale n'est
+inférée. Une erreur de cible s'annule, la paire n'est jamais réaffectée.
+
+Une succession ferme l'ancien lien et ouvre le nouveau atomiquement. La fin
+réelle conserve les autres valeurs ; correction et annulation sont motivées.
+Les liens survivent aux changements de ménage et aux clôtures de prise.
+Le résumé à l'entrée est une restitution à date, pas un document figé.

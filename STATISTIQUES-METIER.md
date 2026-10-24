@@ -193,3 +193,22 @@ sont exportées séparément. Les colonnes organisme du CSV décrivent la cible
 directe de la mission ; le rattachement de la fiche professionnelle sert au filtre.
 Les libellés des identités sont actuels. Les champs libres hérités ne sont pas
 rapprochés automatiquement et ne participent pas à ce filtre structuré.
+
+
+## Identité déclarée et liens personnels à une date (méta-lot A02)
+
+Compléments : toutes les fiches personnes enregistrées aujourd'hui avec leur
+déclaration applicable à date. Filtres exacts insensibles à la casse sur sexe,
+lieu, ville et pays de naissance, nationalité parmi la collection, apatridie
+oui/non/inconnue et présence d'une déclaration. Une personne compte une fois ;
+les libellés de sexe restent tels qu'enregistrés dans les regroupements. Une
+collection vide est une nationalité non renseignée, pas une apatridie déduite.
+Le CSV représente la collection de nationalités par un tableau JSON dans sa
+cellule, et conserve les dates/sources. Les identités des personnes sont actuelles.
+
+Liens : relations non annulées applicables à date, filtrées par type et par noms
+d'une ou des deux extrémités. Une relation est comptée une fois, pas une fois par
+personne. Le CSV expose les deux UUID et le rôle depuis la première extrémité ;
+il n'impose aucun sens juridique. Les noms sont actuels, les périodes sont celles
+connues après corrections. Aucune dépendance aux appartenances ou à la file
+active d'accompagnement. HTML, pagination et CSV partagent la sélection.

@@ -3,10 +3,10 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 
 
-def produire(personne, *, navigateur=False, coordonnees=None):
+def produire(personne, *, navigateur=False, coordonnees=None, complement=None):
     from pas_communs.pdf import fiche_texte, rendre_html
     from django.conf import settings
-    contexte = {'personne': personne, 'edite_le': timezone.localtime(), 'coordonnees': coordonnees}
+    contexte = {'personne': personne, 'edite_le': timezone.localtime(), 'coordonnees': coordonnees, 'complement': complement}
     if navigateur:
         lignes = [
             'Données fictives uniquement',
@@ -23,6 +23,15 @@ def produire(personne, *, navigateur=False, coordonnees=None):
                 'Téléphone : '+(coordonnees.telephone or 'Non renseigné'),
                 'Courriel : '+(coordonnees.courriel or 'Non renseigné'),
                 'Fax : '+(coordonnees.fax or 'Non renseigné'), 'Source : '+coordonnees.source]
+        if complement:
+            lignes += ['Compléments d’identité déclarés depuis le '+complement.debut.strftime('%d/%m/%Y'),
+                'Sexe déclaré : '+(complement.sexe_declare or 'Non renseigné'),
+                'Lieu de naissance : '+(complement.naissance_lieu or 'Non renseigné'),
+                'Ville de naissance : '+(complement.naissance_ville or 'Non renseignée'),
+                'Pays de naissance : '+(complement.naissance_pays or 'Non renseigné'),
+                'Nationalités déclarées : '+(' ; '.join(complement.nationalites) or 'Non renseignées'),
+                'Apatridie déclarée : '+('Non renseignée' if complement.apatridie_declaree is None else 'Oui' if complement.apatridie_declaree else 'Non'),
+                'Source : '+complement.source]
         return fiche_texte('Pas à Pas — Fiche personne', lignes)
     def refuser(url):
         # Aucun réseau, fichier ou média autorisé dans cette fiche sans images.

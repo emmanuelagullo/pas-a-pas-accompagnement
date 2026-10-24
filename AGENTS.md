@@ -342,3 +342,14 @@ Les champs d'authentification conservent leurs attributs propres. Dans les texte
 visibles écrire « prise en charge » ; conserver routes et variables internes.
 Les jeux Les Passerelles enrichis ne sont créés que dans un espace neuf ; ne jamais
 réinitialiser, redater ni enrichir implicitement un ancien essai.
+
+
+Identité déclarée et liens : garder les nationalités comme collection typée,
+inconnu distinct d'apatride, et aucune inférence depuis le pays, le sexe ou le
+ménage. Les liens déclarés ne valent pas représentation légale. Une mutation de
+paire réserve les personnes dans l'ordre des UUID et n'acquiert aucun verrou de
+ménage ensuite. Conserver les vues réciproques, le CAS, les annulations, les
+sources/auteurs et les cibles immuables ; aucune création implicite de personne,
+appartenance ou bénéficiaire. Les recherches/CSV ne doublent pas les liens et
+ne font pas d'une déclaration à date une file active. La fiche PDF reste soumise
+aux droits propres des compléments.

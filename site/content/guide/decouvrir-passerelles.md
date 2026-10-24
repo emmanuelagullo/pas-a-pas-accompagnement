@@ -78,3 +78,18 @@ la formation et les ressources déclarées. Un groupe comprend un membre qui n�
 pas bénéficiaire de la prise. Les listes de personnes dépassent une page.
 Les propositions de villes et de situations restent modifiables ; elles ne
 remplissent aucun dossier sans confirmation.
+
+
+### Identité et relations déclarées
+
+Dans les versions comprenant le méta-lot A02, le jeu neuf de l’**Établissement
+Les Passerelles** montre aussi les liens déclarés entre Samira et les enfants,
+la fratrie de Lina et Adam, Thomas comme personne à contacter pour Noor, et le
+changement de lien entre Gabriel et Éva. Ces déclarations ne créent ni
+appartenance, ni bénéficiaire, ni responsabilité juridique.
+
+Chez Samira, comparer une nationalité fictive à l’entrée et deux ensuite, puis
+la correction du lieu de naissance. Chez les deux Robin, le lien erroné reste
+dans l’historique et disparaît de la consultation courante. Le résumé à l’entrée
+restitue la date choisie ; il ne recopie pas automatiquement les valeurs actuelles.
+Les anciens essais sont conservés sans enrichissement automatique.

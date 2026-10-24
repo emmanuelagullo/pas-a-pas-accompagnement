@@ -894,3 +894,99 @@ class RevisionPropositionSaisie(models.Model):
 
     class Meta:
         ordering = ['-enregistre_le', '-pk']
+
+
+class ComplementIdentite(Periode):
+    personne = models.ForeignKey(Personne, on_delete=models.PROTECT, related_name='complements_identite')
+    sexe_declare = models.CharField('Sexe déclaré', max_length=80, blank=True)
+    naissance_lieu = models.CharField('Lieu de naissance (complément)', max_length=160, blank=True)
+    naissance_ville = models.CharField('Ville de naissance', max_length=160, blank=True)
+    naissance_pays = models.CharField('Pays de naissance', max_length=160, blank=True)
+    nationalites = models.JSONField('Nationalités déclarées', default=list, blank=True)
+    apatridie_declaree = models.BooleanField('Apatridie déclarée', null=True, blank=True)
+    source = models.CharField('Source de l’information', max_length=160)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    enregistre_le = models.DateTimeField(auto_now_add=True)
+
+    def clean(self):
+        super().clean()
+        from django.core.exceptions import ValidationError
+        valeurs=self.nationalites
+        if not isinstance(valeurs,list) or len(valeurs)>50 or any(not isinstance(v,str) or not v.strip() or len(v)>160 for v in valeurs):
+            raise ValidationError({'nationalites':'Indiquez des libellés distincts, non vides (160 caractères chacun, 50 au maximum).'})
+        if len({v.strip().casefold() for v in valeurs})!=len(valeurs):
+            raise ValidationError({'nationalites':'Ne répétez pas une nationalité dans la même déclaration.'})
+        if self.apatridie_declaree is True and valeurs:
+            raise ValidationError({'apatridie_declaree':'Une apatridie déclarée et une nationalité déclarée sont contradictoires.'})
+
+    class Meta:
+        ordering=['-debut','-pk']
+        constraints=[
+            models.CheckConstraint(condition=models.Q(fin__isnull=True)|models.Q(fin__gt=models.F('debut')),name='identite_complement_periode'),
+            models.UniqueConstraint(fields=['personne','debut'],name='identite_complement_date'),
+            models.UniqueConstraint(fields=['personne'],condition=models.Q(fin__isnull=True),name='identite_complement_ouvert')]
+
+
+class RevisionComplementIdentite(models.Model):
+    personne=models.ForeignKey(Personne,on_delete=models.PROTECT)
+    complement=models.ForeignKey(ComplementIdentite,on_delete=models.PROTECT,related_name='revisions')
+    action=models.CharField(max_length=20,choices=RevisionDeclarationFamiliale._meta.get_field('action').choices)
+    avant=models.JSONField(default=list)
+    apres=models.JSONField(default=list)
+    motif=models.CharField(max_length=240,blank=True)
+    auteur=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT)
+    enregistre_le=models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering=['-enregistre_le','-pk']
+
+
+class RelationPersonnelle(Periode):
+    # Paire ordonnée pour les verrous et les doublons ; le sens reste explicite.
+    NATURES=[('parent_a','A est parent déclaré de B'),('parent_b','B est parent déclaré de A'),
+        ('couple','Lien de couple déclaré'),('fratrie','Fratrie déclarée'),('proche','Lien avec un proche'),
+        ('contact_a','A désigne B comme personne à contacter'),('contact_b','B désigne A comme personne à contacter')]
+    personne_a=models.ForeignKey(Personne,on_delete=models.PROTECT,related_name='relations_a')
+    personne_b=models.ForeignKey(Personne,on_delete=models.PROTECT,related_name='relations_b')
+    nature=models.CharField(max_length=20,choices=NATURES)
+    precision=models.CharField('Précision du lien',max_length=240,blank=True)
+    source=models.CharField('Source de l’information',max_length=160)
+    auteur=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT)
+    enregistre_le=models.DateTimeField(auto_now_add=True)
+    annule_le=models.DateTimeField(null=True,blank=True,editable=False)
+    annule_par=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT,null=True,blank=True,related_name='+',editable=False)
+    motif_annulation=models.CharField(max_length=240,blank=True,editable=False)
+
+    def autre(self,personne):
+        return self.personne_b if personne.pk==self.personne_a_id else self.personne_a
+
+    def role_depuis(self,personne):
+        a=personne.pk==self.personne_a_id
+        return {'parent_a':'parent' if a else 'enfant','parent_b':'enfant' if a else 'parent',
+            'contact_a':'contact' if a else 'contact_de','contact_b':'contact_de' if a else 'contact'}.get(self.nature,self.nature)
+
+    def libelle_depuis(self,personne):
+        return {'parent':'Parent déclaré de','enfant':'Enfant déclaré de','couple':'Lien de couple avec',
+            'fratrie':'Fratrie déclarée avec','proche':'Proche de','contact':'Personne à contacter :',
+            'contact_de':'Personne à contacter pour'}.get(self.role_depuis(personne),'Lien avec')
+
+    class Meta:
+        ordering=['-debut','-pk']
+        permissions=[('annuler_relationpersonnelle','Annuler une relation personnelle saisie par erreur')]
+        constraints=[
+            models.CheckConstraint(condition=models.Q(personne_a__lt=models.F('personne_b')),name='relation_paire_ordonnee'),
+            models.CheckConstraint(condition=models.Q(fin__isnull=True)|models.Q(fin__gt=models.F('debut')),name='relation_periode'),
+            models.CheckConstraint(condition=models.Q(annule_le__isnull=True,annule_par__isnull=True,motif_annulation='')|(
+                models.Q(annule_le__isnull=False,annule_par__isnull=False)&~models.Q(motif_annulation='')),name='relation_annulation_coherente')]
+
+
+class RevisionRelationPersonnelle(models.Model):
+    relation=models.ForeignKey(RelationPersonnelle,on_delete=models.PROTECT,related_name='revisions')
+    action=models.CharField(max_length=20,choices=[('ajout','Lien déclaré'),('insertion','Fait antérieur oublié'),
+        ('changement','Changement réel'),('correction','Correction'),('cloture','Fin du lien'),('annulation','Annulation de saisie')])
+    avant=models.JSONField(default=list)
+    apres=models.JSONField(default=list)
+    motif=models.CharField(max_length=240,blank=True)
+    auteur=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT)
+    enregistre_le=models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering=['-enregistre_le','-pk']

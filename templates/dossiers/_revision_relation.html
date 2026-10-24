@@ -1,0 +1,1 @@
+<p>{{ e.personne_a.libelle }} · {{ e.description }} {{ e.personne_b.libelle }} · {{ e.debut }} → {{ e.fin|default:'sans fin connue' }} · {{ e.precision }} · {{ e.source }}{% if e.annule_le %} · Annulé : {{ e.motif_annulation }}{% endif %}</p>

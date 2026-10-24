@@ -148,6 +148,10 @@ def etat(acteur, personnes, date):
     from . import famille, coordonnees
     declarations = {x.personne_id: x for x in famille.a_date(personnes, date)} if acteur.has_perms(famille.DROITS_LECTURE) else {}
     contacts = {x.personne_id: x for x in coordonnees.a_date(personnes, date)} if acteur.has_perms(coordonnees.DROITS_LECTURE) else {}
+    from . import complements_identite,relations_personnelles
+    identites={x.personne_id:x for x in complements_identite.a_date(personnes,date)} if acteur.has_perms(complements_identite.DROITS_LECTURE) else {}
+    from .models import RelationPersonnelle
+    liens=list(RelationPersonnelle.objects.filter(Q(personne_a__in=personnes)|Q(personne_b__in=personnes),debut__lte=date,annule_le__isnull=True).filter(Q(fin__isnull=True)|Q(fin__gt=date)).select_related('personne_a','personne_b')) if acteur.has_perms(relations_personnelles.DROITS_LECTURE) else []
     communs = list(SituationPersonnelle.objects.filter(personne__in=personnes, debut__lte=date).filter(
         Q(fin__isnull=True) | Q(fin__gt=date))) if acteur.has_perm('personnes.view_situationpersonnelle') else []
     anciens = list(SituationSociale.objects.filter(beneficiaire__in=personnes, debut__lte=date,
@@ -168,7 +172,8 @@ def etat(acteur, personnes, date):
             lignes.append({'dimension': dimension, 'libelle': libelle, 'texte': texte, 'fait': fait,
                            'anciens': temoins, 'conflit': conflit})
         resultat.append({'personne': personne, 'lignes': lignes, 'famille': declarations.get(personne.pk),
-            'coordonnees': contacts.get(personne.pk)})
+            'coordonnees': contacts.get(personne.pk), 'identite_declaree':identites.get(personne.pk),
+            'liens_personnels':[{'libelle':r.libelle_depuis(personne),'autre':r.autre(personne)} for r in liens if personne.pk in (r.personne_a_id,r.personne_b_id)]})
     return resultat
 
 

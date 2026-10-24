@@ -14,8 +14,23 @@ from . import vues_propositions as propositions
 
 from . import vues_recherche_intervenants
 
+from . import vues_complements_identite as identite_declaree
+from . import vues_relations_personnelles as relations
+
 app_name = 'dossiers'
 urlpatterns = [
+    path('rapports/identite/',identite_declaree.rapport,name='rapport_complements_identite'),
+    path('rapports/relations/',relations.rapport,name='rapport_relations'),
+    path('personnes/<uuid:pk>/identite-declaree/',identite_declaree.histoire,name='complements_identite'),
+    path('personnes/<uuid:pk>/identite-declaree/nouveau/',identite_declaree.histoire,{'action':'nouveau'},name='complements_identite_nouveaux'),
+    path('personnes/<uuid:pk>/identite-declaree/<int:fait_pk>/corriger/',identite_declaree.histoire,{'action':'corriger'},name='complements_identite_corriger'),
+    path('personnes/<uuid:pk>/relations/',relations.histoire,name='relations_personnelles'),
+    path('personnes/<uuid:pk>/relations/nouvelle/',relations.histoire,{'action':'nouvelle'},name='relation_nouvelle'),
+    path('personnes/<uuid:pk>/relations/<int:fait_pk>/corriger/',relations.histoire,{'action':'corriger'},name='relation_corriger'),
+    path('personnes/<uuid:pk>/relations/<int:fait_pk>/changer/',relations.histoire,{'action':'changer'},name='relation_changer'),
+    path('personnes/<uuid:pk>/relations/<int:fait_pk>/clore/',relations.histoire,{'action':'clore'},name='relation_clore'),
+    path('personnes/<uuid:pk>/relations/<int:fait_pk>/annuler/',relations.histoire,{'action':'annuler'},name='relation_annuler'),
+
     path('recherche-intervenants/', vues_recherche_intervenants.rechercher, name='recherche_intervenants'),
     path('propositions/', propositions.liste, name='propositions'),
     path('propositions/nouvelle/', propositions.liste, {'action':'nouvelle'}, name='proposition_nouvelle'),

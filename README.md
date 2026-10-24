@@ -1206,3 +1206,35 @@ sans JavaScript ; avec JavaScript, le dernier champ modifié sélectionne le mod
 Les aides disparaissent des données transmises aux services : seules les dates
 validées sont conservées. Les prolongations et corrections de fin prévue gardent
 leurs parcours dédiés et ne sont pas assimilées à cette saisie initiale.
+
+
+## Méta-lot A02 — compléments d'identité et liens personnels déclarés
+
+Depuis la situation sociale d'une personne, deux accès directs ouvrent les
+compléments d'identité et les relations personnelles. La synthèse du dossier
+reste courte ; aucun menu, appartenance ni bénéficiaire n'est créé par un lien.
+Le résumé de prise restitue ces informations à l'entrée, selon les corrections
+connues aujourd'hui. Nom et naissance de la fiche restent leurs valeurs actuelles.
+
+ComplementIdentite conserve sexe déclaré (libellé libre facultatif), lieu/ville/
+pays de naissance, plusieurs nationalités déclarées et une déclaration distincte
+d'apatridie oui/non/inconnue. Les nationalités se saisissent une par ligne et
+restent une collection structurée, sans déduction du pays de naissance. Changement,
+ajout antérieur motivé et correction reprennent les mécanismes datés existants.
+Les propositions de villes/pays sont réutilisables, sans recopier des coordonnées.
+La fiche PDF ajoute les renseignements courants uniquement avec leurs droits.
+
+Les liens déclarés couvrent parent/enfant, couple, fratrie, proche et personne
+à contacter. Un lien est unique pour ses deux extrémités et se lit dans le bon
+sens depuis chacune. Il ne reconnaît aucune responsabilité juridique et ne
+remplace ni le contact du ménage ni le professionnel. Changement réel, fin,
+correction et annulation motivée gardent leurs avant/après et leurs auteurs.
+Corriger une mauvaise personne passe par une annulation puis un nouveau lien ;
+la paire ne se déplace pas silencieusement entre dossiers.
+
+Les deux recherches transversales filtrent la date et les valeurs structurées,
+avec pagination, CSV et impression. Une nationalité parmi plusieurs compte une
+personne une fois ; un lien compte une fois pour les deux personnes, sans devenir
+un effectif de ménages, de bénéficiaires ou de présence. Les comptes existants
+ne reçoivent rien en migration : attribution volontaire après migration avec
+`python3 manage.py autoriser_solenne IDENTIFIANT`.

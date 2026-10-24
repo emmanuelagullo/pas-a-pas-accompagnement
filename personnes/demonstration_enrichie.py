@@ -59,6 +59,7 @@ def completer(nadia, remi, camille, personnes, suivis, jour):
     social.evenement(nadia,suivis['Noor'],personnes['Noor'],j(-3),'Reprise fictive de contact après une première prise en charge close.',source)
     population_elargie(nadia, personnes, suivis, jour, profs, source)
     parcours_repetes(nadia, remi, camille, suivis, jour)
+    identites_et_liens(nadia, personnes, jour)
 
 
 def population_elargie(nadia, personnes, suivis, jour, profs, source):
@@ -139,3 +140,35 @@ def parcours_repetes(nadia, remi, camille, suivis, jour):
             informations_suivi.enregistrer(nadia,a,informations_suivi.jeton(a,None),'Projet historique fictif',**donnees)
             bd6.commenter(nadia,a,'Étape fictive '+str(i+1)+' : hébergement et deux services de repas ; accompagnement social distinct des prestations.','',bd6.jeton(a))
             suivi.clore(nadia,a,j(fin))
+
+
+def identites_et_liens(nadia,personnes,jour):
+    """Déclarations explicitement fictives ; aucun lien inféré du ménage."""
+    from . import complements_identite as identites,relations_personnelles as liens
+    def j(delta):return jour+timedelta(days=delta)
+    source='Déclarations inventées pour Établissement Les Passerelles'
+    def identite(nom,delta,nationalites,**extras):
+        p=personnes[nom]
+        v=dict(sexe_declare='',naissance_lieu='',naissance_ville='Ville natale fictive',naissance_pays='Pays natal fictif',nationalites=nationalites,apatridie_declaree=None)
+        v.update(extras)
+        return identites.renseigner(nadia,p,j(delta),source,bd6.jeton(p),**v)
+    identite('Samira',-60,['Nationalité fictive A'],sexe_declare='Féminin')
+    c=identite('Samira',-20,['Nationalité fictive A','Nationalité fictive B'],sexe_declare='Féminin')
+    identites.renseigner(nadia,personnes['Samira'],c.debut,source,bd6.jeton(personnes['Samira']),
+        correction=c.pk,motif='Correction fictive du lieu de naissance',sexe_declare=c.sexe_declare,
+        naissance_lieu='Lieu imaginaire corrigé',naissance_ville=c.naissance_ville,naissance_pays=c.naissance_pays,
+        nationalites=c.nationalites,apatridie_declaree=None)
+    identite('Thomas',-60,['Nationalité fictive B'],sexe_declare='Masculin')
+    identite('Yannis',-45,[],naissance_ville='',naissance_pays='')
+    def rel(nom,autre,delta,role):
+        p=personnes[nom]
+        return liens.enregistrer(nadia,p,personnes[autre],j(delta),None,role,'',source,bd6.jeton(p))
+    rel('Samira','Lina',-60,'parent');rel('Samira','Adam',-60,'parent');rel('Lina','Adam',-60,'fratrie')
+    x=rel('Noor','Thomas',-20,'contact')
+    liens.enregistrer(nadia,personnes['Noor'],personnes['Thomas'],x.debut,None,'contact','Contacter seulement après échange avec Noor',source,
+        bd6.jeton(personnes['Noor']),correction=x.pk,motif='Précision omise lors de la saisie fictive')
+    x=rel('Gabriel','Éva',-90,'couple')
+    liens.enregistrer(nadia,personnes['Gabriel'],personnes['Éva'],j(-5),None,'proche','Lien amical déclaré après séparation fictive',source,
+        bd6.jeton(personnes['Gabriel']),remplace=x.pk)
+    x=rel('Robin A','Robin B',-20,'fratrie')
+    liens.annuler(nadia,personnes['Robin A'],x,'Homonymes fictifs confondus ; aucun lien connu',bd6.jeton(personnes['Robin A']))

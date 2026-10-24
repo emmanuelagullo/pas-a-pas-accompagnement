@@ -24,7 +24,7 @@ from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.test import Client
 from django.urls import reverse
-from personnes import bd6, famille, coordonnees, ouverture_prise, contacts_menage, partenaires, intervenants, interventions
+from personnes import bd6, famille, coordonnees, ouverture_prise, contacts_menage, partenaires, intervenants, interventions, complements_identite, relations_personnelles
 from personnes.models import Personne
 
 call_command('migrate', interactive=False, verbosity=0)
@@ -52,6 +52,11 @@ professionnel = intervenants.creer(u, date(2026, 1, 1), 'Source fictive', interv
     telephone='', courriel='professionnel@example.invalid', fax='')
 interventions.affecter(u, a, date(2026, 1, 1), None, 'referent', professionnel, None,
     'Décision fictive', bd6.jeton(a))
+complements_identite.renseigner(u,p,date(2026,1,1),'Source fictive',bd6.jeton(p),
+    sexe_declare='',naissance_lieu='',naissance_ville='Ville natale fictive',naissance_pays='Pays fictif',
+    nationalites=['Nationalité fictive A','Nationalité fictive B'],apatridie_declaree=None)
+proche=Personne.objects.create(designation='Proche fictif de qualification',cree_par=u)
+relations_personnelles.enregistrer(u,p,proche,date(2026,1,1),None,'proche','','Source fictive',bd6.jeton(p))
 client = Client(HTTP_HOST=settings.ALLOWED_HOSTS[0])
 client.force_login(u, backend='django.contrib.auth.backends.ModelBackend')
 prefixe = settings.FORCE_SCRIPT_NAME or ''
@@ -64,6 +69,10 @@ for route, args, texte in [
     ('dossiers:contact_menage', [a.menage_id], 'Personne fictive de qualification'),
     ('dossiers:intervenants', [], 'Professionnel fictif de qualification'),
     ('dossiers:intervenant', [professionnel.pk], 'Travail social'),
+    ('dossiers:complements_identite', [p.pk], 'Ville natale fictive'),
+    ('dossiers:relations_personnelles', [p.pk], 'Proche fictif de qualification'),
+    ('dossiers:rapport_complements_identite', [], 'Nationalité fictive B'),
+    ('dossiers:rapport_relations', [], 'Proche fictif de qualification'),
     ('dossiers:interventions', [a.pk], 'Professionnel fictif de qualification'),
     ('dossiers:partenaires', [], 'Organisme fictif de qualification'),
     ('dossiers:partenaire', [organisme.pk], 'Ville partenaire fictive'),

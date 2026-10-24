@@ -375,3 +375,28 @@ Dans une prise en charge, le repère **Prestations** rassemble Hébergement et
 Repas ; Situation sociale et projet reste un autre ensemble dans la même page.
 Le transport rejoindra le groupe Prestations quand son lot sera livré, sans
 ajout de page de passage ni de bouton factice dans cette version.
+
+
+### A02 — identité et relations déclarées
+
+Les nouveaux jeux de l'Établissement Les Passerelles ajoutent, sans changer les
+36 personnes, 18 ménages, 51 prises ni les chiffres d'activité :
+
+- Samira : une nationalité fictive à l'entrée, puis deux à J−20 ; correction du
+  lieu de naissance, sans changement de nom ni de date de naissance.
+- Samira → Lina et Adam : liens parent/enfant explicitement déclarés à J−60 ;
+  Lina ↔ Adam : fratrie déclarée. Rien n'est déduit de la composition du ménage.
+- Noor : Thomas comme personne à contacter à J−20, extérieur à son ménage ;
+  correction d'une consigne. Ce rôle ne change pas le contact du ménage.
+- Gabriel et Éva : couple déclaré à J−90 puis lien de proches à J−5 ; leurs
+  appartenances et prestations ne sont pas modifiées par ce changement.
+- Les deux Robin : lien de fratrie saisi par erreur puis annulé. Ils restent
+  deux identités distinctes et leurs dossiers ne sont pas fusionnés.
+- Yannis : nationalités et apatridie non renseignées, sans valeur inventée.
+
+Depuis un dossier ou sa prise en charge, ouvrir Compléments et historique ou
+Consulter et mettre à jour dans Liens personnels. Vérifier les deux sens d'un
+lien et la restitution à l'entrée dans le résumé. La date de début du lien est
+celle de la déclaration applicable, pas une filiation rétroactivement supposée
+depuis la naissance. Les prises plus anciennes peuvent donc ne pas avoir ce
+renseignement. Les anciens espaces ne sont pas enrichis automatiquement.
