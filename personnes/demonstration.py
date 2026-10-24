@@ -19,6 +19,7 @@ def autoriser(compte):
     call_command('autoriser_chrs7', compte.username, stdout=StringIO())
     call_command('autoriser_bd3', compte.username, stdout=StringIO())
     call_command('autoriser_bd6', compte.username, stdout=StringIO())
+    call_command('autoriser_solenne', compte.username, stdout=StringIO())
     compte.user_permissions.add(Permission.objects.get(content_type__app_label='personnes', codename='add_personne'))
     compte.user_permissions.add(*Permission.objects.filter(content_type__app_label='personnes', codename__in=(
         'view_transmission', 'add_transmission', 'change_transmission',
@@ -76,6 +77,13 @@ def generer(compte, *, professionnels=None, reference=None):
     h.ajouter_periode(remi, sejour, j(-49), None, lieu=interne)
     h.sortir(remi, sejour, j(-10))
     source = 'Entretien fictif de démonstration'
+    # Déclarations explicitement inventées pour le scénario, pas déduites du
+    # nombre de membres ni d'une relation juridique entre leurs identités.
+    from . import famille as declarations_familiales, bd6
+    declarations_familiales.renseigner(nadia, personnes['Samira'], j(-60), source,
+        bd6.jeton(personnes['Samira']), situation_familiale='Séparée',
+        rapports_parentaux='En contact', fratrie='Deux sœurs', enfants_a_charge=2,
+        enfants_non_a_charge=0, grossesse=None)
     for dimension, valeur, delta in [('logement', 'hebergement', -49), ('logement', 'logement_autonome', -10),
                                      ('emploi', 'sans_emploi', -49), ('emploi', 'formation', -5),
                                      ('ressources', 'inconnu', -49), ('ressources', 'ressources_declarees', -5)]:

@@ -1,0 +1,26 @@
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
+from django.core.management.base import BaseCommand, CommandError
+from django.db import transaction
+
+DROITS = {'view_declarationfamiliale', 'add_declarationfamiliale', 'change_declarationfamiliale',
+    'view_revisiondeclarationfamiliale', 'corriger_prevision_accompagnement', 'view_evolutionpriseencharge'}
+
+
+class Command(BaseCommand):
+    help = 'Attribuer volontairement les droits Solenne L1/L2a à un compte existant ; les droits CHRS restent indépendants.'
+
+    def add_arguments(self, parser):
+        parser.add_argument('identifiant')
+
+    @transaction.atomic
+    def handle(self, *args, **options):
+        permissions = list(Permission.objects.filter(content_type__app_label='personnes', codename__in=DROITS))
+        if len(permissions) != len(DROITS):
+            raise CommandError('Appliquez les migrations avant cette attribution.')
+        try:
+            compte = get_user_model().objects.get(username=options['identifiant'])
+        except get_user_model().DoesNotExist as erreur:
+            raise CommandError('Compte inconnu ; aucun compte créé.') from erreur
+        compte.user_permissions.add(*permissions)
+        self.stdout.write('Droits Solenne L1/L2a attribués explicitement, sans administration ni suppression.')

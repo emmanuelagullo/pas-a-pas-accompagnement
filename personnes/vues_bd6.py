@@ -223,12 +223,8 @@ def commentaire(request, nature, pk, prise_pk=None):
         lambda **d: bd6.commenter(request.user, cible, **d), retour(nature, pk, parametres_retour(request), prise=a), objet, versions=versions)
 
 
-@never_cache
-@require_http_methods(['GET', 'POST'])
-@login_required
-@permission_required(('personnes.view_personne', 'personnes.view_situationpersonnelle', 'personnes.view_revisionsituationpersonnelle'), raise_exception=True)
-def social(request, pk, dimension=None, fait_pk=None):
-    personne = get_object_or_404(Personne, pk=pk)
+def navigation_histoire(request, personne):
+    pk = personne.pk
     params = parametres_retour(request)
     origine = {k: request.GET.get(k, '')[:40] for k in ('depuis_nature', 'depuis_pk', 'depuis_prise')}
     retour_social = retour('personne', pk, params)
@@ -243,6 +239,16 @@ def social(request, pk, dimension=None, fait_pk=None):
         if prise_origine:
             retour_social = retour('personne', pk, params, prise=prise_origine)
     query_sociale = urlencode({**params, **origine})
+    return params, origine, retour_social, query_sociale
+
+
+@never_cache
+@require_http_methods(['GET', 'POST'])
+@login_required
+@permission_required(('personnes.view_personne', 'personnes.view_situationpersonnelle', 'personnes.view_revisionsituationpersonnelle'), raise_exception=True)
+def social(request, pk, dimension=None, fait_pk=None):
+    personne = get_object_or_404(Personne, pk=pk)
+    params, origine, retour_social, query_sociale = navigation_histoire(request, personne)
     attendu = bd6.jeton(personne)
     faits = personne.situations_personnelles.select_related('auteur').order_by('-debut', '-pk')
     if dimension is None:

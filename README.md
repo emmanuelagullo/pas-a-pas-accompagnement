@@ -1035,3 +1035,30 @@ Pour autoriser volontairement la correction sur un compte déjà créé :
 Les accords, séjours et distributions ne changent pas avec une prévision.
 Absence/retour et lieu sont accessibles parmi les actions du séjour sélectionné.
 Le résumé distingue lieu actuel, dernier lieu connu et lieu non renseigné.
+
+## Reprise Solenne — L2a : déclarations familiales
+
+Dans la situation sociale du dossier, « Détail et historique familial » ouvre
+les déclarations de la personne : situation familiale, rapports avec les parents,
+fratrie, nombres d'enfants à charge ou non et grossesse déclarée. Ces informations
+sont datées et sourcées, indépendantes des prises, des membres du ménage et de
+la représentation légale. Une valeur vide reste inconnue ; zéro et non sont
+explicites. Les formulations historiques peuvent être saisies dans leurs champs
+propres ; aucune note ancienne n'est automatiquement transformée en catégorie.
+
+Un changement réel, un fait oublié dans le passé et une correction motivée
+restent distincts. La correction peut rectifier une date sans traverser un autre
+fait ; les bornes voisines et leur avant/après sont conservés. La synthèse de prise
+et son résumé imprimable reprennent la déclaration applicable à l'entrée.
+Le rapport « Déclarations familiales à une date » filtre par identité, situation
+exacte et présence d'une déclaration ; HTML imprimable et CSV décrivent les mêmes
+lignes. Population : toutes les fiches personnes enregistrées aujourd'hui,
+pas toutes les personnes présentes à la date choisie. Les enfants déclarés par
+plusieurs personnes ne sont jamais totalisés comme des identités distinctes.
+
+Après migration, attribution volontaire à un compte déjà habilité au dossier :
+`python3 manage.py autoriser_solenne IDENTIFIANT`. Aucun droit nouveau n'est
+attribué aux comptes existants par la migration. Les jeux nouvellement générés
+Les Passerelles incluent une déclaration familiale fictive ; les anciens jeux
+restent inchangés. L2 n'est pas clos : les relations personnelles datées, le
+contact désigné du ménage et les compléments d'identité restent à livrer.

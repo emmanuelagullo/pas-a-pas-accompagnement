@@ -327,3 +327,17 @@ nulle signifie retrait motivé de prévision. Les anciennes lignes deviennent de
 prolongations. La correction dispose d'un droit explicite, non attribué par la
 migration. La clôture BD réserve l'état de la prise puis réutilise suivi.clore.
 Aucune modification du socle, des formats de copies ou des profils d'exécution.
+
+## Solenne L2a — déclarations individuelles
+
+DeclarationFamiliale est une série typée par personne, pas un moteur de champs
+configurables. Les bornes sont dérivées des changements successifs. Le service
+famille réserve la révision personnelle avant de relire la série ; il ne prend
+ensuite aucun verrou de ménage. RevisionDeclarationFamiliale conserve l'ensemble
+avant/après, la nature du changement, son auteur et son motif. Les contrôles
+SQL garantissent une date par personne, une ligne ouverte et des périodes positives.
+Les anciennes données ne sont pas modifiées par la migration. Les copies complètes
+conservent automatiquement ces tables ; aucune dépendance commune n'est ajoutée.
+Les rapports et sorties CSV restent soumis aux droits des déclarations et des
+historiques. Les cellules textuelles CSV commençant comme une formule sont
+neutralisées ; la restitution HTML échappe les déclarations.

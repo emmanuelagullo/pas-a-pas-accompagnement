@@ -139,3 +139,17 @@ automatiquement « janvier prochain ». La suppression est explicite.
 ### Modèles de rapports et périodes relatives (CHRS16)
 
 Un modèle personnel peut enregistrer une période fixe (bornes civiles) ou un code de période relative : mois courant, mois précédent, année courante, année précédente ou douze derniers mois glissants. Les bornes relatives sont résolues à chaque consultation, y compris pour le CSV ; elles ne sont pas des résultats mis en cache. La fin est toujours exclue. Les filtres et regroupements restent ceux de CHRS15. Les modèles ne sont pas partagés entre utilisateurs.
+
+## Déclarations familiales à une date (Solenne L2a)
+
+Ce rapport distinct consulte toutes les fiches Personne enregistrées aujourd'hui,
+avec leur déclaration applicable à la date choisie. Il ne reconstitue ni un registre
+de personnes présentes à cette date, ni une file active. Les filtres nom/prénom,
+situation familiale déclarée exacte (insensible à la casse) et déclaration
+applicable/non applicable sont communs au HTML et au CSV. Chaque fiche compte une
+fois. Les regroupements affichent le libellé déclaré tel quel ; ils ne constituent
+pas une nomenclature normalisée et des variantes de libellés peuvent rester séparées.
+Les enfants déclarés par plusieurs adultes ne sont pas dédoublonnables sans leurs
+identités et relations ; aucun total d'enfants n'est donc calculé. Les identités
+restent actuelles, les situations sont datées selon les connaissances corrigées
+aujourd'hui. Une déclaration effacée par correction reste dans son journal.

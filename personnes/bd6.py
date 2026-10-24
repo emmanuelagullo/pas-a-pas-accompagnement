@@ -145,6 +145,8 @@ def etat(acteur, personnes, date):
     if not acteur.has_perm('personnes.view_personne'):
         return []
     personnes = list(personnes)
+    from . import famille
+    declarations = {x.personne_id: x for x in famille.a_date(personnes, date)} if acteur.has_perms(famille.DROITS_LECTURE) else {}
     communs = list(SituationPersonnelle.objects.filter(personne__in=personnes, debut__lte=date).filter(
         Q(fin__isnull=True) | Q(fin__gt=date))) if acteur.has_perm('personnes.view_situationpersonnelle') else []
     anciens = list(SituationSociale.objects.filter(beneficiaire__in=personnes, debut__lte=date,
@@ -164,7 +166,7 @@ def etat(acteur, personnes, date):
             texte = 'Informations divergentes — à vérifier' if conflit else (fait.libelle_valeur if fait else temoins[0].libelle_valeur if temoins else 'Non renseigné')
             lignes.append({'dimension': dimension, 'libelle': libelle, 'texte': texte, 'fait': fait,
                            'anciens': temoins, 'conflit': conflit})
-        resultat.append({'personne': personne, 'lignes': lignes})
+        resultat.append({'personne': personne, 'lignes': lignes, 'famille': declarations.get(personne.pk)})
     return resultat
 
 

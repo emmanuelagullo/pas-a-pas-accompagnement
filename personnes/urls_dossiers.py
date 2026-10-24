@@ -3,9 +3,14 @@ from . import vues_dossiers as vues
 from . import vues_prestations_dossier as prestations
 
 from . import vues_bd6 as bd6
+from . import vues_famille as famille
 
 app_name = 'dossiers'
 urlpatterns = [
+    path('rapports/familles/', famille.rapport, name='rapport_familles'),
+    path('personne/<uuid:pk>/famille/', famille.histoire, name='famille'),
+    path('personne/<uuid:pk>/famille/nouvelle/', famille.histoire, {'action': 'nouvelle'}, name='famille_nouvelle'),
+    path('personne/<uuid:pk>/famille/<int:fait_pk>/corriger/', famille.histoire, {'action': 'correction'}, name='famille_corriger'),
     path('personne/<uuid:pk>/social/', bd6.social, name='social'),
     path('personne/<uuid:pk>/social/<str:dimension>/nouveau/', bd6.social, name='social_nouveau'),
     path('personne/<uuid:pk>/social/<str:dimension>/<int:fait_pk>/corriger/', bd6.social, name='social_corriger'),

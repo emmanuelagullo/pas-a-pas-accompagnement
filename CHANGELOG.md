@@ -1,3 +1,10 @@
+## À venir — Solenne L2a
+
+- Déclarations familiales individuelles datées, distinctes de la composition du ménage.
+- Changements, insertions rétroactives et corrections motivées de valeurs/dates avec avant/après.
+- Synthèse BD, histoire à l’entrée, résumé imprimable, recherche à date et export CSV sous droits explicites.
+- Exemple fictif ajouté seulement aux nouveaux jeux de démonstration.
+
 ## À venir — Solenne L1
 
 - Première prise avec création/rattachement explicite et atomique du ménage, sans double confirmation.

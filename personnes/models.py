@@ -602,3 +602,48 @@ class CommentaireDossier(models.Model):
             models.Q(personne__isnull=False, menage__isnull=True, accompagnement__isnull=True) |
             models.Q(personne__isnull=True, menage__isnull=False, accompagnement__isnull=True) |
             models.Q(personne__isnull=True, menage__isnull=True, accompagnement__isnull=False)), name="commentaire_cible_unique")]
+
+
+class DeclarationFamiliale(Periode):
+    """Déclarations individuelles, jamais déduites des appartenances au ménage."""
+    personne = models.ForeignKey(Personne, on_delete=models.PROTECT, related_name='declarations_familiales')
+    situation_familiale = models.CharField('Situation familiale déclarée', max_length=160, blank=True)
+    rapports_parentaux = models.CharField('Rapports avec les parents', max_length=160, blank=True)
+    fratrie = models.CharField('Fratrie déclarée', max_length=160, blank=True)
+    enfants_a_charge = models.PositiveSmallIntegerField('Nombre déclaré d’enfants à charge', null=True, blank=True)
+    enfants_non_a_charge = models.PositiveSmallIntegerField('Nombre déclaré d’enfants non à charge', null=True, blank=True)
+    grossesse = models.BooleanField('Grossesse déclarée', null=True, blank=True)
+    source = models.CharField('Source de l’information', max_length=160)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    enregistre_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-debut', '-pk']
+        constraints = [
+            models.CheckConstraint(condition=models.Q(fin__isnull=True) | models.Q(fin__gt=models.F('debut')), name='famille_periode_valide'),
+            models.UniqueConstraint(fields=['personne', 'debut'], name='famille_date_unique'),
+            models.UniqueConstraint(fields=['personne'], condition=models.Q(fin__isnull=True), name='famille_ouverte_unique'),
+        ]
+
+    @property
+    def resume(self):
+        morceaux = [self.situation_familiale] if self.situation_familiale else []
+        if self.enfants_a_charge is not None:
+            morceaux.append(f'{self.enfants_a_charge} enfant(s) déclaré(s) à charge')
+        if self.enfants_non_a_charge is not None:
+            morceaux.append(f'{self.enfants_non_a_charge} non à charge')
+        return ' · '.join(morceaux) or 'Autres informations familiales renseignées'
+
+
+class RevisionDeclarationFamiliale(models.Model):
+    personne = models.ForeignKey(Personne, on_delete=models.PROTECT)
+    declaration = models.ForeignKey(DeclarationFamiliale, on_delete=models.PROTECT, related_name='revisions')
+    action = models.CharField(max_length=20, choices=[('changement', 'Changement réel'), ('insertion', 'Fait antérieur oublié'), ('correction', 'Correction d’une erreur')])
+    avant = models.JSONField(default=list)
+    apres = models.JSONField(default=list)
+    motif = models.CharField(max_length=240, blank=True)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    enregistre_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-enregistre_le', '-pk']
