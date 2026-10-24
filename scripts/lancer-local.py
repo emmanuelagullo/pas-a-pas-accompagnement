@@ -96,6 +96,10 @@ def main():
     analyseur.add_argument("--verifier-distribution", action="store_true")
     analyseur.add_argument("--sans-fenetre", action="store_true", help="ouvrir le serveur local dans votre navigateur")
     args = analyseur.parse_args()
+    def etape_demarrage(texte):
+        # Diagnostic du contrôle HTTP, sans ajouter de sortie dans la fenêtre.
+        if args.sans_fenetre:
+            print('Démarrage : ' + texte, flush=True)
     if args.essai and (args.copier_paquet or args.verifier_distribution):
         analyseur.error("--essai ne se combine pas avec une opération sur les données ou la distribution")
     if args.verifier_distribution:
@@ -138,12 +142,14 @@ def main():
             raise SystemExit('Espace d’essai incomplet ou occupé : aucune donnée remplacée.')
         bureau.initialiser_paquet(paquet, nom_base=BASE)
         configurer(paquet)
+        etape_demarrage('initialisation de Django')
         import django
         from django.core.management import call_command
         from django.core.wsgi import get_wsgi_application
         django.setup()
         if bureau.migration_necessaire(paquet, nom_base=BASE):
             bureau.proteger_avant_migration(paquet, nom_base=BASE)
+        etape_demarrage('migrations de la base locale')
         call_command("migrate", interactive=False, verbosity=0)
         if nouveau_essai:
             from personnes.demonstration import preparer_jeu_public
@@ -152,6 +158,7 @@ def main():
             from django.contrib.auth import get_user_model
             if not get_user_model().objects.exists():
                 raise SystemExit('Espace d’essai incomplet : aucun compte. Restaurez une copie explicitement.')
+        etape_demarrage('préparation des ressources locales')
         call_command("collectstatic", interactive=False, verbosity=0)
         from pas_a_pas_accompagnement.paquets import restauration
         from pas_communs.paquets import appliquer_restauration
@@ -182,6 +189,7 @@ def main():
         try:
             with bureau.ServeurBureau(get_wsgi_application(), verrou=verrou,
                     ecritures_bloquees=lambda: restauration.attente() is not None) as serveur:
+                etape_demarrage('vérification du serveur HTTP local')
                 serveur.verifier_css("static/application.css")
                 if args.sans_fenetre:
                     print("Adresse locale : " + serveur.url, flush=True)

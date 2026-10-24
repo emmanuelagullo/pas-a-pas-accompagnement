@@ -94,11 +94,18 @@ const server=(tls?require('node:https'):http).createServer(options,(req,res)=>{
   await df.locator('[name=username]').fill('nadia');
   await df.locator('[name=password]').fill('Demonstration-fictive-2026!');
   await cliquerLienPwa(df.getByRole('button',{name:'Se connecter'}));
-  await cliquerLienPwa(df.getByRole('link',{name:'Découvrir le scénario fictif Les Passerelles'}));
-  await df.getByRole('heading',{name:'Les Passerelles : découverte en cinq minutes'}).waitFor();
-  await cliquerLienPwa(df.getByRole('link',{name:'les ménages',exact:true}));
-  await cliquerLienPwa(df.getByRole('link',{name:'Alex — Les Passerelles (fictif)',exact:true}));
-  await cliquerLienPwa(df.getByRole('link',{name:/Déjeuner accordé du/}));
+  await cliquerLienPwa(df.getByRole('link',{name:'Découvrir le scénario fictif Établissement Les Passerelles',exact:true}));
+  await df.getByRole('heading',{name:'Établissement Les Passerelles : découverte en cinq minutes',exact:true}).waitFor();
+  await cliquerLienPwa(df.getByRole('link',{name:'la recherche des dossiers',exact:true}));
+  await df.getByLabel('Nom, prénom ou libellé du dossier',{exact:true}).fill('Alex');
+  await df.getByText('Résultats actualisés.',{exact:true}).waitFor();
+  await cliquerLienPwa(df.locator('#resultats-dossiers ul.resultats-dossiers').getByRole('link',{name:/Alex — Établissement Les Passerelles \(fictif\)/}));
+  await df.getByRole('heading',{name:/Dossier — Alex/}).waitFor();
+  await cliquerLienPwa(df.getByRole('button',{name:'Ouvrir',exact:true}));
+  await df.getByRole('heading',{name:/Prise en charge du/}).waitFor();
+  // La consultation des repas s'ouvre dans la case de prestation : aucun
+  // nouveau document d'iframe n'est attendu pour cette action en place.
+  await df.locator('#repas').getByRole('link',{name:'Consulter les repas',exact:true}).click();
   await df.getByRole('heading',{name:'Réalisation effective : 2 repas distribués'}).waitFor();
   await require('./verifier-parcours-metier.cjs')(df);
   await rechercherPersonnes(df);

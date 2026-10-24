@@ -4,7 +4,7 @@ module.exports = async function verifierParcoursMetier(app) {
   await cliquerLienPwa(app.getByRole('link', {name:'Dossiers', exact:true}));
   await app.getByLabel('Nom, prénom ou libellé du dossier', {exact:true}).fill('Thomas');
   await app.getByText('Résultats actualisés.', {exact:true}).waitFor();
-  await cliquerLienPwa(app.locator('#resultats-dossiers ul.resultats-dossiers').getByRole('link', {name:/Thomas — Les Passerelles \(fictif\)/}));
+  await cliquerLienPwa(app.locator('#resultats-dossiers ul.resultats-dossiers').getByRole('link', {name:/Thomas — Établissement Les Passerelles \(fictif\)/}));
   await app.getByRole('heading', {name:/Dossier — Thomas/}).waitFor();
   await app.getByText('Composition du ménage et changements', {exact:true}).click();
   await cliquerLienPwa(app.locator('nav[aria-label="Dossiers liés"] a').first());
@@ -43,7 +43,10 @@ module.exports = async function verifierParcoursMetier(app) {
   await cliquerLienPwa(historique.getByRole('link', {name:'Situation et parcours sociaux', exact:true}));
   await app.getByRole('heading', {name:/Situation et parcours sociaux — Thomas/}).waitFor();
   await cliquerLienPwa(app.getByRole('link', {name:'Corriger cet événement', exact:true}));
-  await app.locator('[name=texte]').fill('Installation fictive — texte rectifié pendant l’essai.');
+  // Le textarea est masqué après activation de l’éditeur enrichi.
+  const evenement = app.locator('.edition-texte .ProseMirror');
+  await evenement.waitFor();
+  await evenement.fill('Installation fictive — texte rectifié pendant l’essai.');
   await app.locator('[name=motif]').fill('Correction fictive du parcours navigateur');
   await cliquerLienPwa(app.getByRole('button', {name:'Enregistrer', exact:true}));
   await app.getByRole('heading', {name:/Prise en charge du/}).waitFor();

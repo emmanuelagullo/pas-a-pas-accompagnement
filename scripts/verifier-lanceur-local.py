@@ -16,7 +16,10 @@ source=Path(__file__).resolve().parent.parent
 parser=argparse.ArgumentParser(description='Vérifier le lanceur sur des données fictives isolées.')
 parser.add_argument('--programme',type=Path,help='exécutable Linux à vérifier au lieu des sources')
 parser.add_argument('--arret-stdin', action='store_true', help='exercer aussi le relais Windows depuis Linux')
+parser.add_argument('--delai-demarrage',type=float,default=60,help='borne en secondes pour démarrage à froid et migrations (défaut : 60)')
 args=parser.parse_args()
+if args.delai_demarrage <= 0:
+    parser.error('Le délai de démarrage doit être positif.')
 arret_stdin = os.name == 'nt' or args.arret_stdin
 if args.programme and (os.name=='nt' or args.arret_stdin):
     parser.error('La fenêtre native Windows nécessite un essai graphique distinct.')
@@ -35,15 +38,22 @@ with tempfile.TemporaryDirectory() as t:
     def start():
         sortie=log.open('w',encoding='utf-8')
         p=subprocess.Popen([*prefixe,'--paquet',str(paquet),'--sans-fenetre'],cwd=source,env=env,stdout=sortie,stderr=subprocess.STDOUT,stdin=subprocess.PIPE if arret_stdin else None)
-        for _ in range(200):
+        debut=time.monotonic()
+        limite=debut+args.delai_demarrage
+        while time.monotonic()<limite:
             texte=log.read_text(encoding='utf-8')
             match=re.search(r'Adresse locale : (http://127\.0\.0\.1:\d+/)',texte)
             if match:
                 return p,sortie,match[1]
             if p.poll() is not None:
-                raise RuntimeError(texte)
+                sortie.close()
+                raise RuntimeError(f'Le lanceur a quitté avant disponibilité (code {p.returncode}, {time.monotonic()-debut:.1f} s) : '+texte)
             time.sleep(.05)
-        p.terminate();p.wait();raise RuntimeError('Démarrage expiré : '+log.read_text(encoding='utf-8'))
+        p.terminate()
+        try:p.wait(timeout=10)
+        except subprocess.TimeoutExpired:p.kill();p.wait()
+        sortie.close()
+        raise RuntimeError(f'Démarrage expiré après {args.delai_demarrage:g} s (code après arrêt {p.returncode}) : '+(log.read_text(encoding='utf-8') or 'Aucune sortie reçue ; le programme n’a annoncé aucune étape.'))
     def stop(p,sortie):
         if p.poll() is None:
             if arret_stdin:
@@ -77,7 +87,7 @@ with tempfile.TemporaryDirectory() as t:
             assert 'Le second facteur n’est pas activé' in r.read().decode()
         with client.open(base+'mon-compte/mot-de-passe/',timeout=5) as r:
             assert 'Changer mon mot de passe' in r.read().decode()
-        second=subprocess.run([*prefixe,'--paquet',str(paquet),'--sans-fenetre'],cwd=source,env=env,capture_output=True,text=True,encoding='utf-8',timeout=5)
+        second=subprocess.run([*prefixe,'--paquet',str(paquet),'--sans-fenetre'],cwd=source,env=env,capture_output=True,text=True,encoding='utf-8',timeout=args.delai_demarrage)
         assert second.returncode!=0 and 'déjà ouvert' in second.stderr, (
             second.returncode, second.stdout, second.stderr
         )
