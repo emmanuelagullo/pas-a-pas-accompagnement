@@ -206,20 +206,46 @@ class MetaDTransactions(TransactionTestCase):
     emettre=MetaDTests.emettre
     def test_emission_concurrente_un_seul_numero_et_aucune_double_confirmation(self):
         import threading
-        from django.db import close_old_connections,OperationalError
-        self.enregistrer();token=s.jeton(self.accord);barriere=threading.Barrier(2);resultats=[];erreurs=[]
+        from django.db import close_old_connections,connections,OperationalError
+        from time import sleep
+        self.enregistrer();token=s.jeton(self.accord);barriere=threading.Barrier(2);resultats=[];erreurs=[];refus=[]
+        revision=s.financement(self.accord).revision_sociale
         def travail():
             close_old_connections()
             try:
                 u=get_user_model().objects.get(pk=self.u.pk);a=m.AccordHebergement.objects.get(pk=self.accord.pk);u.get_all_permissions();barriere.wait(timeout=10)
-                try:s.emettre(u,a,token,'engagement','autorise',date(2026,1,6));resultats.append(True)
-                except (ValidationError,OperationalError):resultats.append(False)
+                # Le cache partagé SQLite des tests peut refuser les DEUX
+                # transactions. Rejouer seulement ce verrou transitoire après
+                # rollback, avec le même jeton : le CAS doit toujours départager.
+                for tentative in range(6):
+                    try:
+                        s.emettre(u,a,token,'engagement','autorise',date(2026,1,6))
+                        resultats.append(True);break
+                    except ValidationError as erreur:
+                        refus.append(str(erreur));resultats.append(False);break
+                    except OperationalError as erreur:
+                        if connections['default'].vendor!='sqlite' or 'locked' not in str(erreur).lower() or tentative==5:raise
+                        sleep(.01*(tentative+1))
             except Exception as e:erreurs.append(e)
-            finally:close_old_connections()
+            finally:connections.close_all()
         ts=[threading.Thread(target=travail) for _ in range(2)]
         for t in ts:t.start()
         for t in ts:t.join(20)
         self.assertFalse(any(t.is_alive() for t in ts));self.assertFalse(erreurs,erreurs);self.assertEqual(sum(resultats),1,resultats);self.assertEqual(m.DocumentFinancement.objects.count(),1)
+        self.assertEqual(len(refus),1,refus)
+        self.assertEqual(s.financement(self.accord).revision_sociale,revision+1)
+    def test_emission_concurrente_rejoue_verrou_sqlite_sans_rafraichir_confirmation(self):
+        import threading
+        from django.db import connection,OperationalError
+        if connection.vendor!='sqlite':self.skipTest('Verrou transitoire SQLite.')
+        local=threading.local();emettre=s.emettre
+        def premier_verrou(*args,**kwargs):
+            if not getattr(local,'tente',False):
+                local.tente=True
+                raise OperationalError('database table is locked: personnes_menage')
+            return emettre(*args,**kwargs)
+        with patch.object(s,'emettre',side_effect=premier_verrou):
+            self.test_emission_concurrente_un_seul_numero_et_aucune_double_confirmation()
     def test_copie_sqlite_conserve_versions_document_et_annulation(self):
         import sqlite3,tempfile,json
         from pathlib import Path
