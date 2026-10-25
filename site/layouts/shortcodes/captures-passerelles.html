@@ -4,10 +4,12 @@
   (dict "file" "liaison.png" "alt" "Cahier de liaison de l’équipe fictive" "caption" "Les transmissions pour la relève de l’équipe")
   (dict "file" "statistiques.png" "alt" "Rapport statistique de la démonstration" "caption" "Des indicateurs calculés sur les prestations enregistrées")
 -}}
+{{- $choix := .Get "ids" | default "" -}}
+{{- $ids := split $choix "," -}}
 {{- $disponibles := slice -}}
 {{- range $captures -}}
   {{- $chemin := printf "captures/%s" .file -}}
-  {{- if fileExists (printf "static/%s" $chemin) -}}
+  {{- if and (or (eq $choix "") (in $ids .file)) (fileExists (printf "static/%s" $chemin)) -}}
     {{- $disponibles = $disponibles | append . -}}
   {{- end -}}
 {{- end -}}

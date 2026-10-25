@@ -1,0 +1,29 @@
+- titre: Samira, Lina et Adam
+  resume: Un ménage, des bénéficiaires nommés et plusieurs prestations.
+  intention: Comparer le dossier et les prises en charge
+  detail: Lire les appartenances et le contact du ménage. Choisir une prise en charge
+    et vérifier séparément les bénéficiaires. Dans le séjour, comparer les lieux successifs
+    et l’absence close ; ces mouvements ne créent pas de nouvelle admission.
+  fiche: /guide/accueillir/composer-menage/
+- titre: Alex
+  resume: Un accompagnement et des repas, sans hébergement.
+  intention: Distinguer l’accord de la distribution
+  detail: Ouvrir les repas de la prise en charge et comparer les dates accordées aux
+    distributions. Avant de saisir un repas fictif, vérifier les faits déjà présents.
+    Ne pas créer de séjour pour pouvoir enregistrer un repas.
+  fiche: /guide/prestations/repas/
+- titre: Thomas
+  resume: Un séjour terminé et un accompagnement qui continue.
+  intention: Lire une histoire au-delà de l’hébergement
+  detail: 'Comparer les prises en charge puis les situations personnelles datées.
+    La déclaration de logement autonome est explicite : la sortie du séjour ne l’a
+    pas créée. Une correction de donnée et un changement réel se lisent différemment
+    dans l’histoire.'
+  fiche: /guide/dossier/situation/
+- titre: Noor, Noé et les deux Robin
+  resume: Des situations pour approfondir progressivement les cas limites.
+  intention: Choisir une difficulté à explorer
+  detail: Noor illustre les co-référents et des besoins pratiques corrigés ; Noé change
+    de ménage sans réécrire les anciennes prises en charge. Les deux Robin sont des
+    homonymes distincts. Robin A conserve une arrivée erronée annulée, exclue de l’activité.
+  fiche: /guide/scenarios-passerelles/

@@ -22,16 +22,6 @@ statut: "disponible"
 
 ## Préparer le petit-déjeuner d'un groupe
 
-Dans la création de la période de repas, ouvrir **Préparer les bénéficiaires du
-petit-déjeuner**. Choisir la règle : tous les bénéficiaires explicites, âge entre
-les seuils, ou âge et grossesse déclarée si les droits le permettent. La borne
-basse d'âge est exclue et la borne haute incluse ; les valeurs proposées 2 et 12
-sont modifiables. Choisir la date de référence, ou conserver le début demandé.
+La proposition prépare des cases à vérifier ; elle ne crée ni accord ni distribution.
 
-**Proposer les bénéficiaires sans enregistrer** sélectionne uniquement le
-petit-déjeuner et les personnes correspondant aux informations disponibles.
-Les informations imprécises ou inconnues sont signalées pour vérification ;
-une grossesse n'est jamais déduite de l'identité ou d'un récit. Vérifier et
-ajuster les cases, puis utiliser **Accorder les repas**. Pour d'autres services
-avec une autre sélection, saisir une autre période. Aucune distribution ni
-aucun tarif ne résulte de cette préparation.
+[Ouvrir la fiche détaillée]({{< relref "/guide/prestations/petit-dejeuner/" >}}).

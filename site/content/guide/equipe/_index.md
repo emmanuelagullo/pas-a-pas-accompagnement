@@ -11,4 +11,6 @@ Prise de poste, informations utiles et actions de relève.
 - [Préparer des valeurs proposées à la saisie]({{< relref "/guide/equipe/propositions/" >}})
 - [Comprendre les droits actuels]({{< relref "/roles/" >}})
 
+- [Transporter les répertoires et tarifs]({{< relref "/guide/equipe/parametrage/" >}})
+
 [Revenir à toutes les fiches du guide]({{< relref "/guide/" >}})

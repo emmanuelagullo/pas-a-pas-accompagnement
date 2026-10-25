@@ -89,3 +89,9 @@ calcule une suggestion depuis l'âge exact au jour du repas. Les deux seuils
 sont visibles et modifiables. Une naissance imprécise ne produit aucune
 catégorie ; une catégorie de repas n'est pas une catégorie de majorité légale.
 Le calcul n'enregistre rien : vérifiez la proposition, puis enregistrez le fait.
+
+## Repérer l’écran dans le jeu fictif
+
+{{< captures-passerelles ids="travail-du-jour.png" >}}
+
+Capture issue de la démonstration automatisée ; vérifier les libellés de la version utilisée.

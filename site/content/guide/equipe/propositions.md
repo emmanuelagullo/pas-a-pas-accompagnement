@@ -22,20 +22,6 @@ Les organismes, professionnels, lieux et tarifs restent dans leurs répertoires 
 
 ## Transporter les répertoires et tarifs
 
-Depuis **Organismes partenaires → Importer ou exporter le paramétrage**, exporter
-le JSON privé. Il contient les organismes et professionnels avec leurs fiches
-datées, les liens entre répertoires, la hiérarchie des lieux, les types d'aide et
-les versions de tarifs. Les comptes, droits, personnes accompagnées et dossiers
-en sont exclus. Les anciens journaux restent dans la sauvegarde de l'espace
-source ; l'import est attribué à son auteur actuel.
+Cet échange transporte les répertoires et tarifs, sans dossiers ni comptes. Les propositions de saisie gardent leur propre échange JSON.
 
-Dans l'autre espace, examiner le fichier, vérifier les entrées et les homonymes,
-puis confirmer avec un motif. L'import crée de nouvelles entrées et ne fusionne
-aucun homonyme. Une confirmation supplémentaire est nécessaire pour créer ces
-doublons visibles. Un fichier déjà importé est refusé ; le reçu conserve les
-correspondances. Une erreur annule l'ensemble de l'import. Limites : 1 Mo,
-500 entrées et 2 000 définitions datées par fichier.
-
-Les propositions de saisie et modèles d'exploration conservent leurs propres
-échanges JSON, accessibles depuis cette page selon les droits. Ce paramétrage
-ne constitue ni une sauvegarde complète ni une synchronisation entre espaces.
+[Ouvrir la fiche détaillée]({{< relref "/guide/equipe/parametrage/" >}}).

@@ -27,4 +27,4 @@ publics:
   appareil: Propriétaire de l’espace local
 
 statuts:
-  disponible: Disponible dans le code actuel ; vérifier la version utilisée
+  disponible: Code actuel

@@ -1,0 +1,6 @@
+{{ range .Site.Data.exercices_passerelles }}
+<details class="passerelles-exercice" id="{{ .id }}">
+  <summary>{{ .titre }}</summary>
+  {{ .texte | markdownify }}
+</details>
+{{ end }}

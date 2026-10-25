@@ -40,3 +40,9 @@ Les rapports des rubriques personnelles, du parcours, des prestations et des fin
 Pour construire d'autres croisements et ouvrir un relevé détaillé, suivre [Explorer les populations]({{< relref "/guide/analyser/explorer/" >}}), puis [Conserver un modèle]({{< relref "/guide/analyser/modeles/" >}}).
 
 Ces rapports ne constituent pas une validation réglementaire pour des dossiers réels, et un historique incomplet ne prouve pas une première admission absolue.
+
+## Repérer l’écran dans le jeu fictif
+
+{{< captures-passerelles ids="statistiques.png" >}}
+
+Capture issue de la démonstration automatisée ; vérifier les libellés de la version utilisée.

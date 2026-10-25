@@ -8,3 +8,8 @@
   --tint: #edf2f8;
   --line: #d2dce8;
 }
+
+/* Les situations fictives restent propres au produit ; les cartes viennent du thème. */
+.passerelles-exercice, .person-card details { margin-block: 18px; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--tint); }
+.passerelles-exercice summary, .person-card summary { cursor: pointer; font-weight: 700; overflow-wrap: anywhere; }
+.passerelles-exercice[open] summary, .person-card details[open] summary { margin-bottom: 14px; }

@@ -12,13 +12,15 @@ statut: "disponible"
 
 Choisir une version depuis [Essayer]({{< relref "/essayer/" >}}), puis ouvrir l'espace fictif et utiliser les comptes publics affichés. Sur le service partagé, les autres visiteurs peuvent avoir modifié le jeu. Sur votre appareil, les essais sont conservés séparément de votre espace habituel.
 
-## Trois situations, un même parcours
+## Un établissement fictif, plusieurs situations {#trois-situations-un-même-parcours}
 
-1. **Samira, Lina et Adam — le dossier.** Rechercher le ménage, ouvrir le dossier et lire la composition. Choisir une prise en charge : les bénéficiaires sont nommés explicitement ; leur présence dans un ménage ne suffit pas à leur accorder une prestation.
-2. **Alex — l'accord et le fait.** Ouvrir sa prise en charge puis **Repas**. Alex est accompagné sans hébergement. Comparer la période accordée aux déjeuners réellement distribués. Pour un essai de saisie, vérifier d'abord si le repas existe déjà ; enregistrer uniquement un fait fictif à une date autorisée.
-3. **Thomas — le parcours social.** Comparer son séjour terminé et une prise en charge qui continue. Lire les situations personnelles datées : un logement autonome est déclaré explicitement, il n'est pas déduit de la sortie du séjour.
+**Établissement Les Passerelles est entièrement fictif.** Ses personnes, ménages, lieux et professionnels servent à essayer les gestes métier. Ce nom désigne le scénario, sans créer de cloisonnement entre établissements dans l’application.
 
-**À retenir :** Recherche → Dossier → Prise en charge reste le chemin principal. L'accord décrit une décision ; le séjour, la remise ou la distribution décrit une réalisation. Une situation personnelle garde son histoire entre plusieurs prises en charge.
+Pour une visite courte : rechercher le ménage de Samira, lire les repas d’Alex, puis comparer les périodes de Thomas. Les détails ci-dessous sont facultatifs.
+
+{{< etablissement-passerelles >}}
+
+**À retenir :** Recherche → Dossier → Prise en charge reste le chemin principal. Un membre du ménage n’est pas automatiquement bénéficiaire ; un accord ne prouve pas une réalisation. L’histoire personnelle continue entre plusieurs prises en charge.
 
 ## Choisir la suite de l’essai
 

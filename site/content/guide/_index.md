@@ -7,15 +7,32 @@ liste_auto: false
 Le fil principal de Pas à Pas est **Recherche → Dossier → Prise en charge**.
 Les fiches indiquent où commencer, ce qu'il faut vérifier et le résultat attendu.
 Elles décrivent le code actuel : la version installée ou publiée peut être antérieure.
-Les comptes existants ne reçoivent pas automatiquement de nouveaux droits.
+La mention **Code actuel** sur une carte ne garantit pas que votre version intègre la fonction. Les comptes existants ne reçoivent pas automatiquement de nouveaux droits.
 
-## Commencer ou essayer
+[Rechercher directement une fiche](#je-voudrais-faire) · [Choisir une intention](#parcourir-par-tâche)
 
-- [Choisir une version et un mode d'essai]({{< relref "/essayer/" >}}).
-- [Visiter l'Établissement Les Passerelles en cinq minutes]({{< relref "/guide/decouvrir-passerelles/" >}}).
-- [Tester un usage complet ou un cas limite]({{< relref "/guide/scenarios-passerelles/" >}}).
+## Selon votre façon de travailler
 
-## Parcourir par tâche
+- **Sur un serveur partagé** : [choisir l’essai en ligne]({{< relref "/essayer/" >}}). Les données de démonstration sont communes aux visiteurs ; la conservation et les sauvegardes du serveur relèvent de son exploitant.
+- **Sur cet appareil, navigateur ou programme** : [retrouver et conserver son espace]({{< relref "/guide/local/" >}}). Les espaces sont séparés et ne se synchronisent pas avec le serveur.
+
+Les gestes métier sont communs. Le choix du support change la conservation des données, pas la distinction entre autorisation et réalisation.
+
+## Deux façons de commencer {#commencer-ou-essayer}
+
+- **Découvrir sans saisir** : [visiter l’Établissement Les Passerelles en cinq minutes]({{< relref "/guide/decouvrir-passerelles/" >}}), puis choisir un [exercice métier]({{< relref "/guide/scenarios-passerelles/" >}}).
+- **Accomplir une tâche** : partir d’une rubrique ci-dessous ou [rechercher une fiche](#je-voudrais-faire). Aucune lecture intégrale n’est nécessaire.
+
+## Entrer par sa fonction du moment
+
+- **Accueil ou veille** : [retrouver le dossier]({{< relref "/guide/accompagnement/" >}}), [préparer la relève]({{< relref "/guide/travail-du-jour/" >}}), [suivre un mouvement]({{< relref "/guide/prestations/mouvements/" >}}).
+- **Accompagnement social** : [dater une situation]({{< relref "/guide/dossier/situation/" >}}), [suivre les objectifs]({{< relref "/guide/dossier/objectifs/" >}}), [retrouver les intervenants]({{< relref "/guide/dossier/repertoires/" >}}).
+- **Repas et prestations** : [préparer le petit-déjeuner]({{< relref "/guide/prestations/petit-dejeuner/" >}}), [enregistrer une distribution]({{< relref "/guide/prestations/repas/" >}}), [suivre une aide]({{< relref "/guide/prestations/autres-prestations/" >}}).
+- **Paramétrage et bilans** : [transporter les répertoires]({{< relref "/guide/equipe/parametrage/" >}}), [préparer un rapport]({{< relref "/guide/analyser/explorer/" >}}), [comprendre un chiffre]({{< relref "/guide/statistiques/" >}}).
+
+Ces entrées proposent des lectures, **sans attribuer de droits**. Les permissions réelles restent vérifiées pour chaque action ; voir [les accès]({{< relref "/roles/" >}}).
+
+## Parcourir par intention {#parcourir-par-tâche}
 
 - [Accueillir et retrouver un dossier]({{< relref "/guide/accueillir/" >}}) — Recherche, ménage, demande, appel et première prise en charge.
 - [Renseigner et suivre la situation sociale]({{< relref "/guide/dossier/" >}}) — Informations personnelles datées, projet, contacts et documents.
@@ -25,7 +42,7 @@ Les comptes existants ne reçoivent pas automatiquement de nouveaux droits.
 - [Conserver et retrouver son espace]({{< relref "/guide/local/" >}}) — Essai séparé, copies, vérification et restauration sur cet appareil.
 - [Comprendre un refus et corriger]({{< relref "/guide/depannage/" >}}) — Droits, état des objets, erreurs de saisie et formulaires périmés.
 
-## Je voudrais faire…
+## Rechercher une tâche {#je-voudrais-faire}
 
 La recherche porte sur les titres, descriptions et mots-clés. Plusieurs mots
 peuvent préciser l'intention : « repas catégorie », « document version »,

@@ -10,5 +10,6 @@ Droits, état des objets, erreurs de saisie et formulaires périmés.
 - [Modification concurrente]({{< relref "/guide/depannage/formulaire-perime/" >}})
 - [Choisir entre correction et changement]({{< relref "/guide/corriger-saisie/" >}})
 - [Décrire un problème reproductible]({{< relref "/contribuer/" >}})
+- [Reprendre une arrivée erronée]({{< relref "/guide/depannage/arrivee-erronee/" >}})
 
 [Revenir à toutes les fiches du guide]({{< relref "/guide/" >}})

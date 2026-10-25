@@ -13,4 +13,6 @@ Hébergement, repas, transports, aides et financement.
 - [Calculs, tarifs et financeurs]({{< relref "/guide/prestations/financement/" >}})
 - [Documents financiers émis]({{< relref "/guide/prestations/documents-emis/" >}})
 
+- [Préparer les bénéficiaires du petit-déjeuner]({{< relref "/guide/prestations/petit-dejeuner/" >}})
+
 [Revenir à toutes les fiches du guide]({{< relref "/guide/" >}})

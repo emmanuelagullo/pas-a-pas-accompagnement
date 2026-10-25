@@ -23,15 +23,6 @@ Les aides de durée utilisent des dates civiles : début inclus, fin exclue. Du 
 
 ## Une arrivée a été entièrement saisie par erreur
 
-Dans les autres actions du séjour, ouvrir **Corriger une erreur de cible / annuler
-cette arrivée**. Vérifier les personnes et les mouvements affichés, expliquer
-l'erreur et confirmer. L'histoire reste consultable ; elle sort des compteurs
-d'activité. Une sortie réellement survenue utilise toujours **Enregistrer la sortie**.
+Une arrivée qui n’a jamais eu lieu s’annule dans son parcours dédié. Une sortie réelle s’enregistre comme sortie.
 
-Pour une mauvaise cible, choisir explicitement le bon accord, actualiser ses
-bénéficiaires puis confirmer les personnes concernées. Les dates sont conservées ;
-la reprise des lieux et absences est un choix séparé. Les notes et calculs gardent
-leur cible et doivent être vérifiés. Un document financier émis actif bloque
-l'opération tant qu'il n'a pas été vérifié et annulé dans son propre parcours.
-Une arrivée déjà individualisée se retire avec toutes ses continuations ;
-les arrivées exactes se ressaisissent ensuite sans fusion de périodes.
+[Ouvrir la fiche détaillée]({{< relref "/guide/depannage/arrivee-erronee/" >}}).

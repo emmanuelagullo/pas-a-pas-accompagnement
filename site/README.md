@@ -134,3 +134,24 @@ Ne pas annoncer comme publiée une fonction uniquement présente dans le code.
 La visite courte du scénario renvoie aux exercices approfondis ; les compteurs
 de la fenêtre J−60 à J+1 suivent `personnes.tests_demonstration`. Les captures
 restent celles produites par la CI, sans images fabriquées pour compléter le guide.
+
+### Présentation des Passerelles et accès ciblés
+
+Les cartes de situations fictives utilisent les classes `person-grid` et
+`person-card` déjà partagées. Les textes de l’établissement restent dans
+`data/etablissement_passerelles.yaml` et les exercices indépendants dans
+`data/exercices_passerelles.yaml`. Les dépliables natifs gardent les détails
+secondaires accessibles au clavier et sans JavaScript. Conserver les identifiants
+des exercices, qui reprennent les anciennes ancres de la page.
+
+`captures-passerelles` accepte `ids="liaison.png"` (ou plusieurs noms séparés
+par une virgule) pour illustrer une tâche avec les captures CI existantes.
+Sans sélection, la galerie de découverte conserve ses quatre vues. Aucun fichier
+PNG ni changement de scénario applicatif n’est ajouté par cette présentation.
+Les captures absentes laissent un message et les instructions utilisables.
+
+Les fiches petit-déjeuner, paramétrage et arrivée erronée détaillent les gestes
+introduits par les lots I/J. Les pages repas, propositions et hébergement restent
+les portes d’entrée à leurs URL historiques. La recherche porte sur les
+métadonnées, pas sur le corps des fiches : ajouter les mots d’usage aux intentions.
+La mention « Code actuel » n’atteste pas la version d’une application publiée.

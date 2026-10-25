@@ -1,9 +1,9 @@
 ---
-title: "Essayer avec Établissement Les Passerelles"
+title: "Essayer dans l’Établissement Les Passerelles"
 description: "Le même scénario fictif, partagé en ligne ou conservé sur cet appareil."
 ---
 
-Utilisez exclusivement des personnes et informations inventées.
+**Établissement Les Passerelles est fictif.** Choisissez où essayer, puis suivez la visite courte ou un exercice. Utilisez exclusivement des personnes et informations inventées.
 [Découvrir le parcours en cinq minutes](../guide/decouvrir-passerelles/)
 et [rencontrer l’équipe fictive](../roles/equipe/).
 
@@ -50,6 +50,12 @@ La fenêtre se ferme et se rouvre. [Comprendre le retour et la conservation des 
 ## Les accès du jeu neuf
 
 {{< acces-demonstration >}}
+
+## Explorer à son rythme
+
+- [Visite courte et présentation des situations](../guide/decouvrir-passerelles/).
+- [Exercices détaillés : dossiers, prestations, corrections et bilans](../guide/scenarios-passerelles/).
+- [Fiches pratiques par tâche](../guide/).
 
 ## Ce que la publication permet réellement
 

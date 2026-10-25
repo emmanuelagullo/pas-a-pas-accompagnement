@@ -19,3 +19,11 @@ statut: "disponible"
 **À vérifier :** le lieu actuel et le dernier lieu connu ne disent pas la même chose. Une correction de date ou de lieu répare une erreur, avec historique ; elle ne représente pas un déménagement réel.
 
 **Essai :** le séjour de Samira a deux affectations et une absence close. Gabriel et Éva ont un séjour terminé dans un logement diffus. Les rapports d'épisodes ne doivent pas compter une continuation comme une nouvelle admission.
+
+## Agir sur une seule personne d’un séjour collectif
+
+Pour un séjour collectif encore ouvert, choisir **Continuer individuellement pour agir sur une personne**. Vérifier toutes les personnes concernées, la date et le motif avant de confirmer. La date suit l’admission et les faits déjà datés ; une incohérence doit être corrigée dans son parcours propre.
+
+**Résultat attendu :** l’histoire commune reste visible jusqu’à cette date, puis chaque personne possède sa continuation. Les lieux et absences encore ouverts se poursuivent dans les segments individuels. Ouvrir ensuite la continuation de la personne concernée pour enregistrer son mouvement. Les autres bénéficiaires ne sortent pas avec elle ; les rapports d’épisodes ne comptent aucune nouvelle admission.
+
+Si la date de coupure était fausse, **Corriger la date de continuité pour tous ses fragments** conserve un journal et contrôle les mouvements déjà saisis. Cette correction ne permet pas de traverser un départ individuel incompatible.

@@ -1,0 +1,12 @@
+<div class="person-grid">
+{{ range .Site.Data.etablissement_passerelles }}
+<article class="person-card">
+  <h3>{{ .titre }}</h3>
+  <p>{{ .resume }}</p>
+  <details><summary>{{ .intention }}</summary>
+    <p>{{ .detail }}</p>
+    {{ with $.Site.GetPage .fiche }}<p><a href="{{ .RelPermalink }}">{{ .Title }}</a></p>{{ end }}
+  </details>
+</article>
+{{ end }}
+</div>

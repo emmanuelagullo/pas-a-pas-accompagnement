@@ -52,3 +52,9 @@ réessayer. Aucun enregistrement automatique n’est effectué par l’éditeur.
 Sans JavaScript, un texte simple reste éditable. Un texte déjà enrichi est
 présenté en texte simple et protégé contre une modification qui ferait perdre
 sa mise en forme.
+
+## Repérer l’écran dans le jeu fictif
+
+{{< captures-passerelles ids="liaison.png" >}}
+
+Capture issue de la démonstration automatisée ; vérifier les libellés de la version utilisée.
