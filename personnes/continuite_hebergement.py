@@ -25,6 +25,7 @@ def individualiser(acteur,sejour,date,motif,attendu):
         try:ancien=signing.loads(attendu,salt='continuite-sejour',max_age=86400);courant=signing.loads(jeton(s),salt='continuite-sejour')
         except (signing.BadSignature,TypeError):raise ValidationError('Formulaire non vérifiable ; rechargez.')
         if ancien!=courant:raise ValidationError('Le séjour a changé ; rechargez avant de confirmer.')
+    if s.annule_le:raise ValidationError('Cette arrivée est annulée ; aucune continuité ne peut être créée.')
     ps=list(s.beneficiaires.order_by('pk'))
     if len(ps)<2 or s.fin or s.origine_collective_id or hasattr(s,'individualisation'):raise ValidationError('Cette action concerne un ancien séjour collectif ouvert, non encore individualisé.')
     if date<=s.debut or date>timezone.localdate() or not motif.strip() or len(motif)>240:raise ValidationError('Choisissez une date après l’admission, non future, et expliquez cette continuité.')
@@ -49,7 +50,7 @@ def individualiser(acteur,sejour,date,motif,attendu):
 
 def episodes():
     """Épisodes initiaux pour les compteurs historiques ; fragments pour les nuitées."""
-    for s in m.Sejour.objects.filter(origine_collective__isnull=True).select_related('accord__accompagnement').prefetch_related('continuations__beneficiaires','beneficiaires'):
+    for s in m.Sejour.objects.non_annules().filter(origine_collective__isnull=True).select_related('accord__accompagnement').prefetch_related('continuations__beneficiaires','beneficiaires'):
         enfants=list(s.continuations.all())
         fin=(None if any(x.fin is None for x in enfants) else max(x.fin for x in enfants)) if enfants else s.fin
         yield s,fin
@@ -68,6 +69,7 @@ def corriger_coupure(acteur,sejour,date,motif,attendu):
     try:avant_token=signing.loads(attendu,salt='correction-continuite',max_age=86400);courant=signing.loads(jeton_coupure(s),salt='correction-continuite')
     except (signing.BadSignature,TypeError):raise ValidationError('Formulaire de correction périmé ; rechargez la continuité.')
     if avant_token!=courant:raise ValidationError('Un des fragments a changé ; rechargez la continuité.')
+    if s.annule_le:raise ValidationError('Cette arrivée est annulée ; ses périodes sont conservées sans modification.')
     c=s.individualisation
     if date==c.date or date<=s.debut or date>timezone.localdate() or not motif.strip() or len(motif)>240:raise ValidationError('Choisissez une date corrigée après l’admission, non future, et expliquez l’erreur.')
     periodes_origines={(x['modele'],x['id']) for x in c.avant['periodes'] if x['fin']=='None'}

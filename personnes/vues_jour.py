@@ -95,7 +95,7 @@ def jour(request):
                 return redirect(reverse("suivi:jour")+"?date="+date.isoformat())
     hebergements = []
     if date and request.user.has_perms(["personnes.view_accordhebergement", "personnes.view_sejour"]):
-        sejours = actifs(Sejour.objects.select_related("accord__accompagnement__menage").prefetch_related("beneficiaires", "affectations__lieu", "absences"), date)
+        sejours = actifs(Sejour.objects.non_annules().select_related("accord__accompagnement__menage").prefetch_related("beneficiaires", "affectations__lieu", "absences"), date)
         for s in sejours.order_by("debut", "pk"):
             lieux = [a for a in s.affectations.all() if a.debut<=date and (a.fin is None or a.fin>date)] if request.user.has_perms(["personnes.view_affectation","personnes.view_lieuhebergement"]) else None
             absences = [a for a in s.absences.all() if a.debut<=date and (a.fin is None or a.fin>date)] if request.user.has_perm("personnes.view_absence") else None

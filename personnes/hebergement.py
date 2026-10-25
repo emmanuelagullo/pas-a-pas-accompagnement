@@ -25,10 +25,13 @@ def verrouiller(sejour):
     # Première écriture de la transaction : sérialise les mutations d’un séjour
     # sur SQLite comme PostgreSQL. Aucun select_for_update supposé sur SQLite.
     Sejour.objects.filter(pk=sejour.pk).update(revision=F("revision") + 1)
-    return Sejour.objects.select_related("accord__accompagnement").get(pk=sejour.pk)
+    resultat=Sejour.objects.select_related("accord__accompagnement").get(pk=sejour.pk)
+    if resultat.annule_le:raise ValidationError("Cette arrivée a été annulée ; aucune nouvelle opération n’est possible.")
+    return resultat
 
 
 def bornes(sejour, debut, fin):
+    if sejour.annule_le:raise ValidationError("Cette arrivée a été annulée ; son histoire reste consultable.")
     verifier_periode(debut, fin)
     if debut < sejour.debut or (sejour.fin and (fin is None or fin > sejour.fin)):
         raise ValidationError("La période doit être comprise dans le séjour.")

@@ -71,7 +71,7 @@ def dates_dependantes(a):
         if accord.debut<a.debut:raise ValidationError('Un accord commence avant le nouvel accompagnement.')
     for r in m.RepasDistribue.objects.filter(accord__accompagnement=a,annule_le__isnull=True):
         incluse(a,r.date,point=True)
-    for s in m.Sejour.objects.filter(accord__accompagnement=a):incluse(a,s.debut,s.fin)
+    for s in m.Sejour.objects.non_annules().filter(accord__accompagnement=a):incluse(a,s.debut,s.fin)
     for x in m.AffectationIntervenant.objects.filter(accompagnement=a,annule_le__isnull=True):
         incluse(a, x.debut, point=True)
         if x.fin:
@@ -86,6 +86,7 @@ def dates_dependantes(a):
 
 def valider(objet):
     nature=objet._meta.model_name
+    if nature=='sejour' and objet.annule_le or nature in ('affectation','absence') and objet.sejour.annule_le:raise ValidationError('Cette arrivée a été annulée ; ses périodes restent dans l’historique et ne sont plus modifiables.')
     objet.full_clean()
     if objet.debut>timezone.localdate() and nature not in ('accordrepas','accordhebergement','accompagnement','appartenance'):
         raise ValidationError('Un début effectif ne peut pas être futur.')
@@ -99,7 +100,7 @@ def valider(objet):
             incluse(objet,r.date,point=True);incluse(a,r.date,point=True)
     elif nature=='accordhebergement':
         if objet.debut<objet.accompagnement.debut:raise ValidationError('L’accord commence avant l’accompagnement.')
-        for s in objet.sejours.all():
+        for s in objet.sejours.non_annules():
             # Admission ouverte sous un accord borné permise, sans prolongation.
             incluse(objet,s.debut,point=True)
     elif nature=='sejour':

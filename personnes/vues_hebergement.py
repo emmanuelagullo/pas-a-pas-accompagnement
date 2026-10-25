@@ -54,7 +54,7 @@ def detail(request, pk):
     actions_collectives = any(request.user.has_perms(["personnes." + d for d in droits]) for _, droits in ACTIONS.values())
     return render(request,"hebergement/detail.html", {**contexte_jour(request), **dossier.lire(request, accord.accompagnement), "accord":accord, "actions_collectives": actions_collectives,
         "aujourdhui": timezone.localdate(),
-        "annulation_possible": not accord.sejours.exists(),
+        "annulation_possible": not accord.sejours.non_annules().exists(),
         "evolutions": accord.evolutions.select_related("auteur") if request.user.has_perm("personnes.view_evolutionaccord") else [],
         "sejours":accord.sejours.prefetch_related("beneficiaires", "affectations__lieu", "absences").order_by("debut"),
         "operations":accord.operations.select_related("auteur") if request.user.has_perm("personnes.view_operationhebergement") else []})

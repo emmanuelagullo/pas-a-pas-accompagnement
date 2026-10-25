@@ -12,7 +12,7 @@ ACTIONS = {'affecter': ('Affecter ou changer de lieu', ('add_affectation', 'chan
 
 
 def sejours_ouverts(accord):
-    return accord.sejours.filter(fin__isnull=True).prefetch_related('beneficiaires', 'affectations', 'absences').order_by('pk')
+    return accord.sejours.non_annules().filter(fin__isnull=True).prefetch_related('beneficiaires', 'affectations', 'absences').order_by('pk')
 
 
 def etat(sejour):

@@ -270,7 +270,16 @@ class EvolutionAccord(models.Model):
             name='evolution_accord_cible_unique')]
 
 
+class SejourQuerySet(models.QuerySet):
+    def non_annules(self):return self.filter(annule_le__isnull=True)
+
+
 class Sejour(Periode):
+    objects=SejourQuerySet.as_manager()
+    annule_le=models.DateTimeField(null=True,blank=True,editable=False)
+    annule_par=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT,null=True,blank=True,related_name='+',editable=False)
+    motif_annulation=models.CharField(max_length=240,blank=True,editable=False)
+    remplace_sejour=models.ForeignKey('self',on_delete=models.PROTECT,null=True,blank=True,related_name='remplacements',editable=False)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     origine_collective=models.ForeignKey('self',null=True,blank=True,on_delete=models.PROTECT,related_name='continuations',editable=False)
     accord = models.ForeignKey(AccordHebergement, on_delete=models.PROTECT, related_name="sejours")
@@ -280,7 +289,20 @@ class Sejour(Periode):
     cree_le = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        constraints = [models.CheckConstraint(condition=models.Q(fin__isnull=True) | models.Q(fin__gt=models.F("debut")), name="sejour_periode")]
+        permissions=[('annuler_sejour','Annuler une arrivée entièrement saisie par erreur')]
+        constraints = [models.CheckConstraint(condition=models.Q(fin__isnull=True) | models.Q(fin__gt=models.F("debut")), name="sejour_periode"),models.CheckConstraint(condition=models.Q(annule_le__isnull=True,annule_par__isnull=True,motif_annulation='')|(models.Q(annule_le__isnull=False,annule_par__isnull=False)&~models.Q(motif_annulation='')),name='sejour_annulation_coherente')]
+
+
+class AnnulationArrivee(models.Model):
+    origine=models.OneToOneField(Sejour,on_delete=models.PROTECT,related_name='retrait_arrivee')
+    motif=models.CharField(max_length=240)
+    avant=models.JSONField()
+    apres=models.JSONField()
+    auteur=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT)
+    enregistre_le=models.DateTimeField(auto_now_add=True)
+    class Meta:
+        default_permissions=('view','add')
+        ordering=['-pk']
 
 
 class LieuHebergement(models.Model):

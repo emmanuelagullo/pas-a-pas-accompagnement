@@ -70,7 +70,7 @@ def fiche(request,nature,pk):
         try:n=int(request.GET['version'])
         except ValueError:raise Http404
         v=get_object_or_404(f.versions,version=n)
-    return render(request,'financements/fiche.html',{'accord':a,'nature':nature,'financement':f,'version':v,
+    return render(request,'financements/fiche.html',{'accord':a,'nature':nature,'financement':f,'version':v,'arrivees_annulees':isinstance(a,m.AccordHebergement) and a.sejours.filter(annule_le__isnull=False).exists(),
         'totaux':s.detail_totaux(v) if v else [],'query':q,'retour':retour_accord(a,q),
         'versions':f.versions.all() if f else [],'documents':m.DocumentFinancement.objects.filter(version__financement=f).select_related('annulation','auteur','version') if f else [],**ctx})
 

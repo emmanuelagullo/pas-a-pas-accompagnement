@@ -110,7 +110,7 @@ def arriver(request, pk):
     navigation = dossier.lire(request, a)
     # Le jeton est lu avant les bénéficiaires proposés ; toute mutation ultérieure sera refusée.
     attendu = accords.jeton(accord)
-    beneficiaires = accord.beneficiaires.exclude(pk__in=accord.sejours.filter(beneficiaires__isnull=False).values('beneficiaires'))
+    beneficiaires = accord.beneficiaires.exclude(pk__in=accord.sejours.non_annules().filter(beneficiaires__isnull=False).values('beneficiaires'))
     vue = navigation.get('dossier_valeurs', {}).get('vue', {})
     if vue.get('nature') == 'personne':
         beneficiaires = beneficiaires.filter(pk=vue['pk'])

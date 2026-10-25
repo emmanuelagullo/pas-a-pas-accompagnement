@@ -24,7 +24,7 @@ def exiger_actif(accord):
 
 def etat(accord):
     a = accord.accompagnement
-    nombre = accord.realisations.count() if isinstance(accord, m.AccordRepas) else accord.sejours.count()
+    nombre = accord.realisations.count() if isinstance(accord, m.AccordRepas) else accord.sejours.non_annules().count()
     return [accord._meta.model_name, str(accord.pk), accord.revision, str(accord.debut), str(accord.fin),
             str(accord.annule_le), str(a.debut), str(a.fin),
             sorted(str(pk) for pk in accord.beneficiaires.values_list('pk', flat=True)), nombre, getattr(accord,'jours_semaine',[])]
@@ -79,6 +79,9 @@ def annuler(acteur, accord, motif, attendu):
     verifier(accord, attendu)
     motif = motif_valide(motif)
     dependances = accord.realisations if isinstance(accord, m.AccordRepas) else accord.sejours
+    if isinstance(accord,m.AccordHebergement):
+        dependances=dependances.non_annules()
+        if m.DocumentFinancement.objects.filter(version__financement__hebergement=accord,annulation__isnull=True).exists():raise ValidationError('Annulez d’abord les documents financiers émis de cet accord avec les droits nécessaires.')
     if dependances.exists():
         raise ValidationError('Cet accord possède déjà des distributions ou des séjours, même annulés ou terminés. Il ne peut pas être annulé par ce parcours.')
     accord.annule_le = timezone.now()

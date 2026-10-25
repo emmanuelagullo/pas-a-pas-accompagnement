@@ -33,7 +33,7 @@ def construire(accompagnement, acteur, beneficiaire=None, debut=None, fin=None):
             statut = 'annulé' if r.annule_le else 'réalisé'
             ajouter(r.date, r.cree_le, 'Repas', f'{r.quantite} × {r.accord.get_service_display()} ({statut})', r.beneficiaire)
     if acteur.has_perms(['personnes.view_accordhebergement', 'personnes.view_sejour']):
-        for s in Sejour.objects.filter(accord__accompagnement=accompagnement).prefetch_related('beneficiaires'):
+        for s in Sejour.objects.non_annules().filter(accord__accompagnement=accompagnement).prefetch_related('beneficiaires'):
             for p in s.beneficiaires.all():
                 ajouter(s.debut, s.cree_le, 'Admission', 'Entrée effective en hébergement', p)
                 if s.fin:

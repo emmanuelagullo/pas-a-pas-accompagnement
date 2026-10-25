@@ -17,7 +17,7 @@ def bilan(debut, fin):
     if fin <= debut:
         raise ValueError("La fin doit être postérieure au début")
     accompagnements = Accompagnement.objects.filter(chevauche(debut, fin))
-    sejours = Sejour.objects.filter(chevauche(debut, fin))
+    sejours = Sejour.objects.non_annules().filter(chevauche(debut, fin))
     # Les M2M peuvent produire des doublons : DISTINCT porte sur les identités.
     personnes = sejours.values_list('beneficiaires__pk', flat=True).exclude(beneficiaires__isnull=True).distinct().count()
     menages = accompagnements.values_list('menage_id', flat=True).distinct().count()
@@ -57,7 +57,7 @@ def nuits_distinctes(debut, fin):
         raise ValueError("La fin doit être postérieure au début")
     nuits = set()
     hors_absence = set()
-    sejours = (Sejour.objects.filter(chevauche(debut, fin))
+    sejours = (Sejour.objects.non_annules().filter(chevauche(debut, fin))
                .prefetch_related('beneficiaires', 'absences'))
     for sejour in sejours:
         personnes = [p.pk for p in sejour.beneficiaires.all()]
@@ -166,7 +166,7 @@ def exploration_affectations(debut, fin, *, lieu="", maximum_mois=24):
         raise ValueError("Période trop longue pour l'exploration (24 mois maximum)")
     if lieu and not str(lieu).isdigit():
         raise ValueError("Lieu inconnu")
-    affectations = (Affectation.objects.filter(chevauche(debut, fin))
+    affectations = (Affectation.objects.filter(sejour__annule_le__isnull=True).filter(chevauche(debut, fin))
                     .select_related('lieu', 'sejour')
                     .prefetch_related('sejour__beneficiaires')
                     .order_by('lieu__libelle', 'pk'))

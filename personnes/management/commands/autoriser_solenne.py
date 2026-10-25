@@ -14,6 +14,8 @@ DROITS = {'view_piecedossier','add_piecedossier','change_piecedossier','annuler_
     'change_ficheintervenant', 'view_revisionficheintervenant', 'view_affectationintervenant',
     'add_affectationintervenant', 'change_affectationintervenant', 'view_revisionaffectationintervenant', 'annuler_affectationintervenant'}
 
+DROITS.update({'annuler_sejour','view_annulationarrivee','add_annulationarrivee'})
+
 # Droits des schémas personnels concrets du méta-lot A.
 DROITS.update({'view_situationadministrative','add_situationadministrative','change_situationadministrative','view_revisionsituationadministrative'})
 for nom in ('evolutionpersonnelledeclaree','ancrageterritorial','antecedentinstitutionnel','besoinaccueil','ressourcepersonnelle','dettepersonnelle','pieceadministrative','couverturesociale','protectionjuridique'):

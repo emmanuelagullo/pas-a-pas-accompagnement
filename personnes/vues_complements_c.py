@@ -90,7 +90,7 @@ def rapport_hebergement(request):
     f=Consultation(p);lignes=[]
     if f.is_valid():
         d=f.cleaned_data
-        qs=m.Sejour.objects.filter(debut__lt=d['fin']).filter(Q(fin__isnull=True)|Q(fin__gt=d['debut'])).select_related('accord__accompagnement__menage').prefetch_related('beneficiaires','absences','affectations__lieu')
+        qs=m.Sejour.objects.non_annules().filter(debut__lt=d['fin']).filter(Q(fin__isnull=True)|Q(fin__gt=d['debut'])).select_related('accord__accompagnement__menage').prefetch_related('beneficiaires','absences','affectations__lieu')
         if d.get('personne'):qs=qs.filter(beneficiaires=d['personne'])
         for s in qs:
             a=max(s.debut,d['debut']);b=min(s.fin or d['fin'],d['fin']);nuits=set();jour=a

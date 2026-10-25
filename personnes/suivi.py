@@ -78,7 +78,7 @@ def clore(acteur, objet, fin):
             or EvenementSocial.objects.filter(accompagnement=objet, date_effet__gte=fin).exists()
             or BilanSocial.objects.filter(accompagnement=objet, date_effet__gte=fin).exists()):
             raise ValidationError("Des informations sociales datées seraient exclues de l’accompagnement.")
-        if Sejour.objects.filter(accord__accompagnement=objet).filter(models.Q(fin__isnull=True) | models.Q(fin__gt=fin)).exists():
+        if Sejour.objects.non_annules().filter(accord__accompagnement=objet).filter(models.Q(fin__isnull=True) | models.Q(fin__gt=fin)).exists():
             raise ValidationError("Clôturez d’abord les séjours au plus tard à la fin de l’accompagnement.")
         from .models import RemiseAide
         if RemiseAide.objects.filter(accord__accompagnement=objet,annule_le__isnull=True,date__gte=fin).exists():

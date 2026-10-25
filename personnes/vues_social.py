@@ -35,7 +35,7 @@ def detail(request,pk):
             histoire.append({"date":repas.date,"enregistre":repas.cree_le,"type":"Repas","objet":repas})
     if request.user.has_perms(["personnes.view_accordhebergement", "personnes.view_sejour"]):
         from .models import Sejour
-        for sejour in Sejour.objects.filter(accord__accompagnement=a).select_related("cree_par").prefetch_related("beneficiaires"):
+        for sejour in Sejour.objects.non_annules().filter(accord__accompagnement=a).select_related("cree_par").prefetch_related("beneficiaires"):
             histoire.append({"date":sejour.debut,"enregistre":sejour.cree_le,"type":"Séjour","objet":sejour})
     histoire.sort(key=lambda x:(x["date"],x["enregistre"]))
     return render(request,"social/detail.html",{**dossier.lire(request, a),"accompagnement":a,"form":form,"valeurs":valeurs,"histoire":histoire,

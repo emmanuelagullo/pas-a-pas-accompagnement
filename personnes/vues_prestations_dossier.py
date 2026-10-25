@@ -87,7 +87,7 @@ def nouveau(request, nature, pk, prestation):
         try:
             if prestation == 'hebergement':
                 accord = admission.accueillir(request.user, a, **d)
-                sejours = accord.sejours.all()
+                sejours = accord.sejours.non_annules()
                 if nature == 'personne':
                     sejours = sejours.filter(beneficiaires=objet)
                 s = sejours.order_by('pk').first()

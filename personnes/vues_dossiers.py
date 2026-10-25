@@ -178,10 +178,11 @@ def detail(request, nature, pk, prise_pk=None):
     h = request.user.has_perms(['personnes.view_accordhebergement', 'personnes.view_sejour']) and droits_suivi
     r = request.user.has_perms(['personnes.view_accordrepas', 'personnes.view_repasdistribue']) and droits_suivi
     lieux = request.user.has_perms(['personnes.view_affectation', 'personnes.view_lieuhebergement'])
+    arrivees_annulees=[]
     sejours, accords_h, accords_r, prevus = [], [], [], []
     if h:
-        accords = Sejour.objects.filter(accord__accompagnement__in=periodes).select_related('accord__accompagnement').prefetch_related('beneficiaires')
-        seuls = AccordHebergement.objects.filter(accompagnement__in=periodes).prefetch_related('beneficiaires', 'sejours__beneficiaires')
+        accords = Sejour.objects.non_annules().filter(accord__accompagnement__in=periodes).select_related('accord__accompagnement').prefetch_related('beneficiaires')
+        seuls = AccordHebergement.objects.filter(accompagnement__in=periodes).prefetch_related('beneficiaires', Prefetch('sejours',queryset=Sejour.objects.non_annules().prefetch_related('beneficiaires'),to_attr='sejours_non_annules'))
         if nature == 'personne':
             accords = accords.filter(beneficiaires=objet)
             seuls = seuls.filter(beneficiaires=objet)
@@ -195,13 +196,16 @@ def detail(request, nature, pk, prise_pk=None):
             s.lieu_ouvert = next((x for x in getattr(s, 'lieux_dossier', []) if x.fin is None), None)
             s.absence_ouverte = next((x for x in getattr(s, 'absences_dossier', []) if x.fin is None), None)
         for accord in seuls.order_by('-debut', 'pk'):
-            realises = list(accord.sejours.all())
+            realises = accord.sejours_non_annules
             arrives = {p.pk for sejour in realises for p in sejour.beneficiaires.all()}
             accord.personnes_attendues = [p for p in accord.beneficiaires.all() if p.pk not in arrives and (nature == 'menage' or p.pk == objet.pk)]
             if accord.personnes_attendues and not accord.annule_le:
                 prevus.append(accord)
             if not realises:
                 accords_h.append(accord)
+    if h and request.user.has_perm('personnes.view_annulationarrivee'):
+        arrivees_annulees=Sejour.objects.filter(annule_le__isnull=False,origine_collective__isnull=True,accord__accompagnement__in=periodes).select_related('annule_par')
+        if nature=='personne':arrivees_annulees=arrivees_annulees.filter(beneficiaires=objet)
     if r:
         accords = AccordRepas.objects.filter(accompagnement__in=periodes).select_related('accompagnement', 'annule_par').prefetch_related('beneficiaires')
         if nature == 'personne':
@@ -289,6 +293,7 @@ def detail(request, nature, pk, prise_pk=None):
         'etat_social': bd6.etat(request.user, personnes_sociales, date_sociale), 'date_sociale': date_sociale,
         'etat_entree': bd6.etat(request.user, personnes_sociales, prise.debut) if prise else [],
         'retour_form2': reverse('dossiers:detail', args=[nature, pk]) + '?' + urlencode({**params, 'ecran': 'dossier'}),
+        'arrivees_annulees':arrivees_annulees,
         'evolutions': prise.evolutions_prevision.select_related('auteur') if prise and request.user.has_perm('personnes.view_evolutionpriseencharge') else [],
         'objet': objet, 'nature': nature, 'liens': liens, 'liens_uniques': liens_uniques.values(), 'contact_designe': contact_designe,
         'retour_exploration':retour_exploration,'navigation_personne': dossier.pour_personne(pk, params) if nature == 'personne' else {}, 'origine_url': origine_url, 'origine': origine, 'retour': retour, 'navigation_query': urlencode(params), 'recherche': params['q'], 'mode_recherche': params['mode'], 'page_recherche': params['page'], 'origine_sejour': params.get('origine_sejour', ''), 'origine_repas': params.get('origine_repas', ''),

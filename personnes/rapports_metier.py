@@ -47,7 +47,7 @@ def ages(debut, fin):
         raise ValueError('La fin doit être postérieure au début.')
     reference = fin - timedelta(days=1)
     population = Personne.objects.filter(pk__in=
-        Sejour.objects.filter(chevauche(debut, fin)).values('beneficiaires__pk')).distinct()
+        Sejour.objects.non_annules().filter(chevauche(debut, fin)).values('beneficiaires__pk')).distinct()
     comptes = Counter()
     qualite = {code: 0 for code in ('inconnue', 'estimee', 'annee', 'annee_estimee', 'apres_reference')}
     for p in population.only('date_naissance', 'precision_naissance'):

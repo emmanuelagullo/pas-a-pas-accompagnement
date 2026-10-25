@@ -702,3 +702,17 @@ Les populations ressources/dettes utilisent les champs du poste sélectionné.
 L'exploration propose premier/dernier objet filtré par personne pour les mesures
 de personnes, et des sous-totaux par préfixe recalculés sans additionner les
 ventilations recouvrantes. Aucun classement n'est une première admission absolue.
+
+## Consolidation Solenne I — retrait d'arrivée et cible erronée
+
+`Sejour.objects` conserve toutes les lignes pour l'histoire et les copies.
+Les lectures d'activité utilisent `non_annules()` ; les mouvements suivent l'état
+du séjour. `AnnulationArrivee` conserve la photographie datée de tous les fragments,
+le motif, l'auteur et les liens vers les nouvelles arrivées. L'ordre de réservation
+est celui des UUID de ménages source et destination, avant toute relecture des
+faits ; le jeton porte sur toute la famille de fragments et leurs mouvements.
+La reprise utilise les services existants dans la même transaction. Les versions
+financières restent inchangées et les documents actifs bloquent le retrait.
+Les mutations ordinaires refusent un séjour annulé. Qualification :
+`personnes.tests_meta_i`, dont concurrence réelle et copie SQLite avec fermeture
+explicite des connexions.

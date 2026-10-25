@@ -21,7 +21,7 @@ def contexte(request, a):
     lieux = droits.has_perms(['personnes.view_affectation', 'personnes.view_lieuhebergement'])
     if lecture_h:
         accords_h = list(a.accords_hebergement.select_related('annule_par').prefetch_related('beneficiaires').order_by('-debut', 'pk'))
-        qs = Sejour.objects.filter(accord__accompagnement=a).select_related('accord').prefetch_related('beneficiaires')
+        qs = Sejour.objects.non_annules().filter(accord__accompagnement=a).select_related('accord').prefetch_related('beneficiaires')
         if lieux:
             qs = qs.prefetch_related(Prefetch('affectations', queryset=Affectation.objects.select_related('lieu', 'lieu__organisme').order_by('-debut', '-pk'), to_attr='lieux_dossier'))
         if droits.has_perm('personnes.view_absence'):

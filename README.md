@@ -1410,3 +1410,17 @@ Les populations ressources/dettes utilisent les champs du poste sélectionné.
 L'exploration propose premier/dernier objet filtré par personne pour les mesures
 de personnes, et des sous-totaux par préfixe recalculés sans additionner les
 ventilations recouvrantes. Aucun classement n'est une première admission absolue.
+
+## Consolidation Solenne I — arrivée entièrement erronée
+
+Depuis les autres actions d'un séjour, « Corriger une erreur de cible / annuler
+cette arrivée » distingue un retrait pour erreur d'une sortie effective. L'aperçu
+conserve les bénéficiaires, lieux, absences et continuations ; une confirmation
+motivée retire l'ensemble des lectures d'activité sans effacer ces données.
+Un remplacement exige le bon accord et ses bénéficiaires explicites. La reprise
+des mouvements est facultative ; notes et calculs ne changent jamais de cible.
+Les continuations individualisées se retirent ensemble, puis les arrivées exactes
+se ressaisissent sans fusion automatique. Les documents financiers émis actifs
+doivent d'abord être vérifiés et annulés par leur parcours dédié. L'autorisation
+reste distincte et son annulation, si nécessaire, reste une décision explicite.
+Les nouveaux droits sont attribués volontairement par `autoriser_solenne`.

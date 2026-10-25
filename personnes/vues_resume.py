@@ -24,6 +24,6 @@ def resume(request, pk):
         'accompagnement': a, 'edite_le': timezone.localtime(), 'contact_entree': contact_entree, 'interventions_entree': interventions_entree,
         'information': a.informations.select_related('auteur').first() if request.user.has_perm('personnes.view_informationsaccompagnement') else None,
         'accords_repas': a.accords_repas.filter(annule_le__isnull=True).prefetch_related('beneficiaires') if lecture_repas else [],
-        'sejours': Sejour.objects.filter(accord__accompagnement=a).select_related('accord').prefetch_related(
+        'sejours': Sejour.objects.non_annules().filter(accord__accompagnement=a).select_related('accord').prefetch_related(
             'beneficiaires', 'affectations__lieu', 'absences') if lecture_sejours else [],
         'lecture_repas': lecture_repas, 'lecture_sejours': lecture_sejours})

@@ -107,7 +107,7 @@ def population(acteur,d):
         suivi.exiger(acteur,'view_accompagnement','view_accordhebergement','view_sejour')
         from .continuite_hebergement import episodes
         premieres={}
-        for a in m.Sejour.objects.filter(origine_collective__isnull=True).prefetch_related('beneficiaires'):
+        for a in m.Sejour.objects.non_annules().filter(origine_collective__isnull=True).prefetch_related('beneficiaires'):
             for p in a.beneficiaires.all():premieres[p.pk]=min(premieres.get(p.pk,a.debut),a.debut)
         for a,f in episodes():
             if a.debut>=fin or f and (f<debut if d.get('mouvement')=='sorties' else f<=debut):continue
@@ -123,7 +123,7 @@ def population(acteur,d):
     elif code=='affectations':
         suivi.exiger(acteur,'view_accompagnement','view_accordhebergement','view_sejour','view_affectation','view_lieuhebergement')
         if d.get('portion')=='integrale':raise ValidationError('Pour les périodes de lieu, les nuitées sont bornées à la sélection. Choisissez les épisodes clos pour une durée intégrale.')
-        qs=m.Affectation.objects.filter(debut__lt=fin).filter(Q(fin__isnull=True)|Q(fin__gt=debut)).select_related('lieu','sejour__accord__accompagnement').prefetch_related('sejour__beneficiaires')
+        qs=m.Affectation.objects.filter(sejour__annule_le__isnull=True).filter(debut__lt=fin).filter(Q(fin__isnull=True)|Q(fin__gt=debut)).select_related('lieu','sejour__accord__accompagnement').prefetch_related('sejour__beneficiaires')
         for a in qs:
             s=a.sejour;d1=max(debut,a.debut,s.debut);f1=min(fin,a.fin or fin,s.fin or fin)
             if d1>=f1:continue

@@ -55,7 +55,7 @@ def enregistrer_arrivee(acteur, accord, beneficiaires, debut, attendu, lieu=None
     accords.exiger_actif(accord)
     accords.verifier(accord, attendu)
     personnes = list(beneficiaires)
-    if accord.sejours.filter(beneficiaires__in=personnes).exists():
+    if accord.sejours.non_annules().filter(beneficiaires__in=personnes).exists():
         raise ValidationError('Une arrivée est déjà enregistrée pour une personne sélectionnée. Rechargez la liste.')
     if lieu is not None:
         h.exiger(acteur, 'add_affectation', 'view_affectation', 'view_lieuhebergement')
