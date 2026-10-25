@@ -1,3 +1,15 @@
+## Corrections statistiques — sélection et corrélation (ST1)
+
+- Nuitées de séjour et d'affectation recalculées pour les bénéficiaires retenus,
+  y compris filtres de quantité, ventilations, sous-totaux et relevés. Les remises
+  et montants collectifs conservent leur portée ; aucun partage arbitraire.
+- Lieux regroupés par identifiant ; homonymes distingués dans les résultats,
+  ancien filtre par nom conservé et identifiant sélectionnable.
+- Missions à la référence bornées aussi par leur prise en charge ; critères et
+  classements des demandes rattachés à la demande réellement comptée.
+- Sources sociales inchangées : les déclarations personnelles de l'explorateur
+  restent distinctes de la projection de ressources détaillées du dossier.
+
 ## À venir — trajectoire personnelle unifiée
 
 - Trajectoire depuis le dossier, sur plusieurs prises en charge : même lecture

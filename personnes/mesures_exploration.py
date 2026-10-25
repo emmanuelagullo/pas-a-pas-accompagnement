@@ -4,6 +4,7 @@ Les catégories d'âge des nuitées sont évaluées à chaque nuit civile, jamai
 à partir de l'âge à la fin du rapport ou d'un effectif familial recopié.
 """
 from datetime import date
+from decimal import Decimal
 from django.core.exceptions import ValidationError
 from . import models as m, suivi
 
@@ -24,6 +25,25 @@ NUITEES = {
     'nuitees_age_inconnu': 'Nuitées sans âge exact connu',
 }
 CHOIX = [*PERSONNES.items(), *((k, v[1]) for k, v in FAMILLE.items()), *NUITEES.items()]
+
+
+def quantite_retenue(ligne):
+    """Décomposer les seules nuitées, jamais une remise ou un coût collectif.
+
+    Les fragments conservent les bénéficiaires de chaque période historique ;
+    la sélection/cellule/sous-total fournit ceux effectivement retenus.
+    """
+    if '_fragments' not in ligne:
+        return ligne['quantite']
+    return sum((Decimal(max(0, (fin-debut).days) * len(beneficiaires & ligne['personnes']))
+                for debut, fin, beneficiaires in ligne['_fragments']), Decimal('0'))
+
+
+def actualiser_nuitees(ligne):
+    if '_fragments' in ligne:
+        ligne['quantite']=quantite_retenue(ligne)
+        ligne['valeurs']['quantite']=[ligne['quantite']]
+        for carte in ligne['_par_personne'].values():carte['quantite']=[ligne['quantite']]
 
 
 def anniversaire_majorite(naissance):

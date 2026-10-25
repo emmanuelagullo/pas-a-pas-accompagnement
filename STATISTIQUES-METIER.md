@@ -433,3 +433,55 @@ Les populations ressources/dettes utilisent les champs du poste sélectionné.
 L'exploration propose premier/dernier objet filtré par personne pour les mesures
 de personnes, et des sous-totaux par préfixe recalculés sans additionner les
 ventilations recouvrantes. Aucun classement n'est une première admission absolue.
+
+## Corrections statistiques ST1 — portée et corrélation
+
+Les nuitées des populations **séjours** et **affectations** sont décomposables par
+bénéficiaire. Après les critères personnels, la quantité de chaque objet est
+recalculée sur les personnes retenues, en conservant les bénéficiaires propres
+à chaque fragment de continuité. Les filtres de quantité portent ensuite sur
+cette quantité retenue ; le relevé détaillé et ses exports l'affichent aussi.
+Chaque cellule et sous-total recalcule les nuitées de ses propres bénéficiaires.
+Somme, minimum, maximum et moyenne utilisent cette même portée par objet.
+Exemple : trois personnes pendant quatre nuits donnent 12 personnes-nuitées ;
+si une seule personne est retenue, la quantité vaut 4. Deux nationalités peuvent
+faire apparaître les mêmes quatre nuits dans deux lignes, sans doubler le
+sous-total. Les absences ne sont pas implicitement déduites.
+
+Cette décomposition ne s'applique ni aux remises collectives ni aux coûts et
+imputations : deux cartes collectives restent deux cartes, et un montant n'est
+pas divisé ni multiplié par ses bénéficiaires. Les valeurs de ces objets peuvent
+figurer dans plusieurs cellules personnelles ; leurs ventilations ne s'ajoutent
+pas. La mesure quantitative n'est pas une mesure de personnes distinctes.
+
+Les lieux d'affectation sont regroupés par **identifiant**, même lorsque leur
+libellé est identique. Dans la synthèse et ses exports, l'identifiant complète
+le libellé si plusieurs lieux de la sélection portent le même nom. Les filtres
+historiques par nom continuent à sélectionner tous les lieux de ce nom.
+La dimension **Identifiant du lieu d'hébergement** permet d'isoler un lieu ou
+de conserver son identité dans les colonnes d'un relevé détaillé.
+
+Une mission à la référence doit être applicable dans sa propre période **et**
+dans celle de sa prise en charge exacte : débuts inclus, fins exclues. Le mode
+« date du fait » peut donc afficher une mission qui n'est plus applicable à la
+référence commune ; ce n'est pas une affectation actuelle déduite de la personne.
+
+Dans la population **demandes**, les champs `demande.*`, l'état, le motif et la
+provenance décrivent la dernière version de la **même demande comptée**. Ils ne
+peuvent pas être satisfaits par une autre demande du même bénéficiaire. Le choix
+d'une référence personnelle antérieure ne transforme pas cette population de
+dernières versions en historique d'états. Depuis une autre population, les
+dimensions de parcours conservent leur sélection datée à la référence.
+
+### Source sociale conservée, adaptation séparée
+
+Ce lot ne change pas de source sociale. Les dimensions `social.*` lisent les
+**déclarations `SituationPersonnelle` applicables à la référence** (commune,
+du fait ou de saisie), dans leur état corrigé connu aujourd'hui. Elles ne lisent
+ni les anciens témoins `SituationSociale` des prises, ni la projection économique
+dérivée des ressources détaillées par `bd6.etat`. Les dimensions `ressources.*`
+et la population ressources lisent ces déclarations détaillées séparément.
+Un dossier peut donc afficher « Ressources déclarées » tandis que la déclaration
+sociale brute reste « sans ressources » ou non renseignée. L'harmonisation de
+ces deux notions relève d'un contrat de source sociale distinct, à coordonner
+avec la trajectoire ; aucune recopie ni migration n'est réalisée dans ST1.
