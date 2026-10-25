@@ -30,7 +30,7 @@ PARCOURS={
  'objectif':('objectifs',('etat','theme','titre','horizon','echeance')),
  'suivi_dossier':('suivi',('etat',)),
 }
-DIMENSIONS={**{'mission.'+c:label for c,label in MISSIONS.items()},**{g+'.'+c:parcours.RUBRIQUES[code].titre+' — '+str(parcours.RUBRIQUES[code].version._meta.get_field(c).verbose_name) for g,(code,champs) in PARCOURS.items() for c in champs},**BASE,**{g+'.'+c:g.replace('_',' ').capitalize()+' — '+str(model._meta.get_field(c).verbose_name) for g,(model,cs,ps) in GROUPES.items() for c in cs},**{'social.'+c:label+' (histoire personnelle)' for c,label in m.SituationSociale.DIMENSIONS}}
+DIMENSIONS={**{'mission.'+c:label for c,label in MISSIONS.items()},**{g+'.'+c:parcours.RUBRIQUES[code].titre+' — '+str(parcours.RUBRIQUES[code].version._meta.get_field(c).verbose_name) for g,(code,champs) in PARCOURS.items() for c in champs},**BASE,**{g+'.'+c:g.replace('_',' ').capitalize()+' — '+str(model._meta.get_field(c).verbose_name) for g,(model,cs,ps) in GROUPES.items() for c in cs},**{'social.'+c:label+' (déclaration personnelle saisie)' for c,label in m.SituationSociale.DIMENSIONS}}
 
 
 def disponibles(acteur):

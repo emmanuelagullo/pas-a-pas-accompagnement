@@ -520,3 +520,13 @@ explique la définition non représentable et permet de retrouver le rapport
 courant avec ses critères. Les déclarations personnelles et les rapports de
 parcours/prestations gardent également leurs rapports spécialisés lorsque leur
 définition complète n'est pas traduisible. Les paramètres anciens restent valides.
+
+## ST4 — Composition progressive
+
+Retenir, Afficher, Compter et Classer ont chacun une synthèse et une modification
+directe. Tous les champs restent dans le formulaire GET, utilisable sans
+JavaScript ; ouvrir une partie ne réinitialise pas les autres. Le déplacement
+d'un niveau déplace ses classes avec lui ; le retrait ne change ni filtres,
+ni mesures, ni colonnes. Les sous-totaux restent recalculés sur les identités
+et contributions du préfixe. Les erreurs ouvrent les parties concernées.
+L'accès aux rapports courants reste disponible sous les droits existants.

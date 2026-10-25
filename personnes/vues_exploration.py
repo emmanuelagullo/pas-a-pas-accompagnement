@@ -42,6 +42,9 @@ def explorer(request):
             except (ValueError,TypeError):n=mini
             n=min(n+1,maxi);data[champ]=str(n)
     liens_totaux=[]
+    from . import composition_exploration as composition
+    if request.GET.get('deplacer_niveau'):data=composition.deplacer(data,request.GET['deplacer_niveau'])
+    if request.GET.get('retirer_niveau'):data=composition.retirer(data,request.GET['retirer_niveau'])
     form=ExplorationForm(data,acteur=request.user);lignes=[];totaux={};nombre=0;selection=[];qualite_mesures=[]
     if form.is_valid():
         try:
@@ -57,7 +60,7 @@ def explorer(request):
                 if inconnus is not None:qualite_mesures.append((labels[mesure],inconnus))
                 from . import justificatifs_exploration as preuves
                 for total in preuves.totaux_cellules(totaux_mesure,selection,mesure):
-                    liens_totaux.append(dict(libelle=labels[mesure]+' — '+total['unite'],valeur=total['valeur'],url=preuves.lien(request.user,form.cleaned_data,mesure,total,request.GET.get('page',1))))
+                    liens_totaux.append(dict(libelle=labels[mesure]+' — '+total['unite'],valeur=total['valeur'],url=preuves.lien(request.user,{**form.cleaned_data,'origine_rapport':request.GET.get('origine_rapport',''),'panneau':request.GET.get('panneau','')},mesure,total,request.GET.get('page',1))))
                 totaux.update({(labels[mesure]+' — '+u if len(mesures)>1 else u):v for u,v in totaux_mesure.items()})
             nombre=len(selection)
             from .exploration_releve import relever
@@ -99,9 +102,10 @@ def explorer(request):
     query={c:str(form.data.get(c,'')) for c in form.fields};page=Paginator(details if form.cleaned_data.get('affichage')=='detail' else lignes,50).get_page(request.GET.get('page'))
     if form.is_valid() and not form.errors and form.cleaned_data.get('affichage')!='detail':
         for ligne in page:
-            ligne['url_preuves']=preuves.lien(request.user,form.cleaned_data,ligne['_code_mesure'],ligne,page.number)
+            ligne['url_preuves']=preuves.lien(request.user,{**form.cleaned_data,'origine_rapport':request.GET.get('origine_rapport',''),'panneau':request.GET.get('panneau','')},ligne['_code_mesure'],ligne,page.number)
+    parties,niveaux_composition=composition.presenter(form,request)
     from urllib.parse import urlencode
-    return render(request,'exploration/rapport.html',{'origine_rapport':request.GET.get('origine_rapport',''),'retour_rapport_source':retour_origine(request.user,request.GET.get('origine_rapport')), 'liens_totaux':liens_totaux,'form':form,'colonnes_detail':colonnes,'qualite_mesures':qualite_mesures,'champs_courants':[f for f in form if f.name in ('population','debut','fin','reference','periode','mesure','axe','croisement')],'champs_complementaires':[f for f in form if f.name not in ('population','debut','fin','reference','periode','mesure','axe','croisement')],'niveaux_actifs':[i for i in range(3,8) if form.data.get('axe'+str(i))],'page_obj':page,'query_rapport':urlencode(query),'totaux':totaux,'quantites_inconnues':sum(x['quantite'] is None for x in selection) if form.is_valid() else 0,'nombre':nombre,'modele':modele,
+    return render(request,'exploration/rapport.html',{'parties_analyse':parties,'niveaux_composition':niveaux_composition,'origine_rapport':request.GET.get('origine_rapport',''),'retour_rapport_source':retour_origine(request.user,request.GET.get('origine_rapport')), 'liens_totaux':liens_totaux,'form':form,'colonnes_detail':colonnes,'qualite_mesures':qualite_mesures,'champs_courants':[f for f in form if f.name in ('population','debut','fin','reference','periode','mesure','axe','croisement')],'champs_complementaires':[f for f in form if f.name not in ('population','debut','fin','reference','periode','mesure','axe','croisement')],'niveaux_actifs':[i for i in range(3,8) if form.data.get('axe'+str(i))],'page_obj':page,'query_rapport':urlencode(query),'totaux':totaux,'quantites_inconnues':sum(x['quantite'] is None for x in selection) if form.is_valid() else 0,'nombre':nombre,'modele':modele,
         'modeles':[x for x in m.ModeleRapport.objects.filter(auteur=request.user) if x.parametres.get('exploration')]})
 
 
