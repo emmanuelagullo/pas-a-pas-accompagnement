@@ -14,6 +14,7 @@ INCONNU='Non renseigné'
 POPULATIONS=[('personnes','Personnes enregistrées — situation à la référence'),('menages','Ménages enregistrés — membres à la référence'),('prises','Prises en charge chevauchant la période'),('demandes','Demandes — dernière version chevauchant la période'),('sejours','Épisodes de séjour chevauchant la période'),('accords_hebergement','Autorisations d’hébergement — sans réalisation déduite'),('accords_repas','Autorisations de repas — sans distribution déduite'),('affectations','Périodes de lieu d’hébergement — sans nouvelle admission'),('repas','Distributions effectives de repas'),('aides','Remises effectives des autres prestations'),('appels','Appels 115'),('ressources','Ressources déclarées applicables à la référence'),('dettes','Dettes déclarées applicables à la référence'),('couts','Composantes de coût — dernières versions'),('imputations','Imputations — dernières versions')]
 MISSIONS={'role':'Rôle professionnel dans la prise en charge','professionnel':'Intervenant choisi dans cette prise en charge','organisme':'Organisme choisi dans cette prise en charge'}
 BASE={'personne':'Bénéficiaire connu — nom et identifiant','lieu':'Lieu d’hébergement de la période','lieu_id':'Identifiant du lieu d’hébergement (pour distinguer les homonymes)','duree_selection':'Durée civile d’intersection avec la période (jours)','date_fin':'Fin effective ou autorisée de l’objet (exclue)','jour_semaine':'Jour de la semaine du fait / début','complement115':'Information complémentaire 115 déclarée','date_saisie':'Date de saisie de l’objet','date_version':'Date de saisie de la version affichée','appelant':'Appelant déclaré / répertoire','auteur':'Auteur de saisie initiale','auteur_version':'Auteur de la dernière version','quantite':'Quantité / montant porté par l’objet','phase':'Phase de calcul financier','financeur':'Financeur explicite','budget':'Budget / dispositif','prescripteur':'Prescripteur financier','signataire':'Signataire désigné','total':'Ensemble','mois':'Mois du fait / début','jour':'Jour du fait / début','heure':'Heure d’appel','type':'Type / service / activité déclarée','etat':'État déclaré','motif':'Motif principal / demande','secondaire':'Demandes secondaires 115','reponse':'Réponses 115','origine':'Lieu / origine déclaré','orientation':'Orientation déclarée','unite':'Unité de quantité','duree':'Durée de l’épisode clos (jours)','age':'Âge exact à la référence','precision_naissance':'Précision de naissance','entree_connue':'Première entrée connue / retour connu','adultes_declares':'Adultes déclarés par appel','enfants_declares':'Enfants déclarés par appel','grossesses_declarees':'Grossesses déclarées par appel'}
+BASE.update(nature_financement='Nature de la prestation financée',unite_facturee='Unité facturée',quantite_facturee='Quantité facturée',prix_unitaire='Prix unitaire',reference_calcul='Référence exacte du calcul financier',prescripteur_id='Identifiant du prescripteur financier',signataire_id='Identifiant du signataire financier',financeur_id='Identifiant du financeur',dossier='Libellé du dossier et bénéficiaires explicites')
 # Schémas déjà livrés ; les numéros administratifs et textes libres ne sont pas des axes.
 GROUPES={
  'identite':(m.ComplementIdentite,('sexe_declare','naissance_lieu','naissance_ville','naissance_pays','nationalites','apatridie_declaree'),('view_complementidentite','view_revisioncomplementidentite')),
@@ -168,6 +169,8 @@ def population(acteur,d):
             else:sources=v.imputations.all() if v.debut<fin and (v.fin is None or v.fin>debut) else []
             for c in sources:
                 x=ligne(c.pk,c.date if code=='couts' else v.debut,ps,[a.accompagnement.menage_id],prise=a.accompagnement_id,saisie=v.enregistre_le,version_saisie=v.enregistre_le,phase=[c.get_phase_display()],type=[c.libelle if code=='couts' else {'hebergement':'Hébergement','repas':'Repas','aide':'Autre prestation'}[v.financement.nature]],etat=[c.categorie] if code=='couts' else [],prescripteur=[str(v.prescripteur or '')],signataire=[str(v.signataire or '')],financeur=[str(c.financeur)] if code=='imputations' else [],budget=[c.budget] if code=='imputations' else [])
+                x['valeurs'].update(nature_financement=[v.financement.nature],reference_calcul=[v.reference],prescripteur_id=[str(v.prescripteur_id)] if v.prescripteur_id else [],signataire_id=[str(v.signataire_id)] if v.signataire_id else [],financeur_id=[str(c.financeur_id)] if code=='imputations' else [],dossier=[' '.join([str(a.accompagnement.menage),*(str(p) for p in ps)])])
+                if code=='couts':x['valeurs'].update(unite_facturee=[c.unite],quantite_facturee=[c.quantite],prix_unitaire=[c.prix])
                 x.update(quantite=c.montant,unite=v.devise+' / '+c.phase);lignes.append(x)
     elif code=='appels':
         for r in selection_appels(acteur,{**d,'annules':False}):
@@ -330,6 +333,7 @@ def accepte(x,c,op,val):
         except InvalidOperation:raise ValidationError('Le filtre numérique exige un nombre.')
         if not n.is_finite():raise ValidationError('Le filtre numérique doit être fini.')
         return any(isinstance(v,(int,Decimal)) and (v>=n if op=='gte' else v<n) for v in vs)
+    if op=='egal_sensible':return any(str(v)==val for v in vs)
     if op=='un_de':return any(str(v).casefold() in {s.strip().casefold() for s in val.split(';') if s.strip()} for v in vs)
     if op=='different':return vs!=[INCONNU] and all(str(v).casefold()!=val.casefold() for v in vs)
     if op=='contient':return any(val.casefold() in str(v).casefold() for v in vs)
@@ -341,7 +345,7 @@ def calculer(acteur,d,*,contributions=False):
     cohorte=cohortes.verifier(d)
     if d['mesure']=='menages':suivi.exiger(acteur,'view_menage')
     communs={'personne','jour_semaine','date_saisie','date_version','total','mois','jour','age','precision_naissance','unite'}
-    propres={'personnes':set(),'menages':set(),'prises':{'date_fin','type','etat','origine','orientation','motif'},'demandes':{'etat','motif','origine'},'accords_hebergement':{'date_fin','duree','type','origine','etat'},'accords_repas':{'date_fin','duree','type','origine','etat'},'sejours':{'duree_selection','date_fin','etat','duree','entree_connue','quantite'},'affectations':{'lieu','lieu_id','date_fin','duree','duree_selection','quantite'},'repas':{'type','etat','origine','quantite'},'aides':{'type','etat','quantite'},'appels':{'complement115','appelant','auteur','auteur_version','heure','type','etat','motif','secondaire','reponse','origine','orientation','adultes_declares','enfants_declares','grossesses_declarees'},'ressources':{'type','etat','quantite'},'dettes':{'type','etat','quantite'},'couts':{'phase','type','etat','prescripteur','signataire','quantite'},'imputations':{'phase','type','prescripteur','signataire','financeur','budget','quantite'}}
+    propres={'personnes':set(),'menages':set(),'prises':{'date_fin','type','etat','origine','orientation','motif'},'demandes':{'etat','motif','origine'},'accords_hebergement':{'date_fin','duree','type','origine','etat'},'accords_repas':{'date_fin','duree','type','origine','etat'},'sejours':{'duree_selection','date_fin','etat','duree','entree_connue','quantite'},'affectations':{'lieu','lieu_id','date_fin','duree','duree_selection','quantite'},'repas':{'type','etat','origine','quantite'},'aides':{'type','etat','quantite'},'appels':{'complement115','appelant','auteur','auteur_version','heure','type','etat','motif','secondaire','reponse','origine','orientation','adultes_declares','enfants_declares','grossesses_declarees'},'ressources':{'type','etat','quantite'},'dettes':{'type','etat','quantite'},'couts':{'phase','nature_financement','unite_facturee','quantite_facturee','prix_unitaire','reference_calcul','prescripteur_id','signataire_id','dossier','type','etat','prescripteur','signataire','quantite'},'imputations':{'phase','nature_financement','reference_calcul','prescripteur_id','signataire_id','financeur_id','dossier','type','prescripteur','signataire','financeur','budget','quantite'}}
     axes=[d['axe'],d['croisement'],*[d.get('axe'+str(i),'') for i in range(3,8)]]
     colonnes=[d.get('colonne'+str(i),'') for i in range(1,12)]
     choisies=[*colonnes,*axes,*[d['filtre'+str(i)] for i in range(1,(d.get('filtres') or 2)+1)]]
@@ -403,8 +407,12 @@ def calculer(acteur,d,*,contributions=False):
         for cle,personnes_cellule in cellules.items():
             ventilation[cle][x['id']]={**x,'personnes':personnes_cellule}
             if len(ventilation)>2000:raise ValidationError('Plus de 2 000 cellules : choisissez des axes ou filtres plus précis. Aucune cellule supprimée silencieusement.')
+    if d.get('lignes_vides'):
+        from .domaines_exploration import completer_repas
+        completer_repas(d,axes,ventilation)
     def mesure(xs):
         xs=list(xs)
+        if not xs and d.get('lignes_vides') and d['mesure']=='quantite':return Decimal('0')
         if d['mesure'] in mesures.PERSONNES or d['mesure'] in mesures.FAMILLE or d['mesure'] in mesures.NUITEES:return mesures.mesurer(xs,d['mesure'])
         if d['mesure'] in ('adultes_declares','enfants_declares','grossesses_declarees'):
             connus=[v for x in xs for v in x['valeurs'].get(d['mesure'],[])];return sum(connus) if connus else None
@@ -438,4 +446,5 @@ def calculer(acteur,d,*,contributions=False):
         resultats.sort(key=ordre_resultat)
     if len(resultats)>2000:raise ValidationError('Plus de 2 000 cellules : choisissez des axes ou filtres plus précis. Aucune cellule supprimée silencieusement.')
     totaux={u:mesure(x for x in lignes if x['unite']==u) for u in {x['unite'] for x in lignes}} if d['mesure'] in ('quantite','minimum','maximum','moyenne') else {d['mesure']:mesure(lignes)}
+    if d.get('lignes_vides') and d['mesure']=='quantite':totaux.setdefault('repas',Decimal('0'))
     return resultats,totaux,lignes

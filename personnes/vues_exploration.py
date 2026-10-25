@@ -11,6 +11,7 @@ from django.views.decorators.http import require_http_methods
 from django.core.paginator import Paginator
 from . import models as m,exploration as e
 from .forms_exploration import ExplorationForm
+from .personnalisation_rapports import retour_origine
 from .exports import cellule_csv
 
 
@@ -100,7 +101,7 @@ def explorer(request):
         for ligne in page:
             ligne['url_preuves']=preuves.lien(request.user,form.cleaned_data,ligne['_code_mesure'],ligne,page.number)
     from urllib.parse import urlencode
-    return render(request,'exploration/rapport.html',{'liens_totaux':liens_totaux,'form':form,'colonnes_detail':colonnes,'qualite_mesures':qualite_mesures,'champs_courants':[f for f in form if f.name in ('population','debut','fin','reference','periode','mesure','axe','croisement')],'champs_complementaires':[f for f in form if f.name not in ('population','debut','fin','reference','periode','mesure','axe','croisement')],'niveaux_actifs':[i for i in range(3,8) if form.data.get('axe'+str(i))],'page_obj':page,'query_rapport':urlencode(query),'totaux':totaux,'quantites_inconnues':sum(x['quantite'] is None for x in selection) if form.is_valid() else 0,'nombre':nombre,'modele':modele,
+    return render(request,'exploration/rapport.html',{'origine_rapport':request.GET.get('origine_rapport',''),'retour_rapport_source':retour_origine(request.user,request.GET.get('origine_rapport')), 'liens_totaux':liens_totaux,'form':form,'colonnes_detail':colonnes,'qualite_mesures':qualite_mesures,'champs_courants':[f for f in form if f.name in ('population','debut','fin','reference','periode','mesure','axe','croisement')],'champs_complementaires':[f for f in form if f.name not in ('population','debut','fin','reference','periode','mesure','axe','croisement')],'niveaux_actifs':[i for i in range(3,8) if form.data.get('axe'+str(i))],'page_obj':page,'query_rapport':urlencode(query),'totaux':totaux,'quantites_inconnues':sum(x['quantite'] is None for x in selection) if form.is_valid() else 0,'nombre':nombre,'modele':modele,
         'modeles':[x for x in m.ModeleRapport.objects.filter(auteur=request.user) if x.parametres.get('exploration')]})
 
 
@@ -182,3 +183,21 @@ def justificatifs(request,fait=False):
         return render(request,'exploration/justificatifs.html',contexte)
     except ValidationError as erreur:
         return render(request,'exploration/preuve_perimee.html',{'erreur':erreur,'retour':getattr(erreur,'retour',p.retour_analyse(payload) if 'payload' in locals() else reverse('dossiers:explorer'))},status=409)
+
+
+@never_cache
+@require_http_methods(['GET'])
+@login_required
+def personnaliser(request,source):
+    from . import personnalisation_rapports as s
+    from django.urls import reverse
+    from urllib.parse import urlencode
+    if source not in s.SOURCES:
+        from django.http import Http404
+        raise Http404
+    try:params=s.adapter(request.user,source,request.GET)
+    except (ValidationError,ValueError) as erreur:
+        return render(request,'exploration/personnalisation_refusee.html',{'erreur':erreur,
+            'retour':reverse(s.SOURCES[source])+'?'+urlencode({k:v for k,v in request.GET.items() if k not in ('format','page')})},status=422)
+    params['origine_rapport']=s.signer_origine(request.user,source,request.GET)
+    return redirect(reverse('dossiers:explorer')+'?'+urlencode(params))

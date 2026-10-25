@@ -501,3 +501,22 @@ les contributions recalculées. Si les données de calcul ont changé, le détai
 est refusé explicitement et invite à recalculer l'analyse. Aucun résultat figé
 ni accès de dossier n'est enregistré dans un modèle. Le détail est borné à
 10 000 contributions, sans troncature silencieuse.
+
+## ST3 — Personnaliser le rapport courant
+
+Les rapports proposent un transfert explicite vers l'explorateur. Les repas et
+leurs regroupements mois/service conservent les cellules à zéro (domaine limité
+à 24 mois) ; cette complétion est un choix visible, réservé à cette population.
+Les coûts et imputations reprennent les filtres exacts, la phase, les devises et
+la période de prix/chevauchement. Montant, quantité facturée et prix unitaire
+restent des informations distinctes ; les égalités sensibles à la casse sont
+conservées lorsqu'elles définissent le rapport financier source. Les appels
+compatibles reprennent leurs critères datés ; les appels annulés et recherches
+transversales non traduisibles produisent un refus explicite.
+
+Une comparaison de périodes, les nuits distinctes, les durées civiles et les
+rapports composites ne sont pas remplacés par une somme approchée. Un écran
+explique la définition non représentable et permet de retrouver le rapport
+courant avec ses critères. Les déclarations personnelles et les rapports de
+parcours/prestations gardent également leurs rapports spécialisés lorsque leur
+définition complète n'est pas traduisible. Les paramètres anciens restent valides.

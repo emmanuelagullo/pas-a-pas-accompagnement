@@ -25,6 +25,7 @@ class AppelsRechercheForm(FormulaireMetier):
 
 
 class ExplorationForm(FormulaireMetier):
+    lignes_vides=forms.BooleanField(label='Afficher aussi les mois et services de repas sans distribution',required=False,help_text='Population repas, axes Mois et/ou Service : les cellules vides valent zéro. Les autres populations ne sont pas complétées.')
     sous_totaux=forms.BooleanField(label='Afficher les sous-totaux des niveaux de classement',required=False,help_text='Recalculés sur les objets et personnes de chaque partie, sans additionner les lignes qui se recouvrent. Ils ne s’ajoutent pas au total général.')
     cohorte=forms.ChoiceField(label='Objets retenus par personne connue',required=False,choices=[('tous','Tous les objets filtrés'),('premier','Premier objet chronologique dans la sélection filtrée'),('dernier','Dernier objet chronologique dans la sélection filtrée')],help_text='Pour les mesures de personnes distinctes des prises en charge, demandes et prestations. La date du fait/début prime, puis la saisie et l’identifiant départagent les égalités. Ce n’est pas une première admission absolue ; les filtres s’appliquent avant ce choix.')
     mouvement=forms.ChoiceField(label='Retenir',required=False,choices=[('chevauche','Tous les objets chevauchant la période'),('entrees','Seulement les débuts dans la période'),('sorties','Seulement les fins dans la période'),('entrees_sorties','Début et fin dans la période')],help_text='Les fins sont effectives pour les prises en charge et séjours, autorisées pour les accords. Aucune sortie de personne n’est déduite.')
@@ -44,7 +45,7 @@ class ExplorationForm(FormulaireMetier):
     croisement=forms.ChoiceField(label='Croiser avec',required=False)
     classes=forms.CharField(label='Classes numériques de l’axe (facultatives)',required=False,widget=forms.Textarea(attrs={'rows':3}),max_length=3000,help_text='Une ligne « nom | minimum inclus | maximum exclu ». Bornes vides possibles. Les inconnus et valeurs hors classes restent visibles.')
     filtre1=forms.ChoiceField(label='Premier filtre',required=False)
-    operation1=forms.ChoiceField(label='Condition',choices=[('egal','Égal à'),('un_de','Un des éléments séparés par ;'),('different','Différent, si renseigné'),('contient','Contient'),('inconnu','Non renseigné'),('gte','Au moins (nombre)'),('lt','Moins de (nombre)'),('depuis','Depuis une date (incluse)'),('avant','Avant une date (exclue)')])
+    operation1=forms.ChoiceField(label='Condition',choices=[('egal','Égal à'),('egal_sensible','Égalité exacte, casse conservée'),('un_de','Un des éléments séparés par ;'),('different','Différent, si renseigné'),('contient','Contient'),('inconnu','Non renseigné'),('gte','Au moins (nombre)'),('lt','Moins de (nombre)'),('depuis','Depuis une date (incluse)'),('avant','Avant une date (exclue)')])
     valeur1=forms.CharField(label='Valeur',max_length=160,required=False)
     filtre2=forms.ChoiceField(label='Second filtre (ET)',required=False)
     operation2=forms.ChoiceField(label='Condition',choices=operation1.choices)

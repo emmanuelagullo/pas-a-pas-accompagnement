@@ -30,6 +30,7 @@ app_name = 'dossiers'
 from . import vues_pieces_dossier as pieces
 
 urlpatterns = [
+    path('rapports/<str:source>/personnaliser/', exploration.personnaliser, name='personnaliser_rapport'),
     path('explorer/justificatifs/', exploration.justificatifs, name='explorer_justificatifs'),
     path('explorer/fait/', exploration.justificatifs, {'fait':True}, name='explorer_fait'),
     path('parametrage/', vues_parametrage.catalogue, name='parametrage'),
