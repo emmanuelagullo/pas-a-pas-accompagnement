@@ -530,3 +530,25 @@ d'un niveau déplace ses classes avec lui ; le retrait ne change ni filtres,
 ni mesures, ni colonnes. Les sous-totaux restent recalculés sur les identités
 et contributions du préfixe. Les erreurs ouvrent les parties concernées.
 L'accès aux rapports courants reste disponible sous les droits existants.
+
+## ST5 — Modèles personnels et confirmations périmées
+
+Depuis un modèle ouvert, Recalculer modifie seulement la consultation. L'utilisateur
+peut remplacer explicitement le modèle ou conserver une variante sous un autre nom.
+Renommer et Dupliquer sont accessibles depuis les listes de modèles des rapports
+courants et de l'explorateur. Les définitions historiques restent dans leur format ;
+une opération de renommage ne réinterprète pas leurs critères. Aucun partage ajouté.
+
+La confirmation est signée pour le propriétaire et l'état lu du modèle, valable un
+jour. Un UPDATE conditionnel compare le nom et tous les paramètres. Une révision
+interne dans le JSON empêche aussi un écrasement après un renommage aller-retour ;
+elle n'est pas exportée dans les modèles échangeables. Aucun changement de table.
+Un conflit conserve la saisie et demande une nouvelle lecture, sans actualiser
+silencieusement la confirmation. Les critères de dossier ne sont pas enregistrés
+dans les modèles au-delà des paramètres déjà permis par le registre fermé.
+
+Vérifications chiffrées : consultation collective de 12 nuitées, variante de trois
+personnes distinctes, remplacement explicite, puis refus d'un second remplacement
+avec la confirmation initiale. Deux confirmations concurrentes sur SQLite : une
+réussite et un conflit. Tests HTTP/HTML, propriété, CSRF, export et anciens modèles.
+Ces tests ne constituent pas une observation réelle dans un navigateur.

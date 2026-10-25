@@ -20,8 +20,16 @@ from .exports import cellule_csv
 @login_required
 def explorer(request):
     e.disponibles(request.user)
+    from . import modeles_personnels as gestion
+    statut=200;calcul_effectue=False
     modele=get_object_or_404(m.ModeleRapport,pk=request.GET['modele'],auteur=request.user) if request.GET.get('modele') else None
     data=(modele.parametres.copy() if modele else (request.POST.copy() if request.method=='POST' else request.GET.copy()))
+    cible=modele
+    if not cible and (request.POST.get('modele_cible') or request.GET.get('modele_cible')):
+        cible=get_object_or_404(m.ModeleRapport,pk=request.POST.get('modele_cible') or request.GET.get('modele_cible'),auteur=request.user)
+    attendu_modele=request.POST.get('attendu_modele') or request.GET.get('attendu_modele') or (gestion.jeton(request.user,cible) if cible and request.user.has_perms(['personnes.view_modelerapport','personnes.add_modelerapport']) else '')
+    contexte_retour={k:(request.POST if request.method=='POST' else request.GET).get(k,'') for k in ('origine_rapport','panneau','page')}
+    if cible:contexte_retour.update(modele_cible=str(cible.pk),attendu_modele=attendu_modele)
     if modele and not data.get('exploration'):return redirect('statistiques')
     if modele and data.get('schema')!=1:return HttpResponse('Version du modèle non prise en charge ; aucun résultat calculé.',status=409)
     jour=timezone.localdate()
@@ -60,26 +68,37 @@ def explorer(request):
                 if inconnus is not None:qualite_mesures.append((labels[mesure],inconnus))
                 from . import justificatifs_exploration as preuves
                 for total in preuves.totaux_cellules(totaux_mesure,selection,mesure):
-                    liens_totaux.append(dict(libelle=labels[mesure]+' — '+total['unite'],valeur=total['valeur'],url=preuves.lien(request.user,{**form.cleaned_data,'origine_rapport':request.GET.get('origine_rapport',''),'panneau':request.GET.get('panneau','')},mesure,total,request.GET.get('page',1))))
+                    liens_totaux.append(dict(libelle=labels[mesure]+' — '+total['unite'],valeur=total['valeur'],url=preuves.lien(request.user,{**form.cleaned_data,**contexte_retour},mesure,total,contexte_retour.get('page') or 1)))
                 totaux.update({(labels[mesure]+' — '+u if len(mesures)>1 else u):v for u,v in totaux_mesure.items()})
             nombre=len(selection)
             from .exploration_releve import relever
-            colonnes,details=relever(form.cleaned_data,selection,request.user)
+            colonnes,details=relever({**form.cleaned_data,**contexte_retour},selection,request.user)
 
         except ValidationError as erreur:
             form.add_error(None,erreur);lignes=[];totaux={};selection=[];qualite_mesures=[]
         else:
+            calcul_effectue=True
             if request.method=='POST':
                 from .suivi import exiger
                 exiger(request.user,'add_modelerapport','view_modelerapport')
                 nom=request.POST.get('nom','').strip()
                 if not nom or len(nom)>100:form.add_error(None,'Nommez ce modèle (100 caractères au plus).')
-                elif m.ModeleRapport.objects.filter(auteur=request.user).count()>=30:form.add_error(None,'Limite de 30 modèles atteinte ; retirez un ancien modèle avant d’en ajouter.')
                 else:
                     params={k:str(v) if v is not None else '' for k,v in form.cleaned_data.items()};params.update(schema=1,exploration=True)
-                    x=m.ModeleRapport.objects.create(auteur=request.user,nom=nom,parametres=params)
-                    from django.urls import reverse
-                    return redirect(reverse('dossiers:explorer')+'?modele='+str(x.pk))
+                    try:
+                        if request.POST.get('action_modele')=='remplacer':
+                            if cible is None:raise ValidationError('Choisissez le modèle personnel à remplacer.')
+                            x=gestion.changer(request.user,cible,attendu_modele,nom,params)
+                        else:
+                            if m.ModeleRapport.objects.filter(auteur=request.user).count()>=30:raise ValidationError('Limite de 30 modèles personnels atteinte.')
+                            x=m.ModeleRapport.objects.create(auteur=request.user,nom=nom,parametres=params)
+                    except ValidationError as erreur:
+                        form.add_error(None,erreur.messages);statut=409 if isinstance(erreur,gestion.ConflitModele) else 400
+                    else:
+                        from django.urls import reverse
+                        from urllib.parse import urlencode
+                        retour={k:v for k,v in contexte_retour.items() if k in ('origine_rapport','panneau','page') and v}
+                        return redirect(reverse('dossiers:explorer')+'?'+urlencode({'modele':x.pk,**retour}))
             if request.GET.get('format')=='csv_detail':
                 r=HttpResponse(content_type='text/csv; charset=utf-8');r['Content-Disposition']='attachment; filename="exploration-detail-fictive.csv"';w=csv.writer(r,delimiter=';');w.writerow(['Objet','Date du fait / début',*colonnes])
                 for x in details:w.writerow([cellule_csv(v) for v in [x['id'],x['date'],*x['valeurs']]])
@@ -98,15 +117,19 @@ def explorer(request):
                     'Paramètres : '+str({k:str(v) for k,v in form.cleaned_data.items()}),'Totaux distincts recalculés : '+str(totaux),
                     *[('Sous-total — ' if x.get('sous_total') else '')+f'{x["mesure"]} — '+ ' · '.join([x['axe'],x['croisement'],*x['niveaux']])+f' : {x["valeur"]} {x["unite"]}' for x in lignes],
                     'Les ventilations multi-valeurs ne sont pas additives. Une première entrée connue n’est pas une première entrée absolue.'],'exploration-fictive.pdf')
-    if not form.is_valid():colonnes=[];details=[]
-    query={c:str(form.data.get(c,'')) for c in form.fields};page=Paginator(details if form.cleaned_data.get('affichage')=='detail' else lignes,50).get_page(request.GET.get('page'))
-    if form.is_valid() and not form.errors and form.cleaned_data.get('affichage')!='detail':
+    if not calcul_effectue:colonnes=[];details=[]
+    query={c:str(form.data.get(c,'')) for c in form.fields}
+    for cle in ('origine_rapport','panneau'):
+        if contexte_retour.get(cle):query[cle]=contexte_retour[cle]
+    if cible:query.update(modele_cible=str(cible.pk),attendu_modele=attendu_modele)
+    page=Paginator(details if form.cleaned_data.get('affichage')=='detail' else lignes,50).get_page(contexte_retour.get('page'))
+    if calcul_effectue and form.cleaned_data.get('affichage')!='detail':
         for ligne in page:
-            ligne['url_preuves']=preuves.lien(request.user,{**form.cleaned_data,'origine_rapport':request.GET.get('origine_rapport',''),'panneau':request.GET.get('panneau','')},ligne['_code_mesure'],ligne,page.number)
+            ligne['url_preuves']=preuves.lien(request.user,{**form.cleaned_data,**contexte_retour},ligne['_code_mesure'],ligne,page.number)
     parties,niveaux_composition=composition.presenter(form,request)
     from urllib.parse import urlencode
-    return render(request,'exploration/rapport.html',{'parties_analyse':parties,'niveaux_composition':niveaux_composition,'origine_rapport':request.GET.get('origine_rapport',''),'retour_rapport_source':retour_origine(request.user,request.GET.get('origine_rapport')), 'liens_totaux':liens_totaux,'form':form,'colonnes_detail':colonnes,'qualite_mesures':qualite_mesures,'champs_courants':[f for f in form if f.name in ('population','debut','fin','reference','periode','mesure','axe','croisement')],'champs_complementaires':[f for f in form if f.name not in ('population','debut','fin','reference','periode','mesure','axe','croisement')],'niveaux_actifs':[i for i in range(3,8) if form.data.get('axe'+str(i))],'page_obj':page,'query_rapport':urlencode(query),'totaux':totaux,'quantites_inconnues':sum(x['quantite'] is None for x in selection) if form.is_valid() else 0,'nombre':nombre,'modele':modele,
-        'modeles':[x for x in m.ModeleRapport.objects.filter(auteur=request.user) if x.parametres.get('exploration')]})
+    return render(request,'exploration/rapport.html',{'calcul_effectue':calcul_effectue,'modele_cible':cible,'attendu_modele':attendu_modele,'nom_modele_saisi':request.POST.get('nom',cible.nom if cible else ''),'parties_analyse':parties,'niveaux_composition':niveaux_composition,'origine_rapport':contexte_retour.get('origine_rapport',''),'retour_rapport_source':retour_origine(request.user,contexte_retour.get('origine_rapport')), 'liens_totaux':liens_totaux,'form':form,'colonnes_detail':colonnes,'qualite_mesures':qualite_mesures,'champs_courants':[f for f in form if f.name in ('population','debut','fin','reference','periode','mesure','axe','croisement')],'champs_complementaires':[f for f in form if f.name not in ('population','debut','fin','reference','periode','mesure','axe','croisement')],'niveaux_actifs':[i for i in range(3,8) if form.data.get('axe'+str(i))],'page_obj':page,'query_rapport':urlencode(query),'totaux':totaux,'quantites_inconnues':sum(x['quantite'] is None for x in selection) if calcul_effectue else 0,'nombre':nombre,'modele':modele,
+        'modeles':[x for x in m.ModeleRapport.objects.filter(auteur=request.user) if x.parametres.get('exploration')]},status=statut)
 
 
 @never_cache

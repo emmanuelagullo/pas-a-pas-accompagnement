@@ -1,3 +1,16 @@
+## Analyses progressives et modèles personnels — ST2 à ST5
+
+- Chiffres reliés à leurs contributions vérifiées, à l'objet exact et au dossier ;
+  retour conservant critères et pagination, détail exportable en CSV.
+- Personnalisation fidèle des rapports de repas, financements et appels compatibles ;
+  explication explicite lorsque la définition ne peut pas encore être représentée.
+- Quatre parties modifiables directement : Retenir, Afficher, Compter et Classer ;
+  ordre des regroupements modifiable, sous-totaux distincts recalculés.
+- Modèles personnels : renommer, dupliquer, conserver une variante ou remplacer
+  explicitement, avec refus des confirmations périmées. Formats existants conservés.
+- Sources sociales inchangées : SituationPersonnelle à la référence et déclarations
+  détaillées distinctes, sans substitution par la synthèse du dossier.
+
 ## Corrections statistiques — sélection et corrélation (ST1)
 
 - Nuitées de séjour et d'affectation recalculées pour les bénéficiaires retenus,

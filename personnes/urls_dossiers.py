@@ -2,6 +2,7 @@ from . import vues_appels115 as appels115,vues_exploration as exploration,vues_r
 from . import vues_financements as financements
 from . import vues_aides as aides, vues_complements_c as complements_c
 from . import vues_parcours as parcours
+from . import vues_modeles_personnels
 from . import vues_parametrage
 from django.urls import path
 from . import vues_annulations_arrivees as annulations_arrivees
@@ -30,6 +31,7 @@ app_name = 'dossiers'
 from . import vues_pieces_dossier as pieces
 
 urlpatterns = [
+    path('modeles/<int:pk>/gerer/', vues_modeles_personnels.gerer, name='modele_gerer'),
     path('rapports/<str:source>/personnaliser/', exploration.personnaliser, name='personnaliser_rapport'),
     path('explorer/justificatifs/', exploration.justificatifs, name='explorer_justificatifs'),
     path('explorer/fait/', exploration.justificatifs, {'fait':True}, name='explorer_fait'),

@@ -3,6 +3,7 @@
 <p>Les indicateurs portent sur la période civile choisie, début inclus et fin exclue.</p>
 
 <form method="get" aria-label="Périodes prédéfinies">
+{% if modele_gestion %}<input type="hidden" name="modele_cible" value="{{ modele_gestion.pk }}"><input type="hidden" name="attendu_modele" value="{{ attendu_modele }}">{% endif %}
 <input type="hidden" name="service" value="{{ service_choisi }}">
 <input type="hidden" name="lieu" value="{{ lieu_choisi }}">
 <input type="hidden" name="regroupement" value="{{ regroupement }}">
@@ -13,7 +14,7 @@
 {% for code, libelle in periodes.items %}<option value="{{ code }}" {% if periode_choisie == code %}selected{% endif %}>{{ libelle }}</option>{% endfor %}
 </select><input type="hidden" name="rapport" value="{{ rapport }}">
 <button type="submit">Appliquer</button></form>
-<form method="get"><label for="rapport">Rapport</label>
+<form method="get">{% if modele_gestion %}<input type="hidden" name="modele_cible" value="{{ modele_gestion.pk }}"><input type="hidden" name="attendu_modele" value="{{ attendu_modele }}">{% endif %}<label for="rapport">Rapport</label>
 <select id="rapport" name="rapport">
 {% for code, libelle in rapports.items %}<option value="{{ code }}" {% if code == rapport %}selected{% endif %}>{{ libelle }}</option>{% endfor %}
 </select>{% adapter_saisie formulaire request.user %}{{ formulaire.as_p }}
@@ -114,11 +115,12 @@
 <details class="carte"><summary>Mes modèles de rapports</summary>
 <p>Un modèle peut conserver une période fixe ou une période relative recalculée à chaque ouverture. Les modèles sont personnels et mémorisent les filtres, pas les résultats. Les chiffres sont recalculés à chaque consultation.</p>
 <ul>{% for modele in modeles_rapports %}<li><a href="{% url 'statistiques' %}?modele={{ modele.pk }}">{{ modele.nom }}</a>{% if modele_actif.pk == modele.pk %} <strong>(affiché)</strong>{% endif %}
+<a href="{% url 'dossiers:modele_gerer' modele.pk %}">Renommer ou dupliquer</a>
 <form method="post" action="{% url 'statistiques_modele_supprimer' modele.pk %}" style="display:inline">{% csrf_token %}<button type="submit">Supprimer</button></form></li>{% empty %}<li>Aucun modèle enregistré.</li>{% endfor %}</ul></details>
 {% if resultats != None %}<details><summary>Enregistrer cette configuration comme modèle</summary><form method="post" action="{% url 'statistiques_modele_ajouter' %}">
-{% csrf_token %}<label for="nom_modele">Nom du modèle</label><input id="nom_modele" name="nom" maxlength="100" required>
+{% csrf_token %}<label for="nom_modele">Nom du modèle</label><input id="nom_modele" name="nom" maxlength="100" value="{{ modele_gestion.nom }}" required>
 <input type="hidden" name="rapport" value="{{ rapport }}"><input type="hidden" name="debut" value="{{ debut_iso }}"><input type="hidden" name="fin" value="{{ fin_iso }}">
 <input type="hidden" name="service" value="{{ service_choisi }}"><input type="hidden" name="lieu" value="{{ lieu_choisi }}">
 <input type="hidden" name="regroupement" value="{{ regroupement }}">{% if periode_choisie %}<input type="hidden" name="periode" value="{{ periode_choisie }}">{% endif %}{% if comparer %}<input type="hidden" name="comparer" value="1">{% endif %}
-<button type="submit">Enregistrer cette configuration</button></form></details>{% endif %}
+{% if modele_gestion %}<input type="hidden" name="attendu" value="{{ attendu_modele }}"><button type="submit" name="action" value="remplacer" formaction="{% url 'dossiers:modele_gerer' modele_gestion.pk %}">Remplacer explicitement « {{ modele_gestion.nom }} »</button><button type="submit">Conserver une variante</button>{% else %}<button type="submit">Enregistrer cette configuration</button>{% endif %}</form></details>{% endif %}
 {% endblock %}

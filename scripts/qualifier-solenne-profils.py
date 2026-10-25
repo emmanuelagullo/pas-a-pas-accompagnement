@@ -171,7 +171,34 @@ assert recu.correspondances['organismes'] and modeles.Personne.objects.count()==
 r=client.get(chemin('dossiers:parametrage'),{'format':'json'},secure=True)
 assert r.status_code==200 and 'no-store' in r['Cache-Control']
 assert preparation_repas.proposer(u,a,date(2026,1,1),'tous')[0]==[p]
+# ST2–ST5 : mêmes parcours HTTP dans les trois profils, dont sous-chemin PWA.
+from personnes import exploration, justificatifs_exploration, modeles_personnels
+from urllib.parse import urlencode
+params=dict(population='aides',debut='2026-01-01',fin='2026-02-01',reference='2026-01-31',mesure='quantite',axe='total',croisement='',classes='',filtre1='',operation1='egal',valeur1='',filtre2='',operation2='egal',valeur2='')
+r=client.get(chemin('dossiers:explorer'),params,secure=True)
+assert r.status_code==200 and all(t in r.content.decode() for t in ('Modifier retenir','Modifier afficher','Modifier compter','Modifier classer'))
+from personnes.forms_exploration import ExplorationForm
+f=ExplorationForm(params,acteur=u);assert f.is_valid(),f.errors
+lignes,totaux,selection=exploration.calculer(u,f.cleaned_data,contributions=True)
+assert list(totaux.values())==[Decimal('1')]
+url=justificatifs_exploration.lien(u,f.cleaned_data,'quantite',lignes[0],2)
+def sans_prefixe(url):return url[len(prefixe):] if prefixe and url.startswith(prefixe) else url
+r=client.get(sans_prefixe(url),secure=True);assert r.status_code==200 and 'fin exclue' in r.content.decode()
+r=client.get(sans_prefixe(url)+'&format=csv',secure=True);assert r.status_code==200 and 'text/csv' in r['Content-Type']
+modele=modeles.ModeleRapport.objects.create(auteur=u,nom='Analyse fictive',parametres={**params,'schema':1,'exploration':True})
+ticket=modeles_personnels.jeton(u,modele)
+r=client.post(chemin('dossiers:explorer'),{**params,'nom':'Variante fictive','modele_cible':modele.pk,'attendu_modele':ticket,'action_modele':'variante'},secure=True)
+assert r.status_code==302
+r=client.post(chemin('dossiers:explorer'),{**params,'nom':'Remplacé explicitement','modele_cible':modele.pk,'attendu_modele':ticket,'action_modele':'remplacer'},secure=True)
+assert r.status_code==302
+r=client.post(chemin('dossiers:explorer'),{**params,'nom':'Formulaire périmé','modele_cible':modele.pk,'attendu_modele':ticket,'action_modele':'remplacer'},secure=True)
+assert r.status_code==409 and 'Formulaire périmé' in r.content.decode()
+r=client.get(chemin('dossiers:personnaliser_rapport','statistiques'),{'rapport':'repas','debut':'2026-01-01','fin':'2026-02-01'},secure=True)
+assert r.status_code==302
+r=client.get(sans_prefixe(r['Location']),secure=True);assert r.status_code==200
 if os.environ.get('SOLENNE_VERIFIER_PDF') == 'oui':
+    pdf_analyse=client.get(chemin('dossiers:explorer'),{**params,'format':'pdf'},secure=True)
+    assert pdf_analyse.status_code==200 and pdf_analyse.content.startswith(b'%PDF-')
     response = client.get(chemin('personnes:fiche_pdf', p.pk), secure=True)
     assert response.status_code == 200 and response.content.startswith(b'%PDF-')
     pdf_aide=client.get(chemin('dossiers:aide_pdf',aide.pk),secure=True)

@@ -151,6 +151,11 @@ def statistiques(request):
         modele = get_object_or_404(ModeleRapport, pk=request.GET['modele'], auteur=request.user)
     if modele and modele.parametres.get('exploration'):
         return redirect(reverse('dossiers:explorer')+'?modele='+str(modele.pk))
+    from . import modeles_personnels as gestion
+    cible=modele
+    if not cible and request.GET.get('modele_cible'):
+        cible=get_object_or_404(ModeleRapport,pk=request.GET['modele_cible'],auteur=request.user)
+    attendu=request.GET.get('attendu_modele') or (gestion.jeton(request.user,cible) if cible else '')
     selection = modele.parametres if modele else request.GET
     periode_choisie = selection.get('periode', '')
     if periode_choisie in PERIODES:
@@ -284,7 +289,7 @@ def statistiques(request):
     return render(request, 'suivi/statistiques.html', {
         'formulaire': formulaire, 'resultats': resultats,
         'modeles_rapports': [x for x in ModeleRapport.objects.filter(auteur=request.user) if not x.parametres.get('exploration')],
-        'modele_actif': modele,
+        'modele_actif': modele, 'modele_gestion':cible,'attendu_modele':attendu,
         'regroupement': regroupement, 'regroupements': REGROUPEMENTS_EXPLORATION,
         'exploration_hebergement': exploration_hebergement,
         'erreur_hebergement': erreur_hebergement,
