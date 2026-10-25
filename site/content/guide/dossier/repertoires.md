@@ -18,3 +18,5 @@ statut: "disponible"
 **Résultat attendu :** les coordonnées sont réutilisées depuis la fiche, sans les recopier dans chaque prise en charge. Un professionnel n'est pas nécessairement un compte de connexion. Une mission de référent ne désigne ni contact du ménage ni représentant légal.
 
 **Essai :** Samira a un relais professionnel daté ; Noor possède deux co-référents. Une mission d'une autre prise en charge ne doit pas être attribuée à celle consultée.
+
+Une mission vise soit un professionnel, soit un organisme, avec son rôle explicite. Ses dates effectives restent dans la prise en charge et ne sont pas futures. Pour une fin réelle, terminer la mission ; pour une affectation qui n’a jamais été vraie, l’annuler avec motif. Le répertoire reste indépendant : corriger les coordonnées d’un professionnel n’annule pas ses missions.

@@ -20,3 +20,5 @@ statut: "disponible"
 **Essai :** Thomas poursuit un objectif après la clôture d'une prise en charge et son suivi passe en veille puis redevient actif. Samira a plusieurs orientations aux résultats distincts.
 
 Les récits de projet existants restent disponibles ; ils ne sont pas automatiquement découpés en objectifs structurés.
+
+Les personnes bénéficiaires et la cible de l’élément restent celles confirmées à sa création. Pour une mauvaise cible ou une mauvaise sélection de personnes, annuler l’élément erroné avec motif puis créer le bon, sans déplacer silencieusement son histoire. Une évolution d’état ou d’objectif s’enregistre dans la chronologie de l’élément correct.

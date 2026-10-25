@@ -28,3 +28,9 @@ domaine et un libellé structurés, avec date, source et corrections. Plusieurs
 qualifications sont possibles. Elles se recherchent dans les rapports et ne
 changent automatiquement ni logement, ni emploi, ni ressources, ni objectif.
 Une qualification déclarée n'est pas un score social.
+
+## Avant une saisie rétroactive
+
+Choisir une date non future et renseigner la source. Un ajout antérieur à une déclaration déjà enregistrée exige un motif et les droits de modification ; une valeur à la même date se corrige explicitement. Une correction de date ne traverse pas une autre déclaration. Vérifier les deux périodes voisines après enregistrement.
+
+Pour les ressources et dettes détaillées, partir de [leur rubrique propre]({{< relref "/guide/dossier/ressources/" >}}). Leur synthèse peut remplacer l’affichage de l’ancienne valeur globale, sans effacer cette dernière. La [trajectoire de l’ancien suivi]({{< relref "/guide/trajectoire-sociale/" >}}) conserve un périmètre différent.

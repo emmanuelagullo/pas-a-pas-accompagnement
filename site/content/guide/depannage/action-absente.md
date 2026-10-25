@@ -5,7 +5,7 @@ fiche: true
 categorie: "depannage"
 publics: ["equipe"]
 intentions: ["permission", "droit", "refus", "action absente", "version"]
-prerequis: "Un compte disposant des droits de lecture et de saisie de la rubrique concernée."
+prerequis: "Le compte et l’espace dans lesquels l’action était attendue ; consulter les droits sans supposer un droit de saisie."
 depart: "La page où l’action était attendue"
 statut: "disponible"
 ---

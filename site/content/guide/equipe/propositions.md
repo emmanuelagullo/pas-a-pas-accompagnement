@@ -25,3 +25,5 @@ Les organismes, professionnels, lieux et tarifs restent dans leurs répertoires 
 Cet échange transporte les répertoires et tarifs, sans dossiers ni comptes. Les propositions de saisie gardent leur propre échange JSON.
 
 [Ouvrir la fiche détaillée]({{< relref "/guide/equipe/parametrage/" >}}).
+
+**Avant de partager le JSON :** il contient les valeurs proposées, actives ou inactives, telles qu’elles ont été saisies volontairement. Il n’extrait pas les dossiers, mais ne rend pas anonyme une valeur contenant un nom ou une information personnelle. Relire les valeurs avant l’envoi. L’import est limité à 1 Mio et 1 000 propositions ; un refus annule les ajouts de cet import.

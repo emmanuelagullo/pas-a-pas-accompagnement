@@ -18,3 +18,5 @@ statut: "disponible"
 **À vérifier :** un montant à zéro reste connu ; un montant inconnu reste inconnu. Une mensualité n'est pas un solde. Les devises et périodicités ne sont pas converties automatiquement.
 
 **Essai :** comparer les postes de Samira et la correction de sa dette ; Maïa passe de deux ressources à une absence confirmée. Le rapport permet une recherche structurée sans transformer les notes libres en montants.
+
+Une **absence déclarée** ou une **information non connue** porte sur toute la rubrique choisie, ressources ou dettes, pas sur un seul poste. La confirmation termine les déclarations applicables à cette date sans les effacer ; les autres rubriques restent inchangées. Pour terminer seulement une ressource réelle, choisir sa propre action de fin, avec une date effective non future.

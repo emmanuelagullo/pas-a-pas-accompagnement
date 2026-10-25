@@ -19,3 +19,5 @@ statut: "disponible"
 **À vérifier :** un coût ou une imputation ne prouve pas un paiement. Les devises ne sont pas converties et les absences ne sont pas déduites implicitement d'une quantité facturée.
 
 Le rapport **Coûts et financements** distingue composantes et imputations. Voir aussi les [documents émis]({{< relref "/guide/prestations/documents-emis/" >}}).
+
+**Reprendre les tarifs choisis** remplit les champs proposés à partir de la version applicable ; ce bouton n’enregistre pas le calcul et ne vérifie pas à votre place la quantité facturée. Les montants sont arrondis par ligne, puis additionnés par phase. Une ligne sans prix connu n’est pas un prix nul : renseigner un montant explicite ou ne pas intégrer cette ligne au calcul confirmé.

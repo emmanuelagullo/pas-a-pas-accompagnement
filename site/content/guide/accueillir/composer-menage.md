@@ -20,3 +20,5 @@ Une personne peut appartenir successivement à plusieurs ménages. Le ménage n'
 **À vérifier :** un changement de composition n'a pas modifié les bénéficiaires des anciennes prises en charge. Le contact ne devient ni représentant légal ni référent professionnel.
 
 **Essai :** suivre Noé dans l'Établissement Les Passerelles, puis comparer contact du ménage et relais professionnel chez Samira.
+
+Le contact du ménage est une désignation datée : pour le retirer à partir d’une date, choisir **Désigner ou changer le contact**, puis **Ne plus désigner de contact à partir d’une date**, et enregistrer cette période sans contact, plutôt qu’effacer l’ancienne. Vérifier séparément le professionnel référent de la prise en charge et une éventuelle représentation légale déclarée. Aucun de ces rôles ne se déduit des autres.

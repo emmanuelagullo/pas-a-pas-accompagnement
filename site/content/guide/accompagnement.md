@@ -5,7 +5,7 @@ fiche: true
 categorie: "accueillir"
 publics: ["equipe"]
 intentions: ["recherche", "dossier", "BD", "prise en charge", "sélection"]
-prerequis: "Un compte disposant des droits de lecture et de saisie de la rubrique concernée."
+prerequis: "Droits de consultation des personnes, ménages et prises en charge ; les actions de création ou de modification ont leurs droits propres."
 depart: "Dossiers → recherche centrale"
 statut: "disponible"
 ---

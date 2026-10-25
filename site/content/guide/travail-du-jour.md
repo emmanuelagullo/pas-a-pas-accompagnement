@@ -23,8 +23,7 @@ acceptée. Si une ligne est invalide, le lot complet est refusé : vérifier le
 message avant de recommencer. Un double envoi ne compte pas deux fois le repas.
 Le lot est limité à 500 lignes ; au-delà, utiliser les fiches des accords.
 
-Pour rectifier une distribution existante, ouvrir son accord, annuler avec un
-motif puis saisir la bonne distribution. Une absence n’entraîne ni sortie du
+Pour rectifier une distribution existante, ouvrir son accord : **Corriger la distribution** ajuste quantité ou catégorie avec motif ; une erreur de personne, de date ou d’accord s’annule puis se ressaisit. Une absence n’entraîne ni sortie du
 séjour ni libération automatique d’une place. La page ne gère pas les capacités.
 
 ## Relève entre équipes

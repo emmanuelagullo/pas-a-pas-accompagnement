@@ -19,3 +19,5 @@ statut: "disponible"
 **À vérifier :** aucun séjour, ménage ou droit d'admission n'a été créé automatiquement. Les versions et annulations restent dans l'historique.
 
 Le scénario neuf contient quinze appels aux situations variées. Voir aussi les [transmissions]({{< relref "/guide/transmissions/" >}}).
+
+Pour lier l’appel à un dossier existant, identifier d’abord les personnes concernées puis vérifier les bénéficiaires et le ménage éventuel de la cible. Une correction ultérieure de ces personnes ne doit pas rendre les liens incohérents. Avant d’annuler un appel erroné, traiter les actions encore ouvertes et retirer avec motif les liens erronés ; l’annulation de l’appel n’annule pas automatiquement les demandes ni les prises en charge liées.

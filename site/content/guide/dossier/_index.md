@@ -6,7 +6,7 @@ liste_auto: false
 
 Informations personnelles datées, projet, contacts et documents.
 
-- [Identité et relations]({{< relref "/guide/dossier/identite/" >}})
+- [Identité, famille déclarée et liens personnels]({{< relref "/guide/dossier/identite/" >}})
 - [Adresses et coordonnées]({{< relref "/guide/dossier/coordonnees/" >}})
 - [Organismes et professionnels]({{< relref "/guide/dossier/repertoires/" >}})
 - [Situation sociale et dates]({{< relref "/guide/dossier/situation/" >}})

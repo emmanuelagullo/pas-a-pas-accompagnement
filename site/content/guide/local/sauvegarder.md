@@ -20,3 +20,5 @@ statut: "disponible"
 Une copie préparée mais non téléchargée n'est pas une sauvegarde conservée. Un PDF ou CSV ne permet pas de restaurer l'espace. La démonstration serveur partagée n'est pas votre espace local.
 
 Pour changer d'espace sans restauration, voir [retrouver son espace habituel]({{< relref "/guide/espaces-locaux/" >}}).
+
+Ces outils locaux appartiennent au propriétaire de l’appareil ou du profil navigateur ; ils ne correspondent pas à un rôle métier donnant accès aux dossiers sur un serveur. Le serveur partagé n’expose pas les outils de fichiers du programme : sa sauvegarde relève de l’exploitant, selon [le mode choisi]({{< relref "/demarrer/" >}}).

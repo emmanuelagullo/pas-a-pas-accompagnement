@@ -5,7 +5,7 @@ fiche: true
 categorie: "equipe"
 publics: ["gestion"]
 intentions: ["paramétrage", "transport", "import", "export", "JSON", "tarifs", "homonymes"]
-prerequis: "Droits de consultation des répertoires ; droits explicites supplémentaires pour confirmer l’import."
+prerequis: "Droits de consultation des répertoires et reçus ; droit d’export pour télécharger, droits de création requis dès l’examen d’un fichier à importer, puis à sa confirmation."
 depart: "Organismes partenaires → Importer ou exporter le paramétrage"
 statut: "disponible"
 ---

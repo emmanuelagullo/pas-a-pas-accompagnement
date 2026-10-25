@@ -5,7 +5,7 @@ fiche: true
 categorie: "analyser"
 publics: ["equipe"]
 intentions: ["explorer", "croiser", "relevé", "CSV", "filtre", "population"]
-prerequis: "Un compte disposant des droits de lecture et de saisie de la rubrique concernée."
+prerequis: "Droits de consultation des populations, mesures et critères choisis ; les droits de modèles ne sont nécessaires que pour les conserver ou les échanger."
 depart: "Statistiques → Explorer et croiser les populations"
 statut: "disponible"
 ---
@@ -38,3 +38,9 @@ L'option **Afficher les sous-totaux des niveaux de classement** recalcule les
 personnes et objets de chaque partie. Une nationalité multiple peut produire
 plusieurs lignes sans augmenter le sous-total distinct. Les sous-totaux sont
 identifiés dans le tableau, le CSV et le PDF ; ne pas les ajouter aux détails.
+
+## Choisir quels objets la période retient
+
+**Retenir** distingue les objets chevauchant la période de ceux dont le début, la fin, ou les deux tombent dans cette période. La fin d’un accord est une fin d’autorisation ; elle ne prouve pas une sortie. Pour les nuitées des épisodes retenus, **Intégralité des épisodes clos** peut dépasser les bornes du rapport. Conserver **Seulement dans la période** pour comparer l’activité d’une même fenêtre.
+
+Les paramètres, les relevés détaillés, CSV et PDF peuvent contenir des données personnelles selon les critères et colonnes choisis. Les conserver et transmettre selon leur contenu ; un export de rapport n’est ni une sauvegarde restaurable ni un document financier émis.

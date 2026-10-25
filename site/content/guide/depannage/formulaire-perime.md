@@ -5,7 +5,7 @@ fiche: true
 categorie: "depannage"
 publics: ["equipe"]
 intentions: ["conflit", "périmé", "concurrence", "recharger", "double envoi"]
-prerequis: "Un compte disposant des droits de lecture et de saisie de la rubrique concernée."
+prerequis: "Le message de conflit et un accès à la version actuelle ; droits de modification pour confirmer une nouvelle saisie."
 depart: "Le formulaire affichant un conflit ou une modification entre-temps"
 statut: "disponible"
 ---

@@ -5,7 +5,7 @@ fiche: true
 categorie: "analyser"
 publics: ["equipe"]
 intentions: ["statistiques", "bilan", "nuitées", "repas", "CSV", "compteur"]
-prerequis: "Un compte disposant des droits de lecture et de saisie de la rubrique concernée."
+prerequis: "Droits de consultation des statistiques et des données du rapport choisi ; aucun droit de saisie n’est nécessaire pour lire un rapport."
 depart: "Navigation → Statistiques"
 statut: "disponible"
 ---
@@ -46,3 +46,9 @@ Ces rapports ne constituent pas une validation réglementaire pour des dossiers 
 {{< captures-passerelles ids="statistiques.png" >}}
 
 Capture issue de la démonstration automatisée ; vérifier les libellés de la version utilisée.
+
+## Comparer des mesures de même portée
+
+Les **nuitées par lieu** comptent les affectations : une nuit sans lieu peut manquer de ce rapport, et deux affectations de séjours différents pour une même personne peuvent y compter deux fois. Leur total n’est donc pas automatiquement égal aux nuits distinctes par personne. Les admissions et sorties d’épisodes ne sont pas les débuts et fins de tous les fragments de continuité.
+
+Pour les âges, distinguer le rapport spécialisé **Âges**, qui utilise une référence commune affichée, des mesures **Nuitées majeurs / mineurs / âge inconnu** de l’explorateur, qui utilisent l’âge exact à chaque nuit. Une naissance imprécise ne devient pas un âge exact. Comparer uniquement des rapports utilisant la même unité, la même référence et les mêmes critères.

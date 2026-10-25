@@ -25,7 +25,7 @@ statut: "disponible"
 2. Indiquer la donnée corrigée et le motif. Lire les refus de cohérence avec les objets liés.
 3. Après confirmation, vérifier la consultation actuelle et l'historique : auteur, date d'enregistrement, motif et anciennes valeurs restent conservés.
 
-Pour un repas erroné, annuler la distribution puis enregistrer la bonne. Les documents émis disposent d'une annulation et d'un remplacement, distincts des corrections du calcul.
+Pour une quantité ou une catégorie de repas erronée, utiliser **Corriger la distribution** avec motif. Une erreur de date, de personne ou d’accord exige l’annulation puis une nouvelle saisie. Les documents émis disposent d'une annulation et d'un remplacement, distincts des corrections du calcul.
 
 Les dates d'effet et de saisie ne sont pas interchangeables. Une consultation à une date passée peut tenir compte d'une correction effectuée aujourd'hui.
 

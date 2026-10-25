@@ -14,7 +14,7 @@ statut: "disponible"
 2. Ouvrir l'accord pour **Enregistrer une distribution**, ou utiliser le lot du **Travail du jour**.
 3. Confirmer date, personne, service, catégorie déclarée et quantité réellement distribuée. Une prévision ne constitue pas une distribution.
 4. La proposition de catégorie à partir de l'âge est facultative : les seuils sont visibles, une naissance imprécise ne produit pas de catégorie, et le calcul n'enregistre rien.
-5. Pour une distribution erronée, l'annuler avec motif puis saisir la bonne distribution.
+5. Si seules la quantité ou la catégorie étaient fausses, ouvrir **Corriger la distribution** et renseigner un motif : l’avant/après reste consultable. Pour une mauvaise personne, date ou prestation, annuler la distribution erronée avec motif puis saisir la bonne.
 
 **À vérifier :** les jours non autorisés et réalisations futures sont refusés. Les catégories adulte/jeune/bas âge ne désignent pas la majorité juridique.
 
@@ -25,3 +25,9 @@ statut: "disponible"
 La proposition prépare des cases à vérifier ; elle ne crée ni accord ni distribution.
 
 [Ouvrir la fiche détaillée]({{< relref "/guide/prestations/petit-dejeuner/" >}}).
+
+## Comprendre une alerte ou un refus
+
+Un seul repas actif est enregistré pour un accord, une personne et une date. Un second envoi identique est refusé. Sous des accords différents, plusieurs distributions pour le même service peuvent être enregistrées : une alerte demande de vérifier le cumul, sans dédoublonnage automatique. Une quantité supérieure à un est aussi signalée.
+
+**Corriger les jours autorisés ou le prestataire** ne change ni les bénéficiaires ni le service de l’accord. Les nouveaux jours doivent encore autoriser toutes les distributions actives. Un accord de repas ayant déjà eu une distribution ne peut pas être annulé par l’action d’annulation de l’accord, même si cette distribution a ensuite été annulée. Ne pas confondre correction du fait et retrait de l’autorisation.

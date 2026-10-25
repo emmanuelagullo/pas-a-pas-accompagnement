@@ -12,7 +12,7 @@ statut: "disponible"
 
 1. Dans la création de la période de repas, ouvrir **Préparer les bénéficiaires du
 petit-déjeuner**. Choisir la règle : tous les bénéficiaires explicites, âge entre
-les seuils, ou âge et grossesse déclarée si les droits le permettent. La borne
+les seuils, ou âge entre les seuils **ou grossesse déclarée** si les droits le permettent. La borne
 basse d'âge est exclue et la borne haute incluse ; les valeurs proposées 2 et 12
 sont modifiables. Choisir la date de référence, ou conserver le début demandé.
 

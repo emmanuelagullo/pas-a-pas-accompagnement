@@ -58,3 +58,9 @@ sa mise en forme.
 {{< captures-passerelles ids="liaison.png" >}}
 
 Capture issue de la démonstration automatisée ; vérifier les libellés de la version utilisée.
+
+## Dater, retrouver ou retirer une contribution erronée
+
+La date déclarée du fait est facultative et non future ; elle diffère de l’horodatage de saisie. Dans la recherche de relève, un ancien texte sans date déclarée est classé à sa date de saisie, explicitement signalée. Une correction de contenu ou de date garde ses anciennes versions. Une contribution erronée s’annule avec motif et reste retrouvable en incluant les contributions annulées.
+
+Le cahier transversal ne remplace pas les notes de personne, de prise en charge, de séjour ou de prestation. Choisir la cible avant d’écrire et vérifier son accès : un droit sur les transmissions ne donne pas automatiquement accès aux notes d’un dossier.

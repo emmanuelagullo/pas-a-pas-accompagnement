@@ -19,3 +19,5 @@ statut: "disponible"
 **À vérifier :** il s'agit d'un remplacement, pas d'une fusion. Les comptes restaurés peuvent différer des comptes précédents. La PWA accepte au maximum 64 Mio, contenu décompressé compris ; les archives Petits Pas sont refusées.
 
 L'état précédent conservé par le parcours ne remplace pas une sauvegarde hors appareil. Ne pas restaurer pour simplement [changer d'espace d'essai]({{< relref "/guide/espaces-locaux/" >}}).
+
+Dans la PWA, la limite comprend aussi **5 000 fichiers**. La vérification du format et des empreintes ne suffit pas à prouver que vous avez choisi la bonne copie : contrôler l’espace et conserver sa sauvegarde avant confirmation. Les sessions de la copie restaurée sont neutralisées ; cette opération ne change pas le mot de passe de ses comptes.

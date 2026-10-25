@@ -19,3 +19,5 @@ statut: "disponible"
 **À vérifier :** prolonger n'a créé ni nouvelle prise en charge ni présence réelle. Une sortie d'hébergement et la clôture de la prise en charge restent différentes.
 
 **Essai :** Noor a plusieurs périodes ; Thomas illustre un accompagnement poursuivi après la fin du séjour.
+
+La prolongation exige une nouvelle date plus tardive et un motif ; elle ne prolonge pas automatiquement les accords de repas ou d’hébergement. Une prise en charge déjà close ne se prolonge pas et sa prévision ne se corrige plus dans ce parcours. La clôture refuse notamment les séjours encore ouverts et les faits réalisés qu’elle exclurait ; elle ne se substitue pas à leur sortie ou correction.

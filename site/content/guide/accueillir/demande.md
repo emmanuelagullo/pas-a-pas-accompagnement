@@ -18,3 +18,5 @@ statut: "disponible"
 **Résultat attendu :** la demande et ses décisions restent consultables. L'acceptation seule n'a créé ni arrivée ni distribution. Une liaison erronée peut être retirée avec motif sans supprimer la prise en charge.
 
 **Essai :** la demande d'Inès est acceptée mais sans prise en charge. Les demandes refusées du scénario ne doivent donner aucune prestation.
+
+L’ouverture liée exige une demande acceptée et les mêmes bénéficiaires que la prise en charge créée. L’ouverture et sa liaison sont confirmées ensemble ; une erreur refuse l’ensemble de cette opération. Un changement ultérieur de la décision ne doit pas contredire une admission déjà liée : lire le refus et corriger la liaison erronée dans son parcours propre.
