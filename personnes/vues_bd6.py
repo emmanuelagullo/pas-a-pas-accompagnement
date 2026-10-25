@@ -275,7 +275,7 @@ def social(request, pk, dimension=None, fait_pk=None):
             date = consultation.cleaned_data['date']
         return render(request, 'dossiers/social_personne.html', {'objet': personne, 'etat_social': bd6.etat(request.user, [personne], date),
             'anciens': SituationSociale.objects.filter(beneficiaire=personne).select_related('accompagnement') if request.user.has_perms([*dossier.DROITS, 'personnes.view_situationsociale']) else [],
-            'faits': faits, 'date_situation': date, 'consultation': consultation, 'dimensions': SituationSociale.DIMENSIONS,
+            'faits': faits, 'date_sociale': date, 'date_situation': date, 'consultation': consultation, 'dimensions': SituationSociale.DIMENSIONS,
             'revisions': personne.revisionsituationpersonnelle_set.select_related('auteur', 'situation'),
             'parametres_sociaux': {**params, **origine}, 'query_sociale': query_sociale, 'retour': retour_social})
     suivi.exiger(request.user, 'add_situationpersonnelle')

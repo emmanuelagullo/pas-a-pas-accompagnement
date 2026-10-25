@@ -153,7 +153,7 @@ def etat(acteur, personnes, date):
     from .models import RelationPersonnelle
     liens=list(RelationPersonnelle.objects.filter(Q(personne_a__in=personnes)|Q(personne_b__in=personnes),debut__lte=date,annule_le__isnull=True).filter(Q(fin__isnull=True)|Q(fin__gt=date)).select_related('personne_a','personne_b')) if acteur.has_perms(relations_personnelles.DROITS_LECTURE) else []
     communs = list(SituationPersonnelle.objects.filter(personne__in=personnes, debut__lte=date).filter(
-        Q(fin__isnull=True) | Q(fin__gt=date))) if acteur.has_perm('personnes.view_situationpersonnelle') else []
+        Q(fin__isnull=True) | Q(fin__gt=date))) if acteur.has_perms(['personnes.view_situationpersonnelle', 'personnes.view_revisionsituationpersonnelle']) else []
     anciens = list(SituationSociale.objects.filter(beneficiaire__in=personnes, debut__lte=date,
         accompagnement__debut__lte=date).filter(Q(fin__isnull=True) | Q(fin__gt=date)).filter(
         Q(accompagnement__fin__isnull=True) | Q(accompagnement__fin__gt=date)).select_related('accompagnement')) if acteur.has_perms(
@@ -165,19 +165,21 @@ def etat(acteur, personnes, date):
         lignes = []
         for dimension, libelle in SituationSociale.DIMENSIONS:
             fait = next((x for x in communs if x.personne_id == personne.pk and x.dimension == dimension), None)
-            temoins = [x for x in anciens if x.beneficiaire_id == personne.pk and x.dimension == dimension and (not fait or x.debut >= fait.debut)]
+            temoins = [x for x in anciens if x.beneficiaire_id == personne.pk and x.dimension == dimension]
             valeurs = {x.valeur for x in temoins}
             if fait:
                 valeurs.add(fait.valeur)
             conflit = len(valeurs) > 1
-            texte = 'Informations divergentes — à vérifier' if conflit else (fait.libelle_valeur if fait else temoins[0].libelle_valeur if temoins else 'Non renseigné')
+            # Une ancienne information n'est jamais promue en déclaration personnelle.
+            texte = fait.libelle_valeur if fait else 'Non renseigné'
             projection=next((d for d in dossier_a.get(personne.pk,[]) if dimension=='ressources' and d['code']=='ressources' and d.get('valeur_sociale')),None)
             ancienne_synthese=''
             if projection:
                 nouveau=dict(SituationSociale.VALEURS['ressources'])[projection['valeur_sociale']]
-                if (fait or temoins) and texte!=nouveau:ancienne_synthese=texte
+                if fait and texte!=nouveau:ancienne_synthese=texte
+                conflit = any(x.valeur != projection['valeur_sociale'] for x in temoins) or bool(ancienne_synthese)
                 texte=nouveau
-            lignes.append({'projection':projection,'ancienne_synthese':ancienne_synthese,'dimension': dimension, 'libelle': libelle, 'texte': texte, 'fait': fait,
+            lignes.append({'personne':personne,'projection':projection,'ancienne_synthese':ancienne_synthese,'dimension': dimension, 'libelle': libelle, 'texte': texte, 'fait': fait,
                            'anciens': temoins, 'conflit': conflit})
         resultat.append({'personne': personne, 'lignes': lignes, 'famille': declarations.get(personne.pk),
             'coordonnees': contacts.get(personne.pk), 'dossier_a':dossier_a.get(personne.pk,[]), 'identite_declaree':identites.get(personne.pk),
