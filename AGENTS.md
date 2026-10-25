@@ -412,3 +412,18 @@ ni une première entrée connue comme absolue. Les classes modernes ont une fin
 exclue et refusent les chevauchements. Tester personnes.tests_meta_e et les trois
 profils ; distinguer couverture fonctionnelle et audit sémantique exhaustif,
 qui ne se conclut pas par la seule existence d'un explorateur générique.
+
+
+F — consolidation : les documents joints sont opaques et versionnés, avec
+une seule cible immuable, CAS du parent et ordre ménage puis prise. Conserver
+les octets dans la transaction, contrôler taille/empreinte et télécharger en
+pièce jointe privée sans exécution. Une annulation n'efface rien. Les besoins
+d'accueil et antécédents réutilisent les faits personnels et journaux existants ;
+aucune date d'institution ou donnée médicale n'est déduite d'un récit.
+Les imports de modèles/propositions sont explicites : registres fermés, droits
+revalidés, aucune donnée de dossier, identité ou permission importée, propositions
+existantes inchangées et rollback intégral en cas d'erreur. Ne pas confondre
+catégorie de repas proposée et majorité légale, ni suggestion et réalisation.
+Pour les statistiques, réconcilier nuitées majeurs + mineurs + inconnus, conserver
+la même personne dans tous les axes et la prise exacte des missions ; bornes
+d'entrée/sortie distinctes du chevauchement. Tester personnes.tests_meta_f.

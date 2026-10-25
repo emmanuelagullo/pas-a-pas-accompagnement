@@ -30,7 +30,7 @@ def reference(modele,valeur):
 
 
 def navigation(request):
-    return {k:request.GET[k][:6000] for k in ('contexte_dossier','date_service','retour','personne','menage','debut','fin','q','motif_principal','type_appelant','lieu_appel','secondaire','reponse','etat_reponse','heure_min','heure_max','annules','page') if k in request.GET}
+    return {k:request.GET[k][:6000] for k in ('contexte_dossier','date_service','retour','personne','menage','debut','fin','q','motif_principal','type_appelant','lieu_appel','secondaire','reponse','etat_reponse','heure_min','heure_max','annules','page','retour_exploration') if k in request.GET}
 
 
 def url(appel,query=''):return reverse('dossiers:appel115',args=[appel.pk])+('?' + query if query else '')
@@ -54,7 +54,9 @@ def contexte(request,v=None):
     if request.GET.get('retour')=='jour':
         from .retour_service import url_jour
         retour=url_jour(request.GET.get('date_service'))
-    return ctx,q,ctx.get('retour_dossier') or retour
+    from .exploration_releve import retour_verifie
+    retour_rapport=retour_verifie(request.user,request.GET.get('retour_exploration'))
+    return ctx,q,retour_rapport or ctx.get('retour_dossier') or retour
 
 
 def visibles(acteur):

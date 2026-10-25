@@ -150,3 +150,10 @@ commune puis permet d’agir sur une personne ou une sélection, sans fausse
 nouvelle admission. Les lieux peuvent être organisés en établissement, chambre
 et place sans imposer cette hiérarchie. Les tarifs et documents émis numérotés
 seront complétés avec le financement. Les anciens essais restent inchangés.
+
+
+Dans un essai neuf de l'**Établissement Les Passerelles**, le dossier de Noor
+illustre aussi un document joint dont le titre a été corrigé, un besoin pratique
+d'accueil et un antécédent institutionnel sans dates inventées. Un brouillon
+annulé reste consultable dans le ménage de Samira. Nadia dispose d'un modèle
+de rapport comparant les nuitées totales et leur répartition par âge à chaque nuit.

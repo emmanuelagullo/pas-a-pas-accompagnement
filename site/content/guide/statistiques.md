@@ -80,3 +80,27 @@ et, pour Nadia, deux modèles personnels sur les demandes/réponses et horaires.
 Les autres comptes ne voient pas ses modèles privés. Aucun compteur ne permet
 de déduire une première admission absolue ou une sortie définitive à partir
 d'un historique incomplet.
+
+
+### Affiner et réutiliser un rapport
+
+Commencez par la population, la période, la référence et une mesure. La rubrique
+**Affiner** permet d'ajouter jusqu'à sept niveaux de classement et neuf mesures,
+ou des filtres et classes numériques. Les totaux sont recalculés ; n'additionnez
+pas les lignes lorsque les catégories peuvent se recouvrir. Les inconnus restent
+visibles, notamment pour les âges et déclarations familiales.
+
+Pour l'hébergement, distinguez épisodes de séjour et périodes de lieu. Les
+nuitées par âge sont évaluées à chaque nuit : un anniversaire peut changer la
+ventilation pendant le séjour. Autorisations, distributions et remises restent
+des populations distinctes. Une mission professionnelle se rapporte à la prise
+en charge concernée. La référence peut être commune ou suivre la date de chaque
+objet ; la référence choisie est conservée dans les paramètres du rapport.
+
+Les modèles personnels peuvent être exportés puis importés en JSON. Ils
+contiennent les paramètres, sans les résultats ni les dossiers. Les critères
+et droits sont revérifiés à l'import et lors de chaque calcul.
+
+Le relevé détaillé permet de choisir jusqu'à onze colonnes. Depuis une ligne,
+ouvrez le dossier puis revenez aux mêmes critères du rapport. Ce retour privé
+est valable une journée et reste propre au compte connecté.

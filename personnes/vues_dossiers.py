@@ -100,7 +100,7 @@ class NouveauMenageForm(FormulaireMetier):
 
 def parametres(request):
     return {'q': request.GET.get('q', '')[:160], 'mode': 'personne' if request.GET.get('mode') == 'personne' else 'menage',
-            'page': request.GET.get('page', '1')[:8]}
+            'page': request.GET.get('page', '1')[:8], 'retour_exploration':request.GET.get('retour_exploration','')[:20000]}
 
 
 @never_cache
@@ -278,6 +278,8 @@ def detail(request, nature, pk, prise_pk=None):
     interventions_courantes = interventions.presentation(request.user, prise, date_sociale) if prise and lecture_interventions else []
     from . import parcours
     demande_origine = prise.demande_accueil if prise and request.user.has_perms(parcours.droits('demandes')) and hasattr(prise,'demande_accueil') else None
+    from .exploration_releve import retour_verifie
+    retour_exploration=retour_verifie(request.user,params.get('retour_exploration'))
     commentaire_cible = prise or objet
     from . import contacts_menage
     contact_designe = contacts_menage.a_date([objet], jour).first() if nature == 'menage' and request.user.has_perms(contacts_menage.DROITS_LECTURE) else None
@@ -289,7 +291,7 @@ def detail(request, nature, pk, prise_pk=None):
         'retour_form2': reverse('dossiers:detail', args=[nature, pk]) + '?' + urlencode({**params, 'ecran': 'dossier'}),
         'evolutions': prise.evolutions_prevision.select_related('auteur') if prise and request.user.has_perm('personnes.view_evolutionpriseencharge') else [],
         'objet': objet, 'nature': nature, 'liens': liens, 'liens_uniques': liens_uniques.values(), 'contact_designe': contact_designe,
-        'navigation_personne': dossier.pour_personne(pk, params) if nature == 'personne' else {}, 'origine_url': origine_url, 'origine': origine, 'retour': retour, 'navigation_query': urlencode(params), 'recherche': params['q'], 'mode_recherche': params['mode'], 'page_recherche': params['page'], 'origine_sejour': params.get('origine_sejour', ''), 'origine_repas': params.get('origine_repas', ''),
+        'retour_exploration':retour_exploration,'navigation_personne': dossier.pour_personne(pk, params) if nature == 'personne' else {}, 'origine_url': origine_url, 'origine': origine, 'retour': retour, 'navigation_query': urlencode(params), 'recherche': params['q'], 'mode_recherche': params['mode'], 'page_recherche': params['page'], 'origine_sejour': params.get('origine_sejour', ''), 'origine_repas': params.get('origine_repas', ''),
         'periode_actuelle': actuelle, 'information_actuelle': informations_actuelles[0] if informations_actuelles else None,
         'notes_actuelles': notes_actuelles, 'periodes': periodes, 'aujourdhui': jour, 'lecture_hebergement': h, 'lecture_repas': r, 'lecture_lieux': lieux,
         'accords_annules_sans_sejour': [x for x in accords_h if x.annule_le], 'hebergements_prevus': prevus, 'selection_prevision': params['prevision'], 'sejours_dossier': sejours, 'accords_sans_sejour': accords_h, 'accords_repas': accords_r,

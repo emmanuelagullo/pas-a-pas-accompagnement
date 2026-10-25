@@ -76,3 +76,12 @@ une sélection. Les notes de chaque prestation gardent leur cible. Une **action 
 relève** peut être liée à une contribution ou un appel ; elle reste volontaire.
 Une action réalisée, une action erronée annulée et une action rouverte sont
 des états différents, avec leurs motifs et auteurs conservés.
+
+
+### Catégories de repas proposées
+
+Dans une distribution individuelle, **Proposer une catégorie de repas à vérifier**
+calcule une suggestion depuis l'âge exact au jour du repas. Les deux seuils
+sont visibles et modifiables. Une naissance imprécise ne produit aucune
+catégorie ; une catégorie de repas n'est pas une catégorie de majorité légale.
+Le calcul n'enregistre rien : vérifiez la proposition, puis enregistrez le fait.

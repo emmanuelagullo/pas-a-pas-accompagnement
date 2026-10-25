@@ -103,3 +103,16 @@ s'annule avec motif puis peut être remplacée ; l'ancien document reste accessi
 La réédition PDF ne reprend pas les coordonnées courantes. Le scénario fictif de
 l'**Établissement Les Passerelles** permet de tester ces corrections sur Samira,
 ainsi qu'un accueil de jour gratuit pour Noor. Il ne crée ni signature ni paiement.
+
+
+### Documents et renseignements déclarés
+
+Le lien **Documents joints** ouvre les pièces de la personne, du ménage ou de
+la prise en charge consultée. Vous pouvez télécharger une version, remplacer
+son fichier, corriger son titre ou annuler une association erronée ; les versions
+précédentes restent disponibles. La date du document peut rester inconnue.
+
+Dans la situation sociale, les besoins pratiques d'accueil et les antécédents
+institutionnels se renseignent avec leur source et leurs dates propres. Une
+époque approximative n'est pas transformée en date exacte. Les corrections
+restent distinctes des changements réels ; aucune prestation n'en découle.

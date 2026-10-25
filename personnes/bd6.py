@@ -62,7 +62,7 @@ def corriger_prevision(acteur, accompagnement, fin_prevue, motif, attendu):
         'corriger_prevision_accompagnement', 'view_evolutionpriseencharge')
     reserver(accompagnement, attendu)
     if accompagnement.fin:
-        raise ValidationError('Cette prise est close. Sa prévision historique ne peut plus être modifiée ici.')
+        raise ValidationError('Cette prise en charge est close. Sa prévision historique ne peut plus être modifiée ici.')
     if not motif.strip() or len(motif) > 240:
         raise ValidationError({'motif': 'Expliquez l’erreur de prévision (240 caractères maximum).'})
     if fin_prevue == accompagnement.fin_prevue:

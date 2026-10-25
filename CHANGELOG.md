@@ -1,3 +1,14 @@
+## À venir — méta-lot F : consolidation Solenne
+
+- Documents privés versionnés, corrections et annulations, copies atomiques.
+- Besoins pratiques d'accueil et antécédents institutionnels structurés et datés.
+- Nuitées par âge à chaque nuit, inconnus, déclarants distincts, sept axes et neuf mesures.
+- Autorisations et périodes de lieux distinctes des réalisations et admissions.
+- Références personnelles par objet, projets et orientations, missions de la prise exacte.
+- Modèles de rapports et propositions échangeables sans données métier ni droits.
+- Catégories de repas proposées sur demande avec seuils visibles, sans réalisation implicite.
+- Jeu neuf Établissement Les Passerelles enrichi, sans modification des anciens essais.
+
 ## À venir — méta-lot C : prestations et gestes quotidiens
 
 - Transports, bons/produits alimentaires et accueil de jour à unités explicites.

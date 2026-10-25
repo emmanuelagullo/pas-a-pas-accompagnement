@@ -3,7 +3,7 @@ from django.contrib.auth.models import Permission
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
-DROITS = {'view_complementidentite','add_complementidentite','change_complementidentite','view_revisioncomplementidentite',
+DROITS = {'view_piecedossier','add_piecedossier','change_piecedossier','annuler_piecedossier','view_versionpiecedossier','add_versionpiecedossier','view_complementidentite','add_complementidentite','change_complementidentite','view_revisioncomplementidentite',
     'view_relationpersonnelle','add_relationpersonnelle','change_relationpersonnelle','annuler_relationpersonnelle','view_revisionrelationpersonnelle','view_propositionsaisie', 'add_propositionsaisie', 'change_propositionsaisie', 'view_revisionpropositionsaisie', 'view_declarationfamiliale', 'add_declarationfamiliale', 'change_declarationfamiliale',
     'view_revisiondeclarationfamiliale', 'corriger_prevision_accompagnement', 'view_evolutionpriseencharge',
     'view_coordonneespersonnelles', 'add_coordonneespersonnelles', 'change_coordonneespersonnelles',
@@ -16,7 +16,7 @@ DROITS = {'view_complementidentite','add_complementidentite','change_complementi
 
 # Droits des schémas personnels concrets du méta-lot A.
 DROITS.update({'view_situationadministrative','add_situationadministrative','change_situationadministrative','view_revisionsituationadministrative'})
-for nom in ('ressourcepersonnelle','dettepersonnelle','pieceadministrative','couverturesociale','protectionjuridique'):
+for nom in ('antecedentinstitutionnel','besoinaccueil','ressourcepersonnelle','dettepersonnelle','pieceadministrative','couverturesociale','protectionjuridique'):
     DROITS.update({'view_'+nom,'add_'+nom,'change_'+nom,'annuler_'+nom,'view_revision'+nom})
 
 for racine, version, journal in (('demandeaccueil','versiondemande','revisiondemande'),('orientationparcours','versionorientation','revisionorientation'),('objectifparcours','versionobjectif','revisionobjectif'),('reperedossier','versionreperedossier','revisionreperedossier')):

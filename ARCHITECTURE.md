@@ -664,3 +664,30 @@ Les PDF textuels de restitution réutilisent les moteurs existants et refusent
 les ressources externes. La recette native accorde 120 s à chaque ouverture,
 migrations/scénario compris ; le lanceur journalise séparément ces deux phases
 uniquement en mode sans fenêtre. Aucun délai de fonctionnement n'est ajouté.
+
+
+### Consolidation F : documents et déclarations
+
+PieceDossier porte exactement une cible personne/ménage/prise en charge.
+VersionPieceDossier conserve titre, date du document nullable, provenance,
+nom, octets, taille et SHA-256. Les fichiers sont opaques, limités à 5 Mio,
+sans chemin fourni, aperçu HTML ou lancement externe. Un BinaryField permet
+une version atomique avec ses métadonnées, sans nouveau protocole de médias
+ou nettoyage de fichiers orphelins après rollback. Les octets ne sont chargés
+que pour la version téléchargée ; listes et historiques les différèrent.
+Le parent est réservé par le CAS BD existant ; pour une prise, le ménage
+précède cette réservation. Annulation distincte, versions conservées. Les
+droits restent volontaires et les téléchargements privés sans cache.
+
+BesoinAccueil et AntecedentInstitutionnel étendent FaitPersonnelDate et
+JournalPersonnel dans le registre fermé dossier_complet. Ce ne sont ni des
+attributs configurables, ni un diagnostic inféré. Les anciennes chaînes et
+notes ne sont pas analysées pour créer des déclarations. Les copies conservent
+les octets et journaux sans nouveau format. Aucun nouveau droit en migration.
+
+Le registre d'exploration reste fermé. Les situations longitudinales et les
+missions ne se déduisent pas d'une appartenance : bénéficiaires explicites
+pour les premières, prise exacte pour les secondes. Chaque niveau d'axe
+garde la carte de la même personne ; les totaux sont recalculés sur les UUID.
+La borne de 2 000 cellules porte sur toutes les mesures réunies. Les dates
+personnelles par objet sont regroupées par référence (366 références au plus).

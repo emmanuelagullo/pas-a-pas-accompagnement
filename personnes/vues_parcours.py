@@ -29,6 +29,7 @@ def code_valide(code):
 
 def navigation(request,objet,code):
     p={k:request.GET[k][:160] for k in ('q','mode','page','origine_menage','sejour','repas','date','contexte_prise','retour_nature','retour_pk') if k in request.GET}
+    if request.GET.get('retour_exploration'):p['retour_exploration']=request.GET['retour_exploration'][:20000]
     p.setdefault('retour_nature',objet._meta.model_name);p.setdefault('retour_pk',str(objet.pk))
     origine=objet
     if p['retour_nature'] in ('personne','menage'):
@@ -168,7 +169,9 @@ def element(request,code,pk):
             if ref:
                 fiche=(intervenants.a_date([ref.pk],jour) if isinstance(ref,m.Intervenant) else partenaires.a_date([ref.pk],jour)).first()
                 if fiche:contacts.append((label,fiche))
-    return render(request,'dossiers/parcours_document.html' if request.GET.get('edition')=='impression' else 'dossiers/parcours_element.html',{'objet':objet,'code':code,'rubrique':r,'x':x,'query':urlencode(params),'retour':base,
+    from .exploration_releve import retour_verifie
+    retour_rapport=retour_verifie(request.user,params.get('retour_exploration'))
+    return render(request,'dossiers/parcours_document.html' if request.GET.get('edition')=='impression' else 'dossiers/parcours_element.html',{'retour_rapport':retour_rapport,'objet':objet,'code':code,'rubrique':r,'x':x,'query':urlencode(params),'retour':base,
         'lecture_prises':request.user.has_perms(['personnes.view_accompagnement','personnes.view_menage']),
         'lecture_demande':request.user.has_perms(s.droits('demandes')),'journaux':journaux,'peut_modifier':request.user.has_perm('personnes.change_'+r.racine._meta.model_name),
         'peut_annuler':request.user.has_perm('personnes.annuler_'+r.racine._meta.model_name),

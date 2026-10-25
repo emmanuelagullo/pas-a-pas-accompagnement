@@ -884,7 +884,7 @@ class AffectationIntervenant(Periode):
     ROLES = [('referent', 'Référent professionnel'), ('orienteur', 'Service orienteur'),
         ('suivi_exterieur', 'Suivi social extérieur'), ('prescripteur', 'Prescripteur')]
     accompagnement = models.ForeignKey(Accompagnement, on_delete=models.PROTECT, related_name='interventions')
-    role = models.CharField('Rôle dans cette prise', max_length=30, choices=ROLES)
+    role = models.CharField('Rôle dans cette prise en charge', max_length=30, choices=ROLES)
     intervenant = models.ForeignKey(Intervenant, on_delete=models.PROTECT, null=True, blank=True)
     organisme = models.ForeignKey(Partenaire, on_delete=models.PROTECT, null=True, blank=True)
     source = models.CharField('Source de l’affectation', max_length=160)
@@ -1720,3 +1720,89 @@ class AnnulationContribution(models.Model):
 
 class RevisionActionRelais(JournalPersonnel):
     action_relais=models.ForeignKey(ActionRelais,on_delete=models.PROTECT,related_name='revisions')
+
+
+class PieceDossier(models.Model):
+    """Document externe privé : cible immuable, fichiers versionnés et annulation."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    personne = models.ForeignKey(Personne,on_delete=models.PROTECT,null=True,blank=True,related_name='pieces_dossier')
+    menage = models.ForeignKey(Menage,on_delete=models.PROTECT,null=True,blank=True,related_name='pieces_dossier')
+    accompagnement = models.ForeignKey(Accompagnement,on_delete=models.PROTECT,null=True,blank=True,related_name='pieces_dossier')
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT,related_name='+')
+    enregistre_le = models.DateTimeField(auto_now_add=True)
+    annule_le = models.DateTimeField(null=True,blank=True)
+    annule_par = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT,null=True,blank=True,related_name='+')
+    motif_annulation = models.CharField(max_length=240,blank=True)
+
+    class Meta:
+        permissions=[('annuler_piecedossier','Annuler une pièce jointe sans supprimer ses versions')]
+        constraints=[models.CheckConstraint(condition=(models.Q(personne__isnull=False,menage__isnull=True,accompagnement__isnull=True)|models.Q(personne__isnull=True,menage__isnull=False,accompagnement__isnull=True)|models.Q(personne__isnull=True,menage__isnull=True,accompagnement__isnull=False)),name='piece_dossier_cible_unique'),models.CheckConstraint(condition=(models.Q(annule_le__isnull=True,annule_par__isnull=True,motif_annulation='')|(models.Q(annule_le__isnull=False,annule_par__isnull=False)&~models.Q(motif_annulation=''))),name='piece_dossier_annulation_coherente')]
+
+    @property
+    def cible(self):
+        return self.personne or self.menage or self.accompagnement
+
+
+class VersionPieceDossier(models.Model):
+    piece = models.ForeignKey(PieceDossier,on_delete=models.PROTECT,related_name='versions')
+    version = models.PositiveIntegerField()
+    titre = models.CharField(max_length=160)
+    date_document = models.DateField(null=True,blank=True)
+    nom_fichier = models.CharField(max_length=180)
+    contenu = models.BinaryField(editable=False)
+    taille = models.PositiveIntegerField()
+    empreinte = models.CharField(max_length=64)
+    source = models.CharField(max_length=160)
+    motif = models.CharField(max_length=240,blank=True)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT)
+    enregistre_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering=['-version']
+        constraints=[models.UniqueConstraint(fields=['piece','version'],name='piece_dossier_version_unique'),models.CheckConstraint(condition=models.Q(taille__gt=0,taille__lte=5242880,version__gt=0),name='piece_dossier_fichier_borne')]
+
+
+class BesoinAccueil(FaitPersonnelDate):
+    categorie=models.CharField('Nature du besoin déclaré',max_length=20,choices=[('','Non renseignée'),('sante','Besoin lié à la santé'),('mobilite','Mobilité / accessibilité'),('alimentation','Alimentation adaptée'),('communication','Communication'),('animal','Accueil avec un animal'),('autre','Autre besoin pratique')],blank=True)
+    libelle=models.CharField('Besoin ou situation déclaré',max_length=160,blank=True)
+    adaptation=models.CharField('Adaptation pratique demandée (si connue)',max_length=500,blank=True)
+
+    def clean(self):
+        super().clean()
+        from django.core.exceptions import ValidationError
+        if self.etat=='detail' and (not self.categorie or not self.libelle.strip()):raise ValidationError({'libelle':'Précisez la nature et le besoin déclaré ; aucune conclusion médicale n’est déduite.'})
+        self.verifier_details(('categorie','libelle','adaptation'))
+
+    class Meta(FaitPersonnelDate.Meta):
+        abstract=False
+        permissions=[('annuler_besoinaccueil','Annuler un besoin d’accueil saisi par erreur')]
+
+
+class RevisionBesoinAccueil(JournalPersonnel):
+    fait=models.ForeignKey(BesoinAccueil,on_delete=models.PROTECT,related_name='revisions')
+
+
+class AntecedentInstitutionnel(FaitPersonnelDate):
+    libelle=models.CharField('Institution ou type de passage déclaré',max_length=160,blank=True)
+    organisme=models.ForeignKey(Partenaire,on_delete=models.PROTECT,null=True,blank=True)
+    periode_declaree=models.CharField('Période déclarée (si non datée précisément)',max_length=160,blank=True)
+    date_entree=models.DateField('Entrée connue dans cette institution',null=True,blank=True)
+    date_sortie=models.DateField('Sortie connue de cette institution',null=True,blank=True)
+    precision_dates=models.CharField('Précision des dates connues',max_length=10,blank=True,choices=[('','Dates non connues'),('exactes','Dates déclarées exactes'),('estimees','Dates déclarées estimées')])
+
+    def clean(self):
+        super().clean()
+        from django.core.exceptions import ValidationError
+        if self.etat=='detail' and not self.libelle.strip():raise ValidationError({'libelle':'Nommez le passage déclaré, sans déduire une institution depuis une situation actuelle.'})
+        self.verifier_details(('libelle','organisme_id','periode_declaree','date_entree','date_sortie','precision_dates'))
+        if bool(self.date_entree or self.date_sortie)!=bool(self.precision_dates):raise ValidationError({'precision_dates':'Une date connue doit être qualifiée ; une période approximative seule ne crée aucune date.'})
+        if self.date_entree and self.date_sortie and self.date_sortie<self.date_entree:raise ValidationError({'date_sortie':'La sortie ne peut pas précéder l’entrée.'})
+        if self.debut and any(d and d>self.debut for d in (self.date_entree,self.date_sortie)):raise ValidationError({'date_entree':'Un antécédent ne peut pas être postérieur à sa déclaration.'})
+
+    class Meta(FaitPersonnelDate.Meta):
+        abstract=False
+        permissions=[('annuler_antecedentinstitutionnel','Annuler un antécédent déclaré par erreur')]
+
+
+class RevisionAntecedentInstitutionnel(JournalPersonnel):
+    fait=models.ForeignKey(AntecedentInstitutionnel,on_delete=models.PROTECT,related_name='revisions')

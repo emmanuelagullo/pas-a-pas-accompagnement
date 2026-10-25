@@ -314,9 +314,10 @@ comptables à rattacher à l'exercice ni des règlements. Les totaux sont sépar
 par devise. Les quantités d'unités hétérogènes ne sont pas additionnées. Un coût
 n'est pas répété pour chacun de ses financeurs. Versions historiques et documents
 figés restent consultables dans la prestation. Les CSV protègent les cellules
-textuelles des formules. Le montant ancien `prix_total`, tronqué aux entiers dans
-FormStats.java:1600, est modernisé par un total décimal ; pas de conversion FRF/EUR
-à partir de la seule date.
+textuelles des formules. Les montants sont calculés en décimal, sans conversion FRF/EUR
+à partir de la seule date. La lecture F distingue les anomalies anciennes de
+classement numérique et de cumul des nombres entiers/décimaux, sans attribuer
+une troncature uniforme à tous les montants historiques.
 
 ## Exploration transversale et appels 115 — E
 
@@ -360,3 +361,64 @@ CHRS. La qualification de toutes les combinaisons du moteur Java reste à
 terminer ; l'existence de cet explorateur ne constitue pas une preuve de
 reproduction exhaustive de chacune d'elles. Les listes 115 absentes et leurs
 libellés d'usage réels restent explicitement non vérifiés.
+
+
+## Consolidation F — contrat des calculs
+
+Les quinze populations distinguent personnes, ménages, prises, demandes,
+épisodes de séjour, autorisations d'hébergement/repas, périodes de lieu,
+distributions de repas, remises d'aides, appels, ressources, dettes, coûts et
+imputations. Une autorisation ne crée aucune réalisation. Une période de lieu
+ne crée aucune admission ; sa quantité est bornée à la sélection et au séjour.
+
+Les sept niveaux et neuf mesures sont facultatifs, bornés à 2 000 cellules
+au total, avec refus explicite plutôt que troncature. Les axes personnels
+portent sur la même personne. Les situations/objectifs/orientations sont ceux
+des bénéficiaires à la référence (toutes leurs prises, sans inférer une mission).
+Les axes mission portent exclusivement sur la prise ou prestation comptée.
+Les libellés de répertoire peuvent refléter une correction : ce ne sont pas
+des documents figés. Les champs de texte narratif ne deviennent pas des axes.
+
+Référence commune, date de fait/début ou date de saisie initiale sont proposées
+explicitement. Au plus 366 dates personnelles distinctes dans un calcul ;
+si un même déclarant possède des valeurs différentes selon ces dates, une
+somme familiale distincte est refusée plutôt que remplacée par un maximum.
+Les déclinaisons d'âge peuvent se chevaucher entre dates : totaux non additifs.
+
+Nuitées par âge : âge exact à chaque nuit civile, majeur à partir de 18 ans,
+naissance du 29 février évaluée au 1er mars dans une année non bissextile.
+Une date inconnue, estimée ou postérieure à la nuit contribue à la catégorie
+inconnue. Majeurs + mineurs + inconnus réconcilient le total de nuitées du
+périmètre choisi ; les absences ne sont pas déduites. Les quantités par âge
+respectent les bénéficiaires filtrés ; les quantités collectives d'autres
+prestations ne sont jamais réparties artificiellement.
+
+Les personnes distinctes majeures/mineures/inconnues à la référence ne sont
+pas les catégories déclarées des repas. Celles-ci restent libres et explicites :
+le classement « adulte/jeune/bas âge » ne signifie pas majorité légale. Une
+proposition de saisie facultative montre ses seuils inclusifs (12 et 2 par défaut),
+n'infère rien d'une naissance imprécise et doit être confirmée avant écriture.
+Les repas bas âge sont inclus dans le total moderne, contrairement au calcul
+ancien FormStats.calculeNbreRepas qui ne les ajoutait pas.
+
+Déclarations familiales : une valeur par déclarant distinct à la référence,
+inconnus exclus et dénombrés, zéro conservé. Les nombres d'enfants déclarés par
+plusieurs personnes peuvent décrire les mêmes enfants : ils ne sont pas un
+effectif de ménage ou un compte de personnes uniques. Une somme totale connue
+à charge ou non exige que les deux composantes soient connues. La grossesse
+déclarée est un décompte de déclarants, jamais une valeur déplacée vers un
+autre compteur comme dans les positions 17–20 historiques.
+
+Débuts et fins sont filtrables séparément du chevauchement ; une fin exactement
+au début de sélection est une sortie de cette sélection. La fin exclue du
+rapport n'y appartient pas. L'intégralité des épisodes exige qu'ils soient clos ;
+les durées civiles complètes, leurs intersections et les personnes-nuitées
+restent des mesures différentes. Les copies/requêtes enregistrées ne fabriquent
+ni dates, ni personnes, ni faits. La recette F des 21 destinations est une
+comparaison des définitions modernes, pas l'exécution de l'ancien logiciel.
+
+Le relevé détaillé offre jusqu'à onze colonnes choisies, avec les mêmes filtres
+que la synthèse, le CSV et le PDF. Les liens vers un dossier conservent les
+critères du rapport dans un retour signé propre au compte, valable 24 heures ;
+aucune URL de retour arbitraire n'est acceptée. Les valeurs personnelles
+affichées restent celles des bénéficiaires retenus par les filtres.

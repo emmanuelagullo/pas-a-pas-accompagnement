@@ -192,3 +192,5 @@ main:has(.bd-dossier) { max-width: 76rem; }
 .tableau-defilant { max-width: 100%; overflow-x: auto; }
 .tableau-defilant table { border-collapse: collapse; width: 100%; }
 .tableau-defilant th, .tableau-defilant td { padding: .5rem .7rem; text-align: left; border-bottom: 1px solid #cadbd3; overflow-wrap: anywhere; }
+
+.champ-saisie { margin-block: 1rem; }

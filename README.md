@@ -1365,3 +1365,37 @@ migration. Le jeu neuf Établissement Les Passerelles ajoute quinze appels,
 identifications/corrections, relais et modèles privés ; populations et anciennes
 prestations restent conservées. Les comptes de lecture limités ont des accès
 transversaux adaptés à leurs droits. Ces fonctions n'interconnectent aucun SI-SIAO.
+
+
+## Consolidation Solenne F
+
+Le dossier donne accès aux documents externes privés de la personne, du ménage
+ou de la prise en charge. Chaque fichier (5 Mio maximum) conserve ses versions,
+provenance, auteur, date déclarée facultative et empreinte. Une correction de
+métadonnées peut conserver le fichier ; une annulation n'efface aucune version.
+Le téléchargement reste soumis aux droits métier, sans aperçu ni exécution.
+Les octets sont conservés dans la base pour que copie et versions forment une
+transaction unique dans les profils serveur, bureau et PWA. Les plafonds de
+stockage et de copies existants restent applicables.
+
+Les besoins pratiques d'accueil déclarés et les antécédents institutionnels
+sont des données personnelles structurées, datées et sourcées : états inconnu,
+absence déclarée et détail restent distincts. Les dates d'institution ne sont
+jamais déduites d'une époque approximative ; les anciens textes sont conservés.
+Ces rubriques réutilisent les déclarations, corrections, annulations et exports
+existants, avec leurs droits propres, attribués volontairement.
+
+L'exploration propose jusqu'à sept axes et neuf mesures, ajoutés à la demande
+dans une seule rubrique avancée : nuitées par âge à chaque nuit, déclarants
+distincts, inconnus, autorisations séparées des faits et périodes de lieux.
+Situations, objectifs et orientations des bénéficiaires sont lus à la référence
+choisie ; les missions professionnelles restent attachées à la prise exacte.
+Les modèles et propositions de saisie s'échangent explicitement en JSON : aucun
+dossier ni droit importé, paramètres de rapports revalidés, propositions déjà
+présentes conservées sans écrasement. Une proposition de catégorie de repas
+calculée avec des seuils visibles ne réalise aucun repas et ne fixe aucun tarif.
+
+Recettes : `python3 manage.py test personnes.tests_meta_f`,
+`python3 scripts/qualifier-solenne-profils.py`, puis suite générale.
+La matrice de couverture demeure hors dépôt ; elle distingue code contrôlé,
+lecture statique Java, sources externes manquantes et vérification visuelle.

@@ -1,0 +1,1 @@
+{% extends 'base.html' %}{% load saisie %}{% block contenu %}<p><a href="{% url 'dossiers:explorer' %}">← Revenir à l’exploration</a></p><h1>Importer un modèle personnel de rapport</h1><form method="post" enctype="multipart/form-data">{% csrf_token %}{% adapter_saisie form request.user %}{{ form.as_p }}<button>Importer les paramètres, sans résultats</button></form>{% endblock %}

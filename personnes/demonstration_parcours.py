@@ -68,5 +68,5 @@ def completer(acteur, personnes, suivis, jour, organismes, professionnels):
     s.annuler(acteur,'objectifs',err,'Confusion d’homonymes fictifs ; objectif à ressaisir sur le bon dossier',bd6.jeton(err))
     for nom in ('Samira','Thomas','Gabriel'):
         p=personnes[nom];e=creer('suivi',p,[p],j(-40))
-        changer('suivi',e,j(-10),etat='veille' if nom=='Thomas' else 'termine',raison='Évolution du suivi fictive ; les prises et prestations ne changent pas')
+        changer('suivi',e,j(-10),etat='veille' if nom=='Thomas' else 'termine',raison='Évolution du suivi fictive ; les prises en charge et prestations ne changent pas')
         if nom=='Thomas':changer('suivi',e,j(-1),etat='actif',raison='Reprise de contact fictive')

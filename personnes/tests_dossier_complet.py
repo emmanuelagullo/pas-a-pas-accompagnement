@@ -16,7 +16,8 @@ def valeurs(code,**kw):
     r=s.RUBRIQUES[code]
     d={c:r.modele._meta.get_field(c).get_default() for c in r.champs}
     d.update(etat='detail')
-    d.update({'ressources':dict(libelle='Salaire fictif',montant=Decimal('800.50'),periodicite='mensuelle'),
+    d.update({'antecedents':dict(libelle='Passage institutionnel fictif de recette'), 'besoins':dict(categorie='mobilite',libelle='Besoin fictif'),
+        'ressources':dict(libelle='Salaire fictif',montant=Decimal('800.50'),periodicite='mensuelle'),
         'dettes':dict(creancier='Créancier fictif',montant=Decimal('1000.25')),
         'pieces':dict(type_document='Pièce fictive',reference='DOC-FICTIF'),
         'couvertures':dict(libelle='Couverture fictive',regime='Régime fictif'),

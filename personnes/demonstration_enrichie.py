@@ -70,6 +70,8 @@ def completer(nadia, remi, camille, personnes, suivis, jour):
     completer_d(nadia, personnes, suivis, jour, orgs, profs)
     from .demonstration_e import completer as completer_e
     completer_e(nadia, personnes, suivis, jour, orgs, profs)
+    from .demonstration_f import enrichir as completer_f
+    completer_f(nadia, personnes, suivis, jour)
 
 
 def population_elargie(nadia, personnes, suivis, jour, profs, source):
@@ -120,7 +122,7 @@ def population_elargie(nadia, personnes, suivis, jour, profs, source):
 
 
 def parcours_repetes(nadia, remi, camille, suivis, jour):
-    """Quatre ou cinq prises par dossier, avec plusieurs prestations chacune."""
+    """Quatre ou cinq prises en charge par dossier, avec plusieurs prestations chacune."""
     from . import informations_suivi
     def j(delta):return jour+timedelta(days=delta)
     lieu=m.LieuHebergement.objects.filter(libelle__contains='unité A').get()

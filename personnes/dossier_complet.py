@@ -1,6 +1,6 @@
 """Données personnelles typées du dossier : aucun accord ni droit implicite.
 
-Le registre fixe décrit cinq schémas Django concrets partageant le même cycle
+Le registre fixe décrit sept schémas Django concrets partageant le même cycle
 de déclaration. Il ne permet ni attributs configurables ni nouveaux types en base.
 """
 from collections import namedtuple
@@ -18,6 +18,8 @@ RUBRIQUES={
  'pieces':Rubrique(m.PieceAdministrative,m.RevisionPieceAdministrative,'Pièces présentées',('etat','type_document','reference','date_presentation','echeance_prevue'),'type_document','droits'),
  'couvertures':Rubrique(m.CouvertureSociale,m.RevisionCouvertureSociale,'Couvertures sociales',('etat','libelle','regime','organisme','identifiant','interlocuteur','echeance_prevue'),'libelle','droits'),
  'protections':Rubrique(m.ProtectionJuridique,m.RevisionProtectionJuridique,'Protections juridiques déclarées',('etat','mesure','domaine','precision_portee','reference_decision','date_decision','echeance_prevue','representant_personne','representant_intervenant','organisme','interlocuteur'),'mesure','droits')}
+RUBRIQUES['besoins']=Rubrique(m.BesoinAccueil,m.RevisionBesoinAccueil,'Besoins pratiques d’accueil déclarés',('etat','categorie','libelle','adaptation'),'libelle','droits')
+RUBRIQUES['antecedents']=Rubrique(m.AntecedentInstitutionnel,m.RevisionAntecedentInstitutionnel,'Antécédents institutionnels déclarés',('etat','libelle','organisme','periode_declaree','date_entree','date_sortie','precision_dates'),'libelle','histoire')
 ADMIN_CHAMPS=('numero_ss','numero_caf','qualification','droit_sejour','echeance_sejour','sans_emploi_duree_declaree','sans_domicile_duree_declaree','sans_emploi_depuis','precision_sans_emploi','sans_domicile_depuis','precision_sans_domicile')
 ADMIN_LECTURE=('personnes.view_personne','personnes.view_situationadministrative','personnes.view_revisionsituationadministrative')
 
@@ -68,6 +70,8 @@ def _memes_postes(code,voisins,x):
     if code=='ressources':clés=('libelle','organisme','devise','periodicite')
     elif code=='dettes':clés=('nature','devise') if x.nature=='total' else ('nature','creancier','organisme','reference','devise')
     elif code=='pieces':clés=('type_document','reference')
+    elif code=='antecedents':clés=('libelle','organisme','periode_declaree','date_entree','date_sortie')
+    elif code=='besoins':clés=('categorie','libelle')
     elif code=='couvertures':clés=('libelle','regime','organisme','identifiant')
     else:clés=('mesure','domaine','reference_decision','representant_personne','representant_intervenant','organisme')
     for c in clés:
@@ -159,7 +163,7 @@ def totaux(code,lignes):
 
 
 def syntheses(acteur,personnes,jour):
-    """Six lectures groupées au plus ; aucune donnée d'une autre rubrique sans droit."""
+    """Lectures groupées par rubrique ; aucune donnée d'une autre rubrique sans droit."""
     personnes=list(personnes);resultat={p.pk:[] for p in personnes}
     if acteur.has_perms(ADMIN_LECTURE):
         admins={x.personne_id:x for x in administration_a_date(personnes,jour)}
@@ -184,5 +188,5 @@ def syntheses(acteur,personnes,jour):
                 elif code=='couvertures':texte=' ; '.join(x.libelle for x in xs)
             resultat[p.pk].append({'code':code,'titre':r.titre,'groupe':r.groupe,'texte':texte,'valeur_sociale':({'aucun':'sans_ressources','inconnu':'inconnu','detail':'ressources_declarees'}[xs[0].etat] if code=='ressources' and xs else None),
                 'sources':' ; '.join(dict.fromkeys(x.source for x in xs))})
-    for v in resultat.values():v.sort(key=lambda d:{"economique":0,"droits":1}[d["groupe"]])
+    for v in resultat.values():v.sort(key=lambda d:{"economique":0,"droits":1,"histoire":2}[d["groupe"]])
     return resultat

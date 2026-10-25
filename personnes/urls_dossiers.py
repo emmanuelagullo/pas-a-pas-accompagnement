@@ -24,7 +24,11 @@ from . import vues_relations_personnelles as relations
 from . import vues_dossier_complet as complet
 
 app_name = 'dossiers'
+from . import vues_pieces_dossier as pieces
+
 urlpatterns = [
+    path('pieces/<str:nature>/<uuid:pk>/',pieces.pieces,name='pieces'),
+    path('pieces/fichier/<int:pk>/',pieces.telecharger,name='piece_telecharger'),
     path('appels115/',appels115.journal,name='appels115'),
     path('appels115/nouveau/',appels115.saisir,name='appel115_nouveau'),
     path('appels115/<uuid:pk>/',appels115.fiche,name='appel115'),
@@ -33,6 +37,8 @@ urlpatterns = [
     path('appels115/<uuid:pk>/annuler/',appels115.action,{'action':'annuler'},name='appel115_annuler'),
     path('appels115/<uuid:pk>/liens/<int:lien_pk>/annuler/',appels115.action,{'action':'delier'},name='appel115_delier'),
     path('appels115/<uuid:pk>/pdf/',appels115.pdf,name='appel115_pdf'),
+    path('explorer/modeles/importer/',exploration.echanger_modele,name='explorer_importer_modele'),
+    path('explorer/modeles/<int:pk>/exporter/',exploration.echanger_modele,name='explorer_exporter_modele'),
     path('explorer/',exploration.explorer,name='explorer'),
     path('explorer/modeles/<int:pk>/supprimer/',exploration.supprimer_modele,name='explorer_supprimer_modele'),
     path('releve/recherche/',releve.recherche,name='releve_recherche'),
@@ -98,6 +104,7 @@ urlpatterns = [
     path('personnes/<uuid:pk>/relations/<int:fait_pk>/annuler/',relations.histoire,{'action':'annuler'},name='relation_annuler'),
 
     path('recherche-intervenants/', vues_recherche_intervenants.rechercher, name='recherche_intervenants'),
+    path('propositions/echanger/',propositions.echanger,name='propositions_echanger'),
     path('propositions/', propositions.liste, name='propositions'),
     path('propositions/nouvelle/', propositions.liste, {'action':'nouvelle'}, name='proposition_nouvelle'),
     path('propositions/<int:pk>/modifier/', propositions.liste, {'action':'modifier'}, name='proposition_modifier'),

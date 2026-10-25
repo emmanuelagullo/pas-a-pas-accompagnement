@@ -25,8 +25,15 @@ class AppelsRechercheForm(FormulaireMetier):
 
 
 class ExplorationForm(FormulaireMetier):
+    mouvement=forms.ChoiceField(label='Retenir',required=False,choices=[('chevauche','Tous les objets chevauchant la période'),('entrees','Seulement les débuts dans la période'),('sorties','Seulement les fins dans la période'),('entrees_sorties','Début et fin dans la période')],help_text='Les fins sont effectives pour les prises en charge et séjours, autorisées pour les accords. Aucune sortie de personne n’est déduite.')
+    portion=forms.ChoiceField(label='Nuitées des épisodes retenus',required=False,choices=[('selection','Seulement dans la période'),('integrale','Intégralité des épisodes clos')],help_text='L’intégralité peut dépasser la période. Les absences ne sont pas déduites ; aucun repas réalisé n’est déduit d’un accord.')
+    niveaux=forms.IntegerField(min_value=2,max_value=7,required=False,initial=2,widget=forms.HiddenInput)
+    affichage=forms.ChoiceField(label='Afficher',required=False,choices=[('synthese','Tableau de synthèse'),('detail','Lignes détaillées des objets retenus')])
+    nombre_colonnes=forms.IntegerField(min_value=0,max_value=11,required=False,initial=0,widget=forms.HiddenInput)
+    nombre_mesures=forms.IntegerField(min_value=1,max_value=9,required=False,initial=1,widget=forms.HiddenInput)
     population=forms.ChoiceField(choices=e.POPULATIONS)
     debut=date_champ('Période — début inclus');fin=date_champ('Période — fin exclue')
+    reference_mode=forms.ChoiceField(label='Lire les situations personnelles',required=False,choices=[('commune','À la référence commune'),('fait','À la date du fait ou du début de chaque objet'),('saisie','À la date de saisie initiale de chaque objet')],help_text='Les âges et situations peuvent varier pour une même personne ; les ventilations ne sont alors pas additives. Les dernières corrections restent prises en compte, sans inventer un instantané ancien.')
     reference=date_champ('Situation personnelle et âge à la date de référence')
     periode=forms.ChoiceField(label='Période relative facultative',choices=[('','Dates fixes'),('mois','Mois en cours'),('mois_precedent','Mois précédent'),('annee','Année en cours'),('annee_precedente','Année précédente'),('douze_mois','Douze derniers mois')],required=False,
         help_text='Recalculée à chaque ouverture du modèle ; la référence devient le dernier jour inclus.')
@@ -44,9 +51,24 @@ class ExplorationForm(FormulaireMetier):
     classes_croisement=forms.CharField(label='Classes numériques du croisement (facultatives)',required=False,max_length=3000,widget=forms.Textarea(attrs={'rows':3}),help_text='Même convention : minimum inclus, maximum exclu ; inconnus et hors classes conservés.')
     def __init__(self,*args,acteur,**kw):
         super().__init__(*args,**kw);dims=list(e.disponibles(acteur).items())
+        self.fields['mesure'].choices=[*self.fields['mesure'].choices,*e.mesures.CHOIX]
         self.fields['axe'].choices=dims
         for c in ('croisement','filtre1','filtre2'):self.fields[c].choices=[('','Aucun'),*dims]
         import copy
+        data=args[0] if args and args[0] else kw.get('initial',{})
+        try:niveaux=int(data.get('niveaux') or 2)
+        except (ValueError,TypeError):niveaux=2
+        for i in range(3,min(niveaux,7)+1):
+            self.fields['axe'+str(i)]=forms.ChoiceField(label='Niveau de classement '+str(i),choices=[('','Aucun'),*dims],required=False)
+            self.fields['classes'+str(i)]=copy.deepcopy(self.fields['classes'])
+            self.fields['classes'+str(i)].label='Classes du niveau '+str(i)+' (facultatives)'
+        try:colonnes=int(data.get('nombre_colonnes') or 0)
+        except (ValueError,TypeError):colonnes=0
+        for i in range(1,min(colonnes,11)+1):self.fields['colonne'+str(i)]=forms.ChoiceField(label='Colonne du relevé détaillé '+str(i),choices=[('','Aucune'),*dims],required=False)
+        try:nombre=int(data.get('nombre_mesures') or 1)
+        except (ValueError,TypeError):nombre=1
+        for i in range(2,min(nombre,9)+1):
+            self.fields['mesure'+str(i)]=forms.ChoiceField(label='Mesure supplémentaire '+str(i),choices=[('','Aucune'),*self.fields['mesure'].choices],required=False)
         try:n=int((args[0] if args and args[0] else kw.get('initial',{})).get('filtres') or 2)
         except (ValueError,TypeError):n=2
         for i in range(3,min(n,20)+1):
@@ -71,6 +93,6 @@ class ExplorationForm(FormulaireMetier):
                 except forms.ValidationError as exc:self.add_error('valeur'+str(i),exc)
 
         try:
-            e.classes(d.get('classes',''));e.classes(d.get('classes_croisement',''))
+            for c in ('classes','classes_croisement',*('classes'+str(i) for i in range(3,8))):e.classes(d.get(c,''))
         except forms.ValidationError as exc:self.add_error('classes',exc)
         return d

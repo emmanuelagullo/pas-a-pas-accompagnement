@@ -120,3 +120,16 @@ def accorder_services(acteur, accompagnement, beneficiaires, debut, fin, service
         raise ValidationError('Sélectionnez des services distincts parmi ceux proposés.')
     beneficiaires = list(beneficiaires)
     return [accorder(acteur, a, beneficiaires, debut, fin, service, prestataire, jours_semaine) for service in services]
+
+
+def proposer_categorie(personne,date,age_jeune=12,age_bas_age=2):
+    """Suggestion facultative : catégories de repas, sans décision tarifaire.
+
+    Les seuils historiques 12/2 sont affichés et modifiables par l'utilisateur.
+    Une naissance inconnue/estimée ou postérieure au fait ne produit rien.
+    """
+    if not (0<=age_bas_age<=age_jeune<=120):raise ValidationError('Les seuils doivent vérifier 0 ≤ bas âge ≤ jeune ≤ 120.')
+    if personne.precision_naissance!='exacte' or not personne.date_naissance or personne.date_naissance>date:return None
+    naissance=personne.date_naissance
+    age=date.year-naissance.year-((date.month,date.day)<(naissance.month,naissance.day))
+    return 'adulte' if age>age_jeune else 'jeune' if age>age_bas_age else 'bas âge'

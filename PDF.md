@@ -65,3 +65,13 @@ recalculés et les unités. Même rendu de contenu en HTML/texte natif ou PWA, s
 réseau, privé no-store ; caractères non représentables refusés sans diagnostic.
 Les tests PDF PWA se déclarent ignorés si la dépendance facultative fpdf2 manque,
 sans réduire le contrat des profils où elle est installée.
+
+
+### Documents joints et rapports F
+
+Un document joint est un fichier externe opaque : téléchargement privé des
+octets d'une version, empreinte contrôlée, sans conversion en PDF ni exécution.
+Il est distinct d'une restitution et d'un document financier émis. Les rapports
+d'exploration peuvent afficher jusqu'à sept niveaux et neuf mesures, avec
+paramètres de période/référence et totaux recalculés. Les exports JSON de
+modèles contiennent les paramètres, jamais des résultats figés.

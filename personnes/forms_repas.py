@@ -21,7 +21,15 @@ class AccordForm(FormulaireModeleMetier):
 
 
 class DistributionForm(FormulaireMetier):
-    categorie_declaree = forms.CharField(label="Catégorie déclarée (facultative)", max_length=80,required=False,help_text="Par exemple adulte, jeune ou bas âge ; aucune catégorie tarifaire n’est déduite de la naissance.")
+    age_jeune=forms.IntegerField(label='Âge maximal de la catégorie jeune (inclus)',min_value=0,max_value=120,required=False,initial=12)
+    age_bas_age=forms.IntegerField(label='Âge maximal de la catégorie bas âge (inclus)',min_value=0,max_value=120,required=False,initial=2)
+    aide_categorie=True
+
+    @property
+    def champs_sans_aide(self):
+        return [f for f in self if f.name not in ('age_jeune','age_bas_age')]
+
+    categorie_declaree = forms.CharField(label="Catégorie déclarée (facultative)", max_length=80,required=False,help_text="Par exemple adulte, jeune ou bas âge ; Une proposition facultative peut être calculée ci-dessous ; elle doit être vérifiée avant d’enregistrer et ne fixe aucun tarif.")
     beneficiaire = forms.ModelChoiceField(Personne.objects.none())
     date = forms.DateField(widget=forms.DateInput(format="%Y-%m-%d", attrs=DATE))
     quantite = forms.IntegerField(label="Nombre de repas distribués", min_value=1, max_value=32767, initial=1,

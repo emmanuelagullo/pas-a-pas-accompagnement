@@ -68,7 +68,21 @@ class ProtectionForm(FaitForm):
             'precision_portee':'Précisions connues sur les actes ou limites de la mesure, sans données inventées.'}
 
 
-FORMULAIRES={'ressources':RessourceForm,'dettes':DetteForm,'pieces':PieceForm,'couvertures':CouvertureForm,'protections':ProtectionForm}
+class BesoinAccueilForm(FaitForm):
+    class Meta:
+        model=m.BesoinAccueil
+        fields=['debut','fin',*service.RUBRIQUES['besoins'].champs,'source']
+        help_texts={'libelle':'Renseignement déclaré utile à l’accueil. Aucun diagnostic ou besoin n’est déduit d’une couverture sociale, de la grossesse ou de l’âge.', 'adaptation':'Demande pratique déclarée, distincte d’une prestation accordée ou réalisée.'}
+
+
+class AntecedentForm(FaitForm):
+    class Meta:
+        model=m.AntecedentInstitutionnel
+        fields=['debut','fin',*service.RUBRIQUES['antecedents'].champs,'source']
+        help_texts={'debut':'Date à laquelle ce renseignement est déclaré applicable, distincte de la date d’entrée dans l’institution.', 'periode_declaree':'Conservez une durée ou époque déclarée sans inventer de date au 1er janvier.'}
+
+
+FORMULAIRES={'antecedents':AntecedentForm,'besoins':BesoinAccueilForm,'ressources':RessourceForm,'dettes':DetteForm,'pieces':PieceForm,'couvertures':CouvertureForm,'protections':ProtectionForm}
 
 
 class AdministrationForm(FormulaireModeleMetier):

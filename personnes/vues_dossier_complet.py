@@ -116,7 +116,7 @@ def bloc(acteur,code,p,jour,query):
 @login_required
 @permission_required('personnes.view_personne',raise_exception=True)
 def fiche(request,pk,groupe):
-    if groupe not in ('economique','droits'):raise Http404
+    if groupe not in ('economique','droits','histoire'):raise Http404
     p=get_object_or_404(m.Personne,pk=pk);jour,retour,query,base,params=navigation(request,p,groupe)
     consultation=ConsultationForm(request.GET if 'date' in request.GET else None,initial={'date':jour})
     if consultation.is_bound and consultation.is_valid():jour=consultation.cleaned_data['date']

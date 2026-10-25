@@ -47,7 +47,23 @@ def distribuer(request, pk):
     form = DistributionForm(request.POST or None, accord=accord,
         initial={"date": accord.debut if accord.fin and timezone.localdate() >= accord.fin else max(accord.debut, timezone.localdate()),
                  "beneficiaire": accord.beneficiaires.first() if accord.beneficiaires.count() == 1 else None})
+    if request.method=='POST' and request.POST.get('action')=='proposer_categorie':
+        from django.core.exceptions import ValidationError
+        form.full_clean()
+        if all(c in form.cleaned_data for c in ('beneficiaire','date','age_jeune','age_bas_age')):
+            try:
+                d=form.cleaned_data
+                proposition=repas.proposer_categorie(d['beneficiaire'],d['date'],d['age_jeune'] if d['age_jeune'] is not None else 12,d['age_bas_age'] if d['age_bas_age'] is not None else 2)
+                if proposition:
+                    data=request.POST.copy();data['categorie_declaree']=proposition
+                    form=DistributionForm(data,accord=accord)
+                    form.message_proposition='Catégorie proposée : '+proposition+'. Vérifiez-la puis enregistrez. Aucun repas n’a été enregistré.'
+                else:form.message_proposition='Âge exact non disponible à cette date : aucune catégorie proposée. Aucune distribution enregistrée.'
+            except ValidationError as erreur:form.add_error('age_bas_age',erreur)
+        navigation=dossier.lire(request,accord.accompagnement)
+        return render(request,'suivi/form.html',{**navigation,'form':form,'titre':'Enregistrer des repas distribués','accompagnement_cible':accord.accompagnement,'menage':accord.accompagnement.menage,'retour':navigation.get('retour_dossier') or reverse('suivi:accord_repas',args=[accord.pk])})
     def enregistrer(**donnees):
+        donnees.pop('age_jeune',None);donnees.pop('age_bas_age',None)
         realise = repas.distribuer(request.user, accord, **donnees)
         return realise
     return traiter(request, form, "Enregistrer des repas distribués", enregistrer, accord.accompagnement.menage, accompagnement=accord.accompagnement, retour=reverse("suivi:accord_repas", args=[accord.pk]))

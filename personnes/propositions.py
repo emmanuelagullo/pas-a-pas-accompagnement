@@ -45,3 +45,29 @@ def _enregistrer(acteur, champ, valeur, active, motif, *, objet, attendu):
     objet.save()
     RevisionPropositionSaisie.objects.create(proposition=objet,avant=avant,apres=photo(objet),motif=motif.strip(),auteur=acteur)
     return objet
+
+
+@transaction.atomic
+def importer(acteur,contenu,motif):
+    """Ajouts explicites en bloc ; aucune proposition existante n'est réécrite."""
+    import json
+    suivi.exiger(acteur,'view_propositionsaisie','view_revisionpropositionsaisie','add_propositionsaisie')
+    if len(contenu)>1048576:raise ValidationError('Le fichier de propositions dépasse 1 Mio.')
+    try:d=json.loads(contenu)
+    except (ValueError,UnicodeError):raise ValidationError('Choisissez un fichier JSON de propositions de saisie.')
+    if not isinstance(d,dict) or d.get('schema')!=1 or d.get('application')!='pas-a-pas-accompagnement' or d.get('type')!='propositions-saisie':raise ValidationError('Format, application ou version de propositions non pris en charge.')
+    lignes=d.get('propositions')
+    if not isinstance(lignes,list) or len(lignes)>1000:raise ValidationError('Au plus 1 000 propositions par fichier.')
+    nouveaux=existants=0
+    for ligne in lignes:
+        if not isinstance(ligne,dict) or set(ligne)!={'champ','valeur','active'} or not isinstance(ligne['champ'],str) or not isinstance(ligne['valeur'],str) or type(ligne['active']) is not bool:raise ValidationError('Une proposition doit contenir champ, valeur textuelle et active booléen, sans identifiant importé.')
+        champ,valeur,active=ligne['champ'],ligne['valeur'].strip(),ligne['active']
+        if PropositionSaisie.objects.filter(champ=champ,valeur=valeur).exists():existants+=1;continue
+        enregistrer(acteur,champ,valeur,active,motif);nouveaux+=1
+    return nouveaux,existants
+
+
+def exporter(acteur):
+    import json
+    suivi.exiger(acteur,'view_propositionsaisie','view_revisionpropositionsaisie')
+    return json.dumps(dict(schema=1,application='pas-a-pas-accompagnement',type='propositions-saisie',propositions=[photo(x) for x in PropositionSaisie.objects.all()]),ensure_ascii=False,indent=2).encode()

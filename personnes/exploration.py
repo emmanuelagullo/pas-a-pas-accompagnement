@@ -7,10 +7,13 @@ from django.core.exceptions import ValidationError,PermissionDenied
 from django.db.models import Q
 from django.utils import timezone
 from . import models as m,suivi,dossier_complet as dc
+from . import mesures_exploration as mesures
+from . import parcours
 
 INCONNU='Non renseigné'
-POPULATIONS=[('personnes','Personnes enregistrées — situation à la référence'),('menages','Ménages enregistrés — membres à la référence'),('prises','Prises en charge chevauchant la période'),('demandes','Demandes — dernière version chevauchant la période'),('sejours','Épisodes de séjour chevauchant la période'),('repas','Distributions effectives de repas'),('aides','Remises effectives des autres prestations'),('appels','Appels 115'),('ressources','Ressources déclarées applicables à la référence'),('dettes','Dettes déclarées applicables à la référence'),('couts','Composantes de coût — dernières versions'),('imputations','Imputations — dernières versions')]
-BASE={'complement115':'Information complémentaire 115 déclarée','date_saisie':'Date de saisie de l’objet','date_version':'Date de saisie de la version affichée','appelant':'Appelant déclaré / répertoire','auteur':'Auteur de saisie initiale','auteur_version':'Auteur de la dernière version','quantite':'Quantité / montant porté par l’objet','phase':'Phase de calcul financier','financeur':'Financeur explicite','budget':'Budget / dispositif','prescripteur':'Prescripteur financier','signataire':'Signataire désigné','total':'Ensemble','mois':'Mois du fait / début','jour':'Jour du fait / début','heure':'Heure d’appel','type':'Type / service / activité déclarée','etat':'État déclaré','motif':'Motif principal / demande','secondaire':'Demandes secondaires 115','reponse':'Réponses 115','origine':'Lieu / origine déclaré','orientation':'Orientation déclarée','unite':'Unité de quantité','duree':'Durée de l’épisode clos (jours)','age':'Âge exact à la référence','precision_naissance':'Précision de naissance','entree_connue':'Première entrée connue / retour connu','adultes_declares':'Adultes déclarés par appel','enfants_declares':'Enfants déclarés par appel','grossesses_declarees':'Grossesses déclarées par appel'}
+POPULATIONS=[('personnes','Personnes enregistrées — situation à la référence'),('menages','Ménages enregistrés — membres à la référence'),('prises','Prises en charge chevauchant la période'),('demandes','Demandes — dernière version chevauchant la période'),('sejours','Épisodes de séjour chevauchant la période'),('accords_hebergement','Autorisations d’hébergement — sans réalisation déduite'),('accords_repas','Autorisations de repas — sans distribution déduite'),('affectations','Périodes de lieu d’hébergement — sans nouvelle admission'),('repas','Distributions effectives de repas'),('aides','Remises effectives des autres prestations'),('appels','Appels 115'),('ressources','Ressources déclarées applicables à la référence'),('dettes','Dettes déclarées applicables à la référence'),('couts','Composantes de coût — dernières versions'),('imputations','Imputations — dernières versions')]
+MISSIONS={'role':'Rôle professionnel dans la prise en charge','professionnel':'Intervenant choisi dans cette prise en charge','organisme':'Organisme choisi dans cette prise en charge'}
+BASE={'personne':'Bénéficiaire connu — nom et identifiant','lieu':'Lieu d’hébergement de la période','duree_selection':'Durée civile d’intersection avec la période (jours)','date_fin':'Fin effective ou autorisée de l’objet (exclue)','jour_semaine':'Jour de la semaine du fait / début','complement115':'Information complémentaire 115 déclarée','date_saisie':'Date de saisie de l’objet','date_version':'Date de saisie de la version affichée','appelant':'Appelant déclaré / répertoire','auteur':'Auteur de saisie initiale','auteur_version':'Auteur de la dernière version','quantite':'Quantité / montant porté par l’objet','phase':'Phase de calcul financier','financeur':'Financeur explicite','budget':'Budget / dispositif','prescripteur':'Prescripteur financier','signataire':'Signataire désigné','total':'Ensemble','mois':'Mois du fait / début','jour':'Jour du fait / début','heure':'Heure d’appel','type':'Type / service / activité déclarée','etat':'État déclaré','motif':'Motif principal / demande','secondaire':'Demandes secondaires 115','reponse':'Réponses 115','origine':'Lieu / origine déclaré','orientation':'Orientation déclarée','unite':'Unité de quantité','duree':'Durée de l’épisode clos (jours)','age':'Âge exact à la référence','precision_naissance':'Précision de naissance','entree_connue':'Première entrée connue / retour connu','adultes_declares':'Adultes déclarés par appel','enfants_declares':'Enfants déclarés par appel','grossesses_declarees':'Grossesses déclarées par appel'}
 # Schémas déjà livrés ; les numéros administratifs et textes libres ne sont pas des axes.
 GROUPES={
  'identite':(m.ComplementIdentite,('sexe_declare','naissance_lieu','naissance_ville','naissance_pays','nationalites','apatridie_declaree'),('view_complementidentite','view_revisioncomplementidentite')),
@@ -18,14 +21,28 @@ GROUPES={
  'administration':(m.SituationAdministrative,tuple(c for c in dc.ADMIN_CHAMPS if c not in ('numero_ss','numero_caf')),('view_situationadministrative','view_revisionsituationadministrative')),
  'coordonnees':(m.CoordonneesPersonnelles,('ville','pays','code_postal'),('view_coordonneespersonnelles','view_revisioncoordonneespersonnelles'))}
 for code,r in dc.RUBRIQUES.items():
-    champs=tuple(c for c in r.champs if c not in ('reference','identifiant','reference_decision','precision_portee','representant_personne','representant_intervenant','interlocuteur'))
+    champs=tuple(c for c in r.champs if c not in ('adaptation','reference','identifiant','reference_decision','precision_portee','representant_personne','representant_intervenant','interlocuteur'))
     GROUPES[code]=(r.modele,champs,tuple(p.removeprefix('personnes.') for p in dc.droits_lecture(code)))
-DIMENSIONS={**BASE,**{g+'.'+c:g.replace('_',' ').capitalize()+' — '+str(model._meta.get_field(c).verbose_name) for g,(model,cs,ps) in GROUPES.items() for c in cs},**{'social.'+c:label+' (histoire personnelle)' for c,label in m.SituationSociale.DIMENSIONS}}
+PARCOURS={
+ 'demande':('demandes',('etat','groupe_demande','motif_demande','motif_decision','demandeur','demandeur_professionnel','demandeur_organisme','prescripteur','organisme_orienteur','provenance','dernier_hebergement_type','dernier_hebergement_lieu','dernier_hebergement_duree','activite')),
+ 'orientation':('orientations',('etat','destination','type_destination','organisme','interlocuteur','motif_orientation')),
+ 'objectif':('objectifs',('etat','theme','titre','horizon','echeance')),
+ 'suivi_dossier':('suivi',('etat',)),
+}
+DIMENSIONS={**{'mission.'+c:label for c,label in MISSIONS.items()},**{g+'.'+c:parcours.RUBRIQUES[code].titre+' — '+str(parcours.RUBRIQUES[code].version._meta.get_field(c).verbose_name) for g,(code,champs) in PARCOURS.items() for c in champs},**BASE,**{g+'.'+c:g.replace('_',' ').capitalize()+' — '+str(model._meta.get_field(c).verbose_name) for g,(model,cs,ps) in GROUPES.items() for c in cs},**{'social.'+c:label+' (histoire personnelle)' for c,label in m.SituationSociale.DIMENSIONS}}
 
 
 def disponibles(acteur):
     suivi.exiger(acteur,'view_personne')
-    return {k:v for k,v in DIMENSIONS.items() if '.' not in k or acteur.has_perms(['personnes.'+p for p in (('view_situationpersonnelle',) if k.startswith('social.') else GROUPES[k.split('.')[0]][2])])}
+    def autorise(k):
+        if '.' not in k:return True
+        g=k.split('.')[0]
+        if g=='mission':droits=['personnes.'+p for p in ('view_menage','view_accompagnement','view_affectationintervenant','view_revisionaffectationintervenant','view_intervenant','view_ficheintervenant','view_partenaire','view_fichepartenaire')]
+        elif g=='social':droits=['personnes.view_situationpersonnelle']
+        elif g in PARCOURS:droits=parcours.droits(PARCOURS[g][0])
+        else:droits=['personnes.'+p for p in GROUPES[g][2]]
+        return acteur.has_perms(droits)
+    return {k:v for k,v in DIMENSIONS.items() if autorise(k)}
 
 
 def categorie_valeur(objet,champ,valeur):
@@ -53,8 +70,8 @@ def selection_appels(acteur,d,personne=None,menage=None):
     return sorted(lignes,key=lambda x:(x['version'].date,x['version'].heure.isoformat() if x['version'].heure else '',str(x['appel'].pk)),reverse=True)
 
 
-def ligne(pk,date,ps,menages,*,saisie=None,version_saisie=None,**valeurs):
-    return dict(id=str(pk),date=date,personnes={p.pk for p in ps},menages=set(menages),valeurs={'total':['Ensemble'],'mois':[date.strftime('%Y-%m')],'jour':[date.isoformat()],'date_saisie':[timezone.localdate(saisie).isoformat()] if saisie else [],'date_version':[timezone.localdate(version_saisie).isoformat()] if version_saisie else [],**valeurs},quantite=Decimal('0'),unite='sans quantité additive')
+def ligne(pk,date,ps,menages,*,saisie=None,version_saisie=None,prise=None,**valeurs):
+    return dict(id=str(pk),date=date,prise=prise,personnes={p.pk for p in ps},menages=set(menages),valeurs={'total':['Ensemble'],'jour_semaine':[['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'][date.weekday()]],'mois':[date.strftime('%Y-%m')],'jour':[date.isoformat()],'date_saisie':[timezone.localdate(saisie).isoformat()] if saisie else [],'date_version':[timezone.localdate(version_saisie).isoformat()] if version_saisie else [],**valeurs},quantite=Decimal('0'),unite='sans quantité additive')
 
 
 def population(acteur,d):
@@ -72,15 +89,20 @@ def population(acteur,d):
             lignes.append(ligne(menage.pk,ref,ps,[menage.pk],saisie=menage.cree_le))
     elif code=='prises':
         suivi.exiger(acteur,'view_accompagnement')
-        for a in m.Accompagnement.objects.filter(debut__lt=fin).filter(Q(fin__isnull=True)|Q(fin__gt=debut)).prefetch_related('beneficiaires','informations'):
+        for a in m.Accompagnement.objects.filter(debut__lt=fin).filter(Q(fin__isnull=True)|Q(**{('fin__gte' if d.get('mouvement')=='sorties' else 'fin__gt'):debut})).prefetch_related('beneficiaires','informations'):
             info=a.informations.first();ps=list(a.beneficiaires.all())
-            x=ligne(a.pk,a.debut,ps,[a.menage_id],saisie=a.cree_le,version_saisie=info.enregistre_le if info else None,etat=['Close' if a.fin else 'Ouverte'],type=[info.get_activite_display() if info else INCONNU],origine=[info.provenance if info else INCONNU],orientation=[info.orientation_sortie if info else INCONNU],motif=[info.motif_entree if info else INCONNU]);lignes.append(x)
+            x=ligne(a.pk,a.debut,ps,[a.menage_id],prise=a.pk,saisie=a.cree_le,version_saisie=info.enregistre_le if info else None,date_fin=[a.fin.isoformat()] if a.fin else [],etat=['Close' if a.fin else 'Ouverte'],type=[info.get_activite_display() if info else INCONNU],origine=[info.provenance if info else INCONNU],orientation=[info.orientation_sortie if info else INCONNU],motif=[info.motif_entree if info else INCONNU]);lignes.append(x)
     elif code=='demandes':
         from .parcours import exiger
         exiger(acteur,'demandes')
         for a in m.DemandeAccueil.objects.filter(annule_le__isnull=True).prefetch_related('beneficiaires','versions'):
             v=a.versions.first()
             if v and v.debut<fin and (v.fin is None or v.fin>debut):lignes.append(ligne(a.pk,v.debut,a.beneficiaires.all(),[a.menage_id] if a.menage_id else [],saisie=a.cree_le,version_saisie=v.enregistre_le,etat=[v.get_etat_display()],motif=[v.motif_demande],origine=[v.provenance]))
+    elif code in ('accords_hebergement','accords_repas'):
+        model=m.AccordHebergement if code=='accords_hebergement' else m.AccordRepas
+        suivi.exiger(acteur,'view_accompagnement','view_'+model._meta.model_name)
+        for a in model.objects.filter(annule_le__isnull=True,debut__lt=fin).filter(Q(fin__isnull=True)|Q(**{('fin__gte' if d.get('mouvement')=='sorties' else 'fin__gt'):debut})).select_related('accompagnement').prefetch_related('beneficiaires'):
+            lignes.append(ligne(a.pk,a.debut,a.beneficiaires.all(),[a.accompagnement.menage_id],prise=a.accompagnement_id,saisie=a.cree_le,date_fin=[a.fin.isoformat()] if a.fin else [],type=[a.get_service_display()] if code=='accords_repas' else ['Hébergement'],origine=[a.prestataire] if code=='accords_repas' else [],etat=['Autorisé'],duree=[(a.fin-a.debut).days] if a.fin else []))
     elif code=='sejours':
         suivi.exiger(acteur,'view_accompagnement','view_accordhebergement','view_sejour')
         from .continuite_hebergement import episodes
@@ -88,20 +110,36 @@ def population(acteur,d):
         for a in m.Sejour.objects.filter(origine_collective__isnull=True).prefetch_related('beneficiaires'):
             for p in a.beneficiaires.all():premieres[p.pk]=min(premieres.get(p.pk,a.debut),a.debut)
         for a,f in episodes():
-            if a.debut>=fin or f and f<=debut:continue
-            ps=list(a.beneficiaires.all());x=ligne(a.pk,a.debut,ps,[a.accord.accompagnement.menage_id],saisie=a.cree_le,etat=['Clos' if f else 'En cours'],duree=[(f-a.debut).days] if f else [],entree_connue=list({'Première entrée connue' if premieres[p.pk]==a.debut else 'Retour connu' for p in ps}))
+            if a.debut>=fin or f and (f<debut if d.get('mouvement')=='sorties' else f<=debut):continue
+            mouvement=d.get('mouvement')
+            if mouvement in ('sorties','entrees_sorties') and (f is None or not debut<=f<fin):continue
+            if mouvement in ('entrees','entrees_sorties') and not debut<=a.debut<fin:continue
+            ps=list(a.beneficiaires.all());x=ligne(a.pk,a.debut,ps,[a.accord.accompagnement.menage_id],prise=a.accord.accompagnement_id,saisie=a.cree_le,date_fin=[f.isoformat()] if f else [],etat=['Clos' if f else 'En cours'],duree=[(f-a.debut).days] if f else [],duree_selection=[max(0,(min(f or fin,fin)-max(a.debut,debut)).days)],entree_connue=list({'Première entrée connue' if premieres[p.pk]==a.debut else 'Retour connu' for p in ps}))
             x['_entrees']={p.pk:['Première entrée connue' if premieres[p.pk]==a.debut else 'Retour connu'] for p in ps}
-            fragments=[a,*a.continuations.all()];x['quantite']=sum((Decimal(max(0,(min(s.fin or fin,fin)-max(s.debut,debut)).days)*s.beneficiaires.count()) for s in fragments),Decimal('0'));x['unite']='personne-nuit de séjour (absences non déduites)';lignes.append(x)
+            fragments=[a,*a.continuations.all()]
+            if d.get('portion')=='integrale' and f is None:raise ValidationError('La durée intégrale exige des épisodes clos. Choisissez la partie dans la période pour les séjours en cours.')
+            x['_fragments']=[(max(s.debut,debut) if d.get('portion')!='integrale' else s.debut,min(s.fin or fin,fin) if d.get('portion')!='integrale' else s.fin,{p.pk for p in s.beneficiaires.all()}) for s in fragments if (d.get('portion')=='integrale' or s.debut<fin and (s.fin is None or s.fin>debut))]
+            x['quantite']=sum((Decimal(max(0,(f-d).days)*len(ps)) for d,f,ps in x['_fragments']),Decimal('0'));x['unite']='personne-nuit de séjour (absences non déduites)';lignes.append(x)
+    elif code=='affectations':
+        suivi.exiger(acteur,'view_accompagnement','view_accordhebergement','view_sejour','view_affectation','view_lieuhebergement')
+        if d.get('portion')=='integrale':raise ValidationError('Pour les périodes de lieu, les nuitées sont bornées à la sélection. Choisissez les épisodes clos pour une durée intégrale.')
+        qs=m.Affectation.objects.filter(debut__lt=fin).filter(Q(fin__isnull=True)|Q(fin__gt=debut)).select_related('lieu','sejour__accord__accompagnement').prefetch_related('sejour__beneficiaires')
+        for a in qs:
+            s=a.sejour;d1=max(debut,a.debut,s.debut);f1=min(fin,a.fin or fin,s.fin or fin)
+            if d1>=f1:continue
+            ps=list(s.beneficiaires.all())
+            x=ligne(a.pk,a.debut,ps,[s.accord.accompagnement.menage_id],prise=s.accord.accompagnement_id,lieu=[str(a.lieu)],date_fin=[a.fin.isoformat()] if a.fin else [],duree=[(a.fin-a.debut).days] if a.fin else [],duree_selection=[(f1-d1).days])
+            x['_fragments']=[(d1,f1,{p.pk for p in ps})];x['quantite']=Decimal((f1-d1).days*len(ps));x['unite']='personne-nuit affectée à un lieu (absences non déduites)';lignes.append(x)
     elif code=='repas':
         from .repas import droit
         droit(acteur,'view_repasdistribue')
         for r in m.RepasDistribue.objects.filter(annule_le__isnull=True,date__gte=debut,date__lt=fin).select_related('accord__accompagnement','beneficiaire'):
-            x=ligne(r.pk,r.date,[r.beneficiaire],[r.accord.accompagnement.menage_id],saisie=r.cree_le,type=[r.accord.get_service_display()],etat=[r.categorie_declaree],origine=[r.accord.prestataire]);x.update(quantite=Decimal(r.quantite),unite='repas');lignes.append(x)
+            x=ligne(r.pk,r.date,[r.beneficiaire],[r.accord.accompagnement.menage_id],prise=r.accord.accompagnement_id,saisie=r.cree_le,type=[r.accord.get_service_display()],etat=[r.categorie_declaree],origine=[r.accord.prestataire]);x.update(quantite=Decimal(r.quantite),unite='repas');lignes.append(x)
     elif code=='aides':
         from .aides import droit
         droit(acteur)
         for r in m.RemiseAide.objects.filter(annule_le__isnull=True,accord__annule_le__isnull=True,date__gte=debut,date__lt=fin).select_related('accord__accompagnement').prefetch_related('beneficiaires'):
-            x=ligne(r.pk,r.date,r.beneficiaires.all(),[r.accord.accompagnement.menage_id],saisie=r.enregistre_le,type=[r.accord.libelle],etat=[r.accord.get_nature_display()]);x.update(quantite=r.quantite,unite=r.accord.unite);lignes.append(x)
+            x=ligne(r.pk,r.date,r.beneficiaires.all(),[r.accord.accompagnement.menage_id],prise=r.accord.accompagnement_id,saisie=r.enregistre_le,type=[r.accord.libelle],etat=[r.accord.get_nature_display()]);x.update(quantite=r.quantite,unite=r.accord.unite);lignes.append(x)
     elif code in ('ressources','dettes'):
         dc.exiger_lecture(acteur,code)
         for r in dc.a_date(code,m.Personne.objects.all(),ref).select_related('personne'):
@@ -123,12 +161,21 @@ def population(acteur,d):
             if code=='couts':sources=v.lignes.filter(date__gte=debut,date__lt=fin)
             else:sources=v.imputations.all() if v.debut<fin and (v.fin is None or v.fin>debut) else []
             for c in sources:
-                x=ligne(c.pk,c.date if code=='couts' else v.debut,ps,[a.accompagnement.menage_id],saisie=v.enregistre_le,version_saisie=v.enregistre_le,phase=[c.get_phase_display()],type=[c.libelle if code=='couts' else {'hebergement':'Hébergement','repas':'Repas','aide':'Autre prestation'}[v.financement.nature]],etat=[c.categorie] if code=='couts' else [],prescripteur=[str(v.prescripteur or '')],signataire=[str(v.signataire or '')],financeur=[str(c.financeur)] if code=='imputations' else [],budget=[c.budget] if code=='imputations' else [])
+                x=ligne(c.pk,c.date if code=='couts' else v.debut,ps,[a.accompagnement.menage_id],prise=a.accompagnement_id,saisie=v.enregistre_le,version_saisie=v.enregistre_le,phase=[c.get_phase_display()],type=[c.libelle if code=='couts' else {'hebergement':'Hébergement','repas':'Repas','aide':'Autre prestation'}[v.financement.nature]],etat=[c.categorie] if code=='couts' else [],prescripteur=[str(v.prescripteur or '')],signataire=[str(v.signataire or '')],financeur=[str(c.financeur)] if code=='imputations' else [],budget=[c.budget] if code=='imputations' else [])
                 x.update(quantite=c.montant,unite=v.devise+' / '+c.phase);lignes.append(x)
     elif code=='appels':
         for r in selection_appels(acteur,{**d,'annules':False}):
             a,v=r['appel'],r['version'];lignes.append(ligne(a.pk,v.date,v.beneficiaires.all(),[v.menage_id] if v.menage_id else [],saisie=a.enregistre_le,version_saisie=v.enregistre_le,appelant=[str(v.appelant_personne or v.appelant_intervenant or v.appelant_organisme or v.appelant_libre)],auteur=[str(a.auteur)],auteur_version=[str(v.auteur)],complement115=[v.information_complementaire],heure=[v.heure.hour] if v.heure else [],type=[v.get_type_appelant_display()],etat=[v.get_etat_reponse_display()],motif=[v.motif_principal],secondaire=v.demandes_secondaires,reponse=v.reponses,origine=[v.lieu_appel],orientation=[str(v.orientation or v.orientation_declaree)],**{c:[getattr(v,c)] if getattr(v,c) is not None else [] for c in ('adultes_declares','enfants_declares','grossesses_declarees')}))
     if len(lignes)>10000:raise ValidationError('Plus de 10 000 objets dans cette sélection : réduisez la période ou choisissez les rapports métier spécialisés. Aucun résultat tronqué n’est affiché.')
+    mouvement=d.get('mouvement') or 'chevauche'
+    if mouvement!='chevauche':
+        if code not in ('prises','sejours','accords_hebergement','accords_repas'):raise ValidationError('Le filtre entrées/sorties concerne les prises en charge, épisodes de séjour ou autorisations. Un appel reste un événement.')
+        def retenue(x):
+            entree=debut<=x['date']<fin
+            fins=x['valeurs'].get('date_fin',[])
+            sortie=bool(fins and debut.isoformat()<=fins[0]<fin.isoformat())
+            return entree if mouvement=='entrees' else sortie if mouvement=='sorties' else entree and sortie
+        lignes=[x for x in lignes if retenue(x)]
     for x in lignes:
         x['valeurs']['unite']=[x['unite']]
         x['valeurs']['quantite']=[x['quantite']] if x['quantite'] is not None else []
@@ -141,12 +188,36 @@ def enrichir(acteur,lignes,cles,ref):
     ids={p for l in lignes for p in l['personnes']};personnes={p.pk:p for p in m.Personne.objects.filter(pk__in=ids)}
     cartes=defaultdict(lambda:defaultdict(list))
     for p in personnes.values():
+        cartes[p.pk]['personne']=[str(p)+' · '+str(p.pk)]
         cartes[p.pk]['precision_naissance']=[p.get_precision_naissance_display() or INCONNU]
         cartes[p.pk]['age']=[]
         if p.precision_naissance=='exacte' and p.date_naissance and p.date_naissance<=ref:
             cartes[p.pk]['age']=[ref.year-p.date_naissance.year-((ref.month,ref.day)<(p.date_naissance.month,p.date_naissance.day))]
     groupes={c.split('.')[0] for c in cles if '.' in c}
     for g in groupes:
+        if g=='mission':
+            prises={x['prise'] for x in lignes if x['prise'] is not None};missions=defaultdict(lambda:defaultdict(list))
+            qs=m.AffectationIntervenant.objects.filter(accompagnement_id__in=prises,annule_le__isnull=True,debut__lte=ref).filter(Q(fin__isnull=True)|Q(fin__gt=ref)).select_related('intervenant','organisme')
+            for v in qs:
+                for c,texte in [('role',v.get_role_display()),('professionnel',str(v.intervenant) if v.intervenant_id else ''),('organisme',str(v.organisme) if v.organisme_id else '')]:
+                    if texte:missions[v.accompagnement_id]['mission.'+c].append(texte)
+            for x in lignes:
+                for c in MISSIONS:x['valeurs']['mission.'+c]=missions[x['prise']]['mission.'+c]
+            continue
+        if g in PARCOURS:
+            code,champs=PARCOURS[g];parcours.exiger(acteur,code)
+            r=parcours.RUBRIQUES[code]
+            qs=r.version.objects.filter(element__annule_le__isnull=True,element__beneficiaires__pk__in=ids,debut__lte=ref).filter(Q(fin__isnull=True)|Q(fin__gt=ref)).distinct()
+            if not acteur.has_perm('personnes.view_menage'):qs=qs.filter(element__menage__isnull=True)
+            if any(f.name=='accompagnement' for f in r.racine._meta.fields) and not acteur.has_perm('personnes.view_accompagnement'):qs=qs.filter(element__accompagnement__isnull=True)
+            qs=qs.select_related(*[f.name for f in r.version._meta.fields if f.is_relation]).prefetch_related('element__beneficiaires')
+            for v in qs:
+                for p in v.element.beneficiaires.all():
+                    if p.pk not in ids:continue
+                    for c in champs:
+                        valeur=getattr(v,c)
+                        if valeur is not None and valeur!='':cartes[p.pk][g+'.'+c].append(categorie_valeur(v,c,valeur))
+            continue
         if g=='social':
             for x in m.SituationPersonnelle.objects.filter(personne_id__in=ids,debut__lte=ref).filter(Q(fin__isnull=True)|Q(fin__gt=ref)):
                 cartes[x.personne_id]['social.'+x.dimension].append(x.valeur)
@@ -159,13 +230,14 @@ def enrichir(acteur,lignes,cles,ref):
                 valeur=getattr(x,c);valeurs=valeur if isinstance(valeur,list) else [valeur]
                 cartes[x.personne_id][g+'.'+c].extend(categorie_valeur(x,c,v) for v in valeurs if v not in (None,''))
     for x in lignes:
+        x['_libelles_personnes']={p:str(personnes[p]) for p in x['personnes']}
         propres=set(x['valeurs'])
         for c in cles:
-            if (c in ('age','precision_naissance') or '.' in c) and c not in propres:x['valeurs'][c]=list({v for p in x['personnes'] for v in cartes[p][c]})
+            if (c in ('personne','age','precision_naissance') or '.' in c) and c not in propres:x['valeurs'][c]=list({v for p in x['personnes'] for v in cartes[p][c]})
         x['_par_personne']={p:{**x['valeurs'],**{c:cartes[p][c] for c in cles if personnelle(c) and c not in propres},**({'entree_connue':x['_entrees'][p]} if p in x.get('_entrees',{}) else {})} for p in x['personnes']}
 
 
-def personnelle(c):return c in ('age','precision_naissance','entree_connue') or '.' in c
+def personnelle(c):return c in ('personne','age','precision_naissance','entree_connue') or '.' in c
 
 
 def classes(texte):
@@ -213,11 +285,23 @@ def accepte(x,c,op,val):
 
 def calculer(acteur,d):
     if d['mesure']=='menages':suivi.exiger(acteur,'view_menage')
-    communs={'date_saisie','date_version','total','mois','jour','age','precision_naissance','unite'}
-    propres={'personnes':set(),'menages':set(),'prises':{'type','etat','origine','orientation','motif'},'demandes':{'etat','motif','origine'},'sejours':{'etat','duree','entree_connue','quantite'},'repas':{'type','etat','origine','quantite'},'aides':{'type','etat','quantite'},'appels':{'complement115','appelant','auteur','auteur_version','heure','type','etat','motif','secondaire','reponse','origine','orientation','adultes_declares','enfants_declares','grossesses_declarees'},'ressources':{'type','etat','quantite'},'dettes':{'type','etat','quantite'},'couts':{'phase','type','etat','prescripteur','signataire','quantite'},'imputations':{'phase','type','prescripteur','signataire','financeur','budget','quantite'}}
-    choisies=[d['axe'],d['croisement'],*[d['filtre'+str(i)] for i in range(1,(d.get('filtres') or 2)+1)]]
+    communs={'personne','jour_semaine','date_saisie','date_version','total','mois','jour','age','precision_naissance','unite'}
+    propres={'personnes':set(),'menages':set(),'prises':{'date_fin','type','etat','origine','orientation','motif'},'demandes':{'etat','motif','origine'},'accords_hebergement':{'date_fin','duree','type','origine','etat'},'accords_repas':{'date_fin','duree','type','origine','etat'},'sejours':{'duree_selection','date_fin','etat','duree','entree_connue','quantite'},'affectations':{'lieu','date_fin','duree','duree_selection','quantite'},'repas':{'type','etat','origine','quantite'},'aides':{'type','etat','quantite'},'appels':{'complement115','appelant','auteur','auteur_version','heure','type','etat','motif','secondaire','reponse','origine','orientation','adultes_declares','enfants_declares','grossesses_declarees'},'ressources':{'type','etat','quantite'},'dettes':{'type','etat','quantite'},'couts':{'phase','type','etat','prescripteur','signataire','quantite'},'imputations':{'phase','type','prescripteur','signataire','financeur','budget','quantite'}}
+    axes=[d['axe'],d['croisement'],*[d.get('axe'+str(i),'') for i in range(3,8)]]
+    colonnes=[d.get('colonne'+str(i),'') for i in range(1,12)]
+    choisies=[*colonnes,*axes,*[d['filtre'+str(i)] for i in range(1,(d.get('filtres') or 2)+1)]]
+    if any(c.startswith('mission.') for c in choisies if c) and d['population'] not in ('prises','sejours','accords_hebergement','accords_repas','affectations','repas','aides','couts','imputations'):raise ValidationError('Les missions professionnelles se lisent dans une prise en charge ou ses prestations, pas depuis les appartenances de la personne.')
     if any(c and '.' not in c and c not in communs|propres[d['population']] for c in choisies):raise ValidationError('Un axe ou filtre ne correspond pas à cette population. Choisissez la population concernée, ou une dimension de situation personnelle.')
-    n=d.get('filtres') or 2;cles=[d['axe'],d['croisement'],*[d['filtre'+str(i)] for i in range(1,n+1)]];lignes=population(acteur,d);enrichir(acteur,lignes,cles,d['reference'])
+    n=d.get('filtres') or 2;cles=[*colonnes,*axes,*[d['filtre'+str(i)] for i in range(1,n+1)]];lignes=population(acteur,d);cles+=mesures.preparer(acteur,lignes,d)
+    if d.get('reference_mode') in ('fait','saisie'):
+        from datetime import date
+        dates=defaultdict(list)
+        for x in lignes:
+            reference=x['date'] if d['reference_mode']=='fait' else date.fromisoformat(x['valeurs']['date_saisie'][0]) if x['valeurs']['date_saisie'] else d['reference']
+            dates[reference].append(x)
+        if len(dates)>366:raise ValidationError('Plus de 366 dates de situation distinctes : réduisez la période ou choisissez la référence commune. Aucun résultat tronqué.')
+        for reference,xs in dates.items():enrichir(acteur,xs,cles,reference)
+    else:enrichir(acteur,lignes,cles,d['reference'])
     selection=[]
     for x in lignes:
         criteres=[(d['filtre'+str(i)],d['operation'+str(i)],d['valeur'+str(i)]) for i in range(1,n+1)]
@@ -230,7 +314,7 @@ def calculer(acteur,d):
             x['personnes']=membres
         selection.append(x)
     lignes=selection
-    groupes=classes(d['classes']);groupes_croises=classes(d.get('classes_croisement',''));ventilation=defaultdict(dict)
+    classes_axes=[classes(d['classes']),classes(d.get('classes_croisement','')),*[classes(d.get('classes'+str(i),'')) for i in range(3,8)]];ventilation=defaultdict(dict)
     def categoriser(vs,groupes):
         if not groupes:return vs
         resultat=[]
@@ -240,17 +324,20 @@ def calculer(acteur,d):
             resultat.append(next((nom for nom,a,b in groupes if (a is None or v>=a) and (b is None or v<b)),'Hors classes'))
         return list(set(resultat))
     for x in lignes:
-        cartes=[(p,{'valeurs':x['_par_personne'][p]}) for p in x['personnes']] if (personnelle(d['axe']) or personnelle(d['croisement'])) and x['personnes'] else [(None,x)]
+        cartes=[(p,{'valeurs':x['_par_personne'][p]}) for p in x['personnes']] if any(personnelle(c) for c in axes if c) and x['personnes'] else [(None,x)]
         cellules=defaultdict(set)
         for p,carte in cartes:
-            vs=categoriser(valeurs(carte,d['axe']),groupes)
-            croises=categoriser(valeurs(carte,d['croisement']),groupes_croises) if d['croisement'] else ['Ensemble']
-            for a,b in product(vs,croises):
-                cle=(str(a),str(b),x['unite'] if d['mesure'] in ('quantite','minimum','maximum','moyenne') else '')
+            branches=[categoriser(valeurs(carte,c),groupes) if c else ['Ensemble'] for c,groupes in zip(axes,classes_axes)]
+            for chemin in product(*branches):
+                cle=(*map(str,chemin),x['unite'] if d['mesure'] in ('quantite','minimum','maximum','moyenne') else '')
                 cellules[cle].update([p] if p is not None else x['personnes'])
-        for cle,personnes_cellule in cellules.items():ventilation[cle][x['id']]={**x,'personnes':personnes_cellule}
+                if len(cellules)>2000:raise ValidationError('Plus de 2 000 cellules : réduisez les axes ou valeurs multiples. Aucun résultat tronqué.')
+        for cle,personnes_cellule in cellules.items():
+            ventilation[cle][x['id']]={**x,'personnes':personnes_cellule}
+            if len(ventilation)>2000:raise ValidationError('Plus de 2 000 cellules : choisissez des axes ou filtres plus précis. Aucune cellule supprimée silencieusement.')
     def mesure(xs):
         xs=list(xs)
+        if d['mesure'] in mesures.PERSONNES or d['mesure'] in mesures.FAMILLE or d['mesure'] in mesures.NUITEES:return mesures.mesurer(xs,d['mesure'])
         if d['mesure'] in ('adultes_declares','enfants_declares','grossesses_declarees'):
             connus=[v for x in xs for v in x['valeurs'].get(d['mesure'],[])];return sum(connus) if connus else None
         if d['mesure']=='objets':return len(xs)
@@ -262,8 +349,8 @@ def calculer(acteur,d):
         if d['mesure']=='moyenne':return (sum(nombres)/len(nombres)).quantize(Decimal('.01'),rounding=ROUND_HALF_UP)
         return sum(nombres,Decimal('0'))
     if d['mesure'] in ('adultes_declares','enfants_declares','grossesses_declarees') and d['population']!='appels':raise ValidationError('Les effectifs déclarés par appel ne concernent que la population des appels.')
-    if d['mesure'] in ('quantite','minimum','maximum','moyenne') and d['population'] not in ('sejours','repas','aides','ressources','dettes','couts','imputations'):raise ValidationError('Cette population n’a pas de quantité additive ; choisissez objets ou personnes/ménages distincts.')
-    resultats=[{'axe':a,'croisement':b,'unite':u if d['mesure'] in ('quantite','minimum','maximum','moyenne') else d['mesure'],'valeur':mesure(xs.values())} for (a,b,u),xs in sorted(ventilation.items())]
+    if d['mesure'] in ('quantite','minimum','maximum','moyenne') and d['population'] not in ('sejours','affectations','repas','aides','ressources','dettes','couts','imputations'):raise ValidationError('Cette population n’a pas de quantité additive ; choisissez objets ou personnes/ménages distincts.')
+    resultats=[{'axe':cle[0],'croisement':cle[1],'niveaux':list(cle[2:-1]),'unite':cle[-1] if d['mesure'] in ('quantite','minimum','maximum','moyenne') else d['mesure'],'valeur':mesure(xs.values()),'inconnus':mesures.inconnus(xs.values(),d['mesure'])} for cle,xs in sorted(ventilation.items())]
     if len(resultats)>2000:raise ValidationError('Plus de 2 000 cellules : choisissez des axes ou filtres plus précis. Aucune cellule supprimée silencieusement.')
     totaux={u:mesure(x for x in lignes if x['unite']==u) for u in {x['unite'] for x in lignes}} if d['mesure'] in ('quantite','minimum','maximum','moyenne') else {d['mesure']:mesure(lignes)}
     return resultats,totaux,lignes

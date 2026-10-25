@@ -64,7 +64,8 @@ admin.update(numero_ss='SS-FICTIF-QUALIFICATION',qualification='Qualification fi
 d.administration(u,p,date(2026,1,1),'Source fictive',bd6.jeton(p),**admin)
 for code,r in d.RUBRIQUES.items():
     v={c:r.modele._meta.get_field(c).get_default() for c in r.champs}
-    v.update({'ressources':dict(libelle='Ressource fictive de recette',montant=Decimal('10.50'),periodicite='mensuelle'),
+    v.update({'antecedents':dict(libelle='Passage institutionnel fictif de recette'), 'besoins':dict(categorie='mobilite',libelle='Besoin fictif de recette'),
+        'ressources':dict(libelle='Ressource fictive de recette',montant=Decimal('10.50'),periodicite='mensuelle'),
         'dettes':dict(creancier='Créancier fictif de recette',montant=None),
         'pieces':dict(type_document='Pièce fictive de recette'),
         'couvertures':dict(libelle='Couverture fictive de recette',organisme=organisme,interlocuteur=professionnel),
@@ -105,7 +106,14 @@ prefixe = settings.FORCE_SCRIPT_NAME or ''
 def chemin(route, *args):
     url = reverse(route, args=args)
     return url[len(prefixe):] if prefixe and url.startswith(prefixe) else url
+from personnes import pieces_dossier
+from django.core.files.uploadedfile import SimpleUploadedFile
+piece_f=pieces_dossier.ajouter(u,p,bd6.jeton(p),titre='Document fictif de recette',date_document=None,source='Qualification fictive',fichier=SimpleUploadedFile('fictif.txt',b'Document fictif portable'))
+version_f=piece_f.versions.first()
+r=client.get(chemin('dossiers:piece_telecharger',version_f.pk),secure=True)
+assert r.status_code==200 and r.content==b'Document fictif portable' and 'no-store' in r['Cache-Control']
 for route, args, texte in [
+    ('dossiers:pieces',['personne',p.pk],'Document fictif de recette'),
     ('dossiers:appel115',[appel115.pk],'Demande fictive de qualification'),
     ('suivi:notes',['accord_aide',aide.pk],'Note fictive de prestation'),
     ('dossiers:releve_recherche',[],'Rechercher et imprimer la relève'),

@@ -544,3 +544,14 @@ corrigée, distincte de l'enregistrement. Depuis le compte Nadia, deux modèles
 personnels illustrent demandes/réponses et classes horaires (nuit/journée/soir).
 Ils conservent les paramètres, pas les résultats. Les autres comptes n'héritent
 pas de modèles privés. Les anciens espaces d'essai restent intégralement conservés.
+
+
+### Consolidation F — jeu neuf uniquement
+
+Établissement Les Passerelles conserve les 36 personnes, 18 ménages et 51 prises
+en charge. Noor possède un document externe fictif avec correction du titre
+sans perte des octets, un besoin pratique d'accueil corrigé et un antécédent
+institutionnel déclaré sans dates inventées. Un brouillon de ménage est annulé
+sans suppression. Nadia possède un modèle de nuitées avec quatre mesures :
+total, majeurs, mineurs et âges inconnus, évalués à chaque nuit.
+Les anciens essais ne sont ni enrichis implicitement ni réinitialisés.
