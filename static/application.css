@@ -194,3 +194,10 @@ main:has(.bd-dossier) { max-width: 76rem; }
 .tableau-defilant th, .tableau-defilant td { padding: .5rem .7rem; text-align: left; border-bottom: 1px solid #cadbd3; overflow-wrap: anywhere; }
 
 .champ-saisie { margin-block: 1rem; }
+
+/* Garder les noms et les dates lisibles dans la comparaison sur écran étroit. */
+.trajectoire-comparaison table { min-width: 46rem; }
+.trajectoire-comparaison th, .trajectoire-comparaison td { min-width: 8rem; }
+.trajectoire-comparaison td:nth-child(n+3) { min-width: 13rem; }
+.trajectoire-comparaison small { display: block; margin-top: .35rem; }
+@media print { .trajectoire-comparaison { overflow: visible; } .trajectoire-comparaison table { min-width: 0; } .trajectoire-comparaison th, .trajectoire-comparaison td { min-width: 0; } }

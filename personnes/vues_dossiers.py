@@ -290,6 +290,7 @@ def detail(request, nature, pk, prise_pk=None):
     commentaires = commentaire_cible.commentaires_dossier.select_related('auteur') if request.user.has_perm('personnes.view_commentairedossier') else []
     return render(request, 'dossiers/prise.html' if prise else 'dossiers/detail.html', {'prise': prise, 'demande_origine':demande_origine, 'lecture_interventions': lecture_interventions, 'interventions_courantes': interventions_courantes,
         'parametres_navigation': {k: v for k, v in params.items() if k not in ('prise', 'ecran', 'accompagnement')}, 'selection_prise': selection_prise, 'commentaires': commentaires, 'commentaire': commentaires[0] if commentaires else None,
+        'url_trajectoire': reverse('dossiers:trajectoire', args=[nature, pk]) + '?' + urlencode({**{k:v for k,v in params.items() if k not in ('prise', 'ecran')}, **({'prise':str(prise.pk), 'retour_prise':str(prise.pk)} if prise else {})}),
         'etat_social': bd6.etat(request.user, personnes_sociales, date_sociale), 'date_sociale': date_sociale,
         'etat_entree': bd6.etat(request.user, personnes_sociales, prise.debut) if prise else [],
         'retour_form2': reverse('dossiers:detail', args=[nature, pk]) + '?' + urlencode({**params, 'ecran': 'dossier'}),
