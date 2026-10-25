@@ -336,7 +336,7 @@ def accepte(x,c,op,val):
     return any(str(v).casefold()==val.casefold() for v in vs)
 
 
-def calculer(acteur,d):
+def calculer(acteur,d,*,contributions=False):
     from . import cohortes_exploration as cohortes
     cohorte=cohortes.verifier(d)
     if d['mesure']=='menages':suivi.exiger(acteur,'view_menage')
@@ -418,7 +418,7 @@ def calculer(acteur,d):
         return sum(nombres,Decimal('0'))
     if d['mesure'] in ('adultes_declares','enfants_declares','grossesses_declarees') and d['population']!='appels':raise ValidationError('Les effectifs déclarés par appel ne concernent que la population des appels.')
     if d['mesure'] in ('quantite','minimum','maximum','moyenne') and d['population'] not in ('sejours','affectations','repas','aides','ressources','dettes','couts','imputations'):raise ValidationError('Cette population n’a pas de quantité additive ; choisissez objets ou personnes/ménages distincts.')
-    resultats=[{'axe':libelle(cle[0]),'croisement':libelle(cle[1]),'niveaux':[libelle(c) for c in cle[2:-1]],'unite':cle[-1] if d['mesure'] in ('quantite','minimum','maximum','moyenne') else d['mesure'],'valeur':mesure(xs.values()),'inconnus':mesures.inconnus(xs.values(),d['mesure'])} for cle,xs in sorted(ventilation.items())]
+    resultats=[{'_cellule':{'chemin':cle[:-1],'unite':cle[-1]},'_objets':list(xs.values()) if contributions else [],'axe':libelle(cle[0]),'croisement':libelle(cle[1]),'niveaux':[libelle(c) for c in cle[2:-1]],'unite':cle[-1] if d['mesure'] in ('quantite','minimum','maximum','moyenne') else d['mesure'],'valeur':mesure(xs.values()),'inconnus':mesures.inconnus(xs.values(),d['mesure'])} for cle,xs in sorted(ventilation.items())]
     if d.get('sous_totaux'):
         niveaux=[i for i,c in enumerate(axes) if c];parties={}
         for cle,xs in ventilation.items():
@@ -430,7 +430,7 @@ def calculer(acteur,d):
                     else:objets[pk]={**x,'personnes':set(x['personnes'])}
         for (position,prefixe,unite),xs in parties.items():
             chemin=[*[libelle(c) for c in prefixe],*['Sous-total' if i==niveaux[niveaux.index(position)+1] else 'Ensemble' for i in range(position+1,len(axes))]]
-            resultats.append(dict(axe=chemin[0],croisement=chemin[1],niveaux=chemin[2:],unite=unite if d['mesure'] in ('quantite','minimum','maximum','moyenne') else d['mesure'],valeur=mesure(xs.values()),inconnus=mesures.inconnus(xs.values(),d['mesure']),sous_total=True,niveau_sous_total=position+1))
+            resultats.append(dict(_cellule={'prefixe':prefixe,'position':position,'unite':unite},_objets=list(xs.values()) if contributions else [],axe=chemin[0],croisement=chemin[1],niveaux=chemin[2:],unite=unite if d['mesure'] in ('quantite','minimum','maximum','moyenne') else d['mesure'],valeur=mesure(xs.values()),inconnus=mesures.inconnus(xs.values(),d['mesure']),sous_total=True,niveau_sous_total=position+1))
         def ordre_resultat(r):
             chemin=[r['axe'],r['croisement'],*r['niveaux']]
             if r.get('sous_total'):chemin=chemin[:r['niveau_sous_total']]+['']*(len(axes)-r['niveau_sous_total'])

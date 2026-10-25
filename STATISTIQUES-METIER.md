@@ -485,3 +485,19 @@ Un dossier peut donc afficher « Ressources déclarées » tandis que la déclar
 sociale brute reste « sans ressources » ou non renseignée. L'harmonisation de
 ces deux notions relève d'un contrat de source sociale distinct, à coordonner
 avec la trajectoire ; aucune recopie ni migration n'est réalisée dans ST1.
+
+## ST2 — Justifier une cellule et revenir à l'analyse
+
+Les chiffres de l'explorateur et leurs totaux ouvrent leurs contributions exactes,
+avec période, unité et règle de décompte. Les effectifs distincts ne sont pas
+additionnés entre faits ; les valeurs inconnues restent exclues, jamais mises à
+zéro. Les minimums, maximums et moyennes portent sur les quantités par objet.
+La fiche justificative identifie l'objet retenu et permet de rejoindre son dossier.
+Les retours signés conservent critères, sélection logique et pagination.
+
+Ces liens sont propres au compte et expirent après un jour. Les droits sont
+revalidés, les périodes relatives figées pour expliquer le calcul affiché et
+les contributions recalculées. Si les données de calcul ont changé, le détail
+est refusé explicitement et invite à recalculer l'analyse. Aucun résultat figé
+ni accès de dossier n'est enregistré dans un modèle. Le détail est borné à
+10 000 contributions, sans troncature silencieuse.

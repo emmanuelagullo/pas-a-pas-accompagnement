@@ -40,19 +40,23 @@ def explorer(request):
             try:n=int(data.get(champ) or mini)
             except (ValueError,TypeError):n=mini
             n=min(n+1,maxi);data[champ]=str(n)
+    liens_totaux=[]
     form=ExplorationForm(data,acteur=request.user);lignes=[];totaux={};nombre=0;selection=[];qualite_mesures=[]
     if form.is_valid():
         try:
             mesures=list(dict.fromkeys([form.cleaned_data['mesure'],*[form.cleaned_data.get('mesure'+str(i)) for i in range(2,10) if form.cleaned_data.get('mesure'+str(i))]]))
             labels=dict(form.fields['mesure'].choices)
             for mesure in mesures:
-                lignes_mesure,totaux_mesure,selection=e.calculer(request.user,{**form.cleaned_data,'mesure':mesure})
+                lignes_mesure,totaux_mesure,selection=e.calculer(request.user,{**form.cleaned_data,'mesure':mesure},contributions=True)
                 for ligne in lignes_mesure:
-                    ligne['mesure']=labels[mesure];ligne['niveaux_affiches']=[v for i,v in enumerate(ligne['niveaux'],3) if form.cleaned_data.get('axe'+str(i))]
+                    ligne['_code_mesure']=mesure;ligne['mesure']=labels[mesure];ligne['niveaux_affiches']=[v for i,v in enumerate(ligne['niveaux'],3) if form.cleaned_data.get('axe'+str(i))]
                 lignes.extend(lignes_mesure)
                 if len(lignes)>2000:raise ValidationError('Plus de 2 000 cellules pour les mesures réunies : réduisez les axes ou mesures. Aucun résultat tronqué.')
                 inconnus=e.mesures.inconnus(selection,mesure)
                 if inconnus is not None:qualite_mesures.append((labels[mesure],inconnus))
+                from . import justificatifs_exploration as preuves
+                for total in preuves.totaux_cellules(totaux_mesure,selection,mesure):
+                    liens_totaux.append(dict(libelle=labels[mesure]+' — '+total['unite'],valeur=total['valeur'],url=preuves.lien(request.user,form.cleaned_data,mesure,total,request.GET.get('page',1))))
                 totaux.update({(labels[mesure]+' — '+u if len(mesures)>1 else u):v for u,v in totaux_mesure.items()})
             nombre=len(selection)
             from .exploration_releve import relever
@@ -92,8 +96,11 @@ def explorer(request):
                     'Les ventilations multi-valeurs ne sont pas additives. Une première entrée connue n’est pas une première entrée absolue.'],'exploration-fictive.pdf')
     if not form.is_valid():colonnes=[];details=[]
     query={c:str(form.data.get(c,'')) for c in form.fields};page=Paginator(details if form.cleaned_data.get('affichage')=='detail' else lignes,50).get_page(request.GET.get('page'))
+    if form.is_valid() and not form.errors and form.cleaned_data.get('affichage')!='detail':
+        for ligne in page:
+            ligne['url_preuves']=preuves.lien(request.user,form.cleaned_data,ligne['_code_mesure'],ligne,page.number)
     from urllib.parse import urlencode
-    return render(request,'exploration/rapport.html',{'form':form,'colonnes_detail':colonnes,'qualite_mesures':qualite_mesures,'champs_courants':[f for f in form if f.name in ('population','debut','fin','reference','periode','mesure','axe','croisement')],'champs_complementaires':[f for f in form if f.name not in ('population','debut','fin','reference','periode','mesure','axe','croisement')],'niveaux_actifs':[i for i in range(3,8) if form.data.get('axe'+str(i))],'page_obj':page,'query_rapport':urlencode(query),'totaux':totaux,'quantites_inconnues':sum(x['quantite'] is None for x in selection) if form.is_valid() else 0,'nombre':nombre,'modele':modele,
+    return render(request,'exploration/rapport.html',{'liens_totaux':liens_totaux,'form':form,'colonnes_detail':colonnes,'qualite_mesures':qualite_mesures,'champs_courants':[f for f in form if f.name in ('population','debut','fin','reference','periode','mesure','axe','croisement')],'champs_complementaires':[f for f in form if f.name not in ('population','debut','fin','reference','periode','mesure','axe','croisement')],'niveaux_actifs':[i for i in range(3,8) if form.data.get('axe'+str(i))],'page_obj':page,'query_rapport':urlencode(query),'totaux':totaux,'quantites_inconnues':sum(x['quantite'] is None for x in selection) if form.is_valid() else 0,'nombre':nombre,'modele':modele,
         'modeles':[x for x in m.ModeleRapport.objects.filter(auteur=request.user) if x.parametres.get('exploration')]})
 
 
@@ -134,3 +141,44 @@ def echanger_modele(request,pk=None):
         except ValidationError as erreur:form.add_error('fichier',erreur)
         else:return redirect(reverse('dossiers:explorer')+'?modele='+str(x.pk))
     return render(request,'exploration/importer.html',{'form':form})
+
+
+@never_cache
+@require_http_methods(['GET'])
+@login_required
+def justificatifs(request,fait=False):
+    from . import justificatifs_exploration as p
+    from django.urls import reverse
+    from urllib.parse import urlencode
+    from django.http import Http404
+    token=request.GET.get('preuve','')
+    try:
+        payload,form,cellule=p.lire(request.user,token)
+        contexte=dict(retour=p.retour_analyse(payload),cellule=cellule,form=form,
+            population=dict(e.POPULATIONS)[form.cleaned_data['population']],
+            mesure=dict(form.fields['mesure'].choices)[payload['mesure']],
+            unite_affichee=cellule['unite'] if payload['mesure'] in ('quantite','minimum','maximum','moyenne') else 'personnes-nuitées' if payload['mesure'] in e.mesures.NUITEES else 'personnes distinctes' if payload['mesure'] in ('personnes',*e.mesures.PERSONNES) else 'ménages distincts' if payload['mesure']=='menages' else 'objets' if payload['mesure']=='objets' else 'unités déclarées',
+            preuve=token)
+        if fait:
+            x,champs,native=p.fiche_objet(request.user,form.cleaned_data,cellule,request.GET.get('objet',''),token,request.GET.get('page','1'))
+            contexte.update(objet=x,champs=champs,native=native,
+                retour_faits=reverse('dossiers:explorer_justificatifs')+'?'+urlencode({'preuve':token,'page':request.GET.get('page','1')}))
+            return render(request,'exploration/fait.html',contexte)
+        lignes,regle=p.contributions(request.user,form.cleaned_data,payload['mesure'],cellule,token,request.GET.get('page','1'))
+        if request.GET.get('format')=='csv':
+            r=HttpResponse(content_type='text/csv; charset=utf-8');r['Content-Disposition']='attachment; filename="justificatifs-exploration.csv"'
+            w=csv.writer(r,delimiter=';');w.writerow(['Mesure','Unité','Total de la partie','Contribution','Période','Valeur','Objet'])
+            for l in lignes:w.writerow([cellule_csv(v) for v in [contexte['mesure'],cellule['unite'],cellule['valeur'],l['libelle'],l['periode'],l['valeur'],l['objet']]])
+            return r
+        page=Paginator(lignes,50).get_page(request.GET.get('page'))
+        # Les liens des objets conservent la page réellement affichée.
+        for ligne in page:
+            ligne['url']=reverse('dossiers:explorer_fait')+'?'+urlencode({'preuve':token,'objet':ligne['objet'],'page':page.number})
+        connus=[l['valeur'] for l in lignes if l['valeur'] is not None]
+        calcul=''
+        if payload['mesure']=='moyenne':calcul=f'Somme des quantités connues : {sum(connus)} ; nombre d’objets avec une quantité connue : {len(connus)}. Moyenne arrondie au centième.'
+        elif payload['mesure'] in ('minimum','maximum'):calcul=f'Quantités connues comparées : {len(connus)} ; objets sans valeur connue : {len(lignes)-len(connus)}.'
+        contexte.update(page_obj=page,query_rapport=urlencode({'preuve':token}),regle=regle,calcul=calcul)
+        return render(request,'exploration/justificatifs.html',contexte)
+    except ValidationError as erreur:
+        return render(request,'exploration/preuve_perimee.html',{'erreur':erreur,'retour':getattr(erreur,'retour',p.retour_analyse(payload) if 'payload' in locals() else reverse('dossiers:explorer'))},status=409)

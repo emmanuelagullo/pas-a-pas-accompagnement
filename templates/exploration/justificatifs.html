@@ -1,0 +1,12 @@
+{% extends 'base.html' %}{% block contenu %}
+<p><a href="{{ retour }}">← Revenir à l’analyse</a></p>
+<h1>Faits justificatifs</h1>
+<p>{{ population }} · {{ mesure }} : <strong>{{ cellule.valeur|default_if_none:'non renseigné' }} {{ unite_affichee }}</strong></p>
+<p>{{ form.cleaned_data.debut|date:'d/m/Y' }} → {{ form.cleaned_data.fin|date:'d/m/Y' }} (fin exclue). Référence personnelle : {{ form.cleaned_data.reference }} ; mode {{ form.cleaned_data.reference_mode|default:'commune' }}.</p>
+{% if cellule.axe %}<p>Partie : {{ cellule.axe }} → {{ cellule.croisement }}{% for n in cellule.niveaux %} · {{ n }}{% endfor %}</p>{% endif %}
+<p>{{ regle }}</p>{% if calcul %}<p>{{ calcul }}</p>{% endif %}
+<p>Les déclarations sociales proviennent de l’histoire personnelle saisie à la référence. Les ressources détaillées restent distinctes de cette déclaration ; aucune synthèse du dossier n’est substituée.</p>
+<div class="tableau-defilant" tabindex="0" role="region" aria-label="Contributions au chiffre"><table><thead><tr><th>Contribution / personne</th><th>Période du fait</th><th>Valeur</th><th>Objet justificatif</th></tr></thead><tbody>
+{% for l in page_obj %}<tr><td>{{ l.libelle }}</td><td>{{ l.periode }}</td><td>{{ l.valeur|default_if_none:'Inconnue — exclue du calcul' }}</td><td><a href="{{ l.url }}">Ouvrir l’objet {{ l.objet }}</a></td></tr>{% empty %}<tr><td colspan="4">Aucune contribution connue pour cette mesure.</td></tr>{% endfor %}
+</tbody></table></div>{% include 'dossiers/_pagination_rapport.html' %}
+<p><a href="?preuve={{ preuve|urlencode }}&amp;format=csv">Exporter les contributions en CSV</a></p>{% endblock %}

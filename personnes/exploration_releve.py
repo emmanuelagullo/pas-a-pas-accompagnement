@@ -30,10 +30,10 @@ def relever(d,selection,acteur):
     return colonnes,lignes
 
 
-def signer_retour(acteur,d):
+def signer_retour(acteur,d,*,justificatif=None):
     from django.core import signing
     params={k:str(v) if v is not None else '' for k,v in d.items()}
-    return signing.dumps({'acteur':str(acteur.pk),'parametres':params},salt='retour-exploration-v1',compress=True)
+    return signing.dumps({'acteur':str(acteur.pk),'parametres':params,'justificatif':justificatif},salt='retour-exploration-v1',compress=True)
 
 
 def retour_verifie(acteur,token):
@@ -45,4 +45,6 @@ def retour_verifie(acteur,token):
     if not isinstance(d,dict) or d.get('acteur')!=str(acteur.pk):return None
     params=d.get('parametres')
     if not isinstance(params,dict) or any(not isinstance(k,str) or not isinstance(v,str) for k,v in params.items()):return None
+    if isinstance(d.get('justificatif'),str):
+        return reverse('dossiers:explorer_justificatifs')+'?'+urlencode({'preuve':d['justificatif'],'page':params.get('page','1')})
     return reverse('dossiers:explorer')+'?'+urlencode(params)

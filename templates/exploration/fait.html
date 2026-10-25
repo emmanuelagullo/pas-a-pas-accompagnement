@@ -1,0 +1,7 @@
+{% extends 'base.html' %}{% block contenu %}
+<p><a href="{{ retour_faits }}">← Revenir aux faits justificatifs</a> · <a href="{{ retour }}">Revenir à l’analyse</a></p>
+<h1>Objet justificatif du dossier</h1><p>{{ population }} · Identifiant : {{ objet.id }} · Date : {{ objet.date }}</p>
+<p>Les valeurs expliquent la sélection et la partie du rapport. Une quantité de nuitées porte sur les bénéficiaires retenus ; le dossier conserve l’objet complet.</p>
+<dl>{% for nom,valeur in champs %}<dt>{{ nom }}</dt><dd>{{ valeur }}</dd>{% endfor %}</dl>
+{% if native %}<p><a href="{{ native }}">Ouvrir le dossier de cet objet</a></p>{% endif %}
+{% endblock %}
