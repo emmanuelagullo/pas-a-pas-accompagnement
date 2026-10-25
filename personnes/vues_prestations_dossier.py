@@ -13,7 +13,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
-from . import admission, repas, dossier
+from . import admission, repas, dossier, preparation_repas
 from .models import Personne, Menage
 from .vues_admission import AdmissionGuideeForm
 from .forms_repas import AccordForm, ServicesForm
@@ -80,9 +80,10 @@ def nouveau(request, nature, pk, prestation):
     form.fields = {'accompagnement': champ, **form.fields}
     if 'beneficiaires' in form.fields:
         form.order_fields(['accompagnement', 'beneficiaires', 'debut', 'fin', 'duree', 'calcul_periode', 'arrivee_effectuee', 'admission', 'lieu', 'service', 'services', 'prestataire', 'attendu'])
+    if a and prestation!='hebergement':preparation_repas.preparer_formulaire(form,request,a)
     statut = 200
-    if request.method == 'POST' and form.is_valid() and a:
-        d = form.cleaned_data.copy()
+    if request.method == 'POST' and not getattr(form,'preparation_seule',False) and form.is_valid() and a:
+        d = preparation_repas.sans_preparation(form.cleaned_data)
         d.pop('accompagnement')
         try:
             if prestation == 'hebergement':

@@ -34,6 +34,9 @@ DROITS.update({'view_transmission','add_transmission','change_transmission','vie
 
 
 
+DROITS.update({'view_importparametrage','add_importparametrage','exporter_parametrage'})
+
+
 class Command(BaseCommand):
     help = 'Attribuer volontairement les droits livrés de reprise Solenne à un compte existant ; les droits CHRS restent indépendants.'
 

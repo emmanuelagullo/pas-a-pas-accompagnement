@@ -19,3 +19,23 @@ statut: "disponible"
 **À vérifier :** aucune suggestion n'est collectée automatiquement depuis les dossiers. Une proposition ne remplace ni source, ni date, ni confirmation. Le fichier JSON ne transporte ni personnes ni permissions.
 
 Les organismes, professionnels, lieux et tarifs restent dans leurs répertoires propres. Il n'existe pas de bouton pour préremplir indistinctement tout un dossier.
+
+## Transporter les répertoires et tarifs
+
+Depuis **Organismes partenaires → Importer ou exporter le paramétrage**, exporter
+le JSON privé. Il contient les organismes et professionnels avec leurs fiches
+datées, les liens entre répertoires, la hiérarchie des lieux, les types d'aide et
+les versions de tarifs. Les comptes, droits, personnes accompagnées et dossiers
+en sont exclus. Les anciens journaux restent dans la sauvegarde de l'espace
+source ; l'import est attribué à son auteur actuel.
+
+Dans l'autre espace, examiner le fichier, vérifier les entrées et les homonymes,
+puis confirmer avec un motif. L'import crée de nouvelles entrées et ne fusionne
+aucun homonyme. Une confirmation supplémentaire est nécessaire pour créer ces
+doublons visibles. Un fichier déjà importé est refusé ; le reçu conserve les
+correspondances. Une erreur annule l'ensemble de l'import. Limites : 1 Mo,
+500 entrées et 2 000 définitions datées par fichier.
+
+Les propositions de saisie et modèles d'exploration conservent leurs propres
+échanges JSON, accessibles depuis cette page selon les droits. Ce paramétrage
+ne constitue ni une sauvegarde complète ni une synchronisation entre espaces.

@@ -57,3 +57,10 @@ ans déclarés dans une agglomération fictive, sans date d'arrivée inventée, 
 une reprise déclarée de démarches. La qualification d'évolution ne modifie pas
 les situations personnelles. Dans l'explorateur, comparer premier/dernier objet
 filtré et activer les sous-totaux pour contrôler les effectifs distincts.
+
+Robin A conserve aussi une arrivée entièrement erronée, son lieu et le motif de
+retrait, puis l'annulation séparée de l'autorisation. La consulter dans les
+arrivées annulées : les compteurs ci-dessus restent inchangés. Dans les repas du
+ménage de Samira, essayer la préparation du petit-déjeuner sans enregistrer,
+puis vérifier les personnes proposées et les informations inconnues. Le transport
+du paramétrage se teste dans un autre espace fictif, après aperçu des homonymes.

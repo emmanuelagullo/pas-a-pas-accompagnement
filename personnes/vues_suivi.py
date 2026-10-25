@@ -50,7 +50,7 @@ def traiter(request, formulaire, titre, action, menage=None, retour=None, sejour
     if accompagnement is None and sejour is not None:
         accompagnement = sejour.accord.accompagnement
     navigation = dossier.lire(request, accompagnement)
-    if request.method == "POST" and formulaire.is_valid():
+    if request.method == "POST" and not getattr(formulaire,"preparation_seule",False) and formulaire.is_valid():
         try:
             resultat = action(**formulaire.cleaned_data)
         except ValidationError as erreur:

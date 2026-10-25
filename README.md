@@ -1424,3 +1424,21 @@ se ressaisissent sans fusion automatique. Les documents financiers émis actifs
 doivent d'abord être vérifiés et annulés par leur parcours dédié. L'autorisation
 reste distincte et son annulation, si nécessaire, reste une décision explicite.
 Les nouveaux droits sont attribués volontairement par `autoriser_solenne`.
+
+## Consolidation Solenne J — paramétrage et préparation des repas
+
+Le répertoire des organismes donne accès à l'échange JSON privé des organismes,
+professionnels, lieux hiérarchisés, types d'aide et versions de tarifs. L'aperçu
+n'enregistre rien. La confirmation crée tout dans une transaction, sous droits
+explicites, avec reçu et correspondances ; aucun compte, dossier ou permission
+n'est transporté. Aucun rapprochement nominal : les homonymes exigent une
+confirmation séparée de création et les entrées existantes restent intactes.
+Un fichier identique ne peut être importé deux fois. Les sources et dates sont
+conservées, avec l'auteur réel de l'import ; l'ancien journal reste dans la
+sauvegarde source. Limites : 1 Mo, 500 entrées, 2 000 définitions datées.
+
+Dans la création d'une période de repas, une préparation facultative propose
+les bénéficiaires du seul petit-déjeuner : tous, âge entre seuils visibles,
+ou âge/grossesse déclarée avec les droits nécessaires. La date de référence
+est explicite. Les inconnus restent à vérifier, aucune distribution ni aucun
+prix n'est calculé. L'accord exige ensuite l'enregistrement ordinaire.

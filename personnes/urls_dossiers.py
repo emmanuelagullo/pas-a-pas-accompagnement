@@ -2,6 +2,7 @@ from . import vues_appels115 as appels115,vues_exploration as exploration,vues_r
 from . import vues_financements as financements
 from . import vues_aides as aides, vues_complements_c as complements_c
 from . import vues_parcours as parcours
+from . import vues_parametrage
 from django.urls import path
 from . import vues_annulations_arrivees as annulations_arrivees
 from . import vues_dossiers as vues
@@ -28,6 +29,7 @@ app_name = 'dossiers'
 from . import vues_pieces_dossier as pieces
 
 urlpatterns = [
+    path('parametrage/', vues_parametrage.catalogue, name='parametrage'),
     path('arrivees/<uuid:pk>/annulation/',annulations_arrivees.retirer,name='annuler_arrivee'),
     path('pieces/<str:nature>/<uuid:pk>/',pieces.pieces,name='pieces'),
     path('pieces/fichier/<int:pk>/',pieces.telecharger,name='piece_telecharger'),

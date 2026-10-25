@@ -555,3 +555,17 @@ institutionnel déclaré sans dates inventées. Un brouillon de ménage est annu
 sans suppression. Nadia possède un modèle de nuitées avec quatre mesures :
 total, majeurs, mineurs et âges inconnus, évalués à chaque nuit.
 Les anciens essais ne sont ni enrichis implicitement ni réinitialisés.
+
+### Consolidation I et J
+
+Dans le jeu neuf, Robin A conserve une arrivée entièrement erronée et son lieu,
+avec annulation motivée puis annulation séparée de l'autorisation. Elle apparaît
+parmi les arrivées annulées, sans changer les compteurs des 60 jours. Les anciens
+espaces ne reçoivent pas cet ajout automatiquement.
+
+Depuis une période de repas du ménage de Samira, essayer la proposition de
+bénéficiaires du seul petit-déjeuner : vérifier les seuils, la date et les cases
+avant d'accorder. Le bouton de proposition n'enregistre rien. Depuis les
+organismes, examiner un export JSON du paramétrage ; un import dans un autre
+espace fictif conserve les liens et tarifs mais ne transporte aucun dossier.
+Vérifier les homonymes avant toute confirmation de création.

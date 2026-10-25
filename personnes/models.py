@@ -1875,3 +1875,18 @@ class EvolutionPersonnelleDeclaree(FaitPersonnelDate):
 
 class RevisionEvolutionPersonnelleDeclaree(JournalPersonnel):
     fait=models.ForeignKey(EvolutionPersonnelleDeclaree,on_delete=models.PROTECT,related_name='revisions')
+
+
+class ImportParametrage(models.Model):
+    """Confirmation unique d'un catalogue, jamais une restauration de dossiers."""
+    id=models.UUIDField(primary_key=True,default=uuid.uuid4,editable=False)
+    empreinte=models.CharField(max_length=64,unique=True)
+    motif=models.CharField(max_length=240)
+    contenu=models.JSONField()
+    correspondances=models.JSONField(default=dict)
+    auteur=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT)
+    enregistre_le=models.DateTimeField(auto_now_add=True)
+    class Meta:
+        default_permissions=('view','add')
+        permissions=[('exporter_parametrage','Exporter les répertoires et catalogues sans dossiers')]
+        ordering=['-enregistre_le']

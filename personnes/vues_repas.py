@@ -7,7 +7,7 @@ from django.views.decorators.http import require_http_methods, require_safe
 from .models import Accompagnement, AccordRepas, RepasDistribue
 from .forms_repas import AccordForm, DistributionForm, AnnulationForm
 from .vues_suivi import traiter
-from . import repas, dossier
+from . import repas, dossier, preparation_repas
 
 
 @require_http_methods(["GET", "POST"])
@@ -18,7 +18,8 @@ def accorder(request, pk):
     form = AccordForm(request.POST or None, accompagnement=suivi,
         initial={"debut": max(suivi.debut, timezone.localdate()),
                  "beneficiaires": list(suivi.beneficiaires.values_list("pk", flat=True))})
-    return traiter(request, form, "Accorder des repas", lambda **d: repas.accorder(request.user, suivi, **d), suivi.menage, accompagnement=suivi, retour=lambda accord: reverse("suivi:accord_repas", args=[accord.pk]))
+    preparation_repas.preparer_formulaire(form,request,suivi)
+    return traiter(request, form, "Accorder des repas", lambda **d: repas.accorder(request.user, suivi, **preparation_repas.sans_preparation(d)), suivi.menage, accompagnement=suivi, retour=lambda accord: reverse("suivi:accord_repas", args=[accord.pk]))
 
 
 @require_safe
@@ -88,6 +89,7 @@ def accorder_services(request, pk):
     form = ServicesForm(request.POST if request.method == 'POST' else None, accompagnement=a,
         initial={'debut': max(a.debut, timezone.localdate()), 'attendu': repas.jeton_services(a),
                  'beneficiaires': list(a.beneficiaires.values_list('pk', flat=True))})
+    preparation_repas.preparer_formulaire(form,request,a)
     return traiter_hebergement(request, form, 'Accorder plusieurs services de repas — aucune distribution automatique',
-        lambda **d: repas.accorder_services(request.user, a, **d), a.menage, accompagnement=a,
+        lambda **d: repas.accorder_services(request.user, a, **preparation_repas.sans_preparation(d)), a.menage, accompagnement=a,
         retour=reverse('suivi:accompagnement', args=[a.pk]))

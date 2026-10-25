@@ -156,6 +156,21 @@ for code in parcours.RUBRIQUES:
     assert r.status_code==200 and str(e.pk) in r.content.decode(),code
 assert client.get(chemin('dossiers:aide',aide.pk),secure=True).status_code==200
 assert client.get(chemin('dossiers:rapport_aides'),{'debut':'2026-01-01','fin':'2026-02-01','mode':'remises','format':'csv'},secure=True).status_code==200
+from personnes import hebergement as heberg,annulations_arrivees as erreurs,parametrage,preparation_repas
+from personnes import models as modeles
+accord_erreur=heberg.accorder(u,a,[p],date(2026,1,1),None)
+sejour_erreur=heberg.admettre(u,accord_erreur,[p],date(2026,1,1))
+erreurs.annuler(u,sejour_erreur,erreurs.jeton(sejour_erreur),'Arrivée fictive erronée de qualification')
+r=client.get(chemin('dossiers:annuler_arrivee',sejour_erreur.pk),secure=True)
+assert r.status_code==200 and 'Arrivée fictive erronée' in r.content.decode()
+manifest=parametrage.exporter(u)
+attendu,_=parametrage.preparer(u,manifest)
+nb_personnes=modeles.Personne.objects.count()
+recu=parametrage.confirmer(u,attendu,'Transfert fictif de qualification',True)
+assert recu.correspondances['organismes'] and modeles.Personne.objects.count()==nb_personnes
+r=client.get(chemin('dossiers:parametrage'),{'format':'json'},secure=True)
+assert r.status_code==200 and 'no-store' in r['Cache-Control']
+assert preparation_repas.proposer(u,a,date(2026,1,1),'tous')[0]==[p]
 if os.environ.get('SOLENNE_VERIFIER_PDF') == 'oui':
     response = client.get(chemin('personnes:fiche_pdf', p.pk), secure=True)
     assert response.status_code == 200 and response.content.startswith(b'%PDF-')

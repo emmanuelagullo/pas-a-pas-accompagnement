@@ -716,3 +716,25 @@ financières restent inchangées et les documents actifs bloquent le retrait.
 Les mutations ordinaires refusent un séjour annulé. Qualification :
 `personnes.tests_meta_i`, dont concurrence réelle et copie SQLite avec fermeture
 explicite des connexions.
+
+## Consolidation Solenne J — échange fermé et suggestions volontaires
+
+`parametrage` accepte un schéma fermé versionné ; les références internes sont
+recréées, sans réutiliser les clés primaires de la source. Les fiches datées et
+versions de tarifs passent par les services existants. Les anciens libellés de
+répertoire sans fiche restent sans source inventée. Un aperçu signé pendant
+une heure authentifie le contenu et les homonymes signalés ; les contrôles de
+champs, de droits et de dépendances sont répétés à la confirmation.
+`ImportParametrage` réserve d'abord son UUID et l'empreinte unique du contenu
+puis journalise la correspondance complète dans la même transaction. Une erreur
+annule toutes les créations. Les contenus des anciennes révisions ne sont pas
+importés comme des actions de l'auteur d'origine. L'échange des modèles et des
+propositions utilise toujours les parcours F existants.
+
+`preparation_repas` ne fait aucune écriture. Il borne la proposition aux
+bénéficiaires explicites de la prise en charge et lit l'âge exact ainsi que les
+déclarations familiales à la date choisie, sous leurs droits propres. Une
+proposition sélectionne seulement le petit-déjeuner ; les autres services se
+préparent séparément si leurs bénéficiaires diffèrent. Les seuils reprennent
+le besoin démontré par `Form3.setNbrePetitsDejAuto`, avec une date visible et une
+confirmation moderne, sans compteur familial ni présomption depuis le sexe.
