@@ -974,10 +974,17 @@ L’histoire sociale personnelle distingue changement réel, insertion antérieu
 motivée et correction motivée de valeur/source à date constante. Les situations
 historiques liées aux suivis restent conservées : aucune fusion en migration.
 Les contradictions couvrant une même date sont signalées avec leur provenance.
-Une information personnelle confirmée plus récemment devient la référence à
-partir de sa date ; un ancien suivi renseigné à une date ultérieure reste signalé
-s’il diverge. Les vues « à l’entrée » sont des restitutions datées, susceptibles
+La déclaration personnelle couvrant la date est la référence, indépendamment
+de la date du témoin ancien. Sans déclaration applicable, les anciens suivis
+restent accessibles séparément, sans valeur personnelle consolidée inventée. Les vues « à l’entrée » sont des restitutions datées, susceptibles
 de correction tracée, et non des photographies juridiques figées.
+
+Depuis le dossier, **Trajectoire d’accompagnement** compare cette même lecture
+sur plusieurs prises en charge ; le filtre de prise borne les faits liés et les
+bénéficiaires, sans borner l’histoire personnelle à sa période. Ressources et
+dettes détaillées gardent leurs sélections datées et leurs totaux distincts.
+L’ancienne URL conserve le contexte de retour historique. Aucune migration ni
+conversion de données n’est nécessaire pour cette lecture.
 
 Après `python3 manage.py migrate`, les nouveaux droits s’attribuent volontairement :
 `python3 manage.py autoriser_bd6 IDENTIFIANT`. Aucun ancien compte ni jeu conservé

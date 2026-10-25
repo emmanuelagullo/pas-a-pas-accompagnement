@@ -1,3 +1,10 @@
+## À venir — trajectoire personnelle unifiée
+
+- Trajectoire depuis le dossier, sur plusieurs prises en charge : même lecture
+  personnelle datée qu’au dossier et à l’entrée, ressources/dettes détaillées,
+  anciens suivis et divergences conservés séparément. Filtres sans JavaScript,
+  droits propres et anciennes URL conservés ; aucune conversion de données.
+
 ## Consolidation H — écarts de couverture Solenne
 
 - Nature de l’adresse déclarée (dont dernier domicile fixe), ancrage territorial et évolutions structurés ; fréquentation institutionnelle explicite, avec corrections/historiques/recherche et droits volontaires.

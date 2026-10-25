@@ -198,3 +198,15 @@ Voir [le parcours et la compatibilité du premier patch](../DEMONSTRATION.md).
 Les Workers de copie et de restauration sélectionnent le même espace que la
 coque ; le verrou d’ouverture reste commun aux deux espaces. Aucun effacement
 ni nouveau format de copie. Effacer les données du site peut supprimer les deux.
+
+
+### Trajectoire personnelle transversale
+
+Dans un vrai espace Pyodide fictif, ouvrir Dossier → Trajectoire d’accompagnement,
+consulter deux dates et filtrer une prise en charge. Vérifier le retour au dossier
+et à la prise, les sources à leur date, les anciens suivis dépliables et les droits
+partiels après reconnexion. Contrôler une personne bénéficiaire dans plusieurs
+ménages, une continuation individuelle et la même lecture après export puis
+restauration d’une copie dans un autre espace. Les déclarations personnelles,
+ressources et dettes restent indépendantes des prises. Les tests Django/HTTP et
+ceux du backend PDF navigateur ne qualifient pas cette exécution Pyodide.

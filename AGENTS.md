@@ -427,3 +427,14 @@ catégorie de repas proposée et majorité légale, ni suggestion et réalisatio
 Pour les statistiques, réconcilier nuitées majeurs + mineurs + inconnus, conserver
 la même personne dans tous les axes et la prise exacte des missions ; bornes
 d'entrée/sortie distinctes du chevauchement. Tester personnes.tests_meta_f.
+
+
+Trajectoire : l’entrée dossier est transversale ; l’ancienne URL garde son filtre
+de prise. La comparaison réutilise bd6.etat : déclaration personnelle applicable,
+puis projection économique détaillée si autorisée. Les anciens suivis restent des
+témoins distincts, jamais un repli consolidé ni une continuité inventée. Le filtre
+de prise porte sur ses bénéficiaires et faits liés, sans borner l’histoire
+personnelle à sa période. Une vue personne exclut les bilans collectifs ; une vue
+ménage borne les déclarations personnelles aux appartenances ou bénéfices datés.
+Tester personnes.tests_trajectoire_unifiee ; conserver les statistiques et les
+documents financiers émis. Aucun changement de tables ni de format de copie.

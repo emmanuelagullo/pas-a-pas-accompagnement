@@ -295,6 +295,15 @@ dédié. `SituationPersonnelle` porte les intervalles par personne et dimension 
 `RevisionSituationPersonnelle` conserve les séries avant/après, auteur et motif.
 Les tables sociales historiques, leurs liens et journaux ne sont pas réécrits.
 Le lecteur expose leurs divergences plutôt que choisir arbitrairement un suivi.
+La trajectoire dossier réutilise `bd6.etat` pour ses deux bornes ; les anciens
+suivis ne deviennent jamais un repli personnel consolidé. La projection des
+ressources détaillées garde la synthèse personnelle dans un dépliable. Les
+faits liés sont filtrés sur les prises du dossier et leurs bénéficiaires, les
+faits personnels sur le contexte daté du ménage (appartenance ou bénéfice
+explicite). La vue personne traverse ses ménages et exclut les bilans collectifs.
+Les corrections sont lues dans leur état courant, avec renvoi aux journaux ;
+les statistiques, exports de rapports et documents financiers émis gardent leurs
+contrats propres. Aucun changement de tables ou de format de copie.
 `CommentaireDossier` ajoute des versions immuables pour une cible exclusive
 personne/ménage/prise. Un effacement est une nouvelle version vide motivée.
 
