@@ -1,3 +1,10 @@
+## Guide pratique — parcours et scénario enrichis
+
+- Guide organisé par tâches : accueil, dossier social, prestations, relève, analyse, espace local et dépannage.
+- Fiches avec prérequis, départ et résultats attendus ; recherche et présentation du thème commun.
+- Visite courte et exercices approfondis de l’Établissement Les Passerelles ; repères statistiques actualisés.
+- Pages générales corrigées pour le parcours BD et les capacités actuelles ; anciennes URL conservées.
+
 ## À venir — méta-lot F : consolidation Solenne
 
 - Documents privés versionnés, corrections et annulations, copies atomiques.

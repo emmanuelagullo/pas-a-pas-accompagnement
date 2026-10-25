@@ -1,9 +1,13 @@
 ---
-categories_guide: [quotidien, accueillir]
-mots_cles_guide: ["repas", "nuit", "service"]
-fiche: true
 title: "Préparer le travail du jour"
 description: "Retrouver les séjours et saisir les repas effectivement distribués."
+fiche: true
+categorie: "equipe"
+publics: ["equipe"]
+intentions: ["relève", "travail du jour", "repas", "hébergement", "action"]
+prerequis: "Une version intégrant le parcours décrit et les droits nécessaires dans cet espace."
+depart: "Navigation → Travail du jour → date choisie"
+statut: "disponible"
 ---
 
 Ouvrir **Travail du jour** et choisir la date. Les informations affichées

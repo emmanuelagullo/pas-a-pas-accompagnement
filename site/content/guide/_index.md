@@ -1,21 +1,47 @@
 ---
 title: "Guide pratique"
-description: "Trouver rapidement une fiche pour accomplir une tâche dans Pas à Pas."
+description: "Partir d’une tâche : accueillir, accompagner, réaliser une prestation ou préparer un bilan."
 liste_auto: false
 ---
 
-Ce guide part d’une tâche concrète : **« Je voudrais faire… »**. Chaque fiche
-indique les étapes utiles dans le prototype et les précautions à connaître.
+Le fil principal de Pas à Pas est **Recherche → Dossier → Prise en charge**.
+Les fiches indiquent où commencer, ce qu'il faut vérifier et le résultat attendu.
+Elles décrivent le code actuel : la version installée ou publiée peut être antérieure.
+Les comptes existants ne reçoivent pas automatiquement de nouveaux droits.
 
-La recherche couvre les titres, les descriptions et les mots-clés des fiches.
-Les catégories sont des **portes d’entrée** : une même fiche peut figurer
-à plusieurs endroits, sans duplication.
+## Commencer ou essayer
 
-{{< guide-fiches >}}
+- [Choisir une version et un mode d'essai]({{< relref "/essayer/" >}}).
+- [Visiter l'Établissement Les Passerelles en cinq minutes]({{< relref "/guide/decouvrir-passerelles/" >}}).
+- [Tester un usage complet ou un cas limite]({{< relref "/guide/scenarios-passerelles/" >}}).
 
-Pour commencer, consultez aussi [Démarrer]({{< relref "/demarrer/" >}})
-ou [les rôles et permissions]({{< relref "/roles/" >}}).
+## Parcourir par tâche
 
-Les fonctionnalités et leur disponibilité dépendent de la version utilisée.
-Ces fiches concernent le prototype et les données fictives, pas un déploiement
-avec des dossiers réels.
+- [Accueillir et retrouver un dossier]({{< relref "/guide/accueillir/" >}}) — Recherche, ménage, demande, appel et première prise en charge.
+- [Renseigner et suivre la situation sociale]({{< relref "/guide/dossier/" >}}) — Informations personnelles datées, projet, contacts et documents.
+- [Accorder et réaliser les prestations]({{< relref "/guide/prestations/" >}}) — Hébergement, repas, transports, aides et financement.
+- [Travailler au quotidien et transmettre]({{< relref "/guide/equipe/" >}}) — Prise de poste, informations utiles et actions de relève.
+- [Rechercher, analyser et exporter]({{< relref "/guide/analyser/" >}}) — Définitions des indicateurs, croisements et modèles de rapport.
+- [Conserver et retrouver son espace]({{< relref "/guide/local/" >}}) — Essai séparé, copies, vérification et restauration sur cet appareil.
+- [Comprendre un refus et corriger]({{< relref "/guide/depannage/" >}}) — Droits, état des objets, erreurs de saisie et formulaires périmés.
+
+## Je voudrais faire…
+
+La recherche porte sur les titres, descriptions et mots-clés. Plusieurs mots
+peuvent préciser l'intention : « repas catégorie », « document version »,
+« ménage contact » ou « rapport modèle ». Sans JavaScript, toutes les fiches
+restent accessibles et les rubriques ci-dessus permettent de les parcourir.
+
+{{< recherche-guide >}}
+
+## Comprendre les accès
+
+« Équipe autorisée » désigne les personnes disposant des permissions nécessaires,
+pas un nouveau rôle donnant tous les droits. Les [comptes et accès]({{< relref "/roles/" >}})
+expliquent les limites actuelles ; Nadia, Rémi et Camille sont des personnages
+aux mêmes droits dans l'essai neuf. Aucun cloisonnement par métier n'est déduit
+de leur fonction narrative.
+
+Le service partagé et les espaces de cet appareil ont les mêmes gestes métier,
+mais pas les mêmes outils de conservation. Voir [Conserver son espace]({{< relref "/guide/local/" >}}).
+Les essais restent réservés aux données fictives.

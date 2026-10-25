@@ -1,5 +1,5 @@
 ---
-title: "L’équipe fictive des Passerelles"
+title: "L’équipe fictive de l’Établissement Les Passerelles"
 description: "Trois points de vue pour parcourir un même espace fictif."
 ---
 

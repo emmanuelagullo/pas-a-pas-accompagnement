@@ -1,31 +1,32 @@
 ---
-categories_guide: [quotidien, accompagner]
-mots_cles_guide: ["rectification", "historique"]
+title: "Corriger une erreur sans inventer un changement"
+description: "Choisir correction, nouvelle situation, annulation ou fin effective."
 fiche: true
-title: "Corriger une erreur de saisie"
-description: "Rectifier une date ou un texte en conservant l’avant et l’après."
+categorie: "depannage"
+publics: ["equipe"]
+intentions: ["corriger", "erreur", "annuler", "historique", "rétroactif"]
+prerequis: "Un compte disposant des droits de lecture et de saisie de la rubrique concernée."
+depart: "Dossier → rubrique concernée → action de correction ou historique"
+statut: "disponible"
 ---
 
-Avec les droits nécessaires, utiliser **Corriger** depuis l’accompagnement,
-l’accord, le séjour, une période d’affectation ou d’absence, ou le suivi social.
+## Choisir l’action juste
 
-Indiquer les données corrigées et un motif. L’application contrôle les dates,
-les réalisations existantes et les chevauchements. Elle refuse une correction
-qui rendrait les données liées incohérentes. Si quelqu’un a modifié la même
-information entre-temps, recharger la fiche avant de refaire la correction.
+| Ce qui s'est produit | Action attendue |
+| --- | --- |
+| La situation réelle a changé | Enregistrer une nouvelle situation à sa date d'effet. |
+| Une information ancienne est apprise aujourd'hui | La renseigner à sa date d'effet, dans la chronologie. |
+| La valeur était fausse dès sa saisie | Corriger avec motif et consulter l'avant/après. |
+| Un fait a été saisi mais n'a jamais eu lieu | Annuler la saisie erronée dans son parcours dédié, si l'action est proposée. |
+| Un séjour s'est réellement terminé | Enregistrer la sortie, sans annuler son existence. |
+| Une autorisation est étendue | Prolonger ; une prévision erronée se corrige séparément. |
 
-Les dates d’une situation sociale restent entre les valeurs voisines. La source
-peut être corrigée ; la fin de la valeur précédente suit la nouvelle date.
-Les événements et bilans peuvent être rectifiés sans effacer le texte antérieur.
+1. Vérifier la cible et les personnes concernées, puis ouvrir la bonne action.
+2. Indiquer la donnée corrigée et le motif. Lire les refus de cohérence avec les objets liés.
+3. Après confirmation, vérifier la consultation actuelle et l'historique : auteur, date d'enregistrement, motif et anciennes valeurs restent conservés.
 
-**Consulter l’avant/après des corrections**, dans la fiche d’accompagnement,
-affiche le motif, l’auteur et la date d’enregistrement, selon vos permissions.
-Les corrections d’appartenance restent consultables sur le ménage.
+Pour un repas erroné, annuler la distribution puis enregistrer la bonne. Les documents émis disposent d'une annulation et d'un remplacement, distincts des corrections du calcul.
 
-La correction ne rouvre et ne clôture pas une période. Elle ne change pas les
-bénéficiaires ou le lieu d’affectation. Pour une distribution de repas erronée,
-utiliser l’annulation motivée puis une nouvelle saisie.
+Les dates d'effet et de saisie ne sont pas interchangeables. Une consultation à une date passée peut tenir compte d'une correction effectuée aujourd'hui.
 
-Ces fonctions décrivent la version du code : elles nécessitent une mise à jour
-de la version installée ou publiée. Les espaces fictifs déjà créés conservent
-leurs droits ; leur extension est une opération explicite de l’exploitant.
+Si un collègue a modifié l'objet entre-temps, suivre [la reprise d'un formulaire périmé]({{< relref "/guide/depannage/formulaire-perime/" >}}). Aucune mise à jour ne donne automatiquement les droits de correction aux comptes existants.

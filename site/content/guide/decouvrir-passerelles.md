@@ -1,159 +1,37 @@
 ---
-categories_guide: [demarrer, accueillir]
-mots_cles_guide: ["demo", "essai"]
+title: "Découvrir l’Établissement Les Passerelles en cinq minutes"
+description: "Trois situations pour comprendre le dossier, les prestations et l’histoire sociale."
 fiche: true
-title: "Découvrir Établissement Les Passerelles en cinq minutes"
-description: "Suivre trois situations pour comprendre les distinctions métier."
-liste_auto: false
+categorie: "accueillir"
+publics: ["equipe"]
+intentions: ["démonstration", "essai", "Passerelles", "découvrir"]
+prerequis: "Un jeu fictif ouvert ; aucune information réelle à saisir."
+depart: "Essayer → espace fictif → Dossiers"
+statut: "disponible"
 ---
 
-Ouvrez [l’espace d’essai](../../essayer/), connectez-vous avec un compte public,
-puis choisissez **Découvrir le scénario fictif Établissement Les Passerelles** depuis l’accueil.
-Ce guide de l’application ne charge ni ne remplace aucune donnée.
+Choisir une version depuis [Essayer]({{< relref "/essayer/" >}}), puis ouvrir l'espace fictif et utiliser les comptes publics affichés. Sur le service partagé, les autres visiteurs peuvent avoir modifié le jeu. Sur votre appareil, les essais sont conservés séparément de votre espace habituel.
 
-1. **Samira, Lina et Adam** : ouvrir leur ménage. Consulter les trois fiches et
-   les bénéficiaires explicites de l’accompagnement. Les enfants ont leurs
-   prestations ; aucune représentation légale n’est déduite du ménage.
-2. **Alex** : ouvrir son ménage puis son accord de déjeuner. Il est accompagné
-   sans hébergement. Deux distributions passées illustrent la distinction entre
-   prestation accordée et repas effectivement distribué.
-3. Depuis cet accord, choisir **Enregistrer une distribution** : Alex, date du
-   jour, quantité 1. Vérifier d’abord l’historique : dans l’espace partagé,
-   un autre visiteur peut avoir déjà enregistré le repas du jour.
-4. Revenir chez **Samira** : consulter le séjour et ses deux affectations,
-   unité interne puis lieu partenaire. L’absence close de deux jours ne ferme
-   pas le séjour. Les périodes ont un début inclus et une fin exclue.
-5. Chez **Thomas**, comparer le séjour terminé et l’accompagnement toujours
-   ouvert. Dans **Situation et parcours sociaux**, lire le logement daté,
-   l’événement et le bilan. Le logement autonome est renseigné explicitement ;
-   il ne découle pas automatiquement de la sortie. Ouvrir ensuite la
-   **Trajectoire d’accompagnement** pour comparer les situations datées et
-   distinguer événement, bilan et fin du séjour.
+## Trois situations, un même parcours
 
-Pour poursuivre, ajouter un événement ou un bilan inventé chez Thomas avec
-une date comprise dans l’accompagnement. Les dates initiales sont calculées au
-jour de génération et ne changent plus à la réouverture.
+1. **Samira, Lina et Adam — le dossier.** Rechercher le ménage, ouvrir le dossier et lire la composition. Choisir une prise en charge : les bénéficiaires sont nommés explicitement ; leur présence dans un ménage ne suffit pas à leur accorder une prestation.
+2. **Alex — l'accord et le fait.** Ouvrir sa prise en charge puis **Repas**. Alex est accompagné sans hébergement. Comparer la période accordée aux déjeuners réellement distribués. Pour un essai de saisie, vérifier d'abord si le repas existe déjà ; enregistrer uniquement un fait fictif à une date autorisée.
+3. **Thomas — le parcours social.** Comparer son séjour terminé et une prise en charge qui continue. Lire les situations personnelles datées : un logement autonome est déclaré explicitement, il n'est pas déduit de la sortie du séjour.
 
-[Revenir à son espace habituel et conserver ses essais](../espaces-locaux/).
-[Comprendre les droits de Nadia, Rémi et Camille](../../roles/equipe/).
+**À retenir :** Recherche → Dossier → Prise en charge reste le chemin principal. L'accord décrit une décision ; le séjour, la remise ou la distribution décrit une réalisation. Une situation personnelle garde son histoire entre plusieurs prises en charge.
 
-Pour poursuivre l’essai, ouvrir la [fiche d’accompagnement](../accompagnement/),
-puis le [travail du jour](../travail-du-jour/). Les versions récentes proposent
-aussi des [corrections tracées](../corriger-saisie/) avec les droits nécessaires.
+## Choisir la suite de l’essai
 
-## Pour prolonger la visite
+Le jeu neuf comprend **36 personnes, 18 ménages et 51 prises en charge**, avec des dossiers comportant quatre ou cinq périodes et plusieurs prestations. Il permet de tester changements réels, erreurs corrigées, annulations et informations inconnues.
 
-6. **Relève d’équipe** : ouvrir le [cahier de liaison et les notes partagées](../transmissions/). Comparer une transmission générale et une note liée à Alex ou Thomas.
-7. **Accueil** : découvrir la [création progressive d’une fiche](../accueil-progressif/) et les actions rapides du travail du jour.
-8. **Bilan** : ouvrir les [statistiques](../statistiques/) sur la période du scénario et comparer hébergement, absences et repas effectivement distribués.
-9. **Exploration statistique** : sélectionner « Explorer les repas par mois et service », puis « Total par catégorie » pour retrouver les deux déjeuners d’Alex et les trois dîners de la famille. Passer ensuite à « Explorer les nuitées par mois et lieu » pour distinguer l’unité interne et l’appartement relais. Exporter chaque rapport en CSV : les mêmes regroupements sont conservés. Les nuitées d’affectation ne mesurent pas la présence réelle.
+- [Choisir un exercice métier]({{< relref "/guide/scenarios-passerelles/" >}}) : accueil, mouvements, ressources, transports, financements, 115 ou statistiques.
+- [Comprendre les comptes fictifs]({{< relref "/roles/equipe/" >}}) : Nadia, Rémi et Camille ont les mêmes permissions ; leurs fonctions sont narratives.
+- [Revenir à son espace habituel et conserver l'essai]({{< relref "/guide/espaces-locaux/" >}}).
 
-La [fiche Trajectoire sociale](../trajectoire-sociale/) approfondit le parcours de Thomas.
-
-Les étapes 6 à 9 sont un prolongement de la visite initiale de cinq minutes ; elles supposent une version de l’application intégrant CHRS8 à CHRS10.
+Les dates sont fixées au jour de génération du jeu, puis restent inchangées. Un ancien espace d'essai n'est ni réinitialisé ni enrichi automatiquement par une mise à jour. La documentation décrit le code actuel ; vérifier la version de l'application essayée.
 
 ## Captures du parcours
 
 {{< captures-passerelles >}}
 
-## Un jeu étendu pour éprouver les parcours
-
-Les versions comprenant le scénario enrichi de l’**Établissement Les Passerelles**
-préparent **36 personnes, 18 ménages et 51 prises en charge** dans les espaces
-neufs. Les anciens essais restent conservés et ne sont pas enrichis automatiquement.
-La présence de cette documentation ne signifie pas que la démonstration publiée
-ou une PWA déjà installée a reçu cette version.
-
-- **Noor** : une ancienne prise close, une reprise et deux co-référents.
-- **Inès** : dossier individuel sans ménage ni prise, prêt pour un premier accueil.
-- **Gabriel et Éva** : deux bénéficiaires d’un séjour terminé en logement diffus.
-- **Yannis** : année de naissance estimée seule et prise close sans hébergement.
-- **Deux Robin** : homonymes distincts, à retrouver sans fusionner leurs identités.
-- **Noé** : changement de ménage conservant les bénéficiaires des prises anciennes.
-- **Thomas** : changement d’adresse et correction d’un complément, clairement distingués.
-- **Samira** : relais professionnel daté, contact du ménage et suivi extérieur distincts.
-
-Les autres dossiers font varier les situations connues ou inconnues, l’emploi,
-la formation et les ressources déclarées. Un groupe comprend un membre qui n’est
-pas bénéficiaire de la prise. Les listes de personnes dépassent une page.
-Les propositions de villes et de situations restent modifiables ; elles ne
-remplissent aucun dossier sans confirmation.
-
-
-### Identité et relations déclarées
-
-Dans les versions comprenant le méta-lot A02, le jeu neuf de l’**Établissement
-Les Passerelles** montre aussi les liens déclarés entre Samira et les enfants,
-la fratrie de Lina et Adam, Thomas comme personne à contacter pour Noor, et le
-changement de lien entre Gabriel et Éva. Ces déclarations ne créent ni
-appartenance, ni bénéficiaire, ni responsabilité juridique.
-
-Chez Samira, comparer une nationalité fictive à l’entrée et deux ensuite, puis
-la correction du lieu de naissance. Chez les deux Robin, le lien erroné reste
-dans l’historique et disparaît de la consultation courante. Le résumé à l’entrée
-restitue la date choisie ; il ne recopie pas automatiquement les valeurs actuelles.
-Les anciens essais sont conservés sans enrichissement automatique.
-
-### Ressources, administration et droits
-
-Le jeu neuf de l’**Établissement Les Passerelles** permet de tester les deux
-entrées du dossier personnel : **Ressources et dettes**, **Administration et droits**.
-Samira cumule plusieurs postes, une évolution de ressource et une correction
-du total de dette ; Maïa passe de deux ressources à une absence explicitement
-confirmée. Thomas possède des échéances annoncées dépassées qui ne mettent pas
-fin automatiquement aux déclarations. Les situations inconnues et les montants
-à zéro sont distincts. Les protections de Yannis et Gabriel distinguent organisme,
-professionnel désigné et interlocuteur. Une saisie erronée concernant Robin est
-annulée sans effacer son histoire. Tous les identifiants sont fictifs.
-
-Changer la date consultée, ouvrir l’historique puis revenir à la prise en charge
-permet de suivre ces évolutions sans quitter le parcours. Le rapport accessible
-depuis Statistiques propose filtres, CSV et impression ; les identifiants
-administratifs sont exclus par défaut. Les anciens espaces d’essai restent intacts.
-
-### Avant et entre les prises en charge
-
-Dans le jeu neuf de l’**Établissement Les Passerelles**, dix demandes permettent
-de suivre l’attente, l’acceptation, le refus et le retrait. Inès a une demande
-acceptée sans prise en charge ; une acceptation ne vaut donc pas arrivée. Le
-formulaire habituel permet ensuite de confirmer l’ouverture, le ménage et les
-bénéficiaires. Les demandes refusées ne créent aucune prestation.
-
-Depuis la ligne **Parcours**, choisir demandes, orientations, objectifs ou suivi
-du dossier sur la même page. Samira possède plusieurs orientations aux résultats
-différents ; Thomas poursuit un objectif après la clôture de sa prise en charge d’origine,
-et son suivi passe en veille puis redevient actif. Un changement d’activité
-CHRS/urgence ne clôture pas définitivement son dossier. Les récits de projet
-existants restent disponibles. Les changements et corrections ont leurs dates,
-sources et historiques ; l’état « suivi terminé » ne bloque aucun nouvel accueil.
-
-Le rapport Parcours fournit les filtres, états, cohortes et délais vers les prises
-débutées, ainsi que l’impression et le CSV. Les coordonnées de destination sont
-réutilisées depuis les répertoires à la date consultée. Les anciens espaces
-d’essai ne sont pas modifiés : ouvrir un espace neuf pour retrouver ce scénario.
-
-### Prestations et gestes quotidiens
-
-Le jeu neuf de l’**Établissement Les Passerelles** propose transports, bons et
-produits alimentaires et accueil de jour dans le groupe **Prestations** de la
-prise en charge. Samira a une remise de cartes corrigée et des bons remis mais
-non utilisés ; Thomas a une remise annulée ; Yannis reçoit une quantité de
-produits en kg. Noor a un accueil de jour sans nuitée artificielle et un futur
-service de repas les mercredis et vendredis. Une autorisation ne remet rien et
-un titre remis ne prouve aucun trajet. Les quantités collectives ne sont pas
-multipliées par le nombre de personnes.
-
-Le travail du jour conserve la date choisie après réalisation. Rapports, CSV
-et PDF distinguent autorisation, remise et utilisation déclarée. Pour un ancien
-séjour collectif, l’action **Continuer individuellement** conserve l’histoire
-commune puis permet d’agir sur une personne ou une sélection, sans fausse
-nouvelle admission. Les lieux peuvent être organisés en établissement, chambre
-et place sans imposer cette hiérarchie. Les tarifs et documents émis numérotés
-seront complétés avec le financement. Les anciens essais restent inchangés.
-
-
-Dans un essai neuf de l'**Établissement Les Passerelles**, le dossier de Noor
-illustre aussi un document joint dont le titre a été corrigé, un besoin pratique
-d'accueil et un antécédent institutionnel sans dates inventées. Un brouillon
-annulé reste consultable dans le ménage de Samira. Nadia dispose d'un modèle
-de rapport comparant les nuitées totales et leur répartition par âge à chaque nuit.
+Ces captures sont préparées par la CI avec des données fictives. Elles peuvent illustrer une version antérieure à certaines fiches ; les exercices ne supposent pas qu'une capture de chaque nouvelle fonction soit déjà disponible.

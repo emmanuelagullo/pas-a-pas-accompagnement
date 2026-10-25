@@ -1,39 +1,24 @@
 ---
-categories_guide: [accompagner, analyser]
-mots_cles_guide: ["historique", "evolution"]
-fiche: true
 title: "Lire une trajectoire d’accompagnement"
-description: "Comparer les situations datées et retrouver les faits, sans score social."
+description: "Comparer des situations datées et retrouver les faits sans score social."
+fiche: true
+categorie: "dossier"
+publics: ["equipe"]
+intentions: ["trajectoire", "évolution", "comparaison", "bilan", "histoire"]
+prerequis: "Un compte disposant des droits de lecture et de saisie de la rubrique concernée."
+depart: "Prise en charge → Historique de la prise en charge → Situation et parcours sociaux → Trajectoire d’accompagnement"
+statut: "disponible"
 ---
 
-Depuis **Ménages et accompagnements**, ouvrir un accompagnement, puis
-**Situation et parcours sociaux** et **Trajectoire d’accompagnement**.
+1. Ouvrir la prise en charge concernée puis la trajectoire.
+2. Choisir les bénéficiaires et la période à comparer.
+3. Lire les situations aux bornes : logement, emploi/formation et ressources. **Non renseigné** signifie qu'aucune valeur ne couvre la date, pas qu'une absence de ressource a été déclarée.
+4. Examiner les éléments datés : déclarations, événements, bilans et prestations, selon vos droits.
 
-La trajectoire présente deux lectures complémentaires :
+**À vérifier :** un événement ne modifie pas automatiquement une situation déclarée. Un bilan du ménage ne doit pas être attribué à une personne isolée : il est écarté de cette sélection individuelle.
 
-- **Situations aux bornes de la période** : pour chaque bénéficiaire, comparer
-  logement, emploi/formation et ressources au début et à la fin de la période.
-  « Non renseigné » signifie seulement qu’aucune valeur ne couvre cette date.
-- **Éléments datés** : retrouver les déclarations de situation, événements,
-  bilans du ménage et prestations réalisées, selon les droits du compte.
+Les bornes du filtre de comparaison sont incluses ; la fin d'un séjour reste, elle, exclue. Les informations personnelles datées sont indépendantes des prises en charge. Les éléments des anciens suivis restent conservés et ne sont pas fusionnés arbitrairement.
 
-Les filtres permettent de choisir un bénéficiaire et une période. Les bornes
-sont incluses pour la recherche et la comparaison ; une **fin de séjour**, en
-revanche, reste une date exclue. Un bilan du ménage disparaît lorsqu’un seul
-bénéficiaire est sélectionné : il ne doit pas être attribué à une personne.
+**Essai :** chez Thomas, comparer entrée et installation en logement autonome. Le séjour peut être fini tandis que l'accompagnement continue. Ni la comparaison ni la chronologie ne produisent un score social.
 
-Un événement significatif n’entraîne **aucune modification automatique** d’une
-situation déclarée. La comparaison n’est ni un score ni un jugement sur les
-personnes. Les dates d’effet restent distinctes des dates d’enregistrement.
-
-## Essai avec Établissement Les Passerelles
-
-Dans l’[espace fictif](../decouvrir-passerelles/), ouvrir **Thomas** : son
-hébergement se termine, mais son accompagnement continue. Consulter les
-situations datées de logement, emploi/formation et ressources ; sélectionner
-une période englobant son entrée puis son installation en logement autonome.
-Observer que l’événement et le bilan restent distincts des changements de
-situation saisis explicitement.
-
-La lecture dépend des autorisations du compte. Les informations non autorisées
-ne sont pas intégrées à la chronologie, même sous forme de résumé.
+Pour suivre un objectif entre plusieurs prises en charge, utiliser aussi [Objectifs et orientations]({{< relref "/guide/dossier/objectifs/" >}}).

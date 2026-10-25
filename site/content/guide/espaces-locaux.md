@@ -1,10 +1,13 @@
 ---
-categories_guide: [demarrer]
-mots_cles_guide: ["pwa", "sauvegarde", "restauration"]
-fiche: true
 title: "Essayer et retrouver son espace habituel"
 description: "Deux espaces distincts dans la PWA et les programmes récents."
-liste_auto: false
+fiche: true
+categorie: "local"
+publics: ["appareil"]
+intentions: ["espace", "essai", "PWA", "programme", "revenir"]
+prerequis: "Une version intégrant le parcours décrit et les droits nécessaires dans cet espace."
+depart: "Application locale → Essayer avec Établissement Les Passerelles"
+statut: "disponible"
 ---
 
 Cette fiche concerne les versions proposant **Essayer avec Établissement Les Passerelles**.

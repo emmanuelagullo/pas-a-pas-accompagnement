@@ -1,9 +1,13 @@
 ---
-categories_guide: [quotidien, accompagner]
-mots_cles_guide: ["releve", "cahier de liaison", "equipe"]
 title: "Transmettre une information à l’équipe"
 description: "Distinguer cahier de liaison et notes partagées sur un dossier."
 fiche: true
+categorie: "equipe"
+publics: ["equipe"]
+intentions: ["transmission", "note", "éditeur", "texte enrichi", "équipe"]
+prerequis: "Une version intégrant le parcours décrit et les droits nécessaires dans cet espace."
+depart: "Cahier de liaison, ou dossier / prise en charge → Notes"
+statut: "disponible"
 ---
 
 Le **Cahier de liaison** sert à transmettre une information entre membres de

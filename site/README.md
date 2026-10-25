@@ -119,3 +119,18 @@ python3 scripts/capturer-site-chrs.py --base-url http://127.0.0.1:8000 --output 
 
 Ne pas exécuter ce script sur une instance contenant des dossiers réels.
 La vérification visuelle du rendu du thème partagé reste nécessaire.
+
+## Guide pratique par tâches
+
+Le guide utilise directement les layouts de fiche, cartes et recherche du thème
+commun, comme Petits Pas. `site/data/guide.yaml` contient les libellés métier ;
+les métadonnées `categorie`, `publics`, `intentions`, `prerequis`, `depart`,
+`statut` décrivent chaque fiche. Les publics sont des indications de lecture,
+pas des rôles accordant des droits. Les anciennes URL de fiches sont conservées.
+
+Ajouter une fiche à la rubrique pertinente et à son index, vérifier le parcours
+dans les vues/templates et indiquer résultat attendu, corrections ou refus utiles.
+Ne pas annoncer comme publiée une fonction uniquement présente dans le code.
+La visite courte du scénario renvoie aux exercices approfondis ; les compteurs
+de la fenêtre J−60 à J+1 suivent `personnes.tests_demonstration`. Les captures
+restent celles produites par la CI, sans images fabriquées pour compléter le guide.

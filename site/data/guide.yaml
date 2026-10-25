@@ -1,0 +1,30 @@
+categories:
+  accueillir:
+    label: "Accueillir et retrouver un dossier"
+    description: "Recherche, ménage, demande, appel et première prise en charge."
+  dossier:
+    label: "Renseigner et suivre la situation sociale"
+    description: "Informations personnelles datées, projet, contacts et documents."
+  prestations:
+    label: "Accorder et réaliser les prestations"
+    description: "Hébergement, repas, transports, aides et financement."
+  equipe:
+    label: "Travailler au quotidien et transmettre"
+    description: "Prise de poste, informations utiles et actions de relève."
+  analyser:
+    label: "Rechercher, analyser et exporter"
+    description: "Définitions des indicateurs, croisements et modèles de rapport."
+  local:
+    label: "Conserver et retrouver son espace"
+    description: "Essai séparé, copies, vérification et restauration sur cet appareil."
+  depannage:
+    label: "Comprendre un refus et corriger"
+    description: "Droits, état des objets, erreurs de saisie et formulaires périmés."
+
+publics:
+  equipe: Équipe autorisée
+  gestion: Personne chargée du paramétrage
+  appareil: Propriétaire de l’espace local
+
+statuts:
+  disponible: Disponible dans le code actuel ; vérifier la version utilisée
