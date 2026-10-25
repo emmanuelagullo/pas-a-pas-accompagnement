@@ -1399,3 +1399,14 @@ Recettes : `python3 manage.py test personnes.tests_meta_f`,
 `python3 scripts/qualifier-solenne-profils.py`, puis suite générale.
 La matrice de couverture demeure hors dépôt ; elle distingue code contrôlé,
 lecture statique Java, sources externes manquantes et vérification visuelle.
+
+
+Consolidation H : les déclarations d'ancrage territorial et d'évolution
+réutilisent les faits personnels datés, leurs journaux, droits propres et CAS.
+La fréquentation institutionnelle déclarée (oui/non/inconnue) ne se déduit pas
+des séjours connus ; les anciennes déclarations restent non qualifiées.
+Les champs d'une même déclaration sont corrélés dans les filtres et classements.
+Les populations ressources/dettes utilisent les champs du poste sélectionné.
+L'exploration propose premier/dernier objet filtré par personne pour les mesures
+de personnes, et des sous-totaux par préfixe recalculés sans additionner les
+ventilations recouvrantes. Aucun classement n'est une première admission absolue.

@@ -422,3 +422,14 @@ que la synthèse, le CSV et le PDF. Les liens vers un dossier conservent les
 critères du rapport dans un retour signé propre au compte, valable 24 heures ;
 aucune URL de retour arbitraire n'est acceptée. Les valeurs personnelles
 affichées restent celles des bénéficiaires retenus par les filtres.
+
+
+Consolidation H : les déclarations d'ancrage territorial et d'évolution
+réutilisent les faits personnels datés, leurs journaux, droits propres et CAS.
+La fréquentation institutionnelle déclarée (oui/non/inconnue) ne se déduit pas
+des séjours connus ; les anciennes déclarations restent non qualifiées.
+Les champs d'une même déclaration sont corrélés dans les filtres et classements.
+Les populations ressources/dettes utilisent les champs du poste sélectionné.
+L'exploration propose premier/dernier objet filtré par personne pour les mesures
+de personnes, et des sous-totaux par préfixe recalculés sans additionner les
+ventilations recouvrantes. Aucun classement n'est une première admission absolue.

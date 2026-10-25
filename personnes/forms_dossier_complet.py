@@ -82,7 +82,21 @@ class AntecedentForm(FaitForm):
         help_texts={'debut':'Date à laquelle ce renseignement est déclaré applicable, distincte de la date d’entrée dans l’institution.', 'periode_declaree':'Conservez une durée ou époque déclarée sans inventer de date au 1er janvier.'}
 
 
-FORMULAIRES={'antecedents':AntecedentForm,'besoins':BesoinAccueilForm,'ressources':RessourceForm,'dettes':DetteForm,'pieces':PieceForm,'couvertures':CouvertureForm,'protections':ProtectionForm}
+class TerritoireForm(FaitForm):
+    class Meta:
+        model=m.AncrageTerritorial
+        fields=['debut','fin',*service.RUBRIQUES['territoires'].champs,'source']
+        help_texts={'debut':'Date à laquelle ces renseignements sont déclarés applicables, distincte de l’arrivée déclarée sur le territoire.', 'anciennete_declaree':'Conservez la durée ou catégorie déclarée sans calculer une date d’arrivée fictive.', 'territoire':'Territoire explicitement nommé, sans déduction depuis une adresse ou un lieu d’hébergement.'}
+
+
+class EvolutionDeclareeForm(FaitForm):
+    class Meta:
+        model=m.EvolutionPersonnelleDeclaree
+        fields=['debut','fin',*service.RUBRIQUES['evolutions'].champs,'source']
+        help_texts={'libelle':'Qualification déclarée à rechercher ou classer ; ne change ni les situations logement/emploi/ressources ni un objectif automatiquement.'}
+
+
+FORMULAIRES={'evolutions':EvolutionDeclareeForm,'territoires':TerritoireForm,'antecedents':AntecedentForm,'besoins':BesoinAccueilForm,'ressources':RessourceForm,'dettes':DetteForm,'pieces':PieceForm,'couvertures':CouvertureForm,'protections':ProtectionForm}
 
 
 class AdministrationForm(FormulaireModeleMetier):

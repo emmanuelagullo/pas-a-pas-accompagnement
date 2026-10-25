@@ -5,9 +5,15 @@ from . import pieces_dossier as s,bd6,models as m
 
 def enrichir(acteur,personnes,suivis,jour):
     p=personnes['Noor']
-    from . import dossier_complet as dc
+    from . import dossier_complet as dc,coordonnees
     from datetime import timedelta
-    dc.enregistrer(acteur,'antecedents',p,jour-timedelta(days=10),None,'Entretien fictif',bd6.jeton(p),etat='detail',libelle='Accueil institutionnel antérieur fictif',organisme=None,periode_declaree='Quelques mois déclarés, date inconnue',date_entree=None,date_sortie=None,precision_dates='')
+    dc.enregistrer(acteur,'antecedents',p,jour-timedelta(days=10),None,'Entretien fictif',bd6.jeton(p),etat='detail',libelle='Accueil institutionnel antérieur fictif',frequentation='oui',organisme=None,periode_declaree='Quelques mois déclarés, date inconnue',date_entree=None,date_sortie=None,precision_dates='')
+    dc.enregistrer(acteur,'territoires',p,jour-timedelta(days=10),None,'Entretien fictif',bd6.jeton(p),etat='detail',type_territoire='agglomeration',territoire='Agglomération fictive des Passerelles',anciennete_declaree='Deux ans déclarés',depuis=None,precision_depuis='')
+    dc.enregistrer(acteur,'evolutions',p,jour-timedelta(days=9),None,'Bilan fictif',bd6.jeton(p),etat='detail',domaine='demarches',libelle='Reprise déclarée des démarches fictives')
+    contact=coordonnees.a_date([p],jour).first()
+    if contact:
+        valeurs={c:getattr(contact,c) for c in coordonnees.CHAMPS};valeurs['usage_adresse']='dernier_fixe'
+        coordonnees.renseigner(acteur,p,contact.debut,'Précision fictive de l’adresse déclarée',bd6.jeton(p),motif='Qualification fictive : dernier domicile fixe, pas adresse actuelle déduite',correction=contact.pk,**valeurs)
     x=dc.enregistrer(acteur,'besoins',p,jour-timedelta(days=10),None,'Entretien fictif',bd6.jeton(p),etat='detail',categorie='mobilite',libelle='Accueil de plain-pied fictif',adaptation='Besoin pratique fictif, sans diagnostic médical.')
     dc.enregistrer(acteur,'besoins',p,x.debut,None,'Relecture fictive',bd6.jeton(p),correction=x.pk,motif='Précision fictive de l’adaptation',etat='detail',categorie='mobilite',libelle='Accueil de plain-pied fictif',adaptation='Éviter les escaliers pendant la période déclarée fictive.')
     piece=s.ajouter(acteur,p,bd6.jeton(p),titre='Préparation fictive du rendez-vous',date_document=jour,source='Scénario fictif Établissement Les Passerelles',fichier=SimpleUploadedFile('rendez-vous-fictif.txt','Exemple fictif de document externe. Aucun rendez-vous réel.\n'.encode()))

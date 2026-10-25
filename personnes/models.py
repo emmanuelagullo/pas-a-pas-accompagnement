@@ -709,6 +709,7 @@ class RevisionDeclarationFamiliale(models.Model):
 
 class CoordonneesPersonnelles(Periode):
     personne = models.ForeignKey(Personne, on_delete=models.PROTECT, related_name='coordonnees')
+    usage_adresse = models.CharField('Nature de l’adresse déclarée',max_length=20,blank=True,choices=[('','Non qualifiée'),('contact','Adresse de contact déclarée'),('domicile_fixe','Domicile fixe déclaré'),('dernier_fixe','Dernier domicile fixe déclaré'),('autre','Autre adresse déclarée')])
     rue = models.CharField('Adresse déclarée — rue et complément', max_length=240, blank=True)
     code_postal = models.CharField('Code postal', max_length=20, blank=True)
     ville = models.CharField('Ville', max_length=160, blank=True)
@@ -1784,6 +1785,7 @@ class RevisionBesoinAccueil(JournalPersonnel):
 
 class AntecedentInstitutionnel(FaitPersonnelDate):
     libelle=models.CharField('Institution ou type de passage déclaré',max_length=160,blank=True)
+    frequentation=models.CharField('Fréquentation de cette institution déclarée',max_length=10,blank=True,choices=[('','Non qualifiée'),('oui','Déjà fréquentée'),('non','Jamais fréquentée, selon la déclaration'),('inconnu','Non connue pour cette institution')])
     organisme=models.ForeignKey(Partenaire,on_delete=models.PROTECT,null=True,blank=True)
     periode_declaree=models.CharField('Période déclarée (si non datée précisément)',max_length=160,blank=True)
     date_entree=models.DateField('Entrée connue dans cette institution',null=True,blank=True)
@@ -1794,7 +1796,8 @@ class AntecedentInstitutionnel(FaitPersonnelDate):
         super().clean()
         from django.core.exceptions import ValidationError
         if self.etat=='detail' and not self.libelle.strip():raise ValidationError({'libelle':'Nommez le passage déclaré, sans déduire une institution depuis une situation actuelle.'})
-        self.verifier_details(('libelle','organisme_id','periode_declaree','date_entree','date_sortie','precision_dates'))
+        self.verifier_details(('libelle','frequentation','organisme_id','periode_declaree','date_entree','date_sortie','precision_dates'))
+        if self.frequentation in ('non','inconnu') and any((self.periode_declaree,self.date_entree,self.date_sortie,self.precision_dates)):raise ValidationError('Une institution déclarée jamais fréquentée, ou de fréquentation non connue, ne porte ni date ni durée de passage.')
         if bool(self.date_entree or self.date_sortie)!=bool(self.precision_dates):raise ValidationError({'precision_dates':'Une date connue doit être qualifiée ; une période approximative seule ne crée aucune date.'})
         if self.date_entree and self.date_sortie and self.date_sortie<self.date_entree:raise ValidationError({'date_sortie':'La sortie ne peut pas précéder l’entrée.'})
         if self.debut and any(d and d>self.debut for d in (self.date_entree,self.date_sortie)):raise ValidationError({'date_entree':'Un antécédent ne peut pas être postérieur à sa déclaration.'})
@@ -1806,3 +1809,47 @@ class AntecedentInstitutionnel(FaitPersonnelDate):
 
 class RevisionAntecedentInstitutionnel(JournalPersonnel):
     fait=models.ForeignKey(AntecedentInstitutionnel,on_delete=models.PROTECT,related_name='revisions')
+
+
+class AncrageTerritorial(FaitPersonnelDate):
+    type_territoire=models.CharField('Type de territoire déclaré',max_length=15,blank=True,choices=[('agglomeration','Agglomération'),('commune','Commune'),('departement','Département'),('autre','Autre territoire')])
+    territoire=models.CharField('Territoire déclaré',max_length=160,blank=True)
+    anciennete_declaree=models.CharField('Ancienneté déclarée',max_length=160,blank=True)
+    depuis=models.DateField('Présence déclarée depuis',null=True,blank=True)
+    precision_depuis=models.CharField('Précision de cette date',max_length=10,blank=True,choices=[('','Date non connue'),('exacte','Date déclarée exacte'),('estimee','Date déclarée estimée')])
+
+    def clean(self):
+        super().clean()
+        from django.core.exceptions import ValidationError
+        if self.etat=='detail' and (not self.territoire.strip() or not self.type_territoire):raise ValidationError('Précisez le territoire et son type ; aucune ville n’est déduite de l’adresse ou du lieu d’accueil.')
+        self.verifier_details(('type_territoire','territoire','anciennete_declaree','depuis','precision_depuis'))
+        if bool(self.depuis)!=bool(self.precision_depuis):raise ValidationError({'precision_depuis':'Qualifiez la date si elle est connue ; une durée déclarée seule ne crée aucune date.'})
+        if self.depuis and self.debut and self.depuis>self.debut:raise ValidationError({'depuis':'La présence déclarée ne peut pas commencer après la date de cette déclaration.'})
+
+    class Meta(FaitPersonnelDate.Meta):
+        abstract=False
+        permissions=[('annuler_ancrageterritorial','Annuler un ancrage territorial déclaré par erreur')]
+        constraints=FaitPersonnelDate.Meta.constraints+[models.CheckConstraint(condition=models.Q(depuis__isnull=True)|models.Q(depuis__lte=models.F('debut')),name='ancrage_depuis_declaration')]
+
+
+class RevisionAncrageTerritorial(JournalPersonnel):
+    fait=models.ForeignKey(AncrageTerritorial,on_delete=models.PROTECT,related_name='revisions')
+
+
+class EvolutionPersonnelleDeclaree(FaitPersonnelDate):
+    domaine=models.CharField('Domaine de l’évolution déclarée',max_length=20,blank=True,choices=[('logement','Logement'),('emploi','Emploi / formation'),('ressources','Ressources'),('liens','Liens et vie sociale'),('demarches','Démarches'),('autre','Autre domaine déclaré')])
+    libelle=models.CharField('Évolution déclarée',max_length=160,blank=True)
+
+    def clean(self):
+        super().clean()
+        from django.core.exceptions import ValidationError
+        if self.etat=='detail' and not self.libelle.strip():raise ValidationError({'libelle':'Nommez l’évolution déclarée, sans déduire de score ou de changement de situation.'})
+        self.verifier_details(('domaine','libelle'))
+
+    class Meta(FaitPersonnelDate.Meta):
+        abstract=False
+        permissions=[('annuler_evolutionpersonnelledeclaree','Annuler une évolution personnelle déclarée par erreur')]
+
+
+class RevisionEvolutionPersonnelleDeclaree(JournalPersonnel):
+    fait=models.ForeignKey(EvolutionPersonnelleDeclaree,on_delete=models.PROTECT,related_name='revisions')

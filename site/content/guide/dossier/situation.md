@@ -20,3 +20,11 @@ statut: "disponible"
 Les informations sociales des anciens suivis restent conservées avec leur provenance. Une divergence appelle une vérification, pas une fusion automatique.
 
 Pour comparer plusieurs dates, consulter la [trajectoire sociale]({{< relref "/guide/trajectoire-sociale/" >}}).
+
+## Qualifier une évolution déclarée
+
+**Itinéraire et antécédents → Évolutions personnelles déclarées** conserve un
+domaine et un libellé structurés, avec date, source et corrections. Plusieurs
+qualifications sont possibles. Elles se recherchent dans les rapports et ne
+changent automatiquement ni logement, ni emploi, ni ressources, ni objectif.
+Une qualification déclarée n'est pas un score social.

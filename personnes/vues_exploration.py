@@ -80,15 +80,15 @@ def explorer(request):
                 from .pdf_restitution import produire
                 return produire(request,'Relevé détaillé — données fictives',['Population : '+dict(e.POPULATIONS)[form.cleaned_data['population']], 'Paramètres : '+str({k:str(v) for k,v in form.cleaned_data.items()}), 'Colonnes : '+' · '.join(colonnes),*[x['id']+' · '+str(x['date'])+' · '+' · '.join(x['valeurs']) for x in details]],'exploration-detail-fictive.pdf')
             if request.GET.get('format')=='csv':
-                r=HttpResponse(content_type='text/csv; charset=utf-8');r['Content-Disposition']='attachment; filename="exploration-fictive.csv"';w=csv.writer(r,delimiter=';');w.writerow(['Population','Référence','Mesure','Axe','Croisement',*['Niveau '+str(i) for i in range(3,8)],'Unité','Valeur','Déclarants sans valeur connue pour cette mesure'])
-                for x in lignes:w.writerow([cellule_csv(v) for v in [dict(e.POPULATIONS)[form.cleaned_data['population']],form.cleaned_data['reference'],x['mesure'],x['axe'],x['croisement'],*x['niveaux'],x['unite'],x['valeur'],x['inconnus']]])
+                r=HttpResponse(content_type='text/csv; charset=utf-8');r['Content-Disposition']='attachment; filename="exploration-fictive.csv"';w=csv.writer(r,delimiter=';');w.writerow(['Population','Référence','Mesure','Axe','Croisement',*['Niveau '+str(i) for i in range(3,8)],'Unité','Valeur','Déclarants sans valeur connue pour cette mesure',*(['Type de ligne','Profondeur du sous-total'] if form.cleaned_data.get('sous_totaux') else [])])
+                for x in lignes:w.writerow([cellule_csv(v) for v in [dict(e.POPULATIONS)[form.cleaned_data['population']],form.cleaned_data['reference'],x['mesure'],x['axe'],x['croisement'],*x['niveaux'],x['unite'],x['valeur'],x['inconnus'],*(['Sous-total' if x.get('sous_total') else 'Détail',x.get('niveau_sous_total','')] if form.cleaned_data.get('sous_totaux') else [])]])
                 return r
             if request.GET.get('format')=='pdf':
                 from .pdf_restitution import produire
                 return produire(request,'Exploration — données fictives',[dict(e.POPULATIONS)[form.cleaned_data['population']],'Situation personnelle à la référence : '+str(form.cleaned_data['reference']),
                     'Période : '+str(form.cleaned_data['debut'])+' → '+str(form.cleaned_data['fin'])+' (fin exclue)',
                     'Paramètres : '+str({k:str(v) for k,v in form.cleaned_data.items()}),'Totaux distincts recalculés : '+str(totaux),
-                    *[f'{x["mesure"]} — '+ ' · '.join([x['axe'],x['croisement'],*x['niveaux']])+f' : {x["valeur"]} {x["unite"]}' for x in lignes],
+                    *[('Sous-total — ' if x.get('sous_total') else '')+f'{x["mesure"]} — '+ ' · '.join([x['axe'],x['croisement'],*x['niveaux']])+f' : {x["valeur"]} {x["unite"]}' for x in lignes],
                     'Les ventilations multi-valeurs ne sont pas additives. Une première entrée connue n’est pas une première entrée absolue.'],'exploration-fictive.pdf')
     if not form.is_valid():colonnes=[];details=[]
     query={c:str(form.data.get(c,'')) for c in form.fields};page=Paginator(details if form.cleaned_data.get('affichage')=='detail' else lignes,50).get_page(request.GET.get('page'))

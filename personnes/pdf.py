@@ -19,6 +19,7 @@ def produire(personne, *, navigateur=False, coordonnees=None, complement=None):
         ]
         if coordonnees:
             lignes += ['Coordonnées déclarées depuis le '+coordonnees.debut.strftime('%d/%m/%Y'),
+                'Nature de l’adresse : '+(coordonnees.get_usage_adresse_display() or 'Non qualifiée'),
                 'Adresse : '+(coordonnees.adresse or 'Non renseignée'),
                 'Téléphone : '+(coordonnees.telephone or 'Non renseigné'),
                 'Courriel : '+(coordonnees.courriel or 'Non renseigné'),

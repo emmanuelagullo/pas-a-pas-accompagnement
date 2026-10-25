@@ -31,6 +31,7 @@ class CoordonneesForm(FormulaireModeleMetier):
         model = CoordonneesPersonnelles
         fields = ['debut', *coordonnees.CHAMPS, 'source']
         help_texts = {
+            'usage_adresse':'Qualification déclarée : une dernière adresse fixe n’est pas nécessairement l’adresse actuelle ou le lieu d’hébergement. Les anciennes données restent non qualifiées.',
             'rue': 'Adresse déclarée par la personne. Ne désigne ni son hébergement effectif, ni une domiciliation administrative vérifiée.',
             'code_postal': 'Facultatif ; les codes étrangers et les zéros initiaux sont conservés.',
             'ville': 'Ville déclarée ; réutilisez un libellé cohérent pour les filtres et regroupements.',
@@ -87,6 +88,7 @@ def histoire(request, pk, action=None, fait_pk=None):
 
 
 class RapportForm(ConsultationForm):
+    usage_adresse=forms.ChoiceField(label="Nature de l’adresse",required=False,choices=[("","Toutes les natures"),("non_qualifiee","Non qualifiée"),*[(k,v) for k,v in CoordonneesPersonnelles._meta.get_field("usage_adresse").choices if k]])
     q = forms.CharField(label='Nom ou prénom', max_length=160, required=False)
     ville = forms.CharField(label='Ville exacte', max_length=160, required=False)
     pays = forms.CharField(label='Pays exact', max_length=160, required=False)
@@ -109,7 +111,8 @@ def rapport(request):
         for mot in d['q'].split():
             population = population.filter(Q(designation__icontains=mot) | Q(prenom__icontains=mot))
         applicables = coordonnees.a_date(population, d['date'])
-        filtres = {champ + '__iexact': d[champ] for champ in ('ville', 'pays', 'code_postal') if d[champ]}
+        filtres = {champ + '__iexact': d[champ] for champ in ('ville', 'pays', 'code_postal','usage_adresse') if d[champ]}
+        if d['usage_adresse']=='non_qualifiee':filtres['usage_adresse__iexact']=''
         if filtres:
             applicables = applicables.filter(**filtres)
             population = population.filter(pk__in=applicables.values('personne_id'))
@@ -121,7 +124,7 @@ def rapport(request):
             comptes[(fait.ville or 'Ville non renseignée', fait.pays or 'Pays non renseigné') if fait else
                 ('Aucune coordonnée applicable', '')] += 1
         bilan = sorted(comptes.items())
-        query = urlencode({k: selection.get(k, '') for k in ('date', 'q', 'ville', 'pays', 'code_postal')})
+        query = urlencode({k: selection.get(k, '') for k in ('date', 'q', 'ville', 'pays', 'code_postal','usage_adresse')})
         if request.GET.get('format') == 'csv':
             response = HttpResponse(content_type='text/csv; charset=utf-8')
             response['Content-Disposition'] = 'attachment; filename="coordonnees-personnelles.csv"'

@@ -3,12 +3,13 @@ from django.db.models import Q
 from . import suivi, series_personnelles
 from .models import CoordonneesPersonnelles, RevisionCoordonneesPersonnelles
 
-CHAMPS = ('rue', 'code_postal', 'ville', 'pays', 'telephone', 'courriel', 'fax')
+CHAMPS = ('usage_adresse', 'rue', 'code_postal', 'ville', 'pays', 'telephone', 'courriel', 'fax')
 DROITS_LECTURE = ('personnes.view_personne', 'personnes.view_coordonneespersonnelles',
     'personnes.view_revisioncoordonneespersonnelles')
 
 
 def renseigner(acteur, personne, debut, source, attendu, motif='', correction=None, **valeurs):
+    valeurs.setdefault('usage_adresse','')
     suivi.exiger(acteur, 'view_personne', 'view_coordonneespersonnelles',
         'view_revisioncoordonneespersonnelles', 'add_coordonneespersonnelles')
     return series_personnelles.enregistrer(acteur, personne, debut, source, attendu, motif, correction, valeurs,

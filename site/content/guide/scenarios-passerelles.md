@@ -49,3 +49,11 @@ Sur un jeu neuf non modifié, choisir **J−60 à J+1**, J étant la date de gé
 Avec **Nadia**, recalculer son modèle comparant nuitées totales et ventilation par âge à chaque nuit. Ouvrir un relevé détaillé puis un dossier ; retrouver les critères grâce au retour au rapport. Un modèle est personnel et les résultats se recalculent sous les droits actuels. Voir [explorer]({{< relref "/guide/analyser/explorer/" >}}).
 
 Pour signaler un écart, indiquer version, espace neuf ou modifié, période et exercice. Garder toutes les informations fictives.
+
+### Compléments de consolidation
+
+Chez Noor, **Itinéraire et antécédents** montre également une ancienneté de deux
+ans déclarés dans une agglomération fictive, sans date d'arrivée inventée, et
+une reprise déclarée de démarches. La qualification d'évolution ne modifie pas
+les situations personnelles. Dans l'explorateur, comparer premier/dernier objet
+filtré et activer les sous-totaux pour contrôler les effectifs distincts.

@@ -691,3 +691,14 @@ pour les premières, prise exacte pour les secondes. Chaque niveau d'axe
 garde la carte de la même personne ; les totaux sont recalculés sur les UUID.
 La borne de 2 000 cellules porte sur toutes les mesures réunies. Les dates
 personnelles par objet sont regroupées par référence (366 références au plus).
+
+
+Consolidation H : les déclarations d'ancrage territorial et d'évolution
+réutilisent les faits personnels datés, leurs journaux, droits propres et CAS.
+La fréquentation institutionnelle déclarée (oui/non/inconnue) ne se déduit pas
+des séjours connus ; les anciennes déclarations restent non qualifiées.
+Les champs d'une même déclaration sont corrélés dans les filtres et classements.
+Les populations ressources/dettes utilisent les champs du poste sélectionné.
+L'exploration propose premier/dernier objet filtré par personne pour les mesures
+de personnes, et des sous-totaux par préfixe recalculés sans additionner les
+ventilations recouvrantes. Aucun classement n'est une première admission absolue.

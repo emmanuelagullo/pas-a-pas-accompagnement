@@ -19,7 +19,9 @@ RUBRIQUES={
  'couvertures':Rubrique(m.CouvertureSociale,m.RevisionCouvertureSociale,'Couvertures sociales',('etat','libelle','regime','organisme','identifiant','interlocuteur','echeance_prevue'),'libelle','droits'),
  'protections':Rubrique(m.ProtectionJuridique,m.RevisionProtectionJuridique,'Protections juridiques déclarées',('etat','mesure','domaine','precision_portee','reference_decision','date_decision','echeance_prevue','representant_personne','representant_intervenant','organisme','interlocuteur'),'mesure','droits')}
 RUBRIQUES['besoins']=Rubrique(m.BesoinAccueil,m.RevisionBesoinAccueil,'Besoins pratiques d’accueil déclarés',('etat','categorie','libelle','adaptation'),'libelle','droits')
-RUBRIQUES['antecedents']=Rubrique(m.AntecedentInstitutionnel,m.RevisionAntecedentInstitutionnel,'Antécédents institutionnels déclarés',('etat','libelle','organisme','periode_declaree','date_entree','date_sortie','precision_dates'),'libelle','histoire')
+RUBRIQUES['antecedents']=Rubrique(m.AntecedentInstitutionnel,m.RevisionAntecedentInstitutionnel,'Antécédents institutionnels déclarés',('etat','libelle','frequentation','organisme','periode_declaree','date_entree','date_sortie','precision_dates'),'libelle','histoire')
+RUBRIQUES['territoires']=Rubrique(m.AncrageTerritorial,m.RevisionAncrageTerritorial,'Ancrage territorial déclaré',('etat','type_territoire','territoire','anciennete_declaree','depuis','precision_depuis'),'territoire','histoire')
+RUBRIQUES['evolutions']=Rubrique(m.EvolutionPersonnelleDeclaree,m.RevisionEvolutionPersonnelleDeclaree,'Évolutions personnelles déclarées',('etat','domaine','libelle'),'libelle','histoire')
 ADMIN_CHAMPS=('numero_ss','numero_caf','qualification','droit_sejour','echeance_sejour','sans_emploi_duree_declaree','sans_domicile_duree_declaree','sans_emploi_depuis','precision_sans_emploi','sans_domicile_depuis','precision_sans_domicile')
 ADMIN_LECTURE=('personnes.view_personne','personnes.view_situationadministrative','personnes.view_revisionsituationadministrative')
 
@@ -71,6 +73,8 @@ def _memes_postes(code,voisins,x):
     elif code=='dettes':clés=('nature','devise') if x.nature=='total' else ('nature','creancier','organisme','reference','devise')
     elif code=='pieces':clés=('type_document','reference')
     elif code=='antecedents':clés=('libelle','organisme','periode_declaree','date_entree','date_sortie')
+    elif code=='evolutions':clés=('domaine','libelle')
+    elif code=='territoires':clés=('type_territoire','territoire')
     elif code=='besoins':clés=('categorie','libelle')
     elif code=='couvertures':clés=('libelle','regime','organisme','identifiant')
     else:clés=('mesure','domaine','reference_decision','representant_personne','representant_intervenant','organisme')
@@ -81,6 +85,8 @@ def _memes_postes(code,voisins,x):
 
 
 def enregistrer(acteur,code,personne,debut,fin,source,attendu,motif='',correction=None,remplace=None,cloture=False,remplacer_ensemble=False,**valeurs):
+    # Les appels antérieurs à la qualification de fréquentation restent non qualifiés.
+    if code=='antecedents':valeurs.setdefault('frequentation','')
     r=RUBRIQUES[code];exiger_lecture(acteur,code)
     suivi.exiger(acteur,'add_'+r.modele._meta.model_name)
     if correction is not None or remplace is not None or remplacer_ensemble:suivi.exiger(acteur,'change_'+r.modele._meta.model_name)

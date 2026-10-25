@@ -19,7 +19,7 @@ GROUPES={
  'identite':(m.ComplementIdentite,('sexe_declare','naissance_lieu','naissance_ville','naissance_pays','nationalites','apatridie_declaree'),('view_complementidentite','view_revisioncomplementidentite')),
  'famille':(m.DeclarationFamiliale,('situation_familiale','rapports_parentaux','fratrie','enfants_a_charge','enfants_non_a_charge','grossesse'),('view_declarationfamiliale','view_revisiondeclarationfamiliale')),
  'administration':(m.SituationAdministrative,tuple(c for c in dc.ADMIN_CHAMPS if c not in ('numero_ss','numero_caf')),('view_situationadministrative','view_revisionsituationadministrative')),
- 'coordonnees':(m.CoordonneesPersonnelles,('ville','pays','code_postal'),('view_coordonneespersonnelles','view_revisioncoordonneespersonnelles'))}
+ 'coordonnees':(m.CoordonneesPersonnelles,('usage_adresse','ville','pays','code_postal'),('view_coordonneespersonnelles','view_revisioncoordonneespersonnelles'))}
 for code,r in dc.RUBRIQUES.items():
     champs=tuple(c for c in r.champs if c not in ('adaptation','reference','identifiant','reference_decision','precision_portee','representant_personne','representant_intervenant','interlocuteur'))
     GROUPES[code]=(r.modele,champs,tuple(p.removeprefix('personnes.') for p in dc.droits_lecture(code)))
@@ -71,7 +71,7 @@ def selection_appels(acteur,d,personne=None,menage=None):
 
 
 def ligne(pk,date,ps,menages,*,saisie=None,version_saisie=None,prise=None,**valeurs):
-    return dict(id=str(pk),date=date,prise=prise,personnes={p.pk for p in ps},menages=set(menages),valeurs={'total':['Ensemble'],'jour_semaine':[['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'][date.weekday()]],'mois':[date.strftime('%Y-%m')],'jour':[date.isoformat()],'date_saisie':[timezone.localdate(saisie).isoformat()] if saisie else [],'date_version':[timezone.localdate(version_saisie).isoformat()] if version_saisie else [],**valeurs},quantite=Decimal('0'),unite='sans quantité additive')
+    return dict(id=str(pk),date=date,prise=prise,_ordre_saisie=saisie.isoformat() if saisie else '',personnes={p.pk for p in ps},menages=set(menages),valeurs={'total':['Ensemble'],'jour_semaine':[['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'][date.weekday()]],'mois':[date.strftime('%Y-%m')],'jour':[date.isoformat()],'date_saisie':[timezone.localdate(saisie).isoformat()] if saisie else [],'date_version':[timezone.localdate(version_saisie).isoformat()] if version_saisie else [],**valeurs},quantite=Decimal('0'),unite='sans quantité additive')
 
 
 def population(acteur,d):
@@ -144,6 +144,7 @@ def population(acteur,d):
         dc.exiger_lecture(acteur,code)
         for r in dc.a_date(code,m.Personne.objects.all(),ref).select_related('personne'):
             x=ligne(r.pk,ref,[r.personne],[],saisie=r.enregistre_le,type=[r.libelle] if code=='ressources' else [r.creancier],etat=[r.get_etat_display()])
+            x['_declaration']=(code,r)
             x['quantite']=r.montant
             x['unite']=r.devise+' / '+(r.periodicite or 'périodicité non renseignée') if code=='ressources' else r.devise+' / '+r.get_nature_display()
             for c in GROUPES[code][1]:
@@ -187,6 +188,13 @@ def enrichir(acteur,lignes,cles,ref):
     if any(c not in autorise for c in cles if c):raise PermissionDenied
     ids={p for l in lignes for p in l['personnes']};personnes={p.pk:p for p in m.Personne.objects.filter(pk__in=ids)}
     cartes=defaultdict(lambda:defaultdict(list))
+    declarations=defaultdict(lambda:defaultdict(list))
+    def carte_fait(g,objet,champs):
+        carte={}
+        for c in champs:
+            v=getattr(objet,c);vs=v if isinstance(v,list) else [v]
+            carte[g+'.'+c]=[categorie_valeur(objet,c,v) for v in vs if v not in (None,'')]
+        return carte
     for p in personnes.values():
         cartes[p.pk]['personne']=[str(p)+' · '+str(p.pk)]
         cartes[p.pk]['precision_naissance']=[p.get_precision_naissance_display() or INCONNU]
@@ -196,13 +204,17 @@ def enrichir(acteur,lignes,cles,ref):
     groupes={c.split('.')[0] for c in cles if '.' in c}
     for g in groupes:
         if g=='mission':
-            prises={x['prise'] for x in lignes if x['prise'] is not None};missions=defaultdict(lambda:defaultdict(list))
+            prises={x['prise'] for x in lignes if x['prise'] is not None};missions=defaultdict(lambda:defaultdict(list));faits_missions=defaultdict(list)
             qs=m.AffectationIntervenant.objects.filter(accompagnement_id__in=prises,annule_le__isnull=True,debut__lte=ref).filter(Q(fin__isnull=True)|Q(fin__gt=ref)).select_related('intervenant','organisme')
             for v in qs:
+                carte_mission={}
                 for c,texte in [('role',v.get_role_display()),('professionnel',str(v.intervenant) if v.intervenant_id else ''),('organisme',str(v.organisme) if v.organisme_id else '')]:
                     if texte:missions[v.accompagnement_id]['mission.'+c].append(texte)
+                    carte_mission['mission.'+c]=[texte] if texte else []
+                faits_missions[v.accompagnement_id].append(carte_mission)
             for x in lignes:
                 for c in MISSIONS:x['valeurs']['mission.'+c]=missions[x['prise']]['mission.'+c]
+                x['_faits_missions']=faits_missions[x['prise']]
             continue
         if g in PARCOURS:
             code,champs=PARCOURS[g];parcours.exiger(acteur,code)
@@ -212,11 +224,11 @@ def enrichir(acteur,lignes,cles,ref):
             if any(f.name=='accompagnement' for f in r.racine._meta.fields) and not acteur.has_perm('personnes.view_accompagnement'):qs=qs.filter(element__accompagnement__isnull=True)
             qs=qs.select_related(*[f.name for f in r.version._meta.fields if f.is_relation]).prefetch_related('element__beneficiaires')
             for v in qs:
+                carte=carte_fait(g,v,champs)
                 for p in v.element.beneficiaires.all():
                     if p.pk not in ids:continue
-                    for c in champs:
-                        valeur=getattr(v,c)
-                        if valeur is not None and valeur!='':cartes[p.pk][g+'.'+c].append(categorie_valeur(v,c,valeur))
+                    declarations[p.pk][g].append(carte)
+                    for c,vs in carte.items():cartes[p.pk][c].extend(vs)
             continue
         if g=='social':
             for x in m.SituationPersonnelle.objects.filter(personne_id__in=ids,debut__lte=ref).filter(Q(fin__isnull=True)|Q(fin__gt=ref)):
@@ -226,10 +238,16 @@ def enrichir(acteur,lignes,cles,ref):
         if any(f.name=='annule_le' for f in model._meta.fields):qs=qs.filter(annule_le__isnull=True)
         fks=[f.name for f in model._meta.fields if f.is_relation and f.name!='personne'];qs=qs.select_related(*fks)
         for x in qs:
-            for c in champs:
-                valeur=getattr(x,c);valeurs=valeur if isinstance(valeur,list) else [valeur]
-                cartes[x.personne_id][g+'.'+c].extend(categorie_valeur(x,c,v) for v in valeurs if v not in (None,''))
+            carte=carte_fait(g,x,champs);declarations[x.personne_id][g].append(carte)
+            for c,vs in carte.items():cartes[x.personne_id][c].extend(vs)
     for x in lignes:
+        x['_faits_par_personne']={p:{g:list(fs) for g,fs in declarations[p].items()} for p in x['personnes']}
+        if '_faits_missions' in x:
+            for p in x['personnes']:x['_faits_par_personne'][p]['mission']=x['_faits_missions']
+        if x.get('_declaration'):
+            g,fait=x['_declaration'];carte=carte_fait(g,fait,GROUPES[g][1])
+            x['valeurs'].update(carte)
+            for p in x['personnes']:x['_faits_par_personne'][p][g]=[carte]
         x['_libelles_personnes']={p:str(personnes[p]) for p in x['personnes']}
         propres=set(x['valeurs'])
         for c in cles:
@@ -238,6 +256,34 @@ def enrichir(acteur,lignes,cles,ref):
 
 
 def personnelle(c):return c in ('personne','age','precision_naissance','entree_connue') or '.' in c
+
+
+def filtrer_personne(x,p,criteres):
+    """Deux champs d'une même déclaration ne proviennent pas de postes distincts."""
+    carte=x['_par_personne'][p];faits=x['_faits_par_personne'][p];groupes=defaultdict(list)
+    for c,op,v in criteres:
+        g=c.split('.')[0] if '.' in c else ''
+        if g in GROUPES or g in PARCOURS or g=='mission':groupes[g].append((c,op,v))
+        elif not accepte({'valeurs':carte},c,op,v):return False
+    for g,cs in groupes.items():
+        retenus=[f for f in (faits.get(g) or [{}]) if all(accepte({'valeurs':f},c,op,v) for c,op,v in cs)]
+        if not retenus:return False
+        faits[g]=retenus
+        for c in [c for c in carte if c.startswith(g+'.')]:carte[c]=list({v for f in retenus for v in f.get(c,[])})
+    return True
+
+
+def cartes_classement(x,p,axes):
+    carte=x['_par_personne'][p];faits=x['_faits_par_personne'][p]
+    groupes={c.split('.')[0] for c in axes if '.' in c and c.split('.')[0] in {*GROUPES,*PARCOURS,'mission'}}
+    groupes=sorted(groupes)
+    for i,choix in enumerate(product(*(faits.get(g) or [{}] for g in groupes))):
+        if i>=2000:raise ValidationError('Plus de 2 000 combinaisons de déclarations pour un objet : réduisez les axes. Aucun résultat tronqué.')
+        valeurs=dict(carte)
+        for g,f in zip(groupes,choix):
+            for c in axes:
+                if c.startswith(g+'.'):valeurs[c]=f.get(c,[])
+        yield {'valeurs':valeurs}
 
 
 def classes(texte):
@@ -284,6 +330,8 @@ def accepte(x,c,op,val):
 
 
 def calculer(acteur,d):
+    from . import cohortes_exploration as cohortes
+    cohorte=cohortes.verifier(d)
     if d['mesure']=='menages':suivi.exiger(acteur,'view_menage')
     communs={'personne','jour_semaine','date_saisie','date_version','total','mois','jour','age','precision_naissance','unite'}
     propres={'personnes':set(),'menages':set(),'prises':{'date_fin','type','etat','origine','orientation','motif'},'demandes':{'etat','motif','origine'},'accords_hebergement':{'date_fin','duree','type','origine','etat'},'accords_repas':{'date_fin','duree','type','origine','etat'},'sejours':{'duree_selection','date_fin','etat','duree','entree_connue','quantite'},'affectations':{'lieu','date_fin','duree','duree_selection','quantite'},'repas':{'type','etat','origine','quantite'},'aides':{'type','etat','quantite'},'appels':{'complement115','appelant','auteur','auteur_version','heure','type','etat','motif','secondaire','reponse','origine','orientation','adultes_declares','enfants_declares','grossesses_declarees'},'ressources':{'type','etat','quantite'},'dettes':{'type','etat','quantite'},'couts':{'phase','type','etat','prescripteur','signataire','quantite'},'imputations':{'phase','type','prescripteur','signataire','financeur','budget','quantite'}}
@@ -308,12 +356,12 @@ def calculer(acteur,d):
         if not all(accepte(x,c,op,v) for c,op,v in criteres if not personnelle(c)):continue
         personnels=[(c,op,v) for c,op,v in criteres if personnelle(c)]
         if personnels:
-            membres={p for p,carte in x['_par_personne'].items() if all(accepte({'valeurs':carte},c,op,v) for c,op,v in personnels)}
+            membres={p for p in x['_par_personne'] if filtrer_personne(x,p,personnels)}
             if not membres:
                 if x['personnes'] or not all(accepte(x,c,op,v) for c,op,v in personnels):continue
             x['personnes']=membres
         selection.append(x)
-    lignes=selection
+    lignes=cohortes.retenir(selection,cohorte)
     classes_axes=[classes(d['classes']),classes(d.get('classes_croisement','')),*[classes(d.get('classes'+str(i),'')) for i in range(3,8)]];ventilation=defaultdict(dict)
     def categoriser(vs,groupes):
         if not groupes:return vs
@@ -324,7 +372,7 @@ def calculer(acteur,d):
             resultat.append(next((nom for nom,a,b in groupes if (a is None or v>=a) and (b is None or v<b)),'Hors classes'))
         return list(set(resultat))
     for x in lignes:
-        cartes=[(p,{'valeurs':x['_par_personne'][p]}) for p in x['personnes']] if any(personnelle(c) for c in axes if c) and x['personnes'] else [(None,x)]
+        cartes=((p,carte) for p in x['personnes'] for carte in cartes_classement(x,p,axes)) if any(personnelle(c) for c in axes if c) and x['personnes'] else [(None,x)]
         cellules=defaultdict(set)
         for p,carte in cartes:
             branches=[categoriser(valeurs(carte,c),groupes) if c else ['Ensemble'] for c,groupes in zip(axes,classes_axes)]
@@ -351,6 +399,23 @@ def calculer(acteur,d):
     if d['mesure'] in ('adultes_declares','enfants_declares','grossesses_declarees') and d['population']!='appels':raise ValidationError('Les effectifs déclarés par appel ne concernent que la population des appels.')
     if d['mesure'] in ('quantite','minimum','maximum','moyenne') and d['population'] not in ('sejours','affectations','repas','aides','ressources','dettes','couts','imputations'):raise ValidationError('Cette population n’a pas de quantité additive ; choisissez objets ou personnes/ménages distincts.')
     resultats=[{'axe':cle[0],'croisement':cle[1],'niveaux':list(cle[2:-1]),'unite':cle[-1] if d['mesure'] in ('quantite','minimum','maximum','moyenne') else d['mesure'],'valeur':mesure(xs.values()),'inconnus':mesures.inconnus(xs.values(),d['mesure'])} for cle,xs in sorted(ventilation.items())]
+    if d.get('sous_totaux'):
+        niveaux=[i for i,c in enumerate(axes) if c];parties={}
+        for cle,xs in ventilation.items():
+            for position in niveaux[:-1]:
+                partie=(position,cle[:position+1],cle[-1]);objets=parties.setdefault(partie,{})
+                if len(parties)+len(resultats)>2000:raise ValidationError('Plus de 2 000 cellules avec les sous-totaux : réduisez les niveaux ou désactivez les sous-totaux. Aucun résultat tronqué.')
+                for pk,x in xs.items():
+                    if pk in objets:objets[pk]['personnes']|=x['personnes']
+                    else:objets[pk]={**x,'personnes':set(x['personnes'])}
+        for (position,prefixe,unite),xs in parties.items():
+            chemin=[*prefixe,*['Sous-total' if i==niveaux[niveaux.index(position)+1] else 'Ensemble' for i in range(position+1,len(axes))]]
+            resultats.append(dict(axe=chemin[0],croisement=chemin[1],niveaux=chemin[2:],unite=unite if d['mesure'] in ('quantite','minimum','maximum','moyenne') else d['mesure'],valeur=mesure(xs.values()),inconnus=mesures.inconnus(xs.values(),d['mesure']),sous_total=True,niveau_sous_total=position+1))
+        def ordre_resultat(r):
+            chemin=[r['axe'],r['croisement'],*r['niveaux']]
+            if r.get('sous_total'):chemin=chemin[:r['niveau_sous_total']]+['']*(len(axes)-r['niveau_sous_total'])
+            return (*chemin,r['unite'])
+        resultats.sort(key=ordre_resultat)
     if len(resultats)>2000:raise ValidationError('Plus de 2 000 cellules : choisissez des axes ou filtres plus précis. Aucune cellule supprimée silencieusement.')
     totaux={u:mesure(x for x in lignes if x['unite']==u) for u in {x['unite'] for x in lignes}} if d['mesure'] in ('quantite','minimum','maximum','moyenne') else {d['mesure']:mesure(lignes)}
     return resultats,totaux,lignes

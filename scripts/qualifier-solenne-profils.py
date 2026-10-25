@@ -64,7 +64,7 @@ admin.update(numero_ss='SS-FICTIF-QUALIFICATION',qualification='Qualification fi
 d.administration(u,p,date(2026,1,1),'Source fictive',bd6.jeton(p),**admin)
 for code,r in d.RUBRIQUES.items():
     v={c:r.modele._meta.get_field(c).get_default() for c in r.champs}
-    v.update({'antecedents':dict(libelle='Passage institutionnel fictif de recette'), 'besoins':dict(categorie='mobilite',libelle='Besoin fictif de recette'),
+    v.update({'evolutions':dict(libelle='Évolution fictive déclarée'), 'territoires':dict(type_territoire='agglomeration',territoire='Territoire fictif'), 'antecedents':dict(libelle='Passage institutionnel fictif de recette'), 'besoins':dict(categorie='mobilite',libelle='Besoin fictif de recette'),
         'ressources':dict(libelle='Ressource fictive de recette',montant=Decimal('10.50'),periodicite='mensuelle'),
         'dettes':dict(creancier='Créancier fictif de recette',montant=None),
         'pieces':dict(type_document='Pièce fictive de recette'),

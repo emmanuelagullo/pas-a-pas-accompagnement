@@ -18,3 +18,9 @@ statut: "disponible"
 **À vérifier :** la consultation à une date antérieure retrouve l'ancienne adresse. Les liens de téléphone ou courriel ouvrent l'outil de votre appareil ; leur présence ne prouve ni appel ni message envoyé.
 
 **Essai :** Thomas présente un changement d'adresse et une correction distincte. Les coordonnées d'un organisme ou d'un professionnel se modifient dans leur répertoire, pas sur la personne accompagnée.
+
+Choisir la **Nature de l'adresse déclarée** : contact, domicile fixe, dernier
+domicile fixe ou autre. Une dernière adresse fixe ne devient pas une résidence
+actuelle ; les anciennes coordonnées restent non qualifiées. Le rapport permet
+de filtrer cette nature, y compris les adresses non qualifiées. L'historique
+conserve les anciennes natures et adresses avec leurs dates et corrections.

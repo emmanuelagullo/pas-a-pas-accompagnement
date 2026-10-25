@@ -1,3 +1,9 @@
+## Consolidation H — écarts de couverture Solenne
+
+- Nature de l’adresse déclarée (dont dernier domicile fixe), ancrage territorial et évolutions structurés ; fréquentation institutionnelle explicite, avec corrections/historiques/recherche et droits volontaires.
+- Premier/dernier objet chronologique filtré par personne et sous-totaux recalculés, accessibles dans les paramètres avancés et exports.
+- Champs corrélés dans une même déclaration : aucun libellé de ressource associé au montant d'un autre poste ; guide et scénario actualisés.
+
 ## Guide pratique — parcours et scénario enrichis
 
 - Guide organisé par tâches : accueil, dossier social, prestations, relève, analyse, espace local et dépannage.
