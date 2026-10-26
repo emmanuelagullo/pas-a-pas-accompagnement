@@ -6,6 +6,7 @@ valeurs uniques : elles conservent leurs opérations spécialisées.
 from dataclasses import dataclass
 from django.core import signing
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.db.models import Q
 from django.db import transaction
 from . import models as m, famille, coordonnees, complements_identite, dossier_complet
 from .series_personnelles import photographie
@@ -83,7 +84,7 @@ def prises_concernees(acteur, personne, debut, fin):
     from . import dossier
     if not acteur.has_perms(dossier.DROITS):
         return None
-    q = m.Accompagnement.objects.filter(beneficiaires=personne, debut__gte=debut)
+    q = m.Accompagnement.objects.filter(beneficiaires=personne).filter(Q(fin__isnull=True) | Q(fin__gt=debut))
     if fin:
         q = q.filter(debut__lt=fin)
     q = q.select_related('menage').distinct().order_by('debut', 'pk')

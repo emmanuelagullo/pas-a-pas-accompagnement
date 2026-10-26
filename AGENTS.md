@@ -465,3 +465,17 @@ Préserver les événements de coordination entre édition sociale et prestation
 le contexte de retour signé et les en-têtes non éditables réactualisés.
 Tester `personnes.tests_retraits_chronologiques`,
 `personnes.tests_condition_sociale` et les histoires/migrations existantes.
+
+
+BD-SOLENNE-04 : le contexte de l’opération est distinct du motif et de la source.
+Seuls les journaux optant pour TraceSaisie le conservent ; le scope ouvert par
+saisie_sociale.executer doit toujours être réinitialisé. Ne pas fabriquer une
+source lorsque celle-ci est inconnue, ni remplacer une source ancienne avec le
+contexte commun. Garder les contrats spécialisés des annulations/fins et des
+séries du répertoire. Les champs désactivés de date ont un repli GET explicite ;
+une date implicite est toujours recalculée côté serveur. Tester
+personnes.tests_saisie_sociale, les séries sociales, copies et recettes navigateur.
+Les sources inconnues et les motifs des rectifications sociales ordinaires sont
+facultatifs : cela actualise, pour ce périmètre, les anciennes consignes exigeant
+systématiquement un motif. La preuve d’état, les dates, droits, journaux et
+confirmations de portée ne sont pas remplacés par le texte du contexte.

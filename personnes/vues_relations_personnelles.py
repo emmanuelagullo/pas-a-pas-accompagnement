@@ -25,7 +25,7 @@ class RelationForm(FormulaireMetier):
     debut=date_champ('Déclaration applicable depuis le (inclus)')
     fin=date_champ('Fin du lien exclue (si déjà terminée)',False)
     precision=forms.CharField(label='Précision du lien',max_length=240,required=False,widget=forms.Textarea(attrs={'rows':2}))
-    source=forms.CharField(label='Comment cette relation est-elle connue ?',max_length=160)
+    source=forms.CharField(label='Comment cette relation est-elle connue ? (facultatif)',max_length=160,required=False)
     motif=forms.CharField(label='Motif de correction, de fin ou d’ajout antérieur',max_length=240,required=False)
     attendu=forms.CharField(widget=forms.HiddenInput)
 
@@ -72,7 +72,7 @@ def histoire(request,pk,action=None,fait_pk=None):
         if x:
             f.fields['autre'].disabled=True
             f.fields['autre'].help_text='Les deux personnes restent celles du lien. Si une personne était erronée, annulez la saisie puis déclarez le bon lien.'
-        if action in ('corriger','clore'):f.fields['motif'].required=True
+        if action in ('corriger','clore'):f.fields['motif'].required=action=='clore'
         if action=='clore':
             for c in ('autre','role','debut','precision','source'):f.fields[c].disabled=True
             f.fields['fin'].required=True

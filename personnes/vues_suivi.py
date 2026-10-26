@@ -50,9 +50,11 @@ def traiter(request, formulaire, titre, action, menage=None, retour=None, sejour
     if accompagnement is None and sejour is not None:
         accompagnement = sejour.accord.accompagnement
     navigation = dossier.lire(request, accompagnement)
+    from . import saisie_sociale
+    saisie_sociale.preparer(request, formulaire)
     if request.method == "POST" and not getattr(formulaire,"preparation_seule",False) and formulaire.is_valid():
         try:
-            resultat = action(**formulaire.cleaned_data)
+            resultat = saisie_sociale.executer(formulaire, action)
         except ValidationError as erreur:
             formulaire.add_error(None, " ".join(erreur.messages))
         else:

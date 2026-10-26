@@ -18,5 +18,5 @@ class PersonneForm(FormulaireModeleMetier):
 
 
 class CorrectionIdentiteForm(PersonneForm):
-    motif = forms.CharField(label="Motif de correction", max_length=240, widget=forms.Textarea(attrs={"rows": 2}))
+    motif = forms.CharField(label="Motif de correction (facultatif)", max_length=240, required=False, widget=forms.Textarea(attrs={"rows": 2}))
     attendu = forms.CharField(widget=forms.HiddenInput)

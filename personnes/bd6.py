@@ -98,21 +98,22 @@ def renseigner(acteur, personne, dimension, valeur, debut, source, attendu, moti
     reserver(personne, attendu)
     if dimension not in dict(SituationSociale.DIMENSIONS) or valeur not in dict(SituationSociale.VALEURS.get(dimension, [])):
         raise ValidationError('Dimension ou valeur inconnue.')
-    if not source.strip() or debut > timezone.localdate():
-        raise ValidationError('Renseignez une source et une date non future.')
+    source = source.strip()
+    if debut > timezone.localdate():
+        raise ValidationError('Choisissez une date non future.')
     if len(motif) > 240:
         raise ValidationError('Le motif est limité à 240 caractères.')
     avant = photographie(personne, dimension)
     if correction is not None:
         suivi.exiger(acteur, 'change_situationpersonnelle')
-        if not motif.strip():
-            raise ValidationError('La correction exige un motif.')
         try:
             fait = SituationPersonnelle.objects.get(pk=correction, personne=personne, dimension=dimension)
         except SituationPersonnelle.DoesNotExist:
             raise ValidationError('Situation à corriger introuvable pour cette personne.')
         if debut != fait.debut:
             raise ValidationError('Une correction de valeur conserve la date du fait ; utilisez un fait antérieur pour compléter la chronologie.')
+        if fait.valeur == valeur and fait.source == source:
+            raise ValidationError('Aucune modification de cette information.')
         fait.valeur, fait.source = valeur, source
         fait.full_clean()
         fait.save(update_fields=['valeur', 'source'])
@@ -124,8 +125,6 @@ def renseigner(acteur, personne, dimension, valeur, debut, source, attendu, moti
             raise ValidationError('Un fait existe déjà à cette date. Corrigez-le explicitement si c’est une erreur.')
         if suivant:
             suivi.exiger(acteur, 'change_situationpersonnelle')
-            if not motif.strip():
-                raise ValidationError('L’insertion d’un fait antérieur exige un motif.')
         precedent = SituationPersonnelle.objects.filter(personne=personne, dimension=dimension, debut__lt=debut).order_by('-debut').first()
         if precedent and (precedent.fin is None or precedent.fin > debut):
             precedent.fin = debut

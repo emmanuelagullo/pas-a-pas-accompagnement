@@ -56,7 +56,7 @@ def _enregistrer(acteur,personne,autre,debut,fin,role,precision,source,attendu,m
     reserver(personne,autre,attendu)
     if debut>timezone.localdate() or fin and fin>timezone.localdate():raise ValidationError('Un lien déclaré effectif ne peut pas être futur.')
     if role not in dict(ROLES):raise ValidationError({'role':'Choisissez le sens du lien depuis cette personne.'})
-    if not source.strip() or len(source)>160:raise ValidationError({'source':'Indiquez une source (160 caractères maximum).'})
+    if len(source)>160:raise ValidationError({'source':'Indiquez une source (160 caractères maximum).'})
     if len(motif)>240:raise ValidationError({'motif':'Le motif est limité à 240 caractères.'})
     if correction is not None and remplace is not None or cloture and correction is None:
         raise ValidationError('Choisissez une seule opération sur le lien.')
@@ -74,7 +74,7 @@ def _enregistrer(acteur,personne,autre,debut,fin,role,precision,source,attendu,m
         avant=[photo(ancien)]
         if correction is not None:
             x=ancien;action='cloture' if cloture else 'correction'
-            if not motif.strip():raise ValidationError({'motif':'Expliquez cette fin de lien ou correction.'})
+            if cloture and not motif.strip():raise ValidationError({'motif':'Expliquez cette fin de lien.'})
             if cloture and (x.fin is not None or fin is None or debut!=x.debut or nature!=x.nature or precision!=x.precision or source!=x.source):
                 raise ValidationError('Terminer le lien conserve son début, sa nature, sa précision et sa source.')
         else:
@@ -84,7 +84,6 @@ def _enregistrer(acteur,personne,autre,debut,fin,role,precision,source,attendu,m
             ancien.fin=debut;ancien.full_clean();ancien.save(update_fields=['fin'])
     elif voisins.filter(nature=nature,debut__gt=debut).exists():
         action='insertion'
-        if not motif.strip():raise ValidationError({'motif':'Expliquez le fait antérieur oublié.'})
     x.debut,x.fin,x.nature,x.precision,x.source=debut,fin,nature,precision.strip(),source.strip()
     x.full_clean()
     concurrents=voisins.exclude(pk=x.pk)

@@ -1,5 +1,5 @@
 <nav class="condition-actions" aria-label="Actions sur cette information">
-{% if fiche.changer %}<a href="{{ fiche.changer }}" data-condition-modifier>Modifier</a>{% elif fiche.corriger %}<a href="{{ fiche.corriger }}" data-condition-modifier data-condition-correction>{% if fiche.herite %}Corriger l’information héritée{% else %}Modifier{% endif %}</a>{% endif %}
+{% if fiche.changer %}<a class="bouton" href="{{ fiche.changer }}" data-condition-modifier>Modifier</a>{% elif fiche.corriger %}<a class="bouton" href="{{ fiche.corriger }}" data-condition-modifier data-condition-correction>{% if fiche.herite %}Corriger l’information héritée{% else %}Modifier{% endif %}</a>{% endif %}
 {% if fiche.changer and fiche.corriger or fiche.retirer or historique %}<details><summary>Autres actions</summary>
 {% if fiche.changer and fiche.corriger %}<a href="{{ fiche.corriger }}" data-condition-modifier data-condition-correction>Corriger l’information héritée</a>{% endif %}
 {% if fiche.retirer %}<a href="{{ fiche.retirer }}" data-condition-modifier>Retirer ce changement</a>{% endif %}

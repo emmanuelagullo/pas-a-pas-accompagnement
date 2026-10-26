@@ -570,3 +570,60 @@ la recette attend désormais la disparition du formulaire avant de vérifier la
 base. Les parcours sont aussi adaptés aux menus secondaires et à Modifier.
 La CI conserve le journal complet des tests navigateur dans un artefact distinct,
 sans modifier les paramètres HTTPS des profils locaux.
+
+
+## BD-SOLENNE-04 — saisie sur place et contexte facultatif
+
+Base publique vérifiée sur Inria et GitHub : `2cd70e7d2c672db06f212401e6c0d721c5120b07` (lot 03, arbre identique à la
+livraison locale). Ce lot s’applique après BD-SOLENNE-03 et ajoute la migration
+0041. Aucun changement du socle ni des définitions ou sources statistiques.
+
+L’encadré Vue et saisie réunit les sélecteurs et le contexte commun. Les dates
+implicites sont calculées, désactivées et grisées. Une date explicite reste
+éditable ; un champ caché garantit aussi le repli GET sans JavaScript.
+Présentation et origines s’appliquent au changement avec JavaScript. La synthèse
+sélectionne trois valeurs renseignées au maximum, pas les trois premières colonnes.
+Les dates et sources sont visibles sur demande dans les deux présentations.
+
+L’éditeur remplace la lecture de la déclaration concernée, avec Enregistrer et
+Annuler. Les autres déclarations restent visibles et intactes. Les sources et
+précisions facultatives sont regroupées ; leurs erreurs ouvrent ce groupe. Un
+conflit garde les valeurs saisies et ne crée pas de journal supplémentaire.
+La navigation de vue est bloquée pendant l’écriture ; le focus revient dans la
+rubrique après enregistrement, et au déclencheur après annulation.
+
+Le contexte est un champ propre aux journaux sociaux et versions de projet,
+distinct de la source du fait et du motif. Il est propagé uniquement pendant
+l’appel métier explicite, par un scope ContextVar réinitialisé même sur erreur.
+Les journaux participants enregistrent le contexte dans la même transaction.
+Pas de conversion des anciens motifs, pas de source/date fabriquée ou recopiée
+sur toutes les données. Une source inconnue reste vide. Les champs source des
+faits sociaux et les motifs des rectifications ordinaires deviennent facultatifs.
+Les annulations et fins explicites gardent leurs contrats spécialisés. Les autres
+usages de séries personnelles (répertoire, contact désigné) restent inchangés.
+
+Le contexte choisi est conservé pour ce compte, ce dossier et ce jour, dans la
+session de l’onglet si disponible ; les suggestions viennent des journaux
+consultables, sans nouvelle table d’entretien. Sans JavaScript, le formulaire
+complet propose son propre contexte facultatif. Les copies natives et exports
+intégraux incluent le nouveau champ ; un retour de migration refuse de supprimer
+des contextes déjà renseignés.
+
+La portée compte les prises dont la période croise la correction, y compris une
+prise commencée auparavant. Les rectifications à la date du renseignement sans
+déplacement de période ni autre prise concernée conservent une preuve signée,
+sans case de confirmation supplémentaire. Les autres corrections, les retraits,
+les droits, les bénéficiaires explicites et les contrôles périmés restent contrôlés.
+
+Les déclarations multichamps demeurent des unités métier : leurs couleurs ne
+créent toujours pas de filiation persistante par champ. Les recettes Chromium
+couvrent dates, présentations, origines, annulation et formulaires sur place ;
+distinguer leur exécution CI d’une vérification HTML locale.
+
+Validation du lot : suite complète (770 tests, 38 ignorés), puis dernière passe
+ciblée (44 tests, dont 3 recettes Chromium ignorées ici faute de navigateur).
+Les passes ciblées précédentes de 79 et 69 tests couvrent aussi concurrence,
+migrations et copies restaurées. Contrôles Django, absence de migration manquante,
+application locale de 0041, syntaxe JavaScript et diff sans erreur. Le dernier
+polissage des libellés, de la grille de saisie et des liens de repli est vérifié
+en lecture de code et compilation des templates, sans observation graphique.

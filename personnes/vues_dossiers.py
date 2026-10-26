@@ -1,5 +1,6 @@
 """Entrée et synthèse personne/ménage ; aucun nouvel objet métier « dossier »."""
 from urllib.parse import urlencode
+from datetime import timedelta
 from collections import defaultdict
 
 from django import forms
@@ -300,9 +301,10 @@ def detail(request, nature, pk, prise_pk=None):
         'condition_personnes': condition_personnes, 'condition_projets': condition_projets,
         'condition_lecture': bd6.etat(request.user, personnes_sociales, condition_jour),
         'condition_documents': condition_sociale.documents(request.user, prise or objet),
-        'condition_contextes': condition_sociale.contextes(request.user, personnes_sociales),
+        'condition_contextes': condition_sociale.contextes(request.user, personnes_sociales, objet),
         'condition_documents_url': reverse('dossiers:pieces', args=['accompagnement' if prise else nature, prise.pk if prise else pk]) + '?' + urlencode({'contexte_dossier': prise.navigation['contexte_dossier']} if prise else params),
         'condition_vue': condition_vue, 'condition_jour': condition_jour,
+        'condition_dernier_jour': prise.fin - timedelta(days=1) if prise and prise.fin else None,
         'condition_integrale': params.get('presentation_sociale') != 'synthese',
         'condition_origines': params.get('origines_sociales') == '1',
         'condition_composition': [l for l in liens if l.debut <= condition_jour and (l.fin is None or l.fin > condition_jour)],

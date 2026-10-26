@@ -122,7 +122,7 @@ class IdentiteLiensTests(TestCase):
 
     def test_insertion_anterieure_et_changement_invalide_atomiques(self):
         x=self.rel(debut=date(2026,3,1),role='proche')
-        with self.assertRaises(ValidationError):self.rel(role='proche',fin=date(2026,2,1))
+        with self.assertRaises(ValidationError):self.rel(role='proche',fin=date(2026,2,1),motif='x'*241)
         ancien=self.rel(role='proche',fin=date(2026,2,1),motif='Fait ancien fictif oublié')
         self.assertEqual(RevisionRelationPersonnelle.objects.first().action,'insertion')
         self.rel(role='couple',debut=date(2026,2,1))

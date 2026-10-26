@@ -29,8 +29,6 @@ def enregistrer(acteur, personne, debut, source, attendu, motif, correction, val
         raise ValidationError('Cette information doit préciser toutes ses rubriques, y compris les valeurs inconnues.')
     if debut > timezone.localdate():
         raise ValidationError({'debut': 'Une information de situation ne peut pas être future.'})
-    if not source.strip():
-        raise ValidationError({'source': 'Indiquez la source de cette information.'})
     if len(motif) > 240:
         raise ValidationError({'motif': 'Le motif est limité à 240 caractères.'})
     avant = photographie(personne, modele, champs, champ_cible)
@@ -49,7 +47,8 @@ def enregistrer(acteur, personne, debut, source, attendu, motif, correction, val
         serie.append(fait)
     if action != 'changement':
         suivi.exiger(acteur, 'change_' + modele._meta.model_name)
-        if not motif.strip():
+        from .models import TraceSaisie
+        if not issubclass(journal, TraceSaisie) and not motif.strip():
             raise ValidationError({'motif': 'Expliquez la correction ou l’ajout d’un fait antérieur oublié.'})
     if any(x is not fait and x.debut == debut for x in serie):
         raise ValidationError({'debut': 'Une information existe déjà à cette date. Corrigez-la explicitement.'})

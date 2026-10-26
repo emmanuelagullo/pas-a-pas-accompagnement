@@ -59,7 +59,7 @@ def presentation(request, personnes, jour, objet, nature, prise, params):
         for x in qs:
             precedents[(model, x.personne_id, getattr(x, 'dimension', ''))] = x
     resultats = {p.pk: {'personne': p, 'groupes': [], 'ancre': 'social-' + str(p.pk)} for p in personnes}
-    query = {**params, 'date': jour.isoformat(), 'depuis_nature': nature,
+    query = {**params, 'saisie_sociale': '1', 'date': jour.isoformat(), 'depuis_nature': nature,
              'depuis_pk': str(objet.pk), 'depuis_prise': str(prise.pk) if prise else ''}
     if prise:
         query['contexte_prise'] = str(prise.pk)
@@ -99,6 +99,8 @@ def presentation(request, personnes, jour, objet, nature, prise, params):
             fiches.append({'fait': x, 'lignes': contenu, 'champs': champs_affiches,
                 'retirer': url('dossiers:condition_retirer', p.pk, code, x.pk)
                     if retrait and acteur.has_perms(retraits_chronologiques.droits(retraits_chronologiques.configuration(code))) else '',
+                'resume': [c for c in champs_affiches if not c['vide']][:3],
+                'autres': max(0, sum(not c['vide'] for c in champs_affiches) - 3),
                 'herite': getattr(x, 'debut', jour) < jour,
                 'changer': changer(x) if changer and getattr(x, 'debut', jour) < jour else '',
                 'corriger': corriger(x) if corriger else ''})
@@ -215,7 +217,11 @@ def presentation(request, personnes, jour, objet, nature, prise, params):
         # la prise ; le rattachement est affiché, sans recopie ni déduction.
         items = []
         for x in qs.select_related('element__personne', 'element__menage').prefetch_related('element__beneficiaires'):
-            items.append({'fait': x, 'lignes': lignes(r.version, x, r.champs),
+            valeurs = lignes(r.version, x, r.champs)
+            renseignees = [ligne for champ, ligne in zip(r.champs, valeurs) if getattr(x, champ) not in (None, '', [])]
+            integrale = params.get('presentation_sociale') != 'synthese'
+            items.append({'fait': x, 'lignes': valeurs, 'affichees': valeurs if integrale else renseignees[:3],
+                'autres': max(0, len(renseignees) - 3),
                 'beneficiaires': list(x.element.beneficiaires.all()),
                 'url': url('dossiers:parcours_element', code, x.element_id),
                 'changer': url('dossiers:parcours_changer', code, x.element_id)
@@ -244,10 +250,10 @@ def documents(acteur, cible):
         version_courante=Subquery(versions.values('pk')[:1])).order_by('-enregistre_le'))
 
 
-def contextes(acteur, personnes):
+def contextes(acteur, personnes, objet=None):
     """Libellés récents des journaux autorisés, sans nouvel objet d'entretien.
 
-    Le contexte facultatif est un motif partagé de saisie. Les propositions
+    Le contexte décrit l’opération ; il ne réécrit ni motif ancien ni source. Les propositions
     sont limitées au dossier et aux rubriques que l'acteur peut consulter.
     """
     trouves = []
@@ -262,8 +268,19 @@ def contextes(acteur, personnes):
                for code, r in complet.RUBRIQUES.items()]
     for droits, journal, lien in series:
         if acteur.has_perms(droits):
-            trouves.extend(journal.objects.filter(**{lien + '__in': personnes}).exclude(motif='')
-                           .order_by('-enregistre_le').values_list('enregistre_le', 'motif')[:10])
+            trouves.extend(journal.objects.filter(**{lien + '__in': personnes}).exclude(contexte_saisie='')
+                           .order_by('-enregistre_le').values_list('enregistre_le', 'contexte_saisie')[:10])
+    if acteur.has_perms(('personnes.view_personne', 'personnes.view_revisionidentite')):
+        trouves.extend(m.RevisionIdentite.objects.filter(personne__in=personnes).exclude(contexte_saisie='').values_list('enregistre_le', 'contexte_saisie').order_by('-enregistre_le')[:10])
+    if acteur.has_perms(relations_personnelles.DROITS_LECTURE):
+        trouves.extend(m.RevisionRelationPersonnelle.objects.filter(Q(relation__personne_a__in=personnes) | Q(relation__personne_b__in=personnes)).exclude(contexte_saisie='').values_list('enregistre_le', 'contexte_saisie').order_by('-enregistre_le')[:10])
+    for code, r in parcours.RUBRIQUES.items():
+        if acteur.has_perms(parcours.droits(code)):
+            q = Q(element__menage=objet) if isinstance(objet, m.Menage) else Q(element__personne__in=personnes) | Q(element__beneficiaires__in=personnes)
+            trouves.extend(r.journal.objects.filter(q).exclude(contexte_saisie='').distinct().values_list('enregistre_le', 'contexte_saisie').order_by('-enregistre_le')[:10])
+    if acteur.has_perms(('personnes.view_informationsaccompagnement', 'personnes.view_accompagnement')):
+        q = Q(accompagnement__menage=objet) if isinstance(objet, m.Menage) else Q(accompagnement__beneficiaires__in=personnes)
+        trouves.extend(m.InformationsAccompagnement.objects.filter(q).exclude(contexte_saisie='').distinct().values_list('enregistre_le', 'contexte_saisie').order_by('-enregistre_le')[:10])
     resultats = []
     for _, motif in sorted(trouves, reverse=True):
         if motif not in resultats:

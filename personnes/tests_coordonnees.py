@@ -80,7 +80,7 @@ class CoordonneesTests(Donnees, TestCase):
             with self.assertRaises(ValidationError):
                 coordonnees.renseigner(self.u, self.p, debut, 'Fictif', bd6.jeton(self.p), **donnees)
         with self.assertRaises(ValidationError):
-            coordonnees.renseigner(self.u, self.p, date(2026, 2, 1), ' ', bd6.jeton(self.p), **valeurs())
+            coordonnees.renseigner(self.u, self.p, date(2026, 2, 1), 'x' * 161, bd6.jeton(self.p), **valeurs())
         with self.assertRaises(ValidationError):
             coordonnees.renseigner(self.u, self.p, date(2026, 5, 1), 'Fictif', bd6.jeton(self.p),
                 correction=premier.pk, motif='Fictif', **valeurs())

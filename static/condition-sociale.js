@@ -4,6 +4,7 @@
   if (!root) return;
   let status = root.querySelector('[data-condition-statut]');
   let active = null, dirty = false, busy = false;
+  let masques = [], declencheur = null;
   let navigationObserver = null;
   function indiquerPosition(target) {
     const person = target.closest('.condition-personne');
@@ -26,6 +27,26 @@
   }
   const tell = text => { status.textContent = text; };
   const headers = { 'X-Condition-Form': '1' };
+  const cleContexte = () => ['pas-a-pas-contexte', root.dataset.conditionUtilisateur, root.dataset.conditionCle, root.dataset.conditionJour].join('-');
+  function memoriserContexte() {
+    try { sessionStorage.setItem(cleContexte(), root.querySelector('[data-condition-contexte]').value); } catch (_) { /* stockage facultatif */ }
+  }
+  function initialiserVue() {
+    const form = root.querySelector('[data-condition-selection]');
+    const select = form?.querySelector('[name="vue_sociale"]');
+    const date = form?.querySelector('input[type="date"][name="date_sociale"]');
+    if (!select || !date) return;
+    const explicite = select.value === 'date';
+    if (!explicite) date.value = select.selectedOptions[0].dataset.date || date.value;
+    date.disabled = !explicite;
+    const repli = form.querySelector('[data-condition-date-repli]');
+    repli.value = date.value; repli.disabled = explicite;
+    try {
+      const contexte = root.querySelector('[data-condition-contexte]');
+      if (!contexte.value) contexte.value = sessionStorage.getItem(cleContexte()) || '';
+    } catch (_) { /* autocomplétion du dossier toujours disponible */ }
+  }
+
   async function evolution(url) {
     busy = true;
     tell('Chargement de l’évolution…');
@@ -42,15 +63,21 @@
     tell('');
     } finally { busy = false; }
   }
-  function close() { if (active) active.replaceChildren(); active = null; dirty = false; }
+  function close() {
+    if (active) active.replaceChildren();
+    masques.forEach(element => { element.hidden = false; });
+    masques = []; active = null; dirty = false;
+    declencheur?.focus({ preventScroll: true }); declencheur = null;
+  }
   function install(html, target) {
     const doc = new DOMParser().parseFromString(html, 'text/html');
     const content = doc.querySelector('[data-condition-edition]');
     if (!content) throw new Error('Formulaire indisponible. Ouvrez le lien dans une nouvelle page.');
     target.replaceChildren(content); active = target; dirty = false;
+    target.querySelector('[type="submit"]').disabled = true;
     const context = root.querySelector('[data-condition-contexte]').value;
-    const motif = target.querySelector('[name="motif"]');
-    if (context && motif && !motif.value) motif.value = context;
+    const champContexte = target.querySelector('[name="contexte_saisie"]');
+    if (champContexte) champContexte.value = context;
     const field = target.querySelector('input:not([type="hidden"]),select,textarea');
     if (field) field.focus({ preventScroll: true });
     target.dispatchEvent(new Event('condition:form', { bubbles: true }));
@@ -95,12 +122,35 @@
       const response = await fetch(link.href, { headers, credentials: 'same-origin' });
       const html = await response.text();
       if (!response.ok) throw new Error('Accès au formulaire refusé ou indisponible.');
-      install(html, target); tell('');
+      install(html, target);
+      declencheur = link;
+      const groupe = link.closest('[data-condition-groupe]');
+      const lecture = link.closest('[data-condition-lecture]');
+      const ajout = link.closest('[data-condition-ajout]');
+      masques = lecture ? [lecture] : ajout ? [ajout, ...groupe.querySelectorAll(':scope > [data-condition-vide]')] : [];
+      if (lecture) lecture.after(target);
+      else if (ajout) ajout.before(target);
+      masques.forEach(element => { element.hidden = true; });
+      target.querySelector('input:not([type="hidden"]):enabled,select:enabled,textarea:enabled')?.focus({ preventScroll: true });
+      tell('');
     } catch (error) { tell(error.message); }
     finally { busy = false; }
   });
-  document.addEventListener('input', event => { if (event.target.closest('[data-condition-form]')) dirty = true; });
-  document.addEventListener('change', event => { if (event.target.closest('[data-condition-form]')) dirty = true; });
+  document.addEventListener('input', event => {
+    if (event.target.matches('[data-condition-contexte]')) memoriserContexte();
+    const form = event.target.closest('[data-condition-form]');
+    if (form) { dirty = true; if (!busy) form.querySelector('[type="submit"]').disabled = false; }
+  });
+  document.addEventListener('change', event => {
+    const selection = event.target.closest('[data-condition-selection]');
+    if (!selection) return;
+    if (event.target.name === 'vue_sociale') {
+      initialiserVue();
+      if (event.target.value === 'date') { selection.querySelector('input[type="date"]').focus(); return; }
+    }
+    selection.requestSubmit();
+  });
+  document.addEventListener('change', event => { const form = event.target.closest('[data-condition-form]'); if (form) { dirty = true; if (!busy) form.querySelector('[type="submit"]').disabled = false; } });
   document.addEventListener('submit', async event => {
     const currentRoot = event.target.closest('[data-condition-sociale]');
     if (!currentRoot) return;
@@ -115,14 +165,17 @@
     }
     const form = event.target.closest('[data-condition-form]');
     if (!form) {
-      if (dirty && !confirm('Abandonner la saisie non enregistrée avant de changer de vue ?')) event.preventDefault();
+      if (busy) { event.preventDefault(); event.target.reset(); initialiserVue(); tell('Attendez la fin de l’opération en cours.'); return; }
+      if (dirty && !confirm('Abandonner la saisie non enregistrée avant de changer de vue ?')) { event.preventDefault(); event.target.reset(); initialiserVue(); }
       return;
     }
     event.preventDefault();
     if (busy) return;
     busy = true;
     const body = new FormData(form);
-    const controls = [...form.querySelectorAll('input:enabled,select:enabled,textarea:enabled,button:enabled')];
+    if (form.querySelector('[name="contexte_saisie"]')) body.set('contexte_saisie', root.querySelector('[data-condition-contexte]').value);
+    memoriserContexte();
+    const controls = [...form.querySelectorAll('input:enabled,select:enabled,textarea:enabled,button:enabled'), root.querySelector('[data-condition-contexte]')];
     controls.forEach(control => { control.disabled = true; });
     const button = form.querySelector('[type="submit"]');
     button.disabled = true; tell('Enregistrement…');
@@ -161,13 +214,19 @@
         const newStatus = root.querySelector('[data-condition-statut]');
         newStatus.textContent = 'Modification enregistrée ; les autres informations sont conservées.';
         status = newStatus;
-        active = null;
+        active = null; masques = []; declencheur = null;
+        initialiserVue();
         observerNavigation();
-        if (anchor) document.getElementById(anchor)?.scrollIntoView({ block: 'nearest' });
+        if (anchor) {
+          const groupe = document.getElementById(anchor);
+          const titre = groupe?.querySelector('h4');
+          if (titre) { titre.tabIndex = -1; titre.focus({ preventScroll: true }); }
+          groupe?.scrollIntoView({ block: 'nearest' });
+        }
       } else {
         const html = await response.text();
         if (response.status === 403) throw new Error('Vos droits ou votre session ne permettent plus cet enregistrement. La saisie est conservée.');
-        install(html, active); dirty = true; tell('Vérifiez les erreurs. Les valeurs saisies sont conservées.');
+        install(html, active); dirty = true; active.querySelector('[type="submit"]').disabled = false; tell('Vérifiez les erreurs. Les valeurs saisies sont conservées.');
       }
     } catch (error) { tell(error.message); }
     finally { controls.forEach(control => { control.disabled = false; }); button.disabled = false; busy = false; }
@@ -185,6 +244,7 @@
     const mobile = link.closest('.condition-menu-mobile');
     if (mobile) mobile.open = false;
   });
+  initialiserVue();
   observerNavigation();
   document.addEventListener('condition:disponible', event => {
     if (active || busy) {
@@ -197,7 +257,8 @@
     if (!root) return;
     status = root.querySelector('[data-condition-statut]');
     root.querySelector('[data-condition-contexte]').value = contexte;
-    active = null; dirty = false;
+    active = null; dirty = false; masques = []; declencheur = null;
+    initialiserVue();
     observerNavigation();
   });
   window.addEventListener('beforeunload', event => { if (dirty || busy) { event.preventDefault(); event.returnValue = ''; } });

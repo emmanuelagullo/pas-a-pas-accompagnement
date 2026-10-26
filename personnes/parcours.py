@@ -110,7 +110,7 @@ def _version(acteur,code,e,debut,source,motif,correction,valeurs):
     if e.annule_le:raise ValidationError('Cette saisie est annulée ; elle reste dans l’histoire.')
     if set(valeurs)!=set(r.champs):raise ValidationError('Toutes les rubriques doivent être précisées, même vides.')
     if debut>timezone.localdate():raise ValidationError({'debut':'Une date d’effet ne peut pas être future ; utilisez la date annoncée.'})
-    if not source.strip() or len(source)>160:raise ValidationError({'source':'Indiquez une source de 160 caractères au plus.'})
+    if len(source)>160:raise ValidationError({'source':'Indiquez une source de 160 caractères au plus.'})
     if len(motif)>240:raise ValidationError({'motif':'240 caractères au plus.'})
     avant=photographie(code,e);serie=list(e.versions.order_by('debut','pk'))
     action='ajout' if not serie else 'changement'
@@ -120,7 +120,6 @@ def _version(acteur,code,e,debut,source,motif,correction,valeurs):
         if x is None:raise ValidationError('Cette version appartient à un autre élément.')
         action='correction'
     elif any(v.debut>debut for v in serie):action='insertion'
-    if action in ('correction','insertion') and not motif.strip():raise ValidationError({'motif':'Expliquez la correction ou le fait antérieur oublié.'})
     if any(v.pk!=x.pk and v.debut==debut for v in serie):raise ValidationError({'debut':'Une version existe à cette date ; corrigez une erreur explicitement.'})
     donnees=dict(valeurs)
     if code=='objectifs':donnees.update(tr.colonnes('texte',valeurs['texte'],max_length=4000))

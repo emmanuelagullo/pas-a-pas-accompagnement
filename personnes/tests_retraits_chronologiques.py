@@ -172,6 +172,7 @@ class RetraitsCopiesEtConcurrence(TransactionTestCase):
             self.skipTest('Copie locale SQLite.')
         u, p, precedent, x = self.preparer()
         r.retirer(u, p, 'emploi', x.pk, bd6.jeton(p), r.preuve('emploi', p, x, precedent), True)
+        m.RevisionSituationPersonnelle.objects.filter(action='retrait').update(contexte_saisie='Entretien fictif conservé')
         with TemporaryDirectory() as tmp:
             root = Path(tmp); source = root / 'source'; source.mkdir()
             (source / 'secret-key').write_text('cle-fictive-copie-retrait')
@@ -187,11 +188,11 @@ from personnes import models as m,bd6
 from django.contrib.auth import get_user_model
 from datetime import date
 p=m.Personne.objects.get();u=get_user_model().objects.get(username='copie-retrait-fictive')
-print(json.dumps([m.SituationPersonnelle.objects.count(),m.SituationPersonnelle.tous.count(),m.RevisionSituationPersonnelle.objects.filter(action='retrait').count(),bd6.etat(u,[p],date(2026,10,12))[0]['lignes'][1]['texte']]))
+print(json.dumps([m.SituationPersonnelle.objects.count(),m.SituationPersonnelle.tous.count(),m.RevisionSituationPersonnelle.objects.filter(action='retrait').count(),bd6.etat(u,[p],date(2026,10,12))[0]['lignes'][1]['texte'], m.RevisionSituationPersonnelle.objects.get(action='retrait').contexte_saisie]))
 '''
             sortie = subprocess.run([sys.executable, '-c', code], cwd=settings.BASE_DIR,
                 env={**os.environ, 'ACCOMPAGNEMENT_DONNEES': str(destination)}, capture_output=True, text=True, check=True)
-            self.assertEqual(json.loads(sortie.stdout), [1, 2, 1, 'Sans emploi'])
+            self.assertEqual(json.loads(sortie.stdout), [1, 2, 1, 'Sans emploi', 'Entretien fictif conservé'])
 
     def test_deux_retraits_concurrents_un_seul_journal_etat_retabli(self):
         from threading import Barrier, Thread

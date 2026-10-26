@@ -41,3 +41,19 @@ def courriel_lien(valeur):
     try:validate_email(valeur)
     except (ValidationError,TypeError):return ''
     return quote(valeur, safe='@')
+
+
+@register.simple_tag
+def separer_precisions(form):
+    from copy import copy
+    principal, precisions = copy(form), copy(form)
+    principaux = {n: f for n, f in form.fields.items() if n not in ('source', 'motif') or f.required}
+    secondaires = {n: f for n, f in form.fields.items() if n in ('source', 'motif') and not f.required}
+    principal.fields, precisions.fields = principaux, secondaires
+    # BoundField cache belongs to the form instance used for rendering.
+    principal._bound_fields_cache, precisions._bound_fields_cache = {}, {}
+    if form.is_bound:
+        from django.forms.utils import ErrorDict
+        precisions._errors = ErrorDict({n: e for n, e in form.errors.items() if n in secondaires})
+    return {'principal': principal, 'precisions': precisions, 'present': bool(secondaires),
+            'erreurs': any(form[n].errors for n in secondaires)}

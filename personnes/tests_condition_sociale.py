@@ -69,11 +69,12 @@ class ConditionSocialeTests(TestCase):
         self.assertNotContains(r, '<html')
         self.assertEqual(r.context['form'].initial['debut'], date(2026, 10, 10))
         token = r.context['form'].initial['attendu']
-        data = {'attendu': token, 'debut': '2026-10-10', 'ville': 'Bordeaux', 'source': ''}
+        data = {'attendu': token, 'debut': '2026-10-10', 'ville': 'Bordeaux', 'courriel': 'invalide', 'source': ''}
         erreur = self.client.post(url, data, HTTP_X_CONDITION_FORM='1')
         self.assertContains(erreur, 'Bordeaux')
         self.assertFalse(m.CoordonneesPersonnelles.objects.exists())
-        data['source'] = 'Entretien fictif'
+        data['courriel'] = ''
+        data['contexte_saisie'] = 'Entretien fictif'
         succes = self.client.post(url, data, HTTP_X_CONDITION_FORM='1')
         self.assertEqual(succes.json(), {'enregistre': True})
         self.assertEqual(m.CoordonneesPersonnelles.objects.get().ville, 'Bordeaux')

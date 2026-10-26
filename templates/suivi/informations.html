@@ -7,4 +7,4 @@
 <dt>Objectifs à court terme</dt><dd>{{ information|texte_riche:"objectifs_courts" }}</dd>
 <dt>Objectifs à plus long terme</dt><dd>{{ information|texte_riche:"objectifs_longs" }}</dd>
 <dt>Animaux — accueil</dt><dd>{{ information.animaux|default:"Non renseigné"|linebreaksbr }}</dd></dl>
-<p>Version {{ information.version }}, enregistrée le {{ information.enregistre_le|date:"d/m/Y H:i" }} par {{ information.auteur }}. Motif : {{ information.motif }}.</p>
+<p>Version {{ information.version }}, enregistrée le {{ information.enregistre_le|date:"d/m/Y H:i" }} par {{ information.auteur }}. Motif : {{ information.motif }}{% if information.contexte_saisie %}<span class="contexte-journal"> · Contexte : {{ information.contexte_saisie }}</span>{% endif %}.</p>

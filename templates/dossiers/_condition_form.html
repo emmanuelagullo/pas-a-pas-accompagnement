@@ -1,9 +1,10 @@
 {% load saisie %}<div data-condition-edition>
-<h4>{{ titre }} — {{ objet }}</h4>
+<p class="condition-edition-titre"><strong>{{ titre }} — {{ objet }}</strong></p>
 {% if explication %}<p class="helptext">{{ explication }}</p>{% endif %}
 {% include 'dossiers/_condition_portee.html' %}
-{% if proposition_depuis %}<p class="helptext">Valeurs héritées du {{ proposition_depuis|date:'d/m/Y' }}. Seule la nouvelle déclaration prendra la date choisie. Indiquez sa source.</p>{% endif %}
+{% if proposition_depuis %}<p class="helptext">Valeurs héritées du {{ proposition_depuis|date:'d/m/Y' }}. Seule la nouvelle déclaration prendra la date choisie. La source peut être précisée si elle est connue.</p>{% endif %}
 <form method="post" action="{{ action_formulaire }}" data-condition-form>{% csrf_token %}
-{% include 'dossiers/_erreurs_formulaire.html' %}{% adapter_saisie form request.user %}{{ form.as_p }}
+{% include 'dossiers/_erreurs_formulaire.html' %}{% adapter_saisie form request.user %}{% separer_precisions form as saisie %}{{ saisie.principal.as_p }}
+{% if saisie.present %}<details class="condition-precisions"{% if saisie.erreurs %} open{% endif %}><summary>Précisions facultatives</summary>{{ saisie.precisions.as_p }}</details>{% endif %}
 <div class="bd-actions"><button type="submit">Enregistrer</button><button type="button" class="secondaire" data-condition-annuler>Annuler</button></div>
 </form></div>

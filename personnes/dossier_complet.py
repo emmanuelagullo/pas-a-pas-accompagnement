@@ -98,7 +98,7 @@ def _enregistrer(acteur,code,personne,debut,fin,source,attendu,motif,correction,
     r=RUBRIQUES[code];bd6.reserver(personne,attendu)
     if set(valeurs)!=set(r.champs):raise ValidationError('Précisez toutes les rubriques de cette déclaration, y compris les valeurs inconnues.')
     if debut>timezone.localdate() or fin and fin>timezone.localdate():raise ValidationError('Une déclaration effective ne peut pas être future. Utilisez les échéances prévues pour une prévision.')
-    if not source.strip() or len(source)>160:raise ValidationError({'source':'Indiquez une source (160 caractères maximum).'})
+    if len(source)>160:raise ValidationError({'source':'Indiquez une source (160 caractères maximum).'})
     if len(motif)>240:raise ValidationError({'motif':'Le motif est limité à 240 caractères.'})
     if sum((correction is not None,remplace is not None,bool(ensemble)))>1 or cloture and correction is None:raise ValidationError('Choisissez une seule opération.')
     q=faits(code,[personne]);actifs=q.filter(annule_le__isnull=True)
@@ -111,7 +111,7 @@ def _enregistrer(acteur,code,personne,debut,fin,source,attendu,motif,correction,
         original=(ancien.debut,ancien.fin,ancien.source,{c:getattr(ancien,c) for c in r.champs})
         if correction is not None:
             x=ancien;action='cloture' if cloture else 'correction'
-            if not motif.strip():raise ValidationError({'motif':'Expliquez la fin effective ou la correction.'})
+            if cloture and not motif.strip():raise ValidationError({'motif':'Expliquez la fin effective.'})
             if cloture and (ancien.fin is not None or fin is None or debut!=ancien.debut or source!=ancien.source or any(getattr(ancien,c)!=valeurs[c] for c in r.champs)):
                 raise ValidationError('Une fin effective conserve les autres renseignements.')
         else:
@@ -135,7 +135,6 @@ def _enregistrer(acteur,code,personne,debut,fin,source,attendu,motif,correction,
     if correction is None and actifs.filter(debut__gt=debut).exists():
         action='insertion'
         suivi.exiger(acteur,'change_'+r.modele._meta.model_name)
-        if not motif.strip():raise ValidationError({'motif':'Expliquez le fait antérieur oublié.'})
     if correction is not None and (x.debut,x.fin,x.source,{c:getattr(x,c) for c in r.champs})==original:raise ValidationError('Aucune modification.')
     x.save();r.journal.objects.create(fait=x,action=action,avant=avant,apres=[photo(code,a) for a in modifies]+[photo(code,x)],motif=motif.strip(),auteur=acteur)
     return x

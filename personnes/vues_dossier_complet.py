@@ -53,7 +53,7 @@ def administration(request,pk,action=None,fait_pk=None):
         if corrigee:suivi.exiger(request.user,'change_situationadministrative')
         initial,proposition=valeurs_proposees(request,faits,service.ADMIN_CHAMPS,corrigee);initial['attendu']=attendu
         f=AdministrationForm(request.POST if request.method=='POST' else None,initial=initial)
-        if corrigee:f.fields['motif'].required=True
+        if corrigee:f.fields['motif'].required=False
         return traiter(request,f,'Corriger une situation administrative' if corrigee else 'Renseigner la situation administrative',
             lambda **d:service.administration(request.user,p,correction=corrigee.pk if corrigee else None,**d),base,p,**proposition,
             explication='Renseignements déclarés sur cette personne. Identifiants textuels, dates exactes ou estimées explicites ; aucune déduction depuis la nationalité, le ménage ou les prestations.')
@@ -82,7 +82,7 @@ def modifier(request,pk,code,action,fait_pk=None):
     initial.update(attendu=attendu,debut=x.debut if x and action!='changer' else jour,fin=x.fin if x and action!='changer' else None,source=x.source if x and action!='changer' else '')
     if action=='absence':initial.update(etat='aucun')
     f=FORMULAIRES[code](request.POST if request.method=='POST' else None,initial=initial)
-    if x and action in ('corriger','clore'):f.fields['motif'].required=True
+    if x and action in ('corriger','clore'):f.fields['motif'].required=action=='clore'
     if action=='clore':
         for c in (*r.champs,'debut','source'):f.fields[c].disabled=True
         f.fields['fin'].required=True

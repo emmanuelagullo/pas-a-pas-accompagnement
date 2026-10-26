@@ -39,3 +39,18 @@
 @media(max-width: 1479px) { .condition-sommaire { display: none; } .condition-menu-mobile { display: block; position: sticky; top: 0; z-index: 5; background: #f0f7f3; border: 1px solid #c8d9ce; border-radius: .4rem; padding: .5rem; } .condition-menu-mobile[open] { max-height: 70vh; overflow-y: auto; } .condition-menu-mobile nav { display: block; } .condition-personne, .condition-groupe, #condition-composition, #projet, #note-dossier, #documents-dossier, #prises, #titre-prestations { scroll-margin-top: 4rem; } }
 @media(max-width: 650px) { .condition-groupe dl > div { grid-template-columns: 1fr; gap: .15rem; } .condition-selection { align-items: stretch; flex-direction: column; } }
 @media print { .condition-sommaire, .condition-menu-mobile, .condition-selection, .condition-actions, .condition-ancres, .condition-contexte { display: none; } .condition-heritee { color: inherit; } }
+
+.condition-cadre { background: #f0f7f3; border: 1px solid #b8ccbf; border-radius: .6rem; padding: 1rem; margin: 1rem 0; min-width: 0; }
+.condition-cadre legend { font-weight: bold; padding: 0 .4rem; }
+.condition-selection input:disabled { color: #59655e; background: #e3e8e5; border-color: #b8c2bc; cursor: not-allowed; opacity: 1; }
+.condition-precisions { margin: .8rem 0; }
+.condition-precisions summary { cursor: pointer; }
+.condition-synthese > span { display: inline-block; margin-right: .5rem; }
+[data-condition-formulaire]:not(:empty) { border-left: 0; padding: .5rem 0; background: transparent; }
+.condition-sociale [hidden] { display: none !important; }
+@media print { .condition-cadre { display: none; } }
+/* Conserver les colonnes de lecture pendant la saisie de la rubrique. */
+[data-condition-form] > p, .condition-precisions > p { display: grid; grid-template-columns: minmax(10rem, 1fr) minmax(0, 1.5fr); gap: .3rem .7rem; align-items: start; margin: .6rem 0; }
+[data-condition-form] > p > label, .condition-precisions > p > label { grid-column: 1; }
+[data-condition-form] > p > :not(label), .condition-precisions > p > :not(label) { grid-column: 2; min-width: 0; }
+@media(max-width: 650px) { [data-condition-form] > p, .condition-precisions > p { grid-template-columns: minmax(0, 1fr); } [data-condition-form] > p > :not(label), .condition-precisions > p > :not(label) { grid-column: 1; } }

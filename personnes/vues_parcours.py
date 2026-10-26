@@ -205,10 +205,10 @@ def modifier(request,code,pk,action,version_pk=None):
     initial=form_initial(code,v)
     initial.update(debut=v.debut if action=='corriger' else jour,source=v.source if action=='corriger' else '',attendu=bd6.jeton(e))
     f=FORMULAIRES[code](request.POST if request.method=='POST' else None,initial=initial)
-    f.fields['motif'].required=action=='corriger'
+    f.fields['motif'].required=False
     return traiter(request,f,('Corriger une erreur' if action=='corriger' else 'Renseigner un changement')+' — '+r.titre,
         lambda **d:s.enregistrer(request.user,code,e,correction=v.pk if action=='corriger' else None,**d),url,objet,
-        explication='Le changement conserve les états précédents à leurs dates ; la correction explique une erreur. Une échéance annoncée ne change pas automatiquement l’état.',**presentation_formulaire(code,f))
+        explication='Le changement conserve les états précédents à leurs dates ; la correction rectifie une information erronée. Une échéance annoncée ne change pas automatiquement l’état.',**presentation_formulaire(code,f))
 
 
 @never_cache

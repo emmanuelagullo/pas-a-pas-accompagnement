@@ -68,13 +68,24 @@ def preparer(request, form, objet):
     entrees = None
     from . import dossier
     if request.user.has_perms(dossier.DROITS):
-        q = m.Accompagnement.objects.filter(beneficiaires__in=personnes, debut__gte=debut)
+        q = m.Accompagnement.objects.filter(beneficiaires__in=personnes).filter(Q(fin__isnull=True) | Q(fin__gt=debut))
         if route == 'parcours_corriger' and isinstance(objet, m.Menage):
             q = q.filter(menage=objet)
         if fin:
             q = q.filter(debut__lt=fin)
         q = q.select_related('menage').distinct().order_by('debut', 'pk')
         entrees = {'nombre': q.count(), 'entrees': list(q[:10])}
+    selection = request.GET.get('date')
+    dates_changees = debut != fait.debut or fin != fait.fin
+    autres = False
+    if entrees and request.GET.get('contexte_prise'):
+        try:
+            pk_prise = forms.UUIDField().clean(request.GET['contexte_prise'])
+            autres = q.exclude(pk=pk_prise).exists()
+        except forms.ValidationError:
+            autres = True
+    if selection == fait.debut.isoformat() and not dates_changees and not autres:
+        form.fields['condition_confirmation'] = forms.BooleanField(required=False, widget=forms.HiddenInput, initial=True)
     return {'payload': payload, 'token': token, 'debut': debut, 'fin': fin,
             'entrees': entrees, 'groupe': route not in ('social_corriger', 'relation_corriger')}
 

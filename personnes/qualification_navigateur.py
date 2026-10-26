@@ -563,7 +563,7 @@ class BD6Navigateur(EntreeBDNavigateur):
         page.set_viewport_size({'width': 390, 'height': 844})
         rubrique.get_by_role('link', name='Corriger une erreur', exact=True).click()
         self.assertTrue(page.locator('[name=debut]').is_disabled())
-        self.assertTrue(page.locator('[name=motif]').get_attribute('required') is not None)
+        self.assertIsNone(page.locator('[name=motif]').get_attribute('required'))
         page.get_by_label('Comment le savez-vous ?', exact=True).fill('Entretien fictif corrigé')
         page.locator('[name=motif]').fill('Erreur de transcription fictive')
         page.get_by_role('button', name='Enregistrer', exact=True).click()
@@ -681,11 +681,13 @@ class ConditionSocialeNavigateur(StaticLiveServerTestCase):
         groupe.get_by_role('link', name='Modifier', exact=True).click()
         form = groupe.locator('form[data-condition-form]')
         form.locator('[name=telephone]').fill('06 22 22 22 22')
+        self.assertTrue(groupe.locator('[data-condition-lecture]').is_hidden())
+        form.locator('[name=courriel]').fill('invalide')
         form.evaluate('form => form.noValidate = true')  # Exercer aussi le refus serveur.
         form.get_by_role('button', name='Enregistrer', exact=True).click()
         form.locator('.errorlist').first.wait_for()
         self.assertEqual(form.locator('[name=telephone]').input_value(), '06 22 22 22 22')
-        form.locator('[name=source]').fill('Déclaration fictive pendant l’entretien')
+        form.locator('[name=courriel]').fill('')
         form.get_by_role('button', name='Enregistrer', exact=True).click()
         groupe.locator('dd').filter(has_text='06 22 22 22 22').wait_for()
         self.assertEqual(groupe.locator('dd.condition-valeur-heritee').filter(has_text='Bordeaux').count(), 1)
@@ -710,7 +712,6 @@ class ConditionSocialeNavigateur(StaticLiveServerTestCase):
         groupe.get_by_role('link', name='Modifier', exact=True).click()
         form = groupe.locator('form[data-condition-form]')
         form.locator('[name=designation]').fill('Thomas corrigé fictif')
-        form.locator('[name=motif]').fill('Correction fictive de qualification')
         form.get_by_role('button', name='Enregistrer', exact=True).click()
         page.get_by_role('heading', name='Dossier — Thomas corrigé fictif', exact=True).wait_for()
         self.assertEqual(page.locator('.condition-menu-mobile').get_by_role('link', name='Thomas corrigé fictif', exact=True, include_hidden=True).count(), 1)
@@ -720,3 +721,40 @@ class ConditionSocialeNavigateur(StaticLiveServerTestCase):
         mobile.get_by_role('link', name='Situation sociale et projet', exact=True).click()
         self.assertFalse(mobile.evaluate('element => element.open'))
         self.assertTrue(page.evaluate('document.documentElement.scrollWidth <= window.innerWidth'))
+
+
+    def test_vue_dates_implicites_synthese_origines_et_annulation_sur_place(self):
+        from playwright.sync_api import expect
+        from django.utils import timezone
+        from . import models as m
+        page = self.navigateur()
+        page.goto(self.live_server_url + reverse('dossiers:prise', args=['menage', self.m.pk, self.a.pk]))
+        date_vue = page.locator('[data-condition-selection] input[type=date]')
+        expect(date_vue).to_be_disabled()
+        expect(date_vue).to_have_value(self.entree.isoformat())
+        with page.expect_navigation():
+            page.locator('[name=vue_sociale]').select_option('today')
+        expect(date_vue).to_have_value(timezone.localdate().isoformat())
+        expect(date_vue).to_be_disabled()
+        page.locator('[name=vue_sociale]').select_option('date')
+        expect(date_vue).to_be_enabled()
+        with page.expect_navigation():
+            date_vue.fill(self.entree.isoformat())
+        with page.expect_navigation():
+            page.locator('[name=presentation_sociale]').select_option('synthese')
+        expect(page.locator('.condition-synthese').first).to_be_visible()
+        with page.expect_navigation():
+            page.locator('[name=origines_sociales]').check()
+        expect(page.locator('.condition-origine').first).to_be_visible()
+        groupe = page.locator('#social-' + str(self.p.pk) + '-coordonnees')
+        groupe.get_by_role('link', name='Modifier', exact=True).click()
+        form = groupe.locator('form[data-condition-form]')
+        expect(form).to_be_visible()
+        expect(form.get_by_role('button', name='Enregistrer', exact=True)).to_be_disabled()
+        expect(groupe.locator('[data-condition-lecture]')).to_be_hidden()
+        form.locator('[name=telephone]').fill('06 99 99 99 99')
+        page.once('dialog', lambda dialogue: dialogue.accept())
+        form.get_by_role('button', name='Annuler', exact=True).click()
+        expect(form).to_have_count(0)
+        expect(groupe.locator('[data-condition-lecture]')).to_be_visible()
+        self.assertEqual(verifier_hors_boucle_playwright(lambda: m.RevisionCoordonneesPersonnelles.objects.count()), 0)

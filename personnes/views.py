@@ -89,11 +89,13 @@ def corriger_identite(request, pk):
     personne = get_object_or_404(Personne, pk=pk)
     form = CorrectionIdentiteForm(request.POST if request.method == "POST" else None,
         instance=personne, initial={"attendu": identite.jeton(personne)})
+    from . import saisie_sociale
+    saisie_sociale.preparer(request, form)
     navigation = dossier.lire_personne(request, pk)
     statut = 200
     if request.method == "POST" and form.is_valid():
         try:
-            identite.corriger(request.user, personne, **form.cleaned_data)
+            saisie_sociale.executer(form, lambda **d: identite.corriger(request.user, personne, **d))
         except ValidationError as erreur:
             form.add_error(None, " ".join(erreur.messages))
             statut = 409

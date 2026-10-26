@@ -73,7 +73,7 @@ def histoire(request, pk, action=None, fait_pk=None):
         # validées ne doivent être écrites que par le service et son journal.
         form = CoordonneesForm(request.POST if request.method == 'POST' else None, initial=initial)
         if correction:
-            form.fields['motif'].required = True
+            form.fields['motif'].required = False
             form.fields['debut'].help_text = 'La correction peut rectifier la date, sans traverser une autre déclaration. Les périodes voisines et leur avant/après sont conservés.'
         return traiter(request, form, 'Corriger des coordonnées' if correction else 'Enregistrer des coordonnées',
             lambda **d: coordonnees.renseigner(request.user, personne, correction=correction.pk if correction else None, **d),

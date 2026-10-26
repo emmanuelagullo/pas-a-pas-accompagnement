@@ -69,7 +69,7 @@ class IdentiteTests(TestCase):
             identite.corriger(self.u, self.p, 'Périmé', attendu, **self.donnees(designation='Écrasement'))
         self.p.refresh_from_db()
         with self.assertRaises(ValidationError):
-            identite.corriger(self.u, self.p, ' ', identite.jeton(self.p), **self.donnees(designation='Autre'))
+            identite.corriger(self.u, self.p, 'x' * 241, identite.jeton(self.p), **self.donnees(designation='Autre'))
         with patch.object(RevisionIdentite.objects, 'create', side_effect=RuntimeError('échec fictif')):
             with self.assertRaises(RuntimeError): self.corriger(designation='À annuler')
         self.p.refresh_from_db()

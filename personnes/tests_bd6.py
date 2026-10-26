@@ -123,7 +123,7 @@ class BD6Tests(Donnees, TestCase):
         self.fait()
         self.fait('formation', date(2026, 4, 1))
         with self.assertRaises(ValidationError):
-            self.fait('emploi', date(2026, 3, 1))
+            self.fait('emploi', date(2026, 3, 1), motif='x' * 241)
         fait = self.fait('emploi', date(2026, 3, 1), motif='Fait oublié fictif')
         self.assertEqual(fait.fin, date(2026, 4, 1))
         self.assertEqual(list(SituationPersonnelle.objects.values_list('fin', flat=True)), [date(2026, 3, 1), date(2026, 4, 1), None])
@@ -132,7 +132,7 @@ class BD6Tests(Donnees, TestCase):
     def test_social_refus_motif_doublon_etat_perime_mauvaise_cible(self):
         token = bd6.jeton(self.p)
         fait = self.fait()
-        for kwargs in [{'attendu': token}, {'attendu': bd6.jeton(self.m)}, {'attendu': bd6.jeton(self.p), 'correction': fait.pk}]:
+        for kwargs in [{'attendu': token}, {'attendu': bd6.jeton(self.m)}, {'attendu': bd6.jeton(self.p), 'correction': fait.pk, 'motif': 'x' * 241}]:
             with self.assertRaises(ValidationError):
                 bd6.renseigner(self.u, self.p, 'emploi', 'emploi', fait.debut, 'Fictif', **kwargs)
         self.assertEqual(RevisionSituationPersonnelle.objects.count(), 1)
@@ -290,7 +290,7 @@ class BD6Tests(Donnees, TestCase):
         rectification = self.client.get(correction)
         self.assertFalse(ajout.context['form'].fields['debut'].disabled)
         self.assertTrue(rectification.context['form'].fields['debut'].disabled)
-        self.assertTrue(rectification.context['form'].fields['motif'].required)
+        self.assertFalse(rectification.context['form'].fields['motif'].required)
         self.assertContains(ajout, 'Comment le savez-vous ?')
         self.assertContains(ajout, 'entretien avec la personne')
         self.assertContains(rectification, 'Vous corrigez une erreur de saisie')

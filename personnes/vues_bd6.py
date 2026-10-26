@@ -68,7 +68,7 @@ class CommentaireForm(EtatForm):
 class SituationForm(EtatForm):
     debut = date_champ('Depuis quelle date cette situation est-elle vraie ?')
     valeur = forms.ChoiceField(label='Situation')
-    source = forms.CharField(label='Comment le savez-vous ?', max_length=160,
+    source = forms.CharField(label='Comment le savez-vous ? (facultatif)', max_length=160, required=False,
         help_text='Par exemple : entretien avec la personne le 12/10, courrier CAF, échange avec un partenaire. Aucun document à joindre.')
     motif = forms.CharField(label='Motif de correction ou d’insertion antérieure', max_length=240, required=False)
 
@@ -76,7 +76,7 @@ class SituationForm(EtatForm):
         super().__init__(*args, **kwargs)
         self.fields['valeur'].choices = SituationSociale.VALEURS[dimension]
         self.fields['debut'].disabled = correction
-        self.fields['motif'].required = correction
+        self.fields['motif'].required = False
         if correction:
             self.fields['debut'].help_text = 'Date de l’information corrigée : elle reste inchangée.'
             self.fields['motif'].label = 'Pourquoi la saisie précédente était-elle erronée ?'
@@ -111,6 +111,8 @@ def retour(nature, pk, params=None, prise=None):
 
 
 def traiter(request, form, titre, action, url, objet, **contexte):
+    from . import saisie_sociale
+    saisie_sociale.preparer(request, form)
     from .champs_saisie import adapter
     adapter(form)
     from . import portee_corrections
@@ -120,7 +122,7 @@ def traiter(request, form, titre, action, url, objet, **contexte):
     statut = 200
     if request.method == 'POST' and form.is_valid() and (not portee or portee_corrections.verifier(form, portee)):
         try:
-            resultat = action(**form.cleaned_data)
+            resultat = saisie_sociale.executer(form, action)
         except (ValidationError, OperationalError) as erreur:
             if isinstance(erreur, ValidationError) and hasattr(erreur, 'error_dict'):
                 for champ, messages in erreur.message_dict.items():

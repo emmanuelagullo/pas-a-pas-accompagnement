@@ -4,7 +4,6 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import F
 from .models import Personne, RevisionIdentite
-from .corrections import motif_valide
 from .suivi import exiger
 
 CHAMPS = ('designation', 'prenom', 'date_naissance', 'annee_naissance', 'precision_naissance')
@@ -36,7 +35,9 @@ def _corriger(acteur, pk, motif, attendu, donnees):
     if etat != [str(personne.pk), personne.revision_identite - 1,
                 [str(getattr(personne, champ)) for champ in CHAMPS]]:
         raise ValidationError('Cette identité a changé. Rechargez la fiche avant de la corriger.')
-    motif = motif_valide(motif)
+    motif = motif.strip()
+    if len(motif) > 240:
+        raise ValidationError({'motif': '240 caractères au plus.'})
     avant = {champ: getattr(personne, champ) for champ in CHAMPS}
     for champ in CHAMPS:
         setattr(personne, champ, donnees[champ])

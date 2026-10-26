@@ -6,6 +6,20 @@ from django.db import models
 from django.core.validators import RegexValidator, MinValueValidator
 
 
+class TraceSaisie(models.Model):
+    contexte_saisie = models.CharField('Contexte de saisie', max_length=240, blank=True)
+
+    class Meta:
+        abstract = True
+        ordering = ['-enregistre_le', '-pk']
+
+    def save(self, *args, **kwargs):
+        if self._state.adding and not self.contexte_saisie:
+            from .saisie_sociale import contexte_courant
+            self.contexte_saisie = contexte_courant()
+        return super().save(*args, **kwargs)
+
+
 class Personne(models.Model):
     PRECISIONS_NAISSANCE = [("", "Non renseignée"), ("exacte", "Date exacte"),
         ("estimee", "Date estimée"), ("annee", "Année connue seulement"),
@@ -70,7 +84,7 @@ class Personne(models.Model):
         return " ".join(partie for partie in [self.prenom, self.designation] if partie)
 
 
-class RevisionIdentite(models.Model):
+class RevisionIdentite(TraceSaisie):
     personne = models.ForeignKey(Personne, on_delete=models.PROTECT, related_name="revisions_identite")
     ancienne_designation = models.CharField(max_length=160)
     nouvelle_designation = models.CharField(max_length=160)
@@ -82,7 +96,7 @@ class RevisionIdentite(models.Model):
     nouvelle_annee_naissance = models.PositiveSmallIntegerField(null=True, blank=True)
     ancienne_precision_naissance = models.CharField(max_length=20, blank=True, choices=Personne.PRECISIONS_NAISSANCE)
     nouvelle_precision_naissance = models.CharField(max_length=20, blank=True, choices=Personne.PRECISIONS_NAISSANCE)
-    motif = models.CharField(max_length=240)
+    motif = models.CharField(max_length=240, blank=True)
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     enregistre_le = models.DateTimeField(auto_now_add=True)
 
@@ -600,7 +614,7 @@ class ActionRelais(models.Model):
 
 
 
-class InformationsAccompagnement(models.Model):
+class InformationsAccompagnement(TraceSaisie):
     """Versions conservées des informations pratiques et du projet de suivi."""
     accompagnement = models.ForeignKey(Accompagnement, on_delete=models.PROTECT, related_name='informations')
     version = models.PositiveIntegerField()
@@ -616,7 +630,7 @@ class InformationsAccompagnement(models.Model):
     objectifs_longs_document = models.JSONField(null=True, blank=True, editable=False)
     activite = models.CharField('Activité de la prise en charge', max_length=16, blank=True, choices=[('chrs','CHRS'),('urgence','Urgence'),('autre','Autre activité')])
     animaux = models.CharField('Animaux — information pratique pour l’accueil', max_length=500, blank=True)
-    motif = models.CharField('Motif de mise à jour', max_length=240)
+    motif = models.CharField('Motif de mise à jour', max_length=240, blank=True)
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     enregistre_le = models.DateTimeField(auto_now_add=True)
 
@@ -643,7 +657,7 @@ class SituationPersonnelle(PeriodeRetirable):
     personne = models.ForeignKey(Personne, on_delete=models.PROTECT, related_name="situations_personnelles")
     dimension = models.CharField(max_length=20, choices=SituationSociale.DIMENSIONS)
     valeur = models.CharField(max_length=30)
-    source = models.CharField(max_length=160)
+    source = models.CharField(max_length=160, blank=True)
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     enregistre_le = models.DateTimeField(auto_now_add=True)
 
@@ -668,7 +682,7 @@ class SituationPersonnelle(PeriodeRetirable):
         return dict(SituationSociale.VALEURS.get(self.dimension, [])).get(self.valeur, self.valeur)
 
 
-class RevisionSituationPersonnelle(models.Model):
+class RevisionSituationPersonnelle(TraceSaisie):
     personne = models.ForeignKey(Personne, on_delete=models.PROTECT)
     situation = models.ForeignKey(SituationPersonnelle, on_delete=models.PROTECT, related_name="revisions")
     action = models.CharField(max_length=20, choices=[("changement", "Changement réel"), ("insertion", "Fait antérieur oublié"), ("correction", "Correction d’une erreur"), ("retrait", "Changement retiré")])
@@ -710,7 +724,7 @@ class DeclarationFamiliale(PeriodeRetirable):
     enfants_a_charge = models.PositiveSmallIntegerField('Nombre déclaré d’enfants à charge', null=True, blank=True)
     enfants_non_a_charge = models.PositiveSmallIntegerField('Nombre déclaré d’enfants non à charge', null=True, blank=True)
     grossesse = models.BooleanField('Grossesse déclarée', null=True, blank=True)
-    source = models.CharField('Source de l’information', max_length=160)
+    source = models.CharField('Source de l’information', max_length=160, blank=True)
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     enregistre_le = models.DateTimeField(auto_now_add=True)
 
@@ -734,7 +748,7 @@ class DeclarationFamiliale(PeriodeRetirable):
         return ' · '.join(morceaux) or 'Autres informations familiales renseignées'
 
 
-class RevisionDeclarationFamiliale(models.Model):
+class RevisionDeclarationFamiliale(TraceSaisie):
     personne = models.ForeignKey(Personne, on_delete=models.PROTECT)
     declaration = models.ForeignKey(DeclarationFamiliale, on_delete=models.PROTECT, related_name='revisions')
     action = models.CharField(max_length=20, choices=[('changement', 'Changement réel'), ('insertion', 'Fait antérieur oublié'), ('correction', 'Correction d’une erreur'), ('retrait', 'Changement retiré')])
@@ -758,7 +772,7 @@ class CoordonneesPersonnelles(PeriodeRetirable):
     telephone = models.CharField('Téléphone', max_length=80, blank=True)
     courriel = models.EmailField('Courriel', blank=True)
     fax = models.CharField('Fax (si utile)', max_length=80, blank=True)
-    source = models.CharField('Source de l’information', max_length=160)
+    source = models.CharField('Source de l’information', max_length=160, blank=True)
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     enregistre_le = models.DateTimeField(auto_now_add=True)
 
@@ -777,7 +791,7 @@ class CoordonneesPersonnelles(PeriodeRetirable):
         return ' · '.join(x for x in [self.rue, ' '.join(x for x in [self.code_postal, self.ville] if x), self.pays] if x)
 
 
-class RevisionCoordonneesPersonnelles(models.Model):
+class RevisionCoordonneesPersonnelles(TraceSaisie):
     personne = models.ForeignKey(Personne, on_delete=models.PROTECT)
     coordonnees = models.ForeignKey(CoordonneesPersonnelles, on_delete=models.PROTECT, related_name='revisions')
     action = models.CharField(max_length=20, choices=RevisionDeclarationFamiliale._meta.get_field('action').choices)
@@ -999,7 +1013,7 @@ class ComplementIdentite(PeriodeRetirable):
     naissance_pays = models.CharField('Pays de naissance', max_length=160, blank=True)
     nationalites = models.JSONField('Nationalités déclarées', default=list, blank=True)
     apatridie_declaree = models.BooleanField('Apatridie déclarée', null=True, blank=True)
-    source = models.CharField('Source de l’information', max_length=160)
+    source = models.CharField('Source de l’information', max_length=160, blank=True)
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     enregistre_le = models.DateTimeField(auto_now_add=True)
 
@@ -1024,7 +1038,7 @@ class ComplementIdentite(PeriodeRetirable):
             models.UniqueConstraint(fields=['personne'],condition=models.Q(fin__isnull=True, retire_le__isnull=True),name='identite_complement_ouvert')]
 
 
-class RevisionComplementIdentite(models.Model):
+class RevisionComplementIdentite(TraceSaisie):
     personne=models.ForeignKey(Personne,on_delete=models.PROTECT)
     complement=models.ForeignKey(ComplementIdentite,on_delete=models.PROTECT,related_name='revisions')
     action=models.CharField(max_length=20,choices=RevisionDeclarationFamiliale._meta.get_field('action').choices)
@@ -1046,7 +1060,7 @@ class RelationPersonnelle(Periode):
     personne_b=models.ForeignKey(Personne,on_delete=models.PROTECT,related_name='relations_b')
     nature=models.CharField(max_length=20,choices=NATURES)
     precision=models.CharField('Précision du lien',max_length=240,blank=True)
-    source=models.CharField('Source de l’information',max_length=160)
+    source=models.CharField('Source de l’information',max_length=160, blank=True)
     auteur=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT)
     enregistre_le=models.DateTimeField(auto_now_add=True)
     annule_le=models.DateTimeField(null=True,blank=True,editable=False)
@@ -1076,7 +1090,7 @@ class RelationPersonnelle(Periode):
                 models.Q(annule_le__isnull=False,annule_par__isnull=False)&~models.Q(motif_annulation='')),name='relation_annulation_coherente')]
 
 
-class RevisionRelationPersonnelle(models.Model):
+class RevisionRelationPersonnelle(TraceSaisie):
     relation=models.ForeignKey(RelationPersonnelle,on_delete=models.PROTECT,related_name='revisions')
     action=models.CharField(max_length=20,choices=[('ajout','Lien déclaré'),('insertion','Fait antérieur oublié'),
         ('changement','Changement réel'),('correction','Correction'),('cloture','Fin du lien'),('annulation','Annulation de saisie')])
@@ -1102,7 +1116,7 @@ class SituationAdministrative(PeriodeRetirable):
     precision_sans_emploi=models.CharField('Précision de cette date',max_length=10,choices=[('','Non renseignée'),('exacte','Date déclarée exacte'),('estimee','Date déclarée estimée')],blank=True)
     sans_domicile_depuis=models.DateField('Sans domicile depuis',null=True,blank=True)
     precision_sans_domicile=models.CharField('Précision de cette date',max_length=10,choices=[('','Non renseignée'),('exacte','Date déclarée exacte'),('estimee','Date déclarée estimée')],blank=True)
-    source=models.CharField('Source de l’information',max_length=160)
+    source=models.CharField('Source de l’information',max_length=160, blank=True)
     auteur=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT)
     enregistre_le=models.DateTimeField(auto_now_add=True)
 
@@ -1137,7 +1151,7 @@ class JournalPersonnel(models.Model):
         ordering=['-enregistre_le','-pk']
 
 
-class RevisionSituationAdministrative(JournalPersonnel):
+class RevisionSituationAdministrative(TraceSaisie, JournalPersonnel):
     action = models.CharField(max_length=20, choices=[*JournalPersonnel._meta.get_field('action').choices, ('retrait', 'Changement retiré')])
     personne=models.ForeignKey(Personne,on_delete=models.PROTECT)
     situation=models.ForeignKey(SituationAdministrative,on_delete=models.PROTECT,related_name='revisions')
@@ -1146,7 +1160,7 @@ class RevisionSituationAdministrative(JournalPersonnel):
 class FaitPersonnelDate(Periode):
     personne=models.ForeignKey(Personne,on_delete=models.PROTECT)
     etat=models.CharField('État de la déclaration',max_length=10,choices=[('detail','Renseigné'),('aucun','Absence déclarée'),('inconnu','Non connu déclaré')],default='detail')
-    source=models.CharField('Source de l’information',max_length=160)
+    source=models.CharField('Source de l’information',max_length=160, blank=True)
     auteur=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT)
     enregistre_le=models.DateTimeField(auto_now_add=True)
     annule_le=models.DateTimeField(null=True,blank=True,editable=False)
@@ -1263,23 +1277,23 @@ class ProtectionJuridique(FaitPersonnelDate):
         constraints=FaitPersonnelDate.Meta.constraints+[models.CheckConstraint(condition=models.Q(representant_personne__isnull=True,representant_intervenant__isnull=True)|models.Q(representant_personne__isnull=True,organisme__isnull=True)|models.Q(representant_intervenant__isnull=True,organisme__isnull=True),name='protection_representant_unique')]
 
 
-class RevisionRessourcePersonnelle(JournalPersonnel):
+class RevisionRessourcePersonnelle(TraceSaisie, JournalPersonnel):
     fait=models.ForeignKey(RessourcePersonnelle,on_delete=models.PROTECT,related_name="revisions")
 
 
-class RevisionDettePersonnelle(JournalPersonnel):
+class RevisionDettePersonnelle(TraceSaisie, JournalPersonnel):
     fait=models.ForeignKey(DettePersonnelle,on_delete=models.PROTECT,related_name="revisions")
 
 
-class RevisionPieceAdministrative(JournalPersonnel):
+class RevisionPieceAdministrative(TraceSaisie, JournalPersonnel):
     fait=models.ForeignKey(PieceAdministrative,on_delete=models.PROTECT,related_name="revisions")
 
 
-class RevisionCouvertureSociale(JournalPersonnel):
+class RevisionCouvertureSociale(TraceSaisie, JournalPersonnel):
     fait=models.ForeignKey(CouvertureSociale,on_delete=models.PROTECT,related_name="revisions")
 
 
-class RevisionProtectionJuridique(JournalPersonnel):
+class RevisionProtectionJuridique(TraceSaisie, JournalPersonnel):
     fait=models.ForeignKey(ProtectionJuridique,on_delete=models.PROTECT,related_name="revisions")
 
 
@@ -1338,7 +1352,7 @@ class RepereDossier(ElementParcours):
 
 
 class VersionParcours(Periode):
-    source = models.CharField('Source de l’information', max_length=160)
+    source = models.CharField('Source de l’information', max_length=160, blank=True)
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='+')
     enregistre_le = models.DateTimeField(auto_now_add=True)
     class Meta:
@@ -1406,20 +1420,20 @@ class VersionRepereDossier(VersionParcours):
     raison = models.CharField('Raison du changement de suivi', max_length=240)
 
 
-class RevisionDemande(JournalPersonnel):
+class RevisionDemande(TraceSaisie, JournalPersonnel):
     element = models.ForeignKey(DemandeAccueil, on_delete=models.PROTECT, related_name='revisions')
     action = models.CharField(max_length=16, choices=[*JournalPersonnel._meta.get_field('action').choices,('liaison','Liaison à une prise en charge'),('deliaison','Correction de liaison')])
 
 
-class RevisionOrientation(JournalPersonnel):
+class RevisionOrientation(TraceSaisie, JournalPersonnel):
     element = models.ForeignKey(OrientationParcours, on_delete=models.PROTECT, related_name='revisions')
 
 
-class RevisionObjectif(JournalPersonnel):
+class RevisionObjectif(TraceSaisie, JournalPersonnel):
     element = models.ForeignKey(ObjectifParcours, on_delete=models.PROTECT, related_name='revisions')
 
 
-class RevisionRepereDossier(JournalPersonnel):
+class RevisionRepereDossier(TraceSaisie, JournalPersonnel):
     element = models.ForeignKey(RepereDossier, on_delete=models.PROTECT, related_name='revisions')
 
 
@@ -1827,7 +1841,7 @@ class BesoinAccueil(FaitPersonnelDate):
         permissions=[('annuler_besoinaccueil','Annuler un besoin d’accueil saisi par erreur')]
 
 
-class RevisionBesoinAccueil(JournalPersonnel):
+class RevisionBesoinAccueil(TraceSaisie, JournalPersonnel):
     fait=models.ForeignKey(BesoinAccueil,on_delete=models.PROTECT,related_name='revisions')
 
 
@@ -1855,7 +1869,7 @@ class AntecedentInstitutionnel(FaitPersonnelDate):
         permissions=[('annuler_antecedentinstitutionnel','Annuler un antécédent déclaré par erreur')]
 
 
-class RevisionAntecedentInstitutionnel(JournalPersonnel):
+class RevisionAntecedentInstitutionnel(TraceSaisie, JournalPersonnel):
     fait=models.ForeignKey(AntecedentInstitutionnel,on_delete=models.PROTECT,related_name='revisions')
 
 
@@ -1880,7 +1894,7 @@ class AncrageTerritorial(FaitPersonnelDate):
         constraints=FaitPersonnelDate.Meta.constraints+[models.CheckConstraint(condition=models.Q(depuis__isnull=True)|models.Q(depuis__lte=models.F('debut')),name='ancrage_depuis_declaration')]
 
 
-class RevisionAncrageTerritorial(JournalPersonnel):
+class RevisionAncrageTerritorial(TraceSaisie, JournalPersonnel):
     fait=models.ForeignKey(AncrageTerritorial,on_delete=models.PROTECT,related_name='revisions')
 
 
@@ -1899,7 +1913,7 @@ class EvolutionPersonnelleDeclaree(FaitPersonnelDate):
         permissions=[('annuler_evolutionpersonnelledeclaree','Annuler une évolution personnelle déclarée par erreur')]
 
 
-class RevisionEvolutionPersonnelleDeclaree(JournalPersonnel):
+class RevisionEvolutionPersonnelleDeclaree(TraceSaisie, JournalPersonnel):
     fait=models.ForeignKey(EvolutionPersonnelleDeclaree,on_delete=models.PROTECT,related_name='revisions')
 
 

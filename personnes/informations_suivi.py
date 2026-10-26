@@ -4,7 +4,6 @@ from django.core import signing
 from django.core.exceptions import ValidationError
 from .models import InformationsAccompagnement
 from .social import droit, verrouiller
-from .corrections import motif_valide
 from .verrous_metier import serialiser
 
 CHAMPS = ('referent', 'provenance', 'motif_entree', 'orientation_sortie', 'motif_sortie',
@@ -27,7 +26,9 @@ def enregistrer(acteur, accompagnement, attendu, motif, **donnees):
         raise ValidationError('Le formulaire a expiré. Rechargez l’accompagnement.') from exc
     if etat != [str(a.pk), derniere.pk if derniere else None]:
         raise ValidationError('Ces informations ont changé. Rechargez l’accompagnement.')
-    motif = motif_valide(motif)
+    motif = motif.strip()
+    if len(motif) > 240:
+        raise ValidationError({'motif': '240 caractères au plus.'})
     valeurs = {champ: (donnees.get(champ, getattr(derniere, champ, '')) if champ == 'activite' else donnees[champ]).strip() for champ in CHAMPS}
     for champ in ('objectifs_courts', 'objectifs_longs'):
         valeurs.update(tr.colonnes(champ, donnees[champ], max_length=1000))

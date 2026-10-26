@@ -53,7 +53,7 @@ class FamilleTests(Donnees, TestCase):
         dernier = self.creer(date(2026, 4, 1), situation_familiale='En couple', enfants_a_charge=2)
         token = bd6.jeton(self.p)
         with self.assertRaises(ValidationError):
-            famille.renseigner(self.u, self.p, date(2026, 3, 1), 'Fictif', token, **valeurs())
+            famille.renseigner(self.u, self.p, date(2026, 3, 1), 'Fictif', token, motif='x' * 241, **valeurs())
         inter = famille.renseigner(self.u, self.p, date(2026, 3, 1), 'Fictif', token,
             motif='Fait oublié fictif', **valeurs(situation_familiale='Séparée'))
         premier.refresh_from_db(); dernier.refresh_from_db()
@@ -100,13 +100,13 @@ class FamilleTests(Donnees, TestCase):
                 self.creer(date(2026, 2, 1))
         self.assertEqual(famille.photographie(self.p), avant)
 
-    def test_valeurs_negatives_source_vide_et_aucune_modification_refusees(self):
+    def test_valeurs_negatives_source_trop_longue_et_aucune_modification_refusees(self):
         fait = self.creer()
         for donnees in [valeurs(enfants_a_charge=-1), valeurs(enfants_non_a_charge=-1)]:
             with self.assertRaises(ValidationError):
                 famille.renseigner(self.u, self.p, date(2026, 2, 1), 'Fictif', bd6.jeton(self.p), **donnees)
         with self.assertRaises(ValidationError):
-            famille.renseigner(self.u, self.p, date(2026, 2, 1), ' ', bd6.jeton(self.p), **valeurs())
+            famille.renseigner(self.u, self.p, date(2026, 2, 1), 'x' * 161, bd6.jeton(self.p), **valeurs())
         with self.assertRaises(ValidationError):
             famille.renseigner(self.u, self.p, fait.debut, fait.source, bd6.jeton(self.p),
                 correction=fait.pk, motif='Aucune différence fictive', **valeurs())
