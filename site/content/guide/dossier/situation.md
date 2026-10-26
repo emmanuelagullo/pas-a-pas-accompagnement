@@ -31,7 +31,7 @@ Dans l’encadré **Vue et saisie**, le **Contexte de saisie (facultatif)** prop
 
 **Aujourd’hui**, **À l’entrée** et **Au dernier jour** calculent la date affichée : elle est grisée et non modifiable. **À une date…** active le calendrier. Avec JavaScript, les réglages de vue s’appliquent au changement ; sans JavaScript, utiliser **Appliquer la vue**.
 
-**Intégrale** affiche tous les champs, y compris non renseignés. **Synthèse** retient jusqu’à trois valeurs renseignées par déclaration et indique les informations supplémentaires. **Afficher les origines** révèle les dates et sources sous les valeurs, dans les deux présentations.
+**Complet** affiche tous les champs, y compris non renseignés. **Informations renseignées** conserve toutes les valeurs connues, sans troncature, et masque seulement les champs vides. Les rubriques et leurs accès de saisie restent visibles. **Afficher les origines** révèle les dates et sources sous les valeurs, dans les deux présentations.
 
 **Renseigner / Modifier** remplace les valeurs de la rubrique par ses champs. **Enregistrer** valide cette rubrique ; **Annuler** rétablit son affichage sans écrire. Les sources et précisions particulières sont facultatives et dépliables. Une erreur conserve la saisie et ouvre les précisions si elles sont concernées. Aucun enregistrement n’est déclenché en quittant un champ.
 
@@ -56,3 +56,5 @@ Une qualification déclarée n'est pas un score social.
 Choisir une date non future ; préciser la source si elle est connue. Un ajout antérieur à une déclaration déjà enregistrée exige les droits de modification ; une valeur à la même date se corrige explicitement. Une correction de date ne traverse pas une autre déclaration. Vérifier les deux périodes voisines après enregistrement.
 
 Pour les ressources et dettes détaillées, partir de [leur rubrique propre]({{< relref "/guide/dossier/ressources/" >}}). Leur synthèse peut remplacer l’affichage de l’ancienne valeur globale, sans effacer cette dernière. La [trajectoire d’accompagnement]({{< relref "/guide/trajectoire-sociale/" >}}), accessible depuis le dossier, réutilise cette même lecture datée et conserve les anciennes informations séparément. En l’absence de déclaration personnelle couvrant la date, elle affiche « Non renseigné » sans promouvoir un ancien suivi en déclaration consolidée.
+
+Dans le sommaire, **Composition du ménage** déplie les personnes et leurs rubriques. **Projet et parcours** possède son propre dépliant, au même niveau. Les deux sont repliés par défaut.

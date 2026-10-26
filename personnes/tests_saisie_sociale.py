@@ -95,16 +95,18 @@ class SaisieSocialeTests(TestCase):
         self.assertContains(r, 'data-date="2026-10-19"')
 
     def test_synthese_selectionne_les_valeurs_renseignees_et_origines_disponibles(self):
-        self.client.post(self.url, self.donnees(telephone='06 00 00 00 00'), HTTP_X_CONDITION_FORM='1')
+        self.client.post(self.url, self.donnees(telephone='06 00 00 00 00', rue='Rue fictive', code_postal='33000', pays='France', courriel='fictif@example.org'), HTTP_X_CONDITION_FORM='1')
         url = reverse('dossiers:detail', args=['personne', self.p.pk])
         params = {'vue_sociale': 'date', 'date_sociale': '2026-10-12', 'presentation_sociale': 'synthese', 'origines_sociales': '1'}
         page = self.client.get(url, params)
         fiche = next(g for g in page.context['condition_personnes'][0]['groupes'] if g['code'] == 'coordonnees')['fiches'][0]
         self.assertIn('06 00 00 00 00', [c['valeur'] for c in fiche['resume']])
         self.assertTrue(all(not c['vide'] for c in fiche['resume']))
+        self.assertGreater(len(fiche['resume']), 3)
+        self.assertContains(page, 'fictif@example.org')
         self.assertContains(page, 'condition-origines')
         self.assertContains(page, 'Source : non précisée')
-        self.assertContains(page, 'jusqu’à trois informations renseignées')
+        self.assertContains(page, 'toutes les valeurs connues sont visibles en entier')
 
     def test_retour_schema_refuse_perte_du_contexte(self):
         from importlib import import_module
@@ -136,4 +138,5 @@ class SaisieSocialeTests(TestCase):
         with self.assertRaises(ValidationError):
             bd6.renseigner(self.u, self.p, 'emploi', 'sans_emploi', x.debut, '', token, correction=x.pk)
         self.assertEqual(m.RevisionSituationPersonnelle.objects.count(), 1)
+        self.p.refresh_from_db()  # L’instance Python n’est pas restaurée par le rollback SQL.
         self.assertEqual(bd6.revision(self.p), revision)

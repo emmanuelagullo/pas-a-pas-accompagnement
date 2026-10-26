@@ -1,5 +1,6 @@
 """Trajectoire depuis un dossier ; l'ancienne URL garde le filtre de prise."""
 from urllib.parse import urlencode
+from datetime import timedelta
 from django import forms
 from django.contrib.auth.decorators import login_required
 from django.core import signing
@@ -18,13 +19,47 @@ class Filtres(FormulaireMetier):
     beneficiaire = forms.ChoiceField(label='Personne', required=False)
     prise = forms.ChoiceField(label='Prise en charge', required=False,
         help_text='Filtre les faits liés à cette prise ; l’histoire personnelle reste indépendante des prises en charge.')
+    vue_debut = forms.ChoiceField(label='Situation de départ', required=False)
+    vue_fin = forms.ChoiceField(label='Situation d’arrivée', required=False)
     debut = forms.DateField(label='Depuis (inclus)', required=False,
                             widget=forms.DateInput(attrs={'type': 'date'}))
     fin = forms.DateField(label='Jusqu’au (inclus)', required=False,
                           widget=forms.DateInput(attrs={'type': 'date'}))
 
     def __init__(self, *args, personnes, prises, **kwargs):
+        data = args[0].copy() if args else None
+        selection = next((a for a in prises if data is not None and str(a.pk) == data.get('prise')), None)
+        self.dates_vues = {'today': timezone.localdate()}
+        choix = [('today', 'Aujourd’hui')]
+        self.sortie_future = None
+        if selection:
+            self.dates_vues['entree'] = selection.debut
+            choix.insert(0, ('entree', 'À l’entrée'))
+            sortie = selection.fin or selection.fin_prevue
+            if sortie:
+                dernier = sortie - timedelta(days=1)
+                if dernier <= timezone.localdate():
+                    self.dates_vues['sortie'] = dernier
+                    choix.insert(1, ('sortie', 'Au dernier jour' if selection.fin else 'Au dernier jour prévu'))
+                else:
+                    self.sortie_future = sortie
+        choix.append(('date', 'À une date…'))
+        if data is not None:
+            for borne, defaut in [('debut', 'entree' if selection else 'date'),
+                                  ('fin', 'sortie' if 'sortie' in self.dates_vues else 'today')]:
+                mode = 'vue_' + borne
+                if mode not in data:
+                    data[mode] = 'date' if data.get(borne) else defaut
+                if data[mode] in self.dates_vues:
+                    data[borne] = self.dates_vues[data[mode]].isoformat()
+            args = (data, *args[1:])
         super().__init__(*args, **kwargs)
+        self.order_fields(['beneficiaire', 'prise', 'vue_debut', 'debut', 'vue_fin', 'fin'])
+        for borne in ('debut', 'fin'):
+            self.fields['vue_' + borne].choices = choix
+            if data is not None and data.get('vue_' + borne) in self.dates_vues:
+                self.fields[borne].widget.attrs['disabled'] = True
+            self.fields[borne].widget.attrs['max'] = timezone.localdate().isoformat()
         self.fields['beneficiaire'].choices = [('', 'Toutes les personnes du dossier')] + [(str(p.pk), str(p)) for p in personnes]
         self.fields['prise'].choices = [('', 'Toutes les prises en charge')] + [
             (str(a.pk), f'{a.debut:%d/%m/%Y} — {a.menage}') for a in prises]
@@ -80,7 +115,7 @@ def afficher(request, nature, objet, ancienne_prise=None, contexte=None):
     data = request.GET.copy()
     if ancienne_prise and 'prise' not in data:
         data['prise'] = str(ancienne_prise.pk)
-    if 'fin' not in data and params.get('date_service'):
+    if not data.get('prise') and 'fin' not in data and params.get('date_service'):
         data['fin'] = params['date_service']
     form = Filtres(data, personnes=personnes, prises=prises)
     lignes, comparaison = [], []
@@ -140,7 +175,7 @@ def afficher(request, nature, objet, ancienne_prise=None, contexte=None):
         'objet': objet, 'nature': nature, 'form': form, 'lignes': lignes,
         'anciennes_lignes': [l for l in lignes if l['ancien']],
         'comparaison': comparaison, 'date_initiale': date_initiale, 'date_finale': date_finale,
-        'retour_trajectoire': retour, 'parametres': {**{k: v for k, v in params.items() if k not in ('prise', 'beneficiaire', 'debut', 'fin')},
+        'retour_trajectoire': retour, 'parametres': {**{k: v for k, v in params.items() if k not in ('prise', 'beneficiaire', 'debut', 'fin', 'vue_debut', 'vue_fin')},
                        **({'contexte_dossier':contexte['contexte_dossier']} if contexte else {})},
         'selection_prise': selection, 'prise_retour':prise_retour, 'prise':prise_retour,
         'navigation_query':urlencode(params),

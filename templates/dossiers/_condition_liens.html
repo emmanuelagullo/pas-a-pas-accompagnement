@@ -3,11 +3,11 @@
   <li><a href="#documents-dossier">Documents</a></li>
   <li><a href="#condition-sociale">Situation sociale et projet</a>
     <ul>
-      {% if nature == 'menage' %}<li><a href="#condition-composition">Composition du ménage</a></li>{% endif %}
-      <li><details class="condition-nav-details"><summary>Afficher les rubriques</summary><ul>{% for p in condition_personnes %}<li class="condition-person-nav{% if forloop.first %} is-current{% endif %}" data-person-nav="{{ p.ancre }}"><a href="#{{ p.ancre }}">{{ p.personne }}</a>
+      <li><details class="condition-nav-details"><summary>{% if nature == 'menage' %}<a href="#condition-composition">Composition du ménage</a>{% else %}Informations personnelles{% endif %}</summary><ul>{% for p in condition_personnes %}<li class="condition-person-nav{% if forloop.first %} is-current{% endif %}" data-person-nav="{{ p.ancre }}"><a href="#{{ p.ancre }}">{{ p.personne }}</a>
         <ul class="condition-rubriques">{% for groupe in p.groupes %}<li><a href="#{{ groupe.ancre }}">{{ groupe.titre }}</a></li>{% endfor %}</ul>
       </li>{% endfor %}
-      <li><a href="#projet">Projet et parcours</a></li></ul></details></li>
+      </ul></details></li>
+      <li><details class="condition-nav-details"><summary><a href="#projet">Projet et parcours</a></summary><ul>{% for groupe in condition_projets %}<li><a href="#{{ groupe.ancre }}">{{ groupe.titre }}</a></li>{% endfor %}{% if prise and perms.personnes.view_informationsaccompagnement %}<li><a href="#condition-informations-prise">Informations de cette prise en charge</a></li>{% endif %}</ul></details></li>
     </ul>
   </li>
   <li>{% if prise %}<a href="#titre-prestations">Prestations</a>{% else %}<a href="#prises">Prises en charge</a>{% endif %}</li>

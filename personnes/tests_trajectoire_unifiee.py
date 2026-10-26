@@ -229,3 +229,43 @@ print(json.dumps([l['texte'],[x.valeur for x in l['anciens']],m.SituationPersonn
             env={**os.environ,'ACCOMPAGNEMENT_DONNEES':str(destination)}
             r=subprocess.run([sys.executable,'-c',code],env=env,text=True,capture_output=True,check=True)
             self.assertEqual(json.loads(r.stdout),['En formation',['sans_emploi'],1,1])
+
+
+class RaccourcisEvolutionTests(TestCase):
+    def test_dates_implicites_autoritaires_et_sortie_exclue(self):
+        from types import SimpleNamespace
+        from unittest.mock import patch
+        from .vues_trajectoire import Filtres
+        prise = SimpleNamespace(pk='fictive', debut=date(2026, 1, 1),
+            fin=date(2026, 3, 1), fin_prevue=date(2026, 4, 1), menage='Fictif')
+        with patch('personnes.vues_trajectoire.timezone.localdate', return_value=date(2026, 10, 27)):
+            f = Filtres({'prise': 'fictive'}, personnes=[], prises=[prise])
+            self.assertTrue(f.is_valid(), f.errors)
+            self.assertEqual((f.cleaned_data['debut'], f.cleaned_data['fin']), (prise.debut, date(2026, 2, 28)))
+            f = Filtres({'prise': 'fictive', 'vue_debut': 'entree', 'debut': '2099-01-01',
+                         'vue_fin': 'today', 'fin': '2099-01-01'}, personnes=[], prises=[prise])
+            self.assertTrue(f.is_valid(), f.errors)
+            self.assertEqual(f.cleaned_data['debut'], prise.debut)
+            self.assertEqual(f.cleaned_data['fin'], date(2026, 10, 27))
+
+    def test_sortie_prevue_future_et_dates_libres(self):
+        from types import SimpleNamespace
+        from unittest.mock import patch
+        from .vues_trajectoire import Filtres
+        prise = SimpleNamespace(pk='fictive', debut=date(2026, 1, 1),
+            fin=None, fin_prevue=date(2026, 12, 1), menage='Fictif')
+        with patch('personnes.vues_trajectoire.timezone.localdate', return_value=date(2026, 10, 27)):
+            f = Filtres({'prise': 'fictive'}, personnes=[], prises=[prise])
+            self.assertTrue(f.is_valid(), f.errors)
+            self.assertEqual(f.cleaned_data['fin'], date(2026, 10, 27))
+            self.assertEqual(f.sortie_future, prise.fin_prevue)
+            f = Filtres({'prise': 'fictive', 'vue_fin': 'sortie'}, personnes=[], prises=[prise])
+            self.assertFalse(f.is_valid())
+            f = Filtres({'prise': 'fictive', 'debut': '2026-02-01', 'fin': '2026-03-01'}, personnes=[], prises=[prise])
+            self.assertTrue(f.is_valid(), f.errors)
+            self.assertEqual(f.cleaned_data['debut'], date(2026, 2, 1))
+            self.assertEqual(f.cleaned_data['fin'], date(2026, 3, 1))
+            prise.fin_prevue = date(2026, 4, 1)
+            f = Filtres({'prise': 'fictive'}, personnes=[], prises=[prise])
+            self.assertTrue(f.is_valid(), f.errors)
+            self.assertEqual(f.cleaned_data['fin'], date(2026, 3, 31))

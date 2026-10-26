@@ -45,7 +45,6 @@
 .condition-selection input:disabled { color: #59655e; background: #e3e8e5; border-color: #b8c2bc; cursor: not-allowed; opacity: 1; }
 .condition-precisions { margin: .8rem 0; }
 .condition-precisions summary { cursor: pointer; }
-.condition-synthese > span { display: inline-block; margin-right: .5rem; }
 [data-condition-formulaire]:not(:empty) { border-left: 0; padding: .5rem 0; background: transparent; }
 .condition-sociale [hidden] { display: none !important; }
 @media print { .condition-cadre { display: none; } }
@@ -54,3 +53,8 @@
 [data-condition-form] > p > label, .condition-precisions > p > label { grid-column: 1; }
 [data-condition-form] > p > :not(label), .condition-precisions > p > :not(label) { grid-column: 2; min-width: 0; }
 @media(max-width: 650px) { [data-condition-form] > p, .condition-precisions > p { grid-template-columns: minmax(0, 1fr); } [data-condition-form] > p > :not(label), .condition-precisions > p > :not(label) { grid-column: 1; } }
+
+.condition-menu summary > a { display: inline; padding: 0; }
+[data-evolution-selection] > div { flex-basis: 100%; }
+[data-evolution-selection] .condition-cadre { flex: 1 1 16rem; margin: .3rem 0; }
+[data-evolution-selection] .condition-cadre select, [data-evolution-selection] .condition-cadre input { display: block; margin: .4rem 0; max-width: 100%; box-sizing: border-box; }

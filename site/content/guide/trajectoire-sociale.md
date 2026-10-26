@@ -30,3 +30,9 @@ Les ressources détaillées font référence pour leur synthèse à la date cons
 **Essai aux Passerelles :** chez Thomas, comparer deux dates dans la trajectoire puis ouvrir l’[histoire personnelle datée]({{< relref "/guide/dossier/situation/" >}}) et la rubrique [ressources et dettes]({{< relref "/guide/dossier/ressources/" >}}) à la même date. Vérifier la source et le filtre de prise avant de comparer. Le séjour peut être fini tandis que l’accompagnement continue ; aucun de ces écrans ne produit un score social.
 
 Les [objectifs et orientations]({{< relref "/guide/dossier/objectifs/" >}}) conservent leur parcours propre. Les [rapports d’activité]({{< relref "/guide/statistiques/" >}}) gardent leurs populations, unités et dates de référence : cette trajectoire ne les remplace pas. Les documents financiers déjà émis restent inchangés.
+
+## Choisir les deux situations comparées
+
+Chaque borne propose **À l’entrée**, **Au dernier jour** (ou **Au dernier jour prévu**), **Aujourd’hui** et **À une date…**, selon la prise en charge sélectionnée. Les dates implicites sont calculées et grisées ; la date libre active le calendrier.
+
+Par défaut, une prise en charge se compare de son entrée à son dernier jour connu, ou à aujourd’hui si sa fin n’est pas connue ou reste future. La fin est exclue dans le modèle : le dernier jour est la veille. Une fin prévue est nommée comme telle, sans devenir une sortie effective. Les dates futures restent exclues des faits consultables. Les dates libres conservent la possibilité d’examiner l’histoire personnelle au-delà de cette prise en charge. Sans JavaScript, choisir puis utiliser **Afficher l’évolution** ; pour une date libre, appliquer ce choix avant de remplir le calendrier.

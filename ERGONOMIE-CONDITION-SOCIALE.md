@@ -627,3 +627,35 @@ migrations et copies restaurées. Contrôles Django, absence de migration manqua
 application locale de 0041, syntaxe JavaScript et diff sans erreur. Le dernier
 polissage des libellés, de la grille de saisie et des liens de repli est vérifié
 en lecture de code et compilation des templates, sans observation graphique.
+
+
+## BD-SOLENNE-05 — présentations, sommaire et bornes d’évolution
+
+Base Inria examinée : `8c155884587e733eb4cc1ca84aca1af25d21e7f5`, arbre identique au lot 04 local.
+Ce lot s’applique après le 04, sans migration ni changement du socle ou des statistiques.
+
+Complet remplace le libellé Intégrale. Informations renseignées remplace Synthèse :
+tous les champs renseignés, sans limite de nombre ni troncature, mêmes rubriques et
+accès de saisie. Les valeurs explicitement inconnues restent des renseignements.
+Les anciennes clés d’URL integrale/synthese restent compatibles ; la règle à trois
+valeurs du lot 04 est abandonnée. Pas de nouvelle synthèse métier implicite.
+
+Le sommaire présente deux dépliants indépendants et fermés par défaut : Composition
+du ménage (personnes puis rubriques) et Projet et parcours (rubriques de projet).
+En dossier individuel, le premier s’appelle Informations personnelles. Les liens
+des titres permettent de rejoindre le bloc ; le triangle déplie les accès détaillés.
+Les ancres de projet sont stables et spécifiques à leurs rubriques.
+
+Évolution propose pour chaque borne entrée, dernier jour connu ou prévu, aujourd’hui,
+et date libre selon le contexte. Les raccourcis sont recalculés au serveur, même si
+une date différente est envoyée. Une prise sélectionnée initialise entrée → dernier
+jour (fin effective prioritaire, sinon prévue) si passé, sinon entrée → aujourd’hui.
+La fin est exclue : utilisation de la veille pour comparer les états. Une prévision
+future reste annoncée comme telle, sans consultation de faits futurs. Les anciennes
+URL avec dates explicites gardent leurs bornes. Les dates libres ne sont pas bornées
+artificiellement à la prise : l’histoire personnelle demeure indépendante.
+
+Sans JavaScript, les formulaires GET restent utilisables par validation explicite,
+avec un miroir des dates grisées. Le choix date libre s’applique avant de remplir
+le calendrier. Dans le bloc intégré, JavaScript active le calendrier ou applique le
+raccourci, sans navigation vers une autre page. Aucun nouveau mécanisme d’écriture.

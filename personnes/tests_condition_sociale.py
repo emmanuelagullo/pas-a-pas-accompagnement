@@ -41,7 +41,7 @@ class ConditionSocialeTests(TestCase):
             self.assertContains(page, 'id="documents-dossier"', count=1)
             self.assertNotContains(page, 'Documents joints')
             self.assertNotContains(page, '>Trajectoire d’accompagnement</a>')
-            self.assertContains(page, '<details class="condition-nav-details">', count=2)
+            self.assertContains(page, '<details class="condition-nav-details">', count=4)
             self.assertNotContains(page, '<details class="condition-nav-details" open')
             self.assertContains(page, 'id="appels-115"', count=1)
             self.assertNotContains(page, 'Changer à cette date')

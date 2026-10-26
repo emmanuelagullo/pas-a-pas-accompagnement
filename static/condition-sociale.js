@@ -142,6 +142,28 @@
     if (form) { dirty = true; if (!busy) form.querySelector('[type="submit"]').disabled = false; }
   });
   document.addEventListener('change', event => {
+    const form = event.target.closest('[data-evolution-selection]');
+    if (!form) return;
+    const mode = event.target.name;
+    if (mode === 'prise') {
+      // Changer de prise recalcule les raccourcis et bornes côté serveur.
+      for (const name of ['vue_debut', 'vue_fin', 'debut', 'fin']) {
+        form.querySelectorAll('[name="' + name + '"]').forEach(field => { field.disabled = true; });
+      }
+      form.requestSubmit(); return;
+    }
+    if (['debut', 'fin', 'beneficiaire'].includes(mode)) { form.requestSubmit(); return; }
+    if (!['vue_debut', 'vue_fin'].includes(mode)) return;
+    const borne = mode.slice(4);
+    const date = form.querySelector('input[type="date"][name="' + borne + '"]');
+    form.querySelector('[data-evolution-repli="' + borne + '"]')?.remove();
+    date.disabled = event.target.value !== 'date';
+    if (!date.disabled) { date.focus(); return; }
+    date.value = form.dataset[event.target.value];
+    // Le serveur recalcule les dates implicites ; le miroir sert au repli HTML.
+    form.requestSubmit();
+  });
+  document.addEventListener('change', event => {
     const selection = event.target.closest('[data-condition-selection]');
     if (!selection) return;
     if (event.target.name === 'vue_sociale') {

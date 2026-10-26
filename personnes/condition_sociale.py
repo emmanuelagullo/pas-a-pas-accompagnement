@@ -99,8 +99,7 @@ def presentation(request, personnes, jour, objet, nature, prise, params):
             fiches.append({'fait': x, 'lignes': contenu, 'champs': champs_affiches,
                 'retirer': url('dossiers:condition_retirer', p.pk, code, x.pk)
                     if retrait and acteur.has_perms(retraits_chronologiques.droits(retraits_chronologiques.configuration(code))) else '',
-                'resume': [c for c in champs_affiches if not c['vide']][:3],
-                'autres': max(0, sum(not c['vide'] for c in champs_affiches) - 3),
+                'resume': [c for c in champs_affiches if not c['vide']],
                 'herite': getattr(x, 'debut', jour) < jour,
                 'changer': changer(x) if changer and getattr(x, 'debut', jour) < jour else '',
                 'corriger': corriger(x) if corriger else ''})
@@ -220,8 +219,7 @@ def presentation(request, personnes, jour, objet, nature, prise, params):
             valeurs = lignes(r.version, x, r.champs)
             renseignees = [ligne for champ, ligne in zip(r.champs, valeurs) if getattr(x, champ) not in (None, '', [])]
             integrale = params.get('presentation_sociale') != 'synthese'
-            items.append({'fait': x, 'lignes': valeurs, 'affichees': valeurs if integrale else renseignees[:3],
-                'autres': max(0, len(renseignees) - 3),
+            items.append({'fait': x, 'lignes': valeurs, 'affichees': valeurs if integrale else renseignees,
                 'beneficiaires': list(x.element.beneficiaires.all()),
                 'url': url('dossiers:parcours_element', code, x.element_id),
                 'changer': url('dossiers:parcours_changer', code, x.element_id)
@@ -229,7 +227,7 @@ def presentation(request, personnes, jour, objet, nature, prise, params):
                 'corriger': url('dossiers:parcours_corriger', code, x.element_id, x.pk)
                     if acteur.has_perm('personnes.change_' + r.racine._meta.model_name) else '',
                 'herite': x.debut < jour})
-        projets.append({'titre': r.titre, 'items': items,
+        projets.append({'ancre': 'projet-' + code, 'titre': r.titre, 'items': items,
             'nouveau': url('dossiers:parcours_nouveau', nature, objet.pk, code)
                 if acteur.has_perm('personnes.add_' + r.racine._meta.model_name) else '',
             'url': url('dossiers:parcours', nature, objet.pk) + '&rubrique=' + code})
