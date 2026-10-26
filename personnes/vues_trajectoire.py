@@ -102,7 +102,7 @@ def afficher(request, nature, objet, ancienne_prise=None, contexte=None):
         selection_personnes = [beneficiaire] if beneficiaire else (list(selection.beneficiaires.all()) if selection else personnes)
         if beneficiaire and selection and not any(p.pk == beneficiaire.pk for p in selection.beneficiaires.all()):
             form.add_error('beneficiaire', 'Cette personne ne bénéficie pas de la prise en charge sélectionnée.')
-            return render(request, 'social/trajectoire.html', {'objet':objet, 'nature':nature, 'form':form,
+            return render(request, 'social/_trajectoire_contenu.html' if request.headers.get('X-Condition-Evolution') == '1' else 'social/trajectoire.html', {'objet':objet, 'nature':nature, 'form':form,
                 'retour_trajectoire':reverse('dossiers:detail', args=[nature,objet.pk]) + '?' + urlencode(params), 'parametres':params})
         params['date_service'] = (d['fin'] or timezone.localdate()).isoformat()
         lignes = trajectoire.construire(None, request.user, beneficiaire, d['debut'], d['fin'],
@@ -135,7 +135,7 @@ def afficher(request, nature, objet, ancienne_prise=None, contexte=None):
                     'retour_dossier':dossier.retour(ancienne_prise, valeurs, token)}
     prise_retour = next((a for a in prises if str(a.pk) == params.get('retour_prise')), None)
     retour = (contexte or {}).get('retour_dossier') or (reverse('dossiers:prise', args=[nature, objet.pk, prise_retour.pk]) + '?' + urlencode(params) if prise_retour else '') or reverse('dossiers:detail', args=[nature, objet.pk]) + '?' + urlencode(params)
-    return render(request, 'social/trajectoire.html', {
+    return render(request, 'social/_trajectoire_contenu.html' if request.headers.get('X-Condition-Evolution') == '1' else 'social/trajectoire.html', {
         'objet': objet, 'nature': nature, 'form': form, 'lignes': lignes,
         'anciennes_lignes': [l for l in lignes if l['ancien']],
         'comparaison': comparaison, 'date_initiale': date_initiale, 'date_finale': date_finale,

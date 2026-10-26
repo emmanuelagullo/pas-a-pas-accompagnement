@@ -271,7 +271,11 @@ def detail(request, nature, pk, prise_pk=None):
         notes_actuelles = NotePartagee.objects.filter(accompagnement=actuelle).select_related('auteur').order_by('-cree_le', '-pk')[:3]
     retour = reverse('accueil') + '?' + urlencode({k: params[k] for k in ('q', 'mode', 'page')})
     origine_url = reverse('dossiers:detail', args=['menage', origine.pk]) + '?' + urlencode({**params, 'sejour': params.get('origine_sejour', params['sejour']), 'repas': params.get('origine_repas', params['repas'])}) if origine else ''
-    personnes_sociales = list(prise.beneficiaires.all()) if prise else [objet] if nature == 'personne' else list({l.personne_id: l.personne for l in liens if l.actuel}.values())
+    from . import condition_sociale
+    condition_vue, condition_jour = condition_sociale.selection(request, prise)
+    personnes_sociales = list(prise.beneficiaires.all()) if prise else [objet] if nature == 'personne' else list({l.personne_id: l.personne for l in liens if l.debut <= condition_jour and (l.fin is None or l.fin > condition_jour)}.values())
+    condition_personnes, condition_projets = condition_sociale.presentation(
+        request, personnes_sociales, condition_jour, objet, nature, prise, params)
     date_sociale = prise.fin if prise and prise.fin else jour
     # La clôture est exclue : restituer le dernier jour de la prise.
     if prise and prise.fin:
@@ -279,20 +283,29 @@ def detail(request, nature, pk, prise_pk=None):
         date_sociale -= timedelta(days=1)
     from . import interventions
     lecture_interventions = request.user.has_perms(interventions.DROITS_LECTURE)
-    interventions_courantes = interventions.presentation(request.user, prise, date_sociale) if prise and lecture_interventions else []
+    interventions_courantes = interventions.presentation(request.user, prise, condition_jour) if prise and lecture_interventions else []
     from . import parcours
     demande_origine = prise.demande_accueil if prise and request.user.has_perms(parcours.droits('demandes')) and hasattr(prise,'demande_accueil') else None
     from .exploration_releve import retour_verifie
     retour_exploration=retour_verifie(request.user,params.get('retour_exploration'))
     commentaire_cible = prise or objet
     from . import contacts_menage
-    contact_designe = contacts_menage.a_date([objet], jour).first() if nature == 'menage' and request.user.has_perms(contacts_menage.DROITS_LECTURE) else None
+    contact_designe = contacts_menage.a_date([objet], condition_jour).first() if nature == 'menage' and request.user.has_perms(contacts_menage.DROITS_LECTURE) else None
     commentaires = commentaire_cible.commentaires_dossier.select_related('auteur') if request.user.has_perm('personnes.view_commentairedossier') else []
-    return render(request, 'dossiers/prise.html' if prise else 'dossiers/detail.html', {'prise': prise, 'demande_origine':demande_origine, 'lecture_interventions': lecture_interventions, 'interventions_courantes': interventions_courantes,
+    return render(request, 'dossiers/prise.html' if prise else 'dossiers/detail.html', {
+        'condition_personnes': condition_personnes, 'condition_projets': condition_projets,
+        'condition_lecture': bd6.etat(request.user, personnes_sociales, condition_jour),
+        'condition_documents': condition_sociale.documents(request.user, prise or objet),
+        'condition_contextes': condition_sociale.contextes(request.user, personnes_sociales),
+        'condition_documents_url': reverse('dossiers:pieces', args=['accompagnement' if prise else nature, prise.pk if prise else pk]) + '?' + urlencode({'contexte_dossier': prise.navigation['contexte_dossier']} if prise else params),
+        'condition_vue': condition_vue, 'condition_jour': condition_jour,
+        'condition_integrale': request.GET.get('presentation_sociale', 'integrale') != 'synthese',
+        'condition_origines': request.GET.get('origines_sociales') == '1',
+        'condition_composition': [l for l in liens if l.debut <= condition_jour and (l.fin is None or l.fin > condition_jour)],
+        'prise': prise, 'demande_origine':demande_origine, 'lecture_interventions': lecture_interventions, 'interventions_courantes': interventions_courantes,
         'parametres_navigation': {k: v for k, v in params.items() if k not in ('prise', 'ecran', 'accompagnement')}, 'selection_prise': selection_prise, 'commentaires': commentaires, 'commentaire': commentaires[0] if commentaires else None,
         'url_trajectoire': reverse('dossiers:trajectoire', args=[nature, pk]) + '?' + urlencode({**{k:v for k,v in params.items() if k not in ('prise', 'ecran')}, **({'prise':str(prise.pk), 'retour_prise':str(prise.pk)} if prise else {})}),
-        'etat_social': bd6.etat(request.user, personnes_sociales, date_sociale), 'date_sociale': date_sociale,
-        'etat_entree': bd6.etat(request.user, personnes_sociales, prise.debut) if prise else [],
+        'date_sociale': date_sociale,
         'retour_form2': reverse('dossiers:detail', args=[nature, pk]) + '?' + urlencode({**params, 'ecran': 'dossier'}),
         'arrivees_annulees':arrivees_annulees,
         'evolutions': prise.evolutions_prevision.select_related('auteur') if prise and request.user.has_perm('personnes.view_evolutionpriseencharge') else [],

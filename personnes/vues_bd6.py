@@ -123,7 +123,14 @@ def traiter(request, form, titre, action, url, objet, **contexte):
                 form.add_error(None, ' '.join(erreur.messages) if isinstance(erreur, ValidationError) else 'Écriture non confirmée. Rechargez avant de réessayer.')
             statut = 409
         else:
+            if request.headers.get('X-Condition-Form') == '1':
+                from django.http import JsonResponse
+                return JsonResponse({'enregistre': True})
             return redirect(url(resultat) if callable(url) else url)
+    if request.headers.get('X-Condition-Form') == '1':
+        return render(request, 'dossiers/_condition_form.html', {
+            'form': form, 'titre': titre, 'objet': objet,
+            'action_formulaire': request.get_full_path(), **contexte}, status=statut)
     return render(request, contexte.pop('gabarit', 'dossiers/form_bd6.html'), {'form': form, 'titre': titre, 'objet': objet,
         'retour': url if isinstance(url, str) else contexte.pop('annuler', ''), **contexte}, status=statut)
 
@@ -285,8 +292,9 @@ def social(request, pk, dimension=None, fait_pk=None):
     fait = get_object_or_404(faits, pk=fait_pk, dimension=dimension) if fait_pk else None
     if fait:
         suivi.exiger(request.user, 'change_situationpersonnelle')
-    initial = {'attendu': attendu, 'debut': fait.debut if fait else timezone.localdate(),
-        'valeur': fait.valeur if fait else None, 'source': fait.source if fait else ''}
+    from .champs_saisie import valeurs_proposees
+    initial, proposition = valeurs_proposees(request, faits.filter(dimension=dimension), ('valeur',), fait)
+    initial['attendu'] = attendu
     form = SituationForm(request.POST if request.method == 'POST' else None, dimension=dimension, correction=bool(fait), initial=initial)
     return traiter(request, form, ('Corriger une erreur — ' if fait else 'Enregistrer un changement — ') + dict(SituationSociale.DIMENSIONS)[dimension],
         lambda **d: bd6.renseigner(request.user, personne, dimension, correction=fait.pk if fait else None, **d),

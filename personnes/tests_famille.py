@@ -138,9 +138,12 @@ class FamilleTests(Donnees, TestCase):
         self.creer(date(2026, 2, 1), situation_familiale='Situation B fictive')
         page = self.client.get(reverse('dossiers:prise', args=['menage', self.m.pk, self.a.pk]))
         self.assertContains(page, 'Situation A fictive')  # à l'entrée
-        self.assertContains(page, 'Situation B fictive')  # à ce jour
-        self.assertContains(page, 'Détail et historique familial')
+        self.assertNotContains(page, 'Situation B fictive')
+        self.assertContains(page, 'Situation familiale déclarée')
         self.assertContains(page, 'date=2026-01-01&amp;depuis_nature=menage')
+        actuelle = self.client.get(reverse('dossiers:prise', args=['menage', self.m.pk, self.a.pk]), {'vue_sociale': 'today'})
+        self.assertContains(actuelle, 'Situation B fictive')
+        self.assertNotContains(actuelle, 'Situation A fictive')
         page = self.client.get(reverse('suivi:resume', args=[self.a.pk]))
         self.assertContains(page, 'Situation A fictive')
         self.assertNotContains(page, 'Situation B fictive')

@@ -121,7 +121,10 @@ def nouveau(request,nature,pk,code):
     objet=objet_dossier(request,nature,pk);params,retour,base,context=navigation(request,objet,code)
     personnes=m.Personne.objects.filter(pk=objet.pk) if nature=='personne' else m.Personne.objects.filter(appartenances__menage=objet).distinct()
     selection=list(personnes.values_list('pk',flat=True)) if nature=='personne' else list(objet.appartenances.filter(debut__lte=timezone.localdate()).filter(Q(fin__isnull=True)|Q(fin__gt=timezone.localdate())).values_list('personne_id',flat=True))
-    f=FORMULAIRES[code](request.POST if request.method=='POST' else None,initial={'debut':timezone.localdate(),'attendu':bd6.jeton(objet),'beneficiaires':selection,'accompagnement':context.pk if context else None})
+    try:jour=forms.DateField().clean(request.GET.get('date') or timezone.localdate())
+    except forms.ValidationError:raise Http404
+    if nature=='menage':selection=list(objet.appartenances.filter(debut__lte=jour).filter(Q(fin__isnull=True)|Q(fin__gt=jour)).values_list('personne_id',flat=True))
+    f=FORMULAIRES[code](request.POST if request.method=='POST' else None,initial={'debut':jour,'attendu':bd6.jeton(objet),'beneficiaires':selection,'accompagnement':context.pk if context else None})
     f.fields['beneficiaires']=forms.ModelMultipleChoiceField(personnes,label='Personnes explicitement concernées',widget=forms.CheckboxSelectMultiple)
     if code in ('objectifs','orientations'):
         if request.user.has_perms(['personnes.view_accompagnement','personnes.view_menage']):
@@ -195,9 +198,12 @@ def modifier(request,code,pk,action,version_pk=None):
         return traiter(request,f,'Annuler une saisie erronée',lambda **d:s.annuler(request.user,code,e,**d),url,objet,
             explication='Cette démarche restera dans l’historique. Pour une évolution réelle, renseignez son nouvel état.')
     if action not in ('changer','corriger'):raise Http404
-    v=get_object_or_404(e.versions,pk=version_pk) if action=='corriger' else e.versions.first()
+    try:jour=forms.DateField().clean(request.GET.get('date') or timezone.localdate())
+    except forms.ValidationError:raise Http404
+    v=get_object_or_404(e.versions,pk=version_pk) if action=='corriger' else e.versions.filter(debut__lte=jour).filter(Q(fin__isnull=True)|Q(fin__gt=jour)).first()
+    if v is None:raise Http404
     initial=form_initial(code,v)
-    initial.update(debut=v.debut if action=='corriger' else timezone.localdate(),source=v.source if action=='corriger' else '',attendu=bd6.jeton(e))
+    initial.update(debut=v.debut if action=='corriger' else jour,source=v.source if action=='corriger' else '',attendu=bd6.jeton(e))
     f=FORMULAIRES[code](request.POST if request.method=='POST' else None,initial=initial)
     f.fields['motif'].required=action=='corriger'
     return traiter(request,f,('Corriger une erreur' if action=='corriger' else 'Renseigner un changement')+' — '+r.titre,

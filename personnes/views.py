@@ -101,6 +101,14 @@ def corriger_identite(request, pk):
             form.add_error(None, "L’écriture n’a pas été confirmée. Rechargez la fiche avant de réessayer.")
             statut = 409
         else:
+            if request.headers.get('X-Condition-Form') == '1':
+                from django.http import JsonResponse
+                return JsonResponse({'enregistre': True})
             messages.success(request, "Identité corrigée ; l’historique est conservé.")
             return redirect(navigation["retour_dossier"]) if navigation else redirect("personnes:detail", pk=pk)
+    if request.headers.get('X-Condition-Form') == '1':
+        return render(request, 'dossiers/_condition_form.html', {
+            'form': form, 'titre': 'Compléter ou corriger l’identité', 'objet': personne,
+            'action_formulaire': request.get_full_path(),
+            'explication': 'Correction de l’identité principale, sans date d’effet inventée.'}, status=statut)
     return render(request, "personnes/corriger_identite.html", {**navigation, "form": form, "personne": personne}, status=statut)

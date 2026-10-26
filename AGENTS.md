@@ -438,3 +438,15 @@ personnelle à sa période. Une vue personne exclut les bilans collectifs ; une 
 ménage borne les déclarations personnelles aux appartenances ou bénéfices datés.
 Tester personnes.tests_trajectoire_unifiee ; conserver les statistiques et les
 documents financiers émis. Aucun changement de tables ni de format de copie.
+
+Condition sociale commune : `condition_sociale` est une présentation des modèles
+existants, pas une nouvelle définition des sources. Garder les lectures groupées
+par modèle, les droits par rubrique et les documents binaires hors du chargement
+de la page. Les fragments de formulaire réutilisent les vues et services métier,
+CSRF, journaux et contrôles périmés ; conserver le repli en pleine page sans JS.
+Une date de consultation n'est pas une date de saisie ni un motif partagé.
+L'identité principale et les anciennes informations de projet ne deviennent pas
+des faits personnels datés. Ne pas exposer un retrait générique sans traiter la
+continuité, les références et la copie restaurée. Tester
+`personnes.tests_condition_sociale`, les histoires personnelles, interventions,
+parcours et trajectoire. Lire ERGONOMIE-CONDITION-SOCIALE.md pour les limites du lot.

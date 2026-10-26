@@ -56,12 +56,19 @@ def traiter(request, formulaire, titre, action, menage=None, retour=None, sejour
         except ValidationError as erreur:
             formulaire.add_error(None, " ".join(erreur.messages))
         else:
+            if request.headers.get('X-Condition-Form') == '1':
+                from django.http import JsonResponse
+                return JsonResponse({'enregistre': True})
             messages.success(request, "Enregistrement effectué.")
             if navigation:
                 return redirect(navigation["retour_dossier"])
             if retour:
                 return redirect(retour(resultat) if callable(retour) else retour)
             return redirect("suivi:detail", pk=menage.pk if menage else resultat.pk)
+    if request.headers.get('X-Condition-Form') == '1':
+        return render(request, 'dossiers/_condition_form.html', {
+            'form': formulaire, 'titre': titre, 'objet': accompagnement or menage,
+            'action_formulaire': request.get_full_path()})
     return render(request, "suivi/form.html", {**navigation, "accompagnement_cible": accompagnement, "form": formulaire, "titre": titre, "menage": menage, "sejour": sejour, "retour": navigation.get("retour_dossier") or (retour if isinstance(retour, str) else None),
         "retour_jour": (request.POST.get("retour") or request.GET.get("retour")) == "jour",
         "date_service": date_service(request.POST.get("date_service") or request.GET.get("date_service"))})

@@ -162,7 +162,7 @@ class DossierCompletTests(TestCase):
         self.assertEqual(ligne['texte'],'Ressources déclarées');self.assertIsNotNone(ligne['projection'])
         self.assertEqual(m.SituationPersonnelle.objects.get().valeur,'inconnu')
         url=reverse('dossiers:prise',args=['menage',menage.pk,a.pk]);page=self.client.get(url)
-        self.assertContains(page,'Ressources et dettes');self.assertContains(page,'Administration et droits')
+        self.assertContains(page,'Ressources');self.assertContains(page,'Dettes');self.assertContains(page,'Administration et droits')
         page=self.client.get(reverse('dossiers:fiche_a',args=[self.p.pk,'economique']),{'depuis_nature':'menage','depuis_pk':menage.pk,'depuis_prise':a.pk,'q':'Recherche fictive','page':'2','date':'2026-01-02'})
         self.assertIn(url,page.context['retour']);self.assertIn('Recherche+fictive',page.context['retour'])
         self.u.user_permissions.remove(Permission.objects.get(codename='view_ressourcepersonnelle'))

@@ -6,14 +6,20 @@ categorie: "dossier"
 publics: ["equipe"]
 intentions: ["situation", "rétroactivité", "logement", "emploi", "formation", "source"]
 prerequis: "Un compte disposant des droits de lecture et de saisie de la rubrique concernée."
-depart: "Dossier → Situation sociale → Historique et mise à jour"
+depart: "Dossier ou prise en charge → Situation sociale et projet"
 statut: "disponible"
 ---
 
-1. Choisir la personne et la dimension concernée : logement, emploi/formation ou autre information proposée.
-2. Pour une évolution réelle, choisir **La situation a changé** et sa date d'effet, même si elle est saisie aujourd'hui.
+1. Choisir la vue : **Aujourd’hui** dans le dossier, **À l’entrée** par défaut dans la prise en charge, ou une date précise. Le sommaire **Dans cette page** conduit à la personne et aux rubriques.
+2. En présentation **Intégrale**, les informations consultables sont affichées directement, y compris les champs non renseignés. Choisir **Renseigner** ou **Changer à cette date** ouvre le formulaire dans le même bloc lorsque JavaScript est disponible. Vérifier la date d'effet et renseigner la source propre à cette information.
 3. Une information ancienne peut être insérée rétroactivement dans sa chronologie. Vérifier les valeurs voisines avant confirmation.
-4. Si la donnée était fausse dès la saisie, utiliser **Corriger une erreur** avec un motif, au lieu de créer un changement fictif.
+4. Si la donnée était fausse dès la saisie, utiliser **Corriger l’information héritée** ou **Corriger cette information** avec un motif, au lieu de créer un changement fictif. La correction porte sur la période de cette déclaration et peut modifier sa restitution dans d’autres prises en charge.
+
+Les déclarations héritées sont affichées en gris lisible. **Afficher les origines** révèle leur date et leur source. Pour les coordonnées et la famille, la déclaration regroupe plusieurs champs : sa couleur ne constitue pas un historique indépendant de chaque champ.
+
+Le **Contexte de saisie facultatif** propose les motifs récents consultables du dossier. Il peut préremplir le motif des formulaires ouverts pendant la séance ; il ne remplace pas leurs sources ni leurs dates. Chaque rubrique s’enregistre séparément et conserve les autres valeurs proposées. Un conflit de version laisse la saisie visible : ne pas répéter aveuglément l’enregistrement.
+
+**Évolution** affiche la trajectoire dans le même cadre, à la demande. Sans JavaScript, les liens conduisent aux mêmes formulaires et à la trajectoire en pleine page.
 
 **À vérifier :** la situation à l'entrée d'une prise en charge et celle d'aujourd'hui utilisent la même histoire personnelle. Une correction peut donc modifier la restitution d'une ancienne date ; celle-ci n'est pas un instantané figé.
 

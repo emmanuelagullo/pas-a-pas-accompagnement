@@ -1,20 +1,2 @@
-{% extends "base.html" %}{% load saisie %}{% load textes %}
-{% block contenu %}
-<p><a href="{{ retour_trajectoire }}">← Revenir au dossier{% if prise_retour %} / à la prise en charge{% endif %}</a></p>
-<h1>Trajectoire d’accompagnement — {{ objet }}</h1>
-<p>Histoire personnelle datée et faits des prises en charge, selon vos droits. Les déclarations sont lues dans leur état corrigé actuel : ce n’est pas un instantané figé ni un score social.</p>
-{% if nature == 'menage' %}<p>Les informations personnelles sont présentées pendant une appartenance datée à ce ménage ou une prise en charge dont la personne est explicitement bénéficiaire. Une appartenance ne crée pas de prestation.</p>{% endif %}
-<form method="get" class="carte">{% for nom, valeur in parametres.items %}<input type="hidden" name="{{ nom }}" value="{{ valeur }}">{% endfor %}{% adapter_saisie form request.user %}{{ form.as_p }}<button type="submit">Afficher la trajectoire</button></form>
-{% if comparaison %}
-<h2>Situations aux bornes de la période</h2>
-<p>Du {{ date_initiale|date:'d/m/Y' }} au {{ date_finale|date:'d/m/Y' }}. « Non renseigné » ne signifie pas absence déclarée. Les anciennes informations ne deviennent pas des déclarations personnelles consolidées.</p>
-<div class="tableau-defilant trajectoire-comparaison" role="region" aria-label="Situations aux deux dates" tabindex="0"><table><thead><tr><th scope="col">Personne</th><th scope="col">Dimension</th><th scope="col">Au début</th><th scope="col">À la fin</th></tr></thead><tbody>
-{% for ligne in comparaison %}<tr><th scope="row">{{ ligne.beneficiaire }}</th><td>{{ ligne.dimension }}{% if ligne.initial or ligne.final %}<p><a href="{% url 'dossiers:fiche_a' ligne.beneficiaire.pk 'economique' %}?{{ navigation_query }}&amp;date={{ date_finale|date:'Y-m-d' }}&amp;date_service={{ date_finale|date:'Y-m-d' }}&amp;depuis_nature={{ nature }}&amp;depuis_pk={{ objet.pk }}&amp;depuis_prise={{ prise.pk }}">Détail et historique au {{ date_finale|date:'d/m/Y' }}</a></p>{% endif %}</td><td>{% if ligne.initial_lecture %}{% include 'dossiers/_lecture_situation.html' with ligne=ligne.initial_lecture date_sociale=date_initiale %}{% else %}{{ ligne.initial|default:'Hors du contexte daté du ménage' }}{% endif %}</td><td>{% if ligne.final_lecture %}{% include 'dossiers/_lecture_situation.html' with ligne=ligne.final_lecture date_sociale=date_finale %}{% else %}{{ ligne.final|default:'Hors du contexte daté du ménage' }}{% endif %}</td></tr>{% endfor %}
-</tbody></table></div>
-{% endif %}
-<h2>Éléments datés</h2>
-<p>Dates d’effet incluses dans le filtre. Les fins de périodes restent exclues. Une déclaration commencée avant le filtre figure aux bornes si elle couvre leur date, sans nouveau fait inventé. Consulter la source pour distinguer changement réel, correction et anciennes versions.</p>
-<ol>{% for ligne in lignes %}{% if not ligne.ancien %}{% include 'social/_ligne_trajectoire.html' %}{% endif %}{% empty %}<li>Aucun élément pour cette sélection.</li>{% endfor %}</ol>
-{% if anciennes_lignes %}<details><summary>Anciennes situations de suivi conservées</summary><ol>{% for ligne in anciennes_lignes %}{% include 'social/_ligne_trajectoire.html' %}{% endfor %}</ol></details>{% endif %}
-<p>Les bilans du ménage sont exclus des sélections individuelles. Les prestations et les déclarations économiques restent distinctes ; les totaux de dettes ne sont pas additionnés à leurs détails. Une sortie d’hébergement ne crée pas de situation sociale.</p>
-{% endblock %}
+{% extends "base.html" %}
+{% block contenu %}{% include "social/_trajectoire_contenu.html" %}{% endblock %}

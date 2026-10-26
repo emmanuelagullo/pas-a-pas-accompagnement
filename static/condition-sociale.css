@@ -1,0 +1,28 @@
+.condition-page { position: relative; }
+.condition-sommaire { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; padding: .8rem; border: 1px solid #c8d9ce; border-radius: .6rem; background: #f0f7f3; }
+.condition-sommaire a { padding: .3rem; }
+.condition-selection, .condition-modes, .condition-actions, .condition-ancres { display: flex; gap: .7rem; flex-wrap: wrap; align-items: center; }
+.condition-selection { padding: .8rem 0; border-bottom: 1px solid #c8d9ce; }
+.condition-selection label { display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; }
+.condition-contexte { display: block; max-width: 40rem; }
+.condition-contexte input { display: block; width: 100%; box-sizing: border-box; }
+.condition-date { border-left: .3rem solid #175c50; padding-left: .7rem; }
+.condition-groupe { padding: .8rem 0; border-bottom: 1px solid #d3e3dc; scroll-margin-top: 1rem; }
+.condition-groupe h4 { margin: .4rem 0; }
+.condition-personne { margin-top: 1.5rem; scroll-margin-top: 1rem; }
+.condition-personne h3 { border-bottom: 2px solid #d3e3dc; padding-bottom: .5rem; }
+.condition-ancres { font-size: .95rem; margin-bottom: .8rem; }
+.condition-groupe dl > div { display: grid; grid-template-columns: minmax(10rem, 1fr) minmax(0, 1.5fr); gap: .7rem; padding: .25rem 0; }
+.condition-groupe dt, .condition-groupe dd { margin: 0; overflow-wrap: anywhere; }
+.condition-heritee { color: #59655e; }
+.condition-heritee a { color: #175c50; }
+.condition-origine { display: none; font-size: .95rem; }
+.condition-origines .condition-origine { display: block; }
+.condition-fiche + .condition-fiche { border-top: 1px dashed #c8d9ce; padding-top: .8rem; }
+[data-condition-formulaire]:not(:empty) { border-left: .25rem solid #175c50; padding: 1rem; background: #f4f8f5; margin-top: 1rem; }
+[data-condition-formulaire] form { max-width: 100%; }
+[data-condition-formulaire] input, [data-condition-formulaire] select, [data-condition-formulaire] textarea { max-width: 100%; box-sizing: border-box; }
+.condition-sommaire a[aria-current="location"] { font-weight: bold; text-decoration: underline; }
+@media(min-width: 1400px) { .condition-sommaire { position: sticky; top: 1rem; float: left; width: 11rem; flex-direction: column; align-items: stretch; margin-left: -13rem; } }
+@media(max-width: 650px) { .condition-groupe dl > div { grid-template-columns: 1fr; gap: .15rem; } .condition-selection { align-items: stretch; flex-direction: column; } }
+@media print { .condition-sommaire, .condition-selection, .condition-actions, .condition-ancres, .condition-contexte { display: none; } .condition-heritee { color: inherit; } }

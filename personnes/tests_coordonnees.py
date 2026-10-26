@@ -41,7 +41,9 @@ class CoordonneesTests(Donnees, TestCase):
         self.assertContains(self.client.get(self.url), '&lt;script&gt;Adresse fictive&lt;/script&gt;')
         self.assertFalse(coordonnees.a_date([self.p], date(2025, 12, 31)).exists())
         page = self.client.get(reverse('dossiers:prise', args=['menage', self.m.pk, self.a.pk]))
-        self.assertContains(page, 'Détail et historique des coordonnées')
+        self.assertContains(page, 'Coordonnées')
+        self.assertContains(page, 'data-condition-groupe')
+        self.assertNotContains(page, 'Détail et historique des coordonnées')
         self.assertContains(page, 'Ville fictive')
         self.assertNotContains(page, '<script>Adresse fictive</script>')
 
