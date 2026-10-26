@@ -35,6 +35,24 @@ class ConditionSocialeTests(TestCase):
         self.assertContains(r, 'Dans cette page')
         self.assertEqual(m.SituationPersonnelle.objects.count(), 1)
 
+    def test_navigation_compacte_documents_uniques_et_evolution_integree(self):
+        for url in (self.url, reverse('dossiers:detail', args=['menage', self.m.pk])):
+            page = self.client.get(url)
+            self.assertContains(page, 'id="documents-dossier"', count=1)
+            self.assertNotContains(page, 'Documents joints')
+            self.assertNotContains(page, '>Trajectoire d’accompagnement</a>')
+            self.assertContains(page, '<details class="condition-nav-details">', count=2)
+            self.assertNotContains(page, '<details class="condition-nav-details" open')
+            self.assertContains(page, 'id="appels-115"', count=1)
+            self.assertNotContains(page, 'Changer à cette date')
+            self.assertContains(page, 'Corriger l’information héritée')
+        url = page.context['url_trajectoire']
+        fragment = self.client.get(url, HTTP_X_CONDITION_EVOLUTION='1')
+        self.assertEqual(fragment.status_code, 200)
+        self.assertNotContains(fragment, 'Revenir au dossier')
+        self.assertContains(fragment, 'Évolution de la situation et du parcours')
+        self.assertContains(self.client.get(url), 'Revenir au dossier')
+
     def test_vue_historique_menage_utilise_composition_datee(self):
         autre = m.Personne.objects.create(designation='Nadia fictive', cree_par=self.u)
         m.Appartenance.objects.create(menage=self.m, personne=autre, debut=date(2026, 10, 15))

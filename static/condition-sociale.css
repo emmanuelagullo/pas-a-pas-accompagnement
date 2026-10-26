@@ -5,7 +5,8 @@
 .condition-menu ul { border-left: 1px solid #b8ccbf; margin-left: .5rem; padding-left: .7rem; }
 .condition-menu a { display: block; overflow-wrap: anywhere; }
 .condition-rubriques { font-size: .9rem; }
-.condition-person-nav:not(.is-current) > .condition-rubriques { display: none; }
+.condition-nav-details > summary { cursor: pointer; padding: .3rem; }
+.condition-actions details a { display: block; padding: .3rem; }
 .condition-menu-mobile { display: none; }
 .condition-sommaire a { padding: .3rem; }
 .condition-selection, .condition-modes, .condition-actions, .condition-ancres { display: flex; gap: .7rem; flex-wrap: wrap; align-items: center; }

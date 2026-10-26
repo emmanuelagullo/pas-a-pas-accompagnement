@@ -22,7 +22,7 @@
       const visible = entries.filter(entry => entry.isIntersecting).sort((a, b) => Math.abs(a.boundingClientRect.top) - Math.abs(b.boundingClientRect.top));
       if (visible.length) indiquerPosition(visible[0].target);
     }, { rootMargin: '-8% 0px -65% 0px' });
-    document.querySelectorAll('.condition-groupe[id],.condition-personne[id],#condition-composition,#projet,#note-dossier,#documents-dossier,#prises,#titre-prestations').forEach(element => navigationObserver.observe(element));
+    document.querySelectorAll('.condition-groupe[id],.condition-personne[id],#condition-composition,#projet,#note-dossier,#documents-dossier,#prises,#titre-prestations,#appels-115').forEach(element => navigationObserver.observe(element));
   }
   const tell = text => { status.textContent = text; };
   const headers = { 'X-Condition-Form': '1' };
@@ -149,6 +149,10 @@
           const newElement = doc.querySelector(selector);
           if (oldElement && newElement) {
             const opened = oldElement.tagName === 'DETAILS' && oldElement.open;
+            oldElement.querySelectorAll('.condition-nav-details').forEach((detail, index) => {
+              const freshDetail = newElement.querySelectorAll('.condition-nav-details')[index];
+              if (freshDetail) freshDetail.open = detail.open;
+            });
             oldElement.replaceWith(newElement);
             if (opened) newElement.open = true;
           }
@@ -172,6 +176,11 @@
     const link = event.target.closest('.condition-menu a');
     if (!link) return;
     const target = document.getElementById(link.hash.slice(1));
+    if (target?.closest('[data-condition-situation]')) {
+      root.querySelector('[data-condition-situation]').hidden = false;
+      root.querySelector('[data-condition-evolution-panel]').hidden = true;
+      root.querySelector('[data-condition-revenir]').setAttribute('aria-pressed', 'true');
+    }
     if (target) indiquerPosition(target);
     const mobile = link.closest('.condition-menu-mobile');
     if (mobile) mobile.open = false;

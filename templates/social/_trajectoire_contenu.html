@@ -1,7 +1,7 @@
 {% load saisie textes %}
 <div data-condition-trajectoire>
-<p><a href="{{ retour_trajectoire }}">← Revenir au dossier{% if prise_retour %} / à la prise en charge{% endif %}</a></p>
-<h1>Trajectoire d’accompagnement — {{ objet }}</h1>
+{% if not evolution_integree %}<p><a href="{{ retour_trajectoire }}">← Revenir au dossier{% if prise_retour %} / à la prise en charge{% endif %}</a></p>{% endif %}
+{% if evolution_integree %}<h3>Évolution de la situation et du parcours</h3>{% else %}<h1>Trajectoire d’accompagnement — {{ objet }}</h1>{% endif %}
 <p>Histoire personnelle datée et faits des prises en charge, selon vos droits. Les déclarations sont lues dans leur état corrigé actuel : ce n’est pas un instantané figé ni un score social.</p>
 {% if nature == 'menage' %}<p>Les informations personnelles sont présentées pendant une appartenance datée à ce ménage ou une prise en charge dont la personne est explicitement bénéficiaire. Une appartenance ne crée pas de prestation.</p>{% endif %}
 <form method="get" action="{{ request.path }}" class="carte">{% for nom, valeur in parametres.items %}<input type="hidden" name="{{ nom }}" value="{{ valeur }}">{% endfor %}{% adapter_saisie form request.user %}{{ form.as_p }}<button type="submit">Afficher la trajectoire</button></form>

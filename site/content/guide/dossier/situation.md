@@ -10,10 +10,10 @@ depart: "Dossier ou prise en charge → Situation sociale et projet"
 statut: "disponible"
 ---
 
-1. Choisir la vue : **Aujourd’hui** dans le dossier, **À l’entrée** par défaut dans la prise en charge, ou une date précise. Le sommaire **Dans cette page** conduit à la personne et aux rubriques.
-2. En présentation **Intégrale**, les informations consultables sont affichées directement, y compris les champs non renseignés. Choisir **Renseigner** ou **Changer à cette date** ouvre le formulaire dans le même bloc lorsque JavaScript est disponible. Vérifier la date d'effet et renseigner la source propre à cette information.
+1. Choisir la vue : **Aujourd’hui** dans le dossier, **À l’entrée** par défaut dans la prise en charge, ou une date précise. Le sommaire **Dans cette page** garde les accès principaux visibles. **Afficher les rubriques** déplie les personnes et les rubriques sans masquer les informations de la page.
+2. En présentation **Intégrale**, les informations consultables sont affichées directement, y compris les champs non renseignés. Choisir **Renseigner** ou **Modifier** ouvre le formulaire dans le même bloc lorsque JavaScript est disponible. Vérifier la date d'effet et renseigner la source propre à cette information.
 3. Une information ancienne peut être insérée rétroactivement dans sa chronologie. Vérifier les valeurs voisines avant confirmation.
-4. Si la donnée était fausse dès la saisie, utiliser **Corriger l’information héritée** ou **Corriger cette information** avec un motif, au lieu de créer un changement fictif. La correction porte sur la période de cette déclaration et peut modifier sa restitution dans d’autres prises en charge.
+4. **Modifier** une valeur héritée propose un changement à la date choisie. Pour une déclaration commencée à cette date, **Modifier** corrige ce renseignement. Si une information héritée était déjà fausse auparavant, choisir **Autres actions → Corriger l’information héritée**, au lieu de créer un changement fictif. La correction porte sur la période de cette déclaration et peut modifier sa restitution dans d’autres prises en charge.
 
 Les valeurs héritées sont affichées en gris lisible. **Afficher les origines** révèle les déclarations dont elles proviennent. Dans une nouvelle déclaration de coordonnées, un téléphone modifié apparaît en texte principal et une adresse reprise de la déclaration précédente reste grise. Cela ne crée pas de lien permanent entre les champs de déclarations distinctes.
 
@@ -21,7 +21,7 @@ Une correction ouverte depuis ce bloc affiche sa période et les entrées de pri
 
 ## Retirer un changement erroné
 
-Sur une déclaration commençant à la date consultée, **Retirer ce changement** propose de rétablir l’état antérieur continu, jusqu’au prochain changement connu. Sans état antérieur continu, la période devient **Non renseigné**. Le changement retiré et son journal sont conservés.
+Sur une déclaration commençant à la date consultée, **Autres actions → Retirer ce changement** propose de rétablir l’état antérieur continu, jusqu’au prochain changement connu. Sans état antérieur continu, la période devient **Non renseigné**. Le changement retiré et son journal sont conservés.
 
 L’aperçu précise les valeurs et la période rétablies. Pour les coordonnées, la famille, l’identité déclarée et la situation administrative, le retrait porte sur la déclaration complète de cette rubrique. Une cessation réelle se renseigne comme un nouveau changement ; elle ne se traite pas par un retrait.
 

@@ -539,3 +539,34 @@ Les copies natives conservent la base physique entière, y compris les lignes re
 ### Suite réellement restante
 
 Qualification visuelle et PWA réelle, mesures sur de gros dossiers et éventuels ajustements après usage. Un éventuel versionnement véritablement indépendant par champ, avec une filiation persistante des valeurs et une propagation des corrections entre déclarations distinctes, demande une conception métier supplémentaire ; il n’est pas simulé par le lot 02. Les opérations structurelles sur les ménages, bénéficiaires et missions gardent leurs validations spécialisées.
+
+
+## BD-SOLENNE-03 — finitions après essais utilisateur
+
+Base publique vérifiée sur Inria et GitHub :
+`892a0c2775d25ea76611265e155b6212447a2686` (arbre identique au lot 02 local).
+Le sommaire conserve les entrées principales et la composition du ménage ; les
+personnes, rubriques et projet sont accessibles par un dépliage natif fermé par
+défaut. Déplier la navigation ne replie pas les données de la vue intégrale.
+Les documents disposent d'un unique bloc et d'une ancre dans le sommaire ; le
+raccourci hérité du commentaire est supprimé. Les appels au 115 conservent leur
+espace dédié, accessible depuis une carte et le sommaire, selon les droits.
+Le lien autonome vers la trajectoire est supprimé des Forms 2 et 3 : Évolution
+utilise déjà cette restitution. Son fragment intégré n'affiche plus de retour
+au dossier ; la page autonome conserve ce retour et ses filtres.
+L'action courante est Modifier : changer à la date sélectionnée pour une valeur
+héritée, ou corriger la déclaration commencée à cette date. Une correction
+antérieure et le retrait restent explicitement accessibles dans Autres actions,
+avec les contrôles de portée et les droits existants. Si seul le droit de
+correction est disponible sur une information héritée, son libellé reste
+explicite : aucun changement de période ne se cache derrière Modifier.
+Aucun changement de modèle, migration, source statistique ou format de copie.
+Vérification HTML et tests automatisés ; pas d'observation réelle navigateur.
+
+Retour CI captures : le comptage du lien dans le sommaire mobile doit inclure
+les éléments masqués sur écran large. Pour le retrait, la valeur précédente
+étant déjà présente dans l'aperçu, sa visibilité ne prouve pas la fin du POST :
+la recette attend désormais la disparition du formulaire avant de vérifier la
+base. Les parcours sont aussi adaptés aux menus secondaires et à Modifier.
+La CI conserve le journal complet des tests navigateur dans un artefact distinct,
+sans modifier les paramètres HTTPS des profils locaux.
