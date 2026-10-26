@@ -1,6 +1,7 @@
 {% load saisie %}<div data-condition-edition>
 <h4>{{ titre }} — {{ objet }}</h4>
 {% if explication %}<p class="helptext">{{ explication }}</p>{% endif %}
+{% include 'dossiers/_condition_portee.html' %}
 {% if proposition_depuis %}<p class="helptext">Valeurs héritées du {{ proposition_depuis|date:'d/m/Y' }}. Seule la nouvelle déclaration prendra la date choisie. Indiquez sa source.</p>{% endif %}
 <form method="post" action="{{ action_formulaire }}" data-condition-form>{% csrf_token %}
 {% include 'dossiers/_erreurs_formulaire.html' %}{% adapter_saisie form request.user %}{{ form.as_p }}

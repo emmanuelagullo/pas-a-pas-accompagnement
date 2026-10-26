@@ -7,6 +7,7 @@ from . import vues_parametrage
 from django.urls import path
 from . import vues_annulations_arrivees as annulations_arrivees
 from . import vues_trajectoire
+from . import vues_retraits_chronologiques
 from . import vues_dossiers as vues
 from . import vues_prestations_dossier as prestations
 
@@ -31,6 +32,7 @@ app_name = 'dossiers'
 from . import vues_pieces_dossier as pieces
 
 urlpatterns = [
+    path('personne/<uuid:pk>/condition/<str:code>/<int:fait_pk>/retirer/', vues_retraits_chronologiques.retirer, name='condition_retirer'),
     path('modeles/<int:pk>/gerer/', vues_modeles_personnels.gerer, name='modele_gerer'),
     path('rapports/<str:source>/personnaliser/', exploration.personnaliser, name='personnaliser_rapport'),
     path('explorer/justificatifs/', exploration.justificatifs, name='explorer_justificatifs'),

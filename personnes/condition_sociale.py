@@ -8,7 +8,8 @@ from datetime import timedelta
 from urllib.parse import urlencode
 
 from django import forms
-from django.db.models import Q
+from django.db.models import Q, F, Window
+from django.db.models.functions import RowNumber
 from django.http import Http404
 from django.urls import reverse
 from django.utils import timezone
@@ -18,8 +19,9 @@ from . import dossier_complet as complet, relations_personnelles, parcours
 from .presentation_dossier_complet import lignes
 
 
-def selection(request, prise):
-    vue = request.GET.get('vue_sociale', 'entree' if prise else 'today')
+def selection(request, prise, valeurs=None):
+    valeurs = valeurs or {}
+    vue = request.GET.get('vue_sociale') or valeurs.get('vue_sociale') or ('entree' if prise else 'today')
     if vue not in ('entree', 'today', 'fin', 'date') or vue in ('entree', 'fin') and not prise:
         raise Http404('Vue de situation inconnue.')
     if vue == 'fin' and not prise.fin:
@@ -31,7 +33,7 @@ def selection(request, prise):
         jour = prise.fin - timedelta(days=1)
     elif vue == 'date':
         try:
-            jour = forms.DateField().clean(request.GET.get('date_sociale'))
+            jour = forms.DateField().clean(request.GET.get('date_sociale', valeurs.get('date_sociale')))
         except forms.ValidationError:
             raise Http404('Choisissez une date valide.')
     if jour > timezone.localdate():
@@ -42,6 +44,20 @@ def selection(request, prise):
 def presentation(request, personnes, jour, objet, nature, prise, params):
     acteur = request.user
     personnes = list(personnes)
+    from . import retraits_chronologiques
+    precedents = {}
+    # Une seule déclaration précédente par personne et série suffit pour
+    # distinguer les champs repris de ceux modifiés à la date sélectionnée.
+    for model in dict.fromkeys(s.modele for s in retraits_chronologiques.series().values()
+                               if acteur.has_perms(retraits_chronologiques.droits(s)[:3])):
+        partition = [F('personne_id')]
+        if model is m.SituationPersonnelle:
+            partition.append(F('dimension'))
+        qs = model.objects.filter(personne__in=personnes, debut__lt=jour).annotate(
+            _rang=Window(expression=RowNumber(), partition_by=partition,
+                         order_by=[F('debut').desc(), F('pk').desc()])).filter(_rang=1)
+        for x in qs:
+            precedents[(model, x.personne_id, getattr(x, 'dimension', ''))] = x
     resultats = {p.pk: {'personne': p, 'groupes': [], 'ancre': 'social-' + str(p.pk)} for p in personnes}
     query = {**params, 'date': jour.isoformat(), 'depuis_nature': nature,
              'depuis_pk': str(objet.pk), 'depuis_prise': str(prise.pk) if prise else ''}
@@ -49,7 +65,14 @@ def presentation(request, personnes, jour, objet, nature, prise, params):
         query['contexte_prise'] = str(prise.pk)
 
     def url(nom, *args):
-        return reverse(nom, args=args) + '?' + urlencode(query)
+        return reverse(nom, args=args) + '?' + urlencode({**query, **({'portee': '1'} if nom.endswith('corriger') else {})})
+
+    if nature == 'menage':
+        for p in personnes:
+            resultats[p.pk]['url_dossier'] = reverse('dossiers:detail', args=['personne', p.pk]) + '?' + urlencode({
+                **params, 'origine_menage': str(objet.pk), 'origine_sejour': params.get('sejour', ''),
+                'origine_repas': params.get('repas', ''),
+                'vue_sociale': 'date' if params.get('vue_sociale') in ('entree', 'fin') else params.get('vue_sociale', 'today')})
 
     def groupe(p, code, titre, facts, model, champs, ajouter='', historique='', changer=None, corriger=None, multiple=False):
         fiches = []
@@ -60,7 +83,22 @@ def presentation(request, personnes, jour, objet, nature, prise, params):
             contenu = [(label, ' ; '.join(str(v) for v in valeur) if isinstance(valeur, list)
                         else 'Oui' if valeur is True else 'Non' if valeur is False else valeur)
                        for label, valeur in contenu]
-            fiches.append({'fait': x, 'lignes': contenu,
+            precedent = precedents.get((model, p.pk, getattr(x, 'dimension', '')))
+            if precedent and precedent.fin != getattr(x, 'debut', None):
+                precedent = None
+            champs_affiches = []
+            for c, (label, valeur) in zip(champs, contenu):
+                herite = getattr(x, 'debut', jour) < jour
+                repris = bool(getattr(x, 'debut', None) == jour and precedent
+                              and getattr(x, c) == getattr(precedent, c))
+                origine = precedent if repris else x
+                vide = getattr(x, c) in (None, '', [])
+                champs_affiches.append({'label': label, 'valeur': valeur, 'herite': herite or repris,
+                    'vide': vide, 'origine': getattr(origine, 'debut', None), 'repris': repris})
+            retrait = code in retraits_chronologiques.series() and getattr(x, 'debut', None) == jour
+            fiches.append({'fait': x, 'lignes': contenu, 'champs': champs_affiches,
+                'retirer': url('dossiers:condition_retirer', p.pk, code, x.pk)
+                    if retrait and acteur.has_perms(retraits_chronologiques.droits(retraits_chronologiques.configuration(code))) else '',
                 'herite': getattr(x, 'debut', jour) < jour,
                 'changer': changer(x) if changer and getattr(x, 'debut', jour) < jour else '',
                 'corriger': corriger(x) if corriger else ''})
@@ -105,7 +143,7 @@ def presentation(request, personnes, jour, objet, nature, prise, params):
             for dimension, titre in m.SituationSociale.DIMENSIONS:
                 x = faits.get((p.pk, dimension))
                 peut = acteur.has_perm('personnes.add_situationpersonnelle')
-                groupe(p, dimension, titre, [x] if x else [], m.SituationPersonnelle, ('valeur',),
+                groupe(p, 'ressources-globales' if dimension == 'ressources' else dimension, titre, [x] if x else [], m.SituationPersonnelle, ('valeur',),
                     ajouter=url('dossiers:social_nouveau', p.pk, dimension) if peut else '',
                     historique=url('dossiers:social', p.pk),
                     changer=(lambda x, p=p, d=dimension: url('dossiers:social_nouveau', p.pk, d)) if peut else None,

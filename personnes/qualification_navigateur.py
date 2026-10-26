@@ -474,8 +474,7 @@ class EntreeBDNavigateur(StaticLiveServerTestCase):
         page.get_by_text('Résultats actualisés.', exact=True).wait_for()
         page.locator('#resultats-dossiers ul.resultats-dossiers a[href*="/dossiers/menage/"]').click()
         page.get_by_role('heading', name='Dossier — ' + self.m.libelle, exact=True).wait_for()
-        page.get_by_text('Composition du ménage et changements', exact=True).click()
-        page.locator('nav[aria-label="Dossiers liés"] a').first.click()
+        page.locator('.condition-personne').first.get_by_role('link', name='Dossier individuel', exact=True).click()
         page.get_by_role('heading', name='Dossier — ' + str(self.p), exact=True).wait_for()
         page.get_by_role('button', name='Ouvrir', exact=True).click()
         page.get_by_role('link', name='Enregistrer la sortie', exact=True).click()
@@ -484,7 +483,7 @@ class EntreeBDNavigateur(StaticLiveServerTestCase):
         page.get_by_role('heading', name='Prise en charge du 01/01/2026', exact=True).wait_for()
         page.get_by_role('heading', name='Situation sociale et projet', exact=True).wait_for()
         self.assertTrue(page.locator('#projet').is_visible())
-        self.assertTrue(page.get_by_role('link', name='Mettre à jour le projet', exact=True).is_visible())
+        self.assertTrue(page.get_by_role('link', name='Modifier les informations et le projet', exact=True).is_visible())
         page.get_by_text("Dossier actualisé.", exact=True).wait_for()
         self.assertEqual(page.locator('#hebergement a[aria-current="true"]').count(), 1)
         self.assertEqual(page.locator('[data-dossier-boite="repas"]').count(), 1)
@@ -551,7 +550,7 @@ class BD6Navigateur(EntreeBDNavigateur):
         page.get_by_label('Commentaire libre', exact=False).fill('Accueil fictif à préparer.')
         page.get_by_role('button', name='Enregistrer', exact=True).click()
         page.get_by_text('Accueil fictif à préparer.', exact=True).wait_for()
-        page.get_by_role('link', name='Historique et mise à jour', exact=True).click()
+        page.locator('#social-' + str(self.p.pk) + '-emploi').get_by_role('link', name='Historique', exact=True).click()
         page.locator('.social-valeurs > div').filter(has=page.get_by_text('Emploi / formation', exact=True)).get_by_role('link', name='Renseigner', exact=True).click()
         page.locator('[name=debut]').fill('2026-01-01')
         page.locator('[name=valeur]').select_option('formation')
@@ -569,7 +568,6 @@ class BD6Navigateur(EntreeBDNavigateur):
         page.get_by_text('Entretien fictif corrigé', exact=False).first.wait_for()
         page.get_by_role('link', name='← Revenir au dossier', exact=True).click()
         page.get_by_role('heading', name='Dossier — ' + str(self.m), exact=True).wait_for()
-        page.get_by_text('Composition du ménage et changements', exact=True).click()
         page.get_by_role('link', name='Ajouter une personne', exact=True).click()
         page.wait_for_load_state('domcontentloaded')
         page.get_by_label('Nom ou prénom', exact=True).fill('Nouvelle fictive navigateur')
@@ -635,3 +633,84 @@ class SejourUnifieNavigateur(BD6Navigateur):
         page.get_by_role('button', name='Enregistrer le séjour', exact=True).click()
         page.get_by_role('heading', name='Prise en charge du 01/01/2026', exact=True).wait_for()
         page.get_by_text('Prévu — arrivée à confirmer', exact=True).wait_for()
+
+
+@skipIf(sync_playwright is None, 'Module Python Playwright non installé : qualification navigateur ignorée.')
+class ConditionSocialeNavigateur(StaticLiveServerTestCase):
+    """Bloc commun réel : hiérarchie, saisie, retrait et identité répercutée."""
+    navigateur = ProfilsNavigateur.navigateur
+
+    def setUp(self):
+        from datetime import timedelta
+        from django.utils import timezone
+        from django.contrib.auth import get_user_model
+        from . import models as m
+        self.u = get_user_model().objects.create_superuser('condition-fictive', password='Recette-fictive-CHRS14!')
+        self.p = m.Personne.objects.create(designation='Thomas fictif', cree_par=self.u)
+        self.m = m.Menage.objects.create(libelle='Ménage fictif', cree_par=self.u)
+        ancien = timezone.localdate() - timedelta(days=30)
+        self.entree = timezone.localdate() - timedelta(days=15)
+        m.Appartenance.objects.create(menage=self.m, personne=self.p, debut=ancien)
+        self.a = m.Accompagnement.objects.create(menage=self.m, debut=self.entree, cree_par=self.u)
+        self.a.beneficiaires.add(self.p)
+        m.CoordonneesPersonnelles.objects.create(personne=self.p, debut=ancien, ville='Bordeaux',
+            telephone='06 11 11 11 11', source='Déclaration fictive', auteur=self.u)
+
+    def test_menu_champs_repris_enregistrement_et_retrait(self):
+        from . import models as m
+        page = self.navigateur()
+        page.set_viewport_size({'width': 1600, 'height': 1000})
+        page.goto(self.live_server_url + reverse('dossiers:prise', args=['menage', self.m.pk, self.a.pk]))
+        menu = page.locator('nav.condition-sommaire')
+        social = menu.locator('.condition-menu > li').filter(has=page.locator('a[href="#condition-sociale"]'))
+        self.assertEqual(social.locator('a[href="#condition-composition"]').count(), 1)
+        self.assertEqual(social.locator('a[href="#social-' + str(self.p.pk) + '"]').count(), 1)
+        self.assertEqual(social.locator('a[href="#projet"]').count(), 1)
+        groupe = page.locator('#social-' + str(self.p.pk) + '-coordonnees')
+        page.locator('[data-condition-contexte]').fill('Entretien fictif de qualification')
+        # Un rafraîchissement depuis les prestations ne doit pas désactiver
+        # l'édition sociale ni perdre le contexte de l'entretien.
+        page.get_by_role('link', name='Nouveau séjour', exact=True).click()
+        hebergement = page.locator('#hebergement')
+        hebergement.locator('form[data-prestation-dossier]').wait_for()
+        hebergement.get_by_role('button', name='← Revenir à la liste', exact=True).click()
+        page.get_by_text('Dossier actualisé.', exact=True).wait_for()
+        self.assertEqual(page.locator('[data-condition-contexte]').input_value(), 'Entretien fictif de qualification')
+        groupe.get_by_role('link', name='Changer à cette date', exact=True).click()
+        form = groupe.locator('form[data-condition-form]')
+        form.locator('[name=telephone]').fill('06 22 22 22 22')
+        form.evaluate('form => form.noValidate = true')  # Exercer aussi le refus serveur.
+        form.get_by_role('button', name='Enregistrer', exact=True).click()
+        form.locator('.errorlist').first.wait_for()
+        self.assertEqual(form.locator('[name=telephone]').input_value(), '06 22 22 22 22')
+        form.locator('[name=source]').fill('Déclaration fictive pendant l’entretien')
+        form.get_by_role('button', name='Enregistrer', exact=True).click()
+        groupe.locator('dd').filter(has_text='06 22 22 22 22').wait_for()
+        self.assertEqual(groupe.locator('dd.condition-valeur-heritee').filter(has_text='Bordeaux').count(), 1)
+        self.assertEqual(groupe.locator('dd.condition-valeur-heritee').filter(has_text='06 22 22 22 22').count(), 0)
+        groupe.get_by_role('link', name='Retirer ce changement', exact=True).click()
+        form = groupe.locator('form[data-condition-form]')
+        form.locator('[name=confirmer]').check()
+        form.get_by_role('button', name='Enregistrer', exact=True).click()
+        groupe.locator('dd').filter(has_text='06 11 11 11 11').wait_for()
+        self.assertEqual(verifier_hors_boucle_playwright(lambda: (
+            m.CoordonneesPersonnelles.objects.count(), m.CoordonneesPersonnelles.tous.count(),
+            m.RevisionCoordonneesPersonnelles.objects.filter(action='retrait').count())), (1, 2, 1))
+
+    def test_identite_actualise_entete_et_sommaire_mobile(self):
+        page = self.navigateur()
+        page.goto(self.live_server_url + reverse('dossiers:detail', args=['personne', self.p.pk]))
+        groupe = page.locator('#social-' + str(self.p.pk) + '-identite')
+        groupe.get_by_role('link', name='Corriger cette information', exact=True).click()
+        form = groupe.locator('form[data-condition-form]')
+        form.locator('[name=designation]').fill('Thomas corrigé fictif')
+        form.locator('[name=motif]').fill('Correction fictive de qualification')
+        form.get_by_role('button', name='Enregistrer', exact=True).click()
+        page.get_by_role('heading', name='Dossier — Thomas corrigé fictif', exact=True).wait_for()
+        self.assertEqual(page.locator('.condition-menu-mobile').get_by_role('link', name='Thomas corrigé fictif', exact=True).count(), 1)
+        page.set_viewport_size({'width': 390, 'height': 844})
+        mobile = page.locator('.condition-menu-mobile')
+        mobile.locator('summary').click()
+        mobile.get_by_role('link', name='Situation sociale et projet', exact=True).click()
+        self.assertFalse(mobile.evaluate('element => element.open'))
+        self.assertTrue(page.evaluate('document.documentElement.scrollWidth <= window.innerWidth'))

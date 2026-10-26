@@ -99,20 +99,26 @@ def objet_dossier(request, nature, pk):
 def parametres_retour(request):
     from .vues_dossiers import parametres
     return {**parametres(request), **{k: request.GET.get(k, '')[:40] for k in
-        ('prise', 'sejour', 'repas', 'origine_menage', 'origine_sejour', 'origine_repas', 'date_service')}}
+        ('prise', 'sejour', 'repas', 'origine_menage', 'origine_sejour', 'origine_repas', 'date_service', *dossier.CLES_SOCIALES)}}
 
 
 def retour(nature, pk, params=None, prise=None):
     nom = 'dossiers:prise' if prise else 'dossiers:detail'
     args = [nature, pk, prise.pk] if prise else [nature, pk]
+    if params and not prise and params.get('vue_sociale') in ('entree', 'fin'):
+        params = {**params, 'vue_sociale': 'date'}
     return reverse(nom, args=args) + ('?' + urlencode(params) if params else '')
 
 
 def traiter(request, form, titre, action, url, objet, **contexte):
     from .champs_saisie import adapter
     adapter(form)
+    from . import portee_corrections
+    portee = portee_corrections.preparer(request, form, objet)
+    if portee:
+        contexte['condition_portee'] = portee
     statut = 200
-    if request.method == 'POST' and form.is_valid():
+    if request.method == 'POST' and form.is_valid() and (not portee or portee_corrections.verifier(form, portee)):
         try:
             resultat = action(**form.cleaned_data)
         except (ValidationError, OperationalError) as erreur:

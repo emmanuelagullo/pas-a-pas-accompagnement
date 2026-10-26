@@ -1,4 +1,6 @@
-# Bande Dessinée — inventaire et conception
+# Bande Dessinée — inventaire, conception et livraison
+
+**État courant : lot BD-SOLENNE-02, à appliquer après le lot 01.** La section finale actualise les limites historiques du premier lot. Une migration est nécessaire pour le lot 02.
 
 Référence examinée : `bada708692221bc90e84c870128eaf2ca1650907` (miroir GitHub téléchargé le 25 octobre 2026). Les main Inria et GitHub ont ensuite été revérifiés au même SHA le 26 octobre 2026.
 
@@ -462,7 +464,7 @@ Lecture de code et templates effectuée. Maquette autonome avec données fictive
 - Documents : métadonnées seules, fichiers non chargés à l’ouverture de la page.
 - Sans JavaScript : mêmes liens et formulaires pleine page, mêmes contrôles serveur.
 
-## Ce que ce lot ne prétend pas terminer
+## Limites du lot 01 — photographie avant le lot 02
 
 - « Retirer ce changement » : non exposé tant que les opérations de retrait par famille de modèles, la continuité antérieure, les références et la copie restaurée ne sont pas spécifiées et qualifiées. Aucun bouton factice.
 - Héritage : couleur de la déclaration datée, pas reconstitution de la provenance indépendante de chaque champ à l’intérieur d’une déclaration multichamps. Les coordonnées et la famille restent des versions de groupe.
@@ -484,3 +486,56 @@ Le navigateur Chromium local est indisponible ; son téléchargement a renvoyé 
 103 tests réussis après installation de WeasyPrint : histoires familiales, identité et liens, professionnels, parcours, trajectoire unifiée et copie restaurée, exploration et PDF natifs. Les 58 tests du premier ensemble ciblé passent également. Sept tests de dernier rendu (dont les six nouveaux) ont été exécutés après réintégration explicite des témoins des anciens suivis. Il ne s’agit pas d’une nouvelle exécution verte de toute la suite : la suite complète initiale et les reprises sont distinguées.
 
 Base Inria et miroir vérifiés identiques : bada708692221bc90e84c870128eaf2ca1650907. Aucune publication ni modification de production. Aucune migration.
+
+
+## Lot BD-SOLENNE-02 — contexte visible, portée et retrait
+
+### Navigation et interaction
+
+Le sommaire est hiérarchisé : texte libre, documents, situation sociale et projet (composition du ménage, personnes puis rubriques, projet et parcours), puis prises en charge ou prestations. La branche de la personne consultée est déployée ; un repère suit le défilement. Sur les écrans plus étroits, le sommaire devient un menu « Dans cette page » collant et repliable. Les liens conduisent aux informations, sans changer de page.
+
+Les raccourcis « Dossier individuel » restent disponibles auprès de chaque personne. Les en-têtes et le sommaire sont réactualisés après une correction d’identité. Les écouteurs d’édition restent opérationnels après le remplacement de page effectué par une action de prestation ; une édition de prestation et une édition sociale ne peuvent pas se remplacer mutuellement avec une saisie en attente.
+
+La vue temporelle, sa date, la présentation et l’affichage des origines sont conservés par le contexte de retour signé. Ouvrir une prise depuis Form2 propose toujours la vue d’entrée par défaut. Revenir au dossier depuis une vue d’entrée conserve cette date sous la forme « À une date… », valable hors de la prise.
+
+### Valeurs reprises et valeurs modifiées
+
+Pour les séries personnelles, une lecture groupée de la déclaration précédente distingue les champs repris des champs modifiés à la date consultée. Exemple : une nouvelle déclaration avec un autre téléphone conserve l’adresse en gris. Les origines facultatives précisent « Repris de la déclaration du… ». Une période sans information n’est jamais franchie pour inventer un héritage.
+
+C’est une indication de reprise entre déclarations successives, pas une certification de la première origine de chaque champ ni un lien permanent entre valeurs. Une correction d’une ancienne déclaration ne propage pas automatiquement cette correction à toutes les déclarations ultérieures ayant la même valeur : celles-ci restent des déclarations indépendantes. La période et la déclaration corrigées font autorité.
+
+### Portée des corrections
+
+Les corrections ouvertes depuis le bloc commun affichent la période touchée et les entrées de prises en charge de cette période, sous les droits correspondants. Elles demandent une confirmation serveur signée. Si la modification des dates élargit cette portée après lecture, une nouvelle confirmation est exigée ; aucune écriture n’est faite à la première soumission. Les confirmations de portée ne remplacent jamais les droits, le jeton de version ou les validations métier.
+
+Le nombre affiché compte les entrées dans la période ; il ne prétend pas lister toutes les consultations possibles à d’autres dates. Les documents financiers émis et les fichiers figés ne sont pas réécrits. Les sources et les motifs restent propres aux déclarations.
+
+### Retirer ce changement
+
+L’action existe pour logement, emploi, ressources globales, famille, coordonnées, identité déclarée et situation administrative. Elle est proposée sur un changement commençant à la date consultée. Son aperçu indique les valeurs rétablies et la période ; une confirmation explicite est requise.
+
+Le retrait conserve le changement, son identifiant et ses journaux. Il prolonge uniquement la déclaration précédente qui se terminait exactement au début du changement retiré, jusqu’à la fin de ce changement. Le changement suivant reste intact. Sans précédent continu, la période devient non renseignée. Pour une déclaration multichamps, le retrait porte explicitement sur toute la déclaration de cette rubrique.
+
+Les écritures sont sous transaction et réservation de version de la personne ; un formulaire périmé, une preuve falsifiée, une confirmation absente ou un double retrait ne modifient rien. Les droits de lecture, d’ajout et de modification de la série sont requis, comme pour les corrections existantes.
+
+Les ressources détaillées, dettes, protections multiples, liens, demandes, orientations et objectifs conservent leurs opérations propres. Ils ne reçoivent pas un retrait générique qui pourrait supprimer un poste réel ou invalider une admission liée.
+
+### Persistance et migration 0040
+
+Cinq modèles de séries personnelles reçoivent un horodatage nullable `retire_le`. Aucune ligne existante n’est retirée par la migration. Les contraintes d’unicité portent sur les déclarations non retirées ; les autres contraintes sont conservées.
+
+Le gestionnaire ordinaire `objects` exclut les lignes retirées ; `tous` et le gestionnaire de base les conservent pour les références historiques. Les sources statistiques ne sont ni déplacées ni redéfinies : leurs lectures ordinaires des faits personnels reflètent naturellement le retrait. Tout nouveau calcul utilisant une jointure SQL brute devra respecter la même exclusion ; un gestionnaire de modèle ne filtre pas automatiquement une jointure SQL arbitraire.
+
+Les copies natives conservent la base physique entière, y compris les lignes retirées et les journaux. Les scripts d’export technique complet utilisent désormais `dumpdata --all`. Une copie antérieure est migrable normalement. Un retour du schéma 0040 vers le schéma antérieur est refusé si un retrait a déjà été enregistré, afin de ne pas réactiver silencieusement les changements retirés.
+
+### Qualification du lot 02
+
+- Suite complète : 760 tests exécutés, succès, 38 ignorés selon les dépendances/profils disponibles.
+- Après les finitions du contexte de navigation : 62 tests ciblés exécutés, succès.
+- Les nouveaux scénarios couvrent les retraits au début/milieu/fin, les trous, la réutilisation d’une date, les séries multichamps, les droits, preuves et formulaires périmés, la concurrence réelle SQLite, l’export complet et la relecture d’une copie restaurée.
+- Contrôles Django, synchronisation des migrations, syntaxe JavaScript et propreté du diff vérifiés.
+- Recettes navigateur et PWA adaptées aux nouveaux accès. Deux nouvelles recettes Chromium couvrent la hiérarchie, l’édition sur place, le retrait, le rafraîchissement après prestation, la répercussion de l’identité et le sommaire mobile. Elles sont ignorées ici : module Python Playwright absent, et téléchargement du moteur Chromium (y compris Headless Shell) défectueux. Aucune observation réelle de la nouvelle interface n’est revendiquée.
+
+### Suite réellement restante
+
+Qualification visuelle et PWA réelle, mesures sur de gros dossiers et éventuels ajustements après usage. Un éventuel versionnement véritablement indépendant par champ, avec une filiation persistante des valeurs et une propagation des corrections entre déclarations distinctes, demande une conception métier supplémentaire ; il n’est pas simulé par le lot 02. Les opérations structurelles sur les ménages, bénéficiaires et missions gardent leurs validations spécialisées.

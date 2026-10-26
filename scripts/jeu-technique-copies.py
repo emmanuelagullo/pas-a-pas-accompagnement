@@ -29,5 +29,5 @@ def preparer(compte):
 def signature():
     """PK, UUID, FK, M2M, mots de passe et permissions ; aucune session."""
     sortie = StringIO()
-    call_command("dumpdata", "personnes", "identites.Utilisateur", indent=2, stdout=sortie)
+    call_command("dumpdata", "--all", "personnes", "identites.Utilisateur", indent=2, stdout=sortie)
     return sortie.getvalue()

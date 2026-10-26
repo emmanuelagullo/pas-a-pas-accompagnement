@@ -1,5 +1,12 @@
 .condition-page { position: relative; }
-.condition-sommaire { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; padding: .8rem; border: 1px solid #c8d9ce; border-radius: .6rem; background: #f0f7f3; }
+.condition-sommaire { display: block; padding: .8rem; border: 1px solid #c8d9ce; border-radius: .6rem; background: #f0f7f3; }
+.condition-menu, .condition-menu ul { list-style: none; margin: 0; padding: 0; }
+.condition-menu > li { margin: .35rem 0; }
+.condition-menu ul { border-left: 1px solid #b8ccbf; margin-left: .5rem; padding-left: .7rem; }
+.condition-menu a { display: block; overflow-wrap: anywhere; }
+.condition-rubriques { font-size: .9rem; }
+.condition-person-nav:not(.is-current) > .condition-rubriques { display: none; }
+.condition-menu-mobile { display: none; }
 .condition-sommaire a { padding: .3rem; }
 .condition-selection, .condition-modes, .condition-actions, .condition-ancres { display: flex; gap: .7rem; flex-wrap: wrap; align-items: center; }
 .condition-selection { padding: .8rem 0; border-bottom: 1px solid #c8d9ce; }
@@ -15,6 +22,10 @@
 .condition-groupe dl > div { display: grid; grid-template-columns: minmax(10rem, 1fr) minmax(0, 1.5fr); gap: .7rem; padding: .25rem 0; }
 .condition-groupe dt, .condition-groupe dd { margin: 0; overflow-wrap: anywhere; }
 .condition-heritee { color: #59655e; }
+.condition-valeur-heritee { color: #59655e; }
+.condition-origine-champ { display: none; font-size: .9rem; font-weight: normal; }
+.condition-origines .condition-origine-champ { display: block; }
+.condition-portee { background: #edf5ef; border-left: .25rem solid #175c50; padding: .8rem; margin: .8rem 0; }
 .condition-heritee a { color: #175c50; }
 .condition-origine { display: none; font-size: .95rem; }
 .condition-origines .condition-origine { display: block; }
@@ -23,6 +34,7 @@
 [data-condition-formulaire] form { max-width: 100%; }
 [data-condition-formulaire] input, [data-condition-formulaire] select, [data-condition-formulaire] textarea { max-width: 100%; box-sizing: border-box; }
 .condition-sommaire a[aria-current="location"] { font-weight: bold; text-decoration: underline; }
-@media(min-width: 1400px) { .condition-sommaire { position: sticky; top: 1rem; float: left; width: 11rem; flex-direction: column; align-items: stretch; margin-left: -13rem; } }
+@media(min-width: 1480px) { .condition-sommaire { position: sticky; top: 1rem; float: left; width: 12rem; margin-left: -13rem; max-height: calc(100vh - 2rem); overflow-y: auto; } }
+@media(max-width: 1479px) { .condition-sommaire { display: none; } .condition-menu-mobile { display: block; position: sticky; top: 0; z-index: 5; background: #f0f7f3; border: 1px solid #c8d9ce; border-radius: .4rem; padding: .5rem; } .condition-menu-mobile[open] { max-height: 70vh; overflow-y: auto; } .condition-menu-mobile nav { display: block; } .condition-personne, .condition-groupe, #condition-composition, #projet, #note-dossier, #documents-dossier, #prises, #titre-prestations { scroll-margin-top: 4rem; } }
 @media(max-width: 650px) { .condition-groupe dl > div { grid-template-columns: 1fr; gap: .15rem; } .condition-selection { align-items: stretch; flex-direction: column; } }
-@media print { .condition-sommaire, .condition-selection, .condition-actions, .condition-ancres, .condition-contexte { display: none; } .condition-heritee { color: inherit; } }
+@media print { .condition-sommaire, .condition-menu-mobile, .condition-selection, .condition-actions, .condition-ancres, .condition-contexte { display: none; } .condition-heritee { color: inherit; } }

@@ -161,9 +161,15 @@ def detail(request, nature, pk, prise_pk=None):
     jour = timezone.localdate()
     anciens = dossier.valeurs_vue(request, nature, pk)
     params = {**parametres(request), **anciens}
-    for cle in ('sejour', 'repas', 'origine_menage', 'origine_sejour', 'origine_repas', 'prise', 'date_service', 'prevision'):
+    for cle in ('sejour', 'repas', 'origine_menage', 'origine_sejour', 'origine_repas', 'prise', 'date_service', 'prevision', *dossier.CLES_SOCIALES):
         if cle in request.GET:
             params[cle] = request.GET[cle][:40]
+    from . import condition_sociale
+    condition_vue, condition_jour = condition_sociale.selection(request, prise, params)
+    if 'vue_sociale' in request.GET:
+        params['origines_sociales'] = '1' if request.GET.get('origines_sociales') == '1' else ''
+    params.update(vue_sociale=condition_vue, date_sociale=condition_jour.isoformat(),
+                  presentation_sociale=request.GET.get('presentation_sociale') or params.get('presentation_sociale') or 'integrale')
     origine = next((l.menage for l in liens if nature == 'personne' and str(l.menage_id) == params.get('origine_menage')), None)
     # Un bénéficiaire peut être suivi indépendamment de ses appartenances.
     if nature == 'personne' and origine is None and request.user.has_perms(dossier.DROITS):
@@ -233,7 +239,7 @@ def detail(request, nature, pk, prise_pk=None):
         repas_par_prise[r_accord.accompagnement_id].append(r_accord)
     for a in periodes:
         a.navigation = signer(request, a, nature, pk, params)
-        a.url_prise = reverse('dossiers:prise', args=[nature, pk, a.pk]) + '?' + urlencode(params)
+        a.url_prise = reverse('dossiers:prise', args=[nature, pk, a.pk]) + '?' + urlencode({k: v for k, v in params.items() if prise or k not in dossier.CLES_SOCIALES})
         a.url_prolonger = reverse('dossiers:prolonger_prise', args=[nature, pk, a.pk]) + '?' + urlencode(params)
         a.resume_prestations = bd6.resume_prestations(a, sejours_par_prise[a.pk], repas_par_prise[a.pk], jour, lieux)
         attendus = [x for x in prevus if x.accompagnement_id == a.pk]
@@ -270,9 +276,7 @@ def detail(request, nature, pk, prise_pk=None):
         from .models import NotePartagee
         notes_actuelles = NotePartagee.objects.filter(accompagnement=actuelle).select_related('auteur').order_by('-cree_le', '-pk')[:3]
     retour = reverse('accueil') + '?' + urlencode({k: params[k] for k in ('q', 'mode', 'page')})
-    origine_url = reverse('dossiers:detail', args=['menage', origine.pk]) + '?' + urlencode({**params, 'sejour': params.get('origine_sejour', params['sejour']), 'repas': params.get('origine_repas', params['repas'])}) if origine else ''
-    from . import condition_sociale
-    condition_vue, condition_jour = condition_sociale.selection(request, prise)
+    origine_url = reverse('dossiers:detail', args=['menage', origine.pk]) + '?' + urlencode({**params, 'vue_sociale': 'date' if condition_vue in ('entree', 'fin') else condition_vue, 'sejour': params.get('origine_sejour', params['sejour']), 'repas': params.get('origine_repas', params['repas'])}) if origine else ''
     personnes_sociales = list(prise.beneficiaires.all()) if prise else [objet] if nature == 'personne' else list({l.personne_id: l.personne for l in liens if l.debut <= condition_jour and (l.fin is None or l.fin > condition_jour)}.values())
     condition_personnes, condition_projets = condition_sociale.presentation(
         request, personnes_sociales, condition_jour, objet, nature, prise, params)
@@ -299,14 +303,14 @@ def detail(request, nature, pk, prise_pk=None):
         'condition_contextes': condition_sociale.contextes(request.user, personnes_sociales),
         'condition_documents_url': reverse('dossiers:pieces', args=['accompagnement' if prise else nature, prise.pk if prise else pk]) + '?' + urlencode({'contexte_dossier': prise.navigation['contexte_dossier']} if prise else params),
         'condition_vue': condition_vue, 'condition_jour': condition_jour,
-        'condition_integrale': request.GET.get('presentation_sociale', 'integrale') != 'synthese',
-        'condition_origines': request.GET.get('origines_sociales') == '1',
+        'condition_integrale': params.get('presentation_sociale') != 'synthese',
+        'condition_origines': params.get('origines_sociales') == '1',
         'condition_composition': [l for l in liens if l.debut <= condition_jour and (l.fin is None or l.fin > condition_jour)],
         'prise': prise, 'demande_origine':demande_origine, 'lecture_interventions': lecture_interventions, 'interventions_courantes': interventions_courantes,
-        'parametres_navigation': {k: v for k, v in params.items() if k not in ('prise', 'ecran', 'accompagnement')}, 'selection_prise': selection_prise, 'commentaires': commentaires, 'commentaire': commentaires[0] if commentaires else None,
+        'parametres_navigation': {k: v for k, v in params.items() if k not in ('prise', 'ecran', 'accompagnement', *dossier.CLES_SOCIALES)}, 'selection_prise': selection_prise, 'commentaires': commentaires, 'commentaire': commentaires[0] if commentaires else None,
         'url_trajectoire': reverse('dossiers:trajectoire', args=[nature, pk]) + '?' + urlencode({**{k:v for k,v in params.items() if k not in ('prise', 'ecran')}, **({'prise':str(prise.pk), 'retour_prise':str(prise.pk)} if prise else {})}),
         'date_sociale': date_sociale,
-        'retour_form2': reverse('dossiers:detail', args=[nature, pk]) + '?' + urlencode({**params, 'ecran': 'dossier'}),
+        'retour_form2': reverse('dossiers:detail', args=[nature, pk]) + '?' + urlencode({**params, 'ecran': 'dossier', 'vue_sociale': 'date' if condition_vue in ('entree', 'fin') else condition_vue}),
         'arrivees_annulees':arrivees_annulees,
         'evolutions': prise.evolutions_prevision.select_related('auteur') if prise and request.user.has_perm('personnes.view_evolutionpriseencharge') else [],
         'objet': objet, 'nature': nature, 'liens': liens, 'liens_uniques': liens_uniques.values(), 'contact_designe': contact_designe,

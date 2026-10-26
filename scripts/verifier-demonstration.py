@@ -126,7 +126,7 @@ def verifier():
                  "from django.contrib.sessions.models import Session; from django.utils import timezone; "
                  "Session.objects.create(session_key='session-fictive',session_data='fictif',expire_date=timezone.now())")
         def signature(dossier):
-            return json.loads(commande('dumpdata', 'personnes', 'identites.Utilisateur', dossier=dossier))
+            return json.loads(commande('dumpdata', '--all', 'personnes', 'identites.Utilisateur', dossier=dossier))
         avant = signature(source)
         copie = racine/'copie-privee.zip'
         commande('sauvegarder_paquet', str(copie))

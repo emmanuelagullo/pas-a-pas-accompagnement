@@ -119,6 +119,21 @@ class Periode(models.Model):
             raise ValidationError({"fin": "La fin doit être postérieure au début."})
 
 
+class ChronologiesActives(models.Manager):
+    """La consultation ordinaire exclut les changements retirés, jamais détruits."""
+    def get_queryset(self):
+        return super().get_queryset().filter(retire_le__isnull=True)
+
+
+class PeriodeRetirable(Periode):
+    retire_le = models.DateTimeField(null=True, blank=True, editable=False)
+    objects = ChronologiesActives()
+    tous = models.Manager()
+
+    class Meta:
+        abstract = True
+
+
 class Appartenance(Periode):
     menage = models.ForeignKey(Menage, on_delete=models.PROTECT, related_name="appartenances")
     personne = models.ForeignKey(Personne, on_delete=models.PROTECT, related_name="appartenances")
@@ -623,7 +638,7 @@ class EvolutionPriseEnCharge(models.Model):
         ordering = ["-enregistre_le", "-pk"]
 
 
-class SituationPersonnelle(Periode):
+class SituationPersonnelle(PeriodeRetirable):
     """Fait social daté par personne, indépendant des prises en charge."""
     personne = models.ForeignKey(Personne, on_delete=models.PROTECT, related_name="situations_personnelles")
     dimension = models.CharField(max_length=20, choices=SituationSociale.DIMENSIONS)
@@ -633,11 +648,13 @@ class SituationPersonnelle(Periode):
     enregistre_le = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        base_manager_name = "tous"
+        default_manager_name = "objects"
         ordering = ["debut", "pk"]
         constraints = [
             models.CheckConstraint(condition=models.Q(fin__isnull=True) | models.Q(fin__gt=models.F("debut")), name="situation_personnelle_periode"),
-            models.UniqueConstraint(fields=["personne", "dimension", "debut"], name="situation_personnelle_date_unique"),
-            models.UniqueConstraint(fields=["personne", "dimension"], condition=models.Q(fin__isnull=True), name="situation_personnelle_ouverte_unique"),
+            models.UniqueConstraint(fields=["personne", "dimension", "debut"], condition=models.Q(retire_le__isnull=True), name="situation_personnelle_date_unique"),
+            models.UniqueConstraint(fields=["personne", "dimension"], condition=models.Q(fin__isnull=True, retire_le__isnull=True), name="situation_personnelle_ouverte_unique"),
         ]
 
     def clean(self):
@@ -654,7 +671,7 @@ class SituationPersonnelle(Periode):
 class RevisionSituationPersonnelle(models.Model):
     personne = models.ForeignKey(Personne, on_delete=models.PROTECT)
     situation = models.ForeignKey(SituationPersonnelle, on_delete=models.PROTECT, related_name="revisions")
-    action = models.CharField(max_length=20, choices=[("changement", "Changement réel"), ("insertion", "Fait antérieur oublié"), ("correction", "Correction d’une erreur")])
+    action = models.CharField(max_length=20, choices=[("changement", "Changement réel"), ("insertion", "Fait antérieur oublié"), ("correction", "Correction d’une erreur"), ("retrait", "Changement retiré")])
     avant = models.JSONField(default=list)
     apres = models.JSONField(default=list)
     motif = models.CharField(max_length=240, blank=True)
@@ -684,7 +701,7 @@ class CommentaireDossier(models.Model):
             models.Q(personne__isnull=True, menage__isnull=True, accompagnement__isnull=False)), name="commentaire_cible_unique")]
 
 
-class DeclarationFamiliale(Periode):
+class DeclarationFamiliale(PeriodeRetirable):
     """Déclarations individuelles, jamais déduites des appartenances au ménage."""
     personne = models.ForeignKey(Personne, on_delete=models.PROTECT, related_name='declarations_familiales')
     situation_familiale = models.CharField('Situation familiale déclarée', max_length=160, blank=True)
@@ -698,11 +715,13 @@ class DeclarationFamiliale(Periode):
     enregistre_le = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        base_manager_name = "tous"
+        default_manager_name = "objects"
         ordering = ['-debut', '-pk']
         constraints = [
             models.CheckConstraint(condition=models.Q(fin__isnull=True) | models.Q(fin__gt=models.F('debut')), name='famille_periode_valide'),
-            models.UniqueConstraint(fields=['personne', 'debut'], name='famille_date_unique'),
-            models.UniqueConstraint(fields=['personne'], condition=models.Q(fin__isnull=True), name='famille_ouverte_unique'),
+            models.UniqueConstraint(fields=['personne', 'debut'], condition=models.Q(retire_le__isnull=True), name='famille_date_unique'),
+            models.UniqueConstraint(fields=['personne'], condition=models.Q(fin__isnull=True, retire_le__isnull=True), name='famille_ouverte_unique'),
         ]
 
     @property
@@ -718,7 +737,7 @@ class DeclarationFamiliale(Periode):
 class RevisionDeclarationFamiliale(models.Model):
     personne = models.ForeignKey(Personne, on_delete=models.PROTECT)
     declaration = models.ForeignKey(DeclarationFamiliale, on_delete=models.PROTECT, related_name='revisions')
-    action = models.CharField(max_length=20, choices=[('changement', 'Changement réel'), ('insertion', 'Fait antérieur oublié'), ('correction', 'Correction d’une erreur')])
+    action = models.CharField(max_length=20, choices=[('changement', 'Changement réel'), ('insertion', 'Fait antérieur oublié'), ('correction', 'Correction d’une erreur'), ('retrait', 'Changement retiré')])
     avant = models.JSONField(default=list)
     apres = models.JSONField(default=list)
     motif = models.CharField(max_length=240, blank=True)
@@ -729,7 +748,7 @@ class RevisionDeclarationFamiliale(models.Model):
         ordering = ['-enregistre_le', '-pk']
 
 
-class CoordonneesPersonnelles(Periode):
+class CoordonneesPersonnelles(PeriodeRetirable):
     personne = models.ForeignKey(Personne, on_delete=models.PROTECT, related_name='coordonnees')
     usage_adresse = models.CharField('Nature de l’adresse déclarée',max_length=20,blank=True,choices=[('','Non qualifiée'),('contact','Adresse de contact déclarée'),('domicile_fixe','Domicile fixe déclaré'),('dernier_fixe','Dernier domicile fixe déclaré'),('autre','Autre adresse déclarée')])
     rue = models.CharField('Adresse déclarée — rue et complément', max_length=240, blank=True)
@@ -744,11 +763,13 @@ class CoordonneesPersonnelles(Periode):
     enregistre_le = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        base_manager_name = "tous"
+        default_manager_name = "objects"
         ordering = ['-debut', '-pk']
         constraints = [
             models.CheckConstraint(condition=models.Q(fin__isnull=True) | models.Q(fin__gt=models.F('debut')), name='coordonnees_periode_valide'),
-            models.UniqueConstraint(fields=['personne', 'debut'], name='coordonnees_date_unique'),
-            models.UniqueConstraint(fields=['personne'], condition=models.Q(fin__isnull=True), name='coordonnees_ouverte_unique'),
+            models.UniqueConstraint(fields=['personne', 'debut'], condition=models.Q(retire_le__isnull=True), name='coordonnees_date_unique'),
+            models.UniqueConstraint(fields=['personne'], condition=models.Q(fin__isnull=True, retire_le__isnull=True), name='coordonnees_ouverte_unique'),
         ]
 
     @property
@@ -790,7 +811,7 @@ class ContactMenage(Periode):
 class RevisionContactMenage(models.Model):
     menage = models.ForeignKey(Menage, on_delete=models.PROTECT)
     designation = models.ForeignKey(ContactMenage, on_delete=models.PROTECT, related_name='revisions')
-    action = models.CharField(max_length=20, choices=RevisionDeclarationFamiliale._meta.get_field('action').choices)
+    action = models.CharField(max_length=20, choices=[c for c in RevisionDeclarationFamiliale._meta.get_field('action').choices if c[0] != 'retrait'])
     avant = models.JSONField(default=list)
     apres = models.JSONField(default=list)
     motif = models.CharField(max_length=240, blank=True)
@@ -843,7 +864,7 @@ class FichePartenaire(Periode):
 class RevisionFichePartenaire(models.Model):
     partenaire = models.ForeignKey(Partenaire, on_delete=models.PROTECT)
     fiche = models.ForeignKey(FichePartenaire, on_delete=models.PROTECT, related_name='revisions')
-    action = models.CharField(max_length=20, choices=RevisionDeclarationFamiliale._meta.get_field('action').choices)
+    action = models.CharField(max_length=20, choices=[c for c in RevisionDeclarationFamiliale._meta.get_field('action').choices if c[0] != 'retrait'])
     avant = models.JSONField(default=list)
     apres = models.JSONField(default=list)
     motif = models.CharField(max_length=240, blank=True)
@@ -892,7 +913,7 @@ class FicheIntervenant(Periode):
 class RevisionFicheIntervenant(models.Model):
     intervenant = models.ForeignKey(Intervenant, on_delete=models.PROTECT)
     fiche = models.ForeignKey(FicheIntervenant, on_delete=models.PROTECT, related_name='revisions')
-    action = models.CharField(max_length=20, choices=RevisionDeclarationFamiliale._meta.get_field('action').choices)
+    action = models.CharField(max_length=20, choices=[c for c in RevisionDeclarationFamiliale._meta.get_field('action').choices if c[0] != 'retrait'])
     avant = models.JSONField(default=list)
     apres = models.JSONField(default=list)
     motif = models.CharField(max_length=240, blank=True)
@@ -970,7 +991,7 @@ class RevisionPropositionSaisie(models.Model):
         ordering = ['-enregistre_le', '-pk']
 
 
-class ComplementIdentite(Periode):
+class ComplementIdentite(PeriodeRetirable):
     personne = models.ForeignKey(Personne, on_delete=models.PROTECT, related_name='complements_identite')
     sexe_declare = models.CharField('Sexe déclaré', max_length=80, blank=True)
     naissance_lieu = models.CharField('Lieu de naissance (complément)', max_length=160, blank=True)
@@ -994,11 +1015,13 @@ class ComplementIdentite(Periode):
             raise ValidationError({'apatridie_declaree':'Une apatridie déclarée et une nationalité déclarée sont contradictoires.'})
 
     class Meta:
+        base_manager_name = "tous"
+        default_manager_name = "objects"
         ordering=['-debut','-pk']
         constraints=[
             models.CheckConstraint(condition=models.Q(fin__isnull=True)|models.Q(fin__gt=models.F('debut')),name='identite_complement_periode'),
-            models.UniqueConstraint(fields=['personne','debut'],name='identite_complement_date'),
-            models.UniqueConstraint(fields=['personne'],condition=models.Q(fin__isnull=True),name='identite_complement_ouvert')]
+            models.UniqueConstraint(fields=['personne','debut'],condition=models.Q(retire_le__isnull=True), name='identite_complement_date'),
+            models.UniqueConstraint(fields=['personne'],condition=models.Q(fin__isnull=True, retire_le__isnull=True),name='identite_complement_ouvert')]
 
 
 class RevisionComplementIdentite(models.Model):
@@ -1066,7 +1089,7 @@ class RevisionRelationPersonnelle(models.Model):
         ordering=['-enregistre_le','-pk']
 
 
-class SituationAdministrative(Periode):
+class SituationAdministrative(PeriodeRetirable):
     personne=models.ForeignKey(Personne,on_delete=models.PROTECT,related_name='situations_administratives')
     numero_ss=models.CharField('Identifiant de sécurité sociale déclaré',max_length=40,blank=True)
     numero_caf=models.CharField('Identifiant allocataire déclaré',max_length=80,blank=True)
@@ -1094,10 +1117,12 @@ class SituationAdministrative(Periode):
         if self.echeance_sejour and not self.droit_sejour:raise ValidationError({'droit_sejour':'Précisez la situation à laquelle se rapporte l’échéance.'})
 
     class Meta:
+        base_manager_name = "tous"
+        default_manager_name = "objects"
         ordering=['-debut','-pk']
         constraints=[models.CheckConstraint(condition=models.Q(fin__isnull=True)|models.Q(fin__gt=models.F('debut')),name='administration_periode'),
-            models.UniqueConstraint(fields=['personne','debut'],name='administration_date'),
-            models.UniqueConstraint(fields=['personne'],condition=models.Q(fin__isnull=True),name='administration_ouverte')]
+            models.UniqueConstraint(fields=['personne','debut'],condition=models.Q(retire_le__isnull=True), name='administration_date'),
+            models.UniqueConstraint(fields=['personne'],condition=models.Q(fin__isnull=True, retire_le__isnull=True),name='administration_ouverte')]
 
 
 class JournalPersonnel(models.Model):
@@ -1113,6 +1138,7 @@ class JournalPersonnel(models.Model):
 
 
 class RevisionSituationAdministrative(JournalPersonnel):
+    action = models.CharField(max_length=20, choices=[*JournalPersonnel._meta.get_field('action').choices, ('retrait', 'Changement retiré')])
     personne=models.ForeignKey(Personne,on_delete=models.PROTECT)
     situation=models.ForeignKey(SituationAdministrative,on_delete=models.PROTECT,related_name='revisions')
 

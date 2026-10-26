@@ -15,7 +15,17 @@ statut: "disponible"
 3. Une information ancienne peut être insérée rétroactivement dans sa chronologie. Vérifier les valeurs voisines avant confirmation.
 4. Si la donnée était fausse dès la saisie, utiliser **Corriger l’information héritée** ou **Corriger cette information** avec un motif, au lieu de créer un changement fictif. La correction porte sur la période de cette déclaration et peut modifier sa restitution dans d’autres prises en charge.
 
-Les déclarations héritées sont affichées en gris lisible. **Afficher les origines** révèle leur date et leur source. Pour les coordonnées et la famille, la déclaration regroupe plusieurs champs : sa couleur ne constitue pas un historique indépendant de chaque champ.
+Les valeurs héritées sont affichées en gris lisible. **Afficher les origines** révèle les déclarations dont elles proviennent. Dans une nouvelle déclaration de coordonnées, un téléphone modifié apparaît en texte principal et une adresse reprise de la déclaration précédente reste grise. Cela ne crée pas de lien permanent entre les champs de déclarations distinctes.
+
+Une correction ouverte depuis ce bloc affiche sa période et les entrées de prises en charge de cette période. Confirmer sa portée avant d’enregistrer. Si une modification de date change cette portée, le formulaire demande une nouvelle confirmation, sans enregistrer la première tentative.
+
+## Retirer un changement erroné
+
+Sur une déclaration commençant à la date consultée, **Retirer ce changement** propose de rétablir l’état antérieur continu, jusqu’au prochain changement connu. Sans état antérieur continu, la période devient **Non renseigné**. Le changement retiré et son journal sont conservés.
+
+L’aperçu précise les valeurs et la période rétablies. Pour les coordonnées, la famille, l’identité déclarée et la situation administrative, le retrait porte sur la déclaration complète de cette rubrique. Une cessation réelle se renseigne comme un nouveau changement ; elle ne se traite pas par un retrait.
+
+Les ressources détaillées, dettes, protections multiples et autres collections gardent leurs actions spécialisées. Leur annulation ne doit pas être confondue avec le retrait d’un changement dans une série à valeur unique.
 
 Le **Contexte de saisie facultatif** propose les motifs récents consultables du dossier. Il peut préremplir le motif des formulaires ouverts pendant la séance ; il ne remplace pas leurs sources ni leurs dates. Chaque rubrique s’enregistre séparément et conserve les autres valeurs proposées. Un conflit de version laisse la saisie visible : ne pas répéter aveuglément l’enregistrement.
 

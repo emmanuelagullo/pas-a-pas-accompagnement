@@ -1,0 +1,8 @@
+{% if condition_portee %}<section class="condition-portee" aria-label="Portée de la modification">
+<h4>{% if condition_portee.retrait %}Après retrait{% else %}Portée de la correction{% endif %}</h4>
+<p>Du <strong>{{ condition_portee.debut|date:'d/m/Y' }}</strong>{% if condition_portee.fin %} au <strong>{{ condition_portee.fin|date:'d/m/Y' }}</strong> exclu{% else %}, jusqu’au prochain changement connu{% endif %}.</p>
+{% if condition_portee.groupe %}<p>Cette opération porte sur la déclaration de cette rubrique, avec tous ses champs.</p>{% endif %}
+{% if condition_portee.retrait %}<dl>{% for label,valeur in condition_portee.retablissement %}<div><dt>{{ label }}</dt><dd>{{ valeur }}</dd></div>{% empty %}<dt>Situation rétablie</dt><dd>Non renseigné : aucun état antérieur continu.</dd>{% endfor %}</dl>{% endif %}
+{% if condition_portee.entrees != None %}<p>Entrées de prises en charge dans cette période : <strong>{{ condition_portee.entrees.nombre }}</strong>.</p><ul>{% for entree in condition_portee.entrees.entrees %}<li>{{ entree.debut|date:'d/m/Y' }} · {{ entree.menage }}</li>{% endfor %}</ul>{% if condition_portee.entrees.nombre > 10 %}<p>Seules les dix premières sont listées.</p>{% endif %}{% endif %}
+<p class="helptext">Les vues personnelles partagées sur cette période refléteront la modification. Les documents déjà émis restent inchangés.</p>
+</section>{% endif %}

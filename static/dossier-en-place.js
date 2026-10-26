@@ -19,6 +19,9 @@
   }
   async function charger(url, boite, options = {}) {
     if (occupe || !locale(url)) return;
+    if (!document.dispatchEvent(new Event('condition:disponible', {cancelable: true}))) {
+      etat('Terminez ou annulez la saisie de la situation sociale avant de changer de prestation.'); return;
+    }
     occupe = true;
     etat('Chargement…');
     boite?.setAttribute('aria-busy', 'true');
@@ -42,6 +45,7 @@
         retour = reponse.url;
         history.replaceState(null, '', retour);
         modifie = false; boiteActive = null;
+        document.dispatchEvent(new Event('dossier:actualise'));
         scrollTo(0, y);
         const selection = document.querySelector(`${new URL(retour).hash || '[data-dossier-form2]'} [aria-current="true"]`);
         selection?.focus({preventScroll: true});
@@ -81,6 +85,11 @@
   document.addEventListener('input', e => {
     if (e.target.hasAttribute?.('data-periode-dossier')) return;
     if (e.target.closest('.operation-en-place form')) modifie = true;
+  });
+  document.addEventListener('dossier:disponible', e => {
+    if (occupe || boiteActive) {
+      e.preventDefault(); etat('Terminez ou annulez l’action de prestation avant de modifier la situation sociale.');
+    }
   });
   document.addEventListener('change', e => {
     const select = e.target.closest('select[data-periode-dossier]');

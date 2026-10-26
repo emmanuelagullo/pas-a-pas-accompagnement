@@ -6,8 +6,7 @@ module.exports = async function verifierParcoursMetier(app) {
   await app.getByText('Résultats actualisés.', {exact:true}).waitFor();
   await cliquerLienPwa(app.locator('#resultats-dossiers ul.resultats-dossiers').getByRole('link', {name:/Thomas — Établissement Les Passerelles \(fictif\)/}));
   await app.getByRole('heading', {name:/Dossier — Thomas/}).waitFor();
-  await app.getByText('Composition du ménage et changements', {exact:true}).click();
-  await cliquerLienPwa(app.locator('nav[aria-label="Dossiers liés"] a').first());
+  await cliquerLienPwa(app.locator('.condition-personne').first().getByRole('link', {name:'Dossier individuel', exact:true}));
   await cliquerLienPwa(app.getByRole('link', {name:/Revenir au ménage/}));
   // Commentaire append-only dans le dossier, avant d’ouvrir sa prise.
   await cliquerLienPwa(app.locator('.bd-commentaire').getByRole('link', {name:'Modifier', exact:true}));
@@ -38,9 +37,8 @@ module.exports = async function verifierParcoursMetier(app) {
   await hebergement.getByRole('button', {name:'Enregistrer l’arrivée', exact:true}).click();
   await app.getByText('Dossier actualisé.', {exact:true}).waitFor();
   await app.getByText('Prévu — arrivée à confirmer', {exact:true}).waitFor({state:'hidden'});
-  const historique = app.locator('details').filter({has: app.locator('summary').filter({hasText: /^Historique de la prise en charge$/})});
-  await historique.locator('summary').click();
-  await cliquerLienPwa(historique.getByRole('link', {name:'Situation et parcours sociaux', exact:true}));
+  const historique = app.locator('.bd-dossier');
+  await cliquerLienPwa(historique.getByRole('link', {name:'Informations conservées des anciens suivis', exact:true}));
   await app.getByRole('heading', {name:/Situation et parcours sociaux — Thomas/}).waitFor();
   await cliquerLienPwa(app.getByRole('link', {name:'Corriger cet événement', exact:true}));
   // L’événement social reste un texte simple ; seuls les commentaires et
@@ -52,8 +50,7 @@ module.exports = async function verifierParcoursMetier(app) {
   await app.locator('[name=motif]').fill('Correction fictive du parcours navigateur');
   await cliquerLienPwa(app.getByRole('button', {name:'Enregistrer', exact:true}));
   await app.getByRole('heading', {name:/Prise en charge du/}).waitFor();
-  await historique.locator('summary').click();
-  await cliquerLienPwa(historique.getByRole('link', {name:'Consulter l’avant/après des corrections', exact:true}));
+  await cliquerLienPwa(historique.getByRole('link', {name:'Historique des corrections', exact:true}));
   await app.getByText('Correction fictive du parcours navigateur', {exact:false}).waitFor();
   await app.getByText('Installation dans un logement autonome fictif.', {exact:false}).waitFor();
   await cliquerLienPwa(app.getByRole('link', {name:'Travail du jour', exact:true}));

@@ -1,0 +1,14 @@
+<ul class="condition-menu">
+  <li><a href="#note-dossier">Texte libre</a></li>
+  <li><a href="#documents-dossier">Documents</a></li>
+  <li><a href="#condition-sociale">Situation sociale et projet</a>
+    <ul>
+      {% if nature == 'menage' %}<li><a href="#condition-composition">Composition du ménage</a></li>{% endif %}
+      {% for p in condition_personnes %}<li class="condition-person-nav{% if forloop.first %} is-current{% endif %}" data-person-nav="{{ p.ancre }}"><a href="#{{ p.ancre }}">{{ p.personne }}</a>
+        <ul class="condition-rubriques">{% for groupe in p.groupes %}<li><a href="#{{ groupe.ancre }}">{{ groupe.titre }}</a></li>{% endfor %}</ul>
+      </li>{% endfor %}
+      <li><a href="#projet">Projet et parcours</a></li>
+    </ul>
+  </li>
+  <li>{% if prise %}<a href="#titre-prestations">Prestations</a>{% else %}<a href="#prises">Prises en charge</a>{% endif %}</li>
+</ul>

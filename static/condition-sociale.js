@@ -1,12 +1,35 @@
 /* Un formulaire métier à la fois ; aucun enregistrement implicite. */
 (() => {
-  const root = document.querySelector('[data-condition-sociale]');
+  let root = document.querySelector('[data-condition-sociale]');
   if (!root) return;
   let status = root.querySelector('[data-condition-statut]');
   let active = null, dirty = false, busy = false;
+  let navigationObserver = null;
+  function indiquerPosition(target) {
+    const person = target.closest('.condition-personne');
+    document.querySelectorAll('[data-person-nav]').forEach(item => {
+      item.classList.toggle('is-current', Boolean(person && item.dataset.personNav === person.id));
+    });
+    document.querySelectorAll('.condition-menu a').forEach(link => {
+      if (link.hash === '#' + target.id) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
+    });
+  }
+  function observerNavigation() {
+    navigationObserver?.disconnect();
+    if (!window.IntersectionObserver) return;
+    navigationObserver = new IntersectionObserver(entries => {
+      const visible = entries.filter(entry => entry.isIntersecting).sort((a, b) => Math.abs(a.boundingClientRect.top) - Math.abs(b.boundingClientRect.top));
+      if (visible.length) indiquerPosition(visible[0].target);
+    }, { rootMargin: '-8% 0px -65% 0px' });
+    document.querySelectorAll('.condition-groupe[id],.condition-personne[id],#condition-composition,#projet,#note-dossier,#documents-dossier,#prises,#titre-prestations').forEach(element => navigationObserver.observe(element));
+  }
   const tell = text => { status.textContent = text; };
   const headers = { 'X-Condition-Form': '1' };
   async function evolution(url) {
+    busy = true;
+    tell('Chargement de l’évolution…');
+    try {
     const response = await fetch(url, { headers: { 'X-Condition-Evolution': '1' }, credentials: 'same-origin' });
     if (!response.ok) throw new Error('Évolution indisponible.');
     const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
@@ -16,6 +39,8 @@
     panel.replaceChildren(content); panel.hidden = false;
     root.querySelector('[data-condition-situation]').hidden = true;
     root.querySelector('[data-condition-revenir]').setAttribute('aria-pressed', 'false');
+    tell('');
+    } finally { busy = false; }
   }
   function close() { if (active) active.replaceChildren(); active = null; dirty = false; }
   function install(html, target) {
@@ -30,7 +55,10 @@
     if (field) field.focus({ preventScroll: true });
     target.dispatchEvent(new Event('condition:form', { bubbles: true }));
   }
-  root.addEventListener('click', async event => {
+  document.addEventListener('click', async event => {
+    const currentRoot = event.target.closest('[data-condition-sociale]');
+    if (!currentRoot) return;
+    root = currentRoot; status = root.querySelector('[data-condition-statut]');
     if (busy && event.target.closest('[data-condition-annuler],[data-condition-modifier],[data-condition-evolution],[data-condition-revenir]')) {
       event.preventDefault(); return;
     }
@@ -56,8 +84,10 @@
     if (!link || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
     if (busy) return;
+    if (!document.dispatchEvent(new Event('dossier:disponible', { cancelable: true }))) {
+      tell('Terminez ou annulez l’action de prestation avant de modifier la situation sociale.'); return;
+    }
     if (dirty && !confirm('Abandonner les modifications non enregistrées avant de changer de rubrique ?')) return;
-    if (link.hasAttribute('data-condition-correction') && !confirm('Corriger cette information sur sa période existante ? Les autres prises en charge utilisant cette période refléteront aussi la correction.')) return;
     const target = link.closest('[data-condition-groupe]').querySelector('[data-condition-formulaire]');
     close(); busy = true;
     tell('Chargement du formulaire…');
@@ -69,11 +99,15 @@
     } catch (error) { tell(error.message); }
     finally { busy = false; }
   });
-  root.addEventListener('input', event => { if (event.target.closest('[data-condition-form]')) dirty = true; });
-  root.addEventListener('change', event => { if (event.target.closest('[data-condition-form]')) dirty = true; });
-  root.addEventListener('submit', async event => {
+  document.addEventListener('input', event => { if (event.target.closest('[data-condition-form]')) dirty = true; });
+  document.addEventListener('change', event => { if (event.target.closest('[data-condition-form]')) dirty = true; });
+  document.addEventListener('submit', async event => {
+    const currentRoot = event.target.closest('[data-condition-sociale]');
+    if (!currentRoot) return;
+    root = currentRoot; status = root.querySelector('[data-condition-statut]');
     if (event.target.closest('[data-condition-trajectoire]')) {
       event.preventDefault();
+      if (busy) return;
       const url = new URL(event.target.action, location.href);
       url.search = new URLSearchParams(new FormData(event.target)).toString();
       try { await evolution(url); } catch (error) { tell(error.message); }
@@ -108,11 +142,23 @@
         // Recharger les valeurs et jetons après chaque écriture, sans perdre le
         // contexte d'entretien ni réutiliser un ancien formulaire périmé.
         root.innerHTML = fresh.innerHTML;
+        // Les en-têtes restent non éditables, mais reflètent aussitôt une
+        // correction d'identité enregistrée dans la condition sociale.
+        for (const selector of ['.bd-dossier > .bd-titre', '.bd-dossier > .bd-chemin', '.condition-sommaire', '.condition-menu-mobile']) {
+          const oldElement = document.querySelector(selector);
+          const newElement = doc.querySelector(selector);
+          if (oldElement && newElement) {
+            const opened = oldElement.tagName === 'DETAILS' && oldElement.open;
+            oldElement.replaceWith(newElement);
+            if (opened) newElement.open = true;
+          }
+        }
         root.querySelector('[data-condition-contexte]').value = context;
         const newStatus = root.querySelector('[data-condition-statut]');
         newStatus.textContent = 'Modification enregistrée ; les autres informations sont conservées.';
         status = newStatus;
         active = null;
+        observerNavigation();
         if (anchor) document.getElementById(anchor)?.scrollIntoView({ block: 'nearest' });
       } else {
         const html = await response.text();
@@ -123,10 +169,27 @@
     finally { controls.forEach(control => { control.disabled = false; }); button.disabled = false; busy = false; }
   });
   document.addEventListener('click', event => {
-    const link = event.target.closest('.condition-sommaire a');
+    const link = event.target.closest('.condition-menu a');
     if (!link) return;
-    document.querySelectorAll('.condition-sommaire a').forEach(a => a.removeAttribute('aria-current'));
-    link.setAttribute('aria-current', 'location');
+    const target = document.getElementById(link.hash.slice(1));
+    if (target) indiquerPosition(target);
+    const mobile = link.closest('.condition-menu-mobile');
+    if (mobile) mobile.open = false;
   });
-  window.addEventListener('beforeunload', event => { if (dirty) { event.preventDefault(); event.returnValue = ''; } });
+  observerNavigation();
+  document.addEventListener('condition:disponible', event => {
+    if (active || busy) {
+      event.preventDefault(); tell('Terminez ou annulez la saisie de la situation sociale avant de changer de prestation.');
+    }
+  });
+  document.addEventListener('dossier:actualise', () => {
+    const contexte = root.querySelector('[data-condition-contexte]')?.value || '';
+    root = document.querySelector('[data-condition-sociale]');
+    if (!root) return;
+    status = root.querySelector('[data-condition-statut]');
+    root.querySelector('[data-condition-contexte]').value = contexte;
+    active = null; dirty = false;
+    observerNavigation();
+  });
+  window.addEventListener('beforeunload', event => { if (dirty || busy) { event.preventDefault(); event.returnValue = ''; } });
 })();

@@ -92,3 +92,50 @@ class ConditionSocialeTests(TestCase):
             condition_sociale.presentation(request, personnes, date(2026, 10, 10), self.m, 'menage', None, {})
         self.assertLessEqual(len(quatre), len(un) + 2)
         self.assertLessEqual(len(quatre), 35)
+
+    def test_champs_repris_restent_herites_et_ancres_uniques(self):
+        valeurs = {c: '' for c in coordonnees.CHAMPS}
+        valeurs.update(ville='Bordeaux', telephone='ancien')
+        coordonnees.renseigner(self.u, self.p, date(2026, 9, 1), 'Entretien ancien', bd6.jeton(self.p), **valeurs)
+        coordonnees.renseigner(self.u, self.p, date(2026, 10, 10), 'Entretien nouveau', bd6.jeton(self.p), **{**valeurs, 'telephone': 'nouveau'})
+        page = self.client.get(self.url)
+        groupes = page.context['condition_personnes'][0]['groupes']
+        fiche = next(g for g in groupes if g['code'] == 'coordonnees')['fiches'][0]
+        champs = {str(c['label']): c for c in fiche['champs']}
+        self.assertTrue(champs['Ville']['herite'])
+        self.assertFalse(champs['Téléphone']['herite'])
+        self.assertEqual(champs['Ville']['origine'], date(2026, 9, 1))
+        self.assertEqual(len({g['ancre'] for g in groupes}), len(groupes))
+        self.assertContains(page, 'condition-menu-mobile')
+        self.assertContains(page, 'condition-person-nav')
+
+    def test_origines_et_autocompletion_ne_lisent_pas_rubrique_interdite(self):
+        from django.contrib.auth.models import Permission
+        lecteur = get_user_model().objects.create_user('lecture-minimale-fictive')
+        lecteur.user_permissions.add(Permission.objects.get(codename='view_personne'))
+        self.client.force_login(lecteur)
+        url = reverse('dossiers:detail', args=['personne', self.p.pk])
+        page = self.client.get(url)
+        self.assertEqual([g['code'] for g in page.context['condition_personnes'][0]['groupes']], ['identite'])
+        self.assertEqual(page.context['condition_contextes'], [])
+
+    def test_contexte_signe_conserve_vue_et_retours_sans_dupliquer_selecteurs(self):
+        from urllib.parse import urlparse, parse_qs
+        page = self.client.get(self.url, {'vue_sociale': 'date', 'date_sociale': '2026-10-12',
+            'presentation_sociale': 'synthese', 'origines_sociales': '1'})
+        token = page.context['prise'].navigation['contexte_dossier']
+        retour = self.client.get(self.url, {'contexte_dossier': token})
+        self.assertEqual(retour.context['condition_jour'], date(2026, 10, 12))
+        self.assertFalse(retour.context['condition_integrale'])
+        self.assertTrue(retour.context['condition_origines'])
+        self.assertNotIn('vue_sociale', retour.context['parametres_navigation'])
+        self.assertNotIn('origines_sociales', retour.context['parametres_navigation'])
+        racine = reverse('dossiers:detail', args=['menage', self.m.pk])
+        dossier = self.client.get(racine, {'vue_sociale': 'date', 'date_sociale': '2026-10-12'})
+        prise_url = dossier.context['periodes'][0].url_prise
+        self.assertNotIn('vue_sociale', parse_qs(urlparse(prise_url).query))
+        self.assertEqual(self.client.get(prise_url).context['condition_vue'], 'entree')
+        entree = self.client.get(self.url)
+        self.assertEqual(self.client.get(entree.context['retour_form2']).status_code, 200)
+        individuel = entree.context['condition_personnes'][0]['url_dossier']
+        self.assertEqual(self.client.get(individuel).context['condition_jour'], self.a.debut)

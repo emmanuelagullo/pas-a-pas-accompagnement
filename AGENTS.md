@@ -450,3 +450,18 @@ des faits personnels datés. Ne pas exposer un retrait générique sans traiter 
 continuité, les références et la copie restaurée. Tester
 `personnes.tests_condition_sociale`, les histoires personnelles, interventions,
 parcours et trajectoire. Lire ERGONOMIE-CONDITION-SOCIALE.md pour les limites du lot.
+
+BD-SOLENNE-02 : les cinq séries personnelles retirables conservent leurs lignes
+et journaux ; `objects` les exclut après retrait, `tous` et le gestionnaire de
+base les conservent. Les copies physiques restent complètes ; employer
+`dumpdata --all` pour un export technique intégral. Ne pas contourner ce contrat
+dans une nouvelle jointure brute. Un retrait rétablit uniquement un précédent
+continu, conserve la borne suivante et peut laisser « non renseigné ». Les
+collections et décisions liées ne sont pas des séries à valeur unique.
+La portée des corrections est confirmée côté serveur et liée aux bornes ;
+les droits et le CAS restent indépendants. La couleur d'un champ repris ne
+constitue pas une filiation persistante entre déclarations distinctes.
+Préserver les événements de coordination entre édition sociale et prestations,
+le contexte de retour signé et les en-têtes non éditables réactualisés.
+Tester `personnes.tests_retraits_chronologiques`,
+`personnes.tests_condition_sociale` et les histoires/migrations existantes.
