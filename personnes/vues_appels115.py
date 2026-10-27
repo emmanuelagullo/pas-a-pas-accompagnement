@@ -82,6 +82,15 @@ def journal(request):
     from .forms_exploration import AppelsRechercheForm
     f=AppelsRechercheForm(donnees);lignes=[]
     if f.is_valid():lignes=selection_appels(request.user,f.cleaned_data,personne=request.GET.get('personne'),menage=request.GET.get('menage'))
+    if request.GET.get('format')=='csv' and f.is_valid():
+        import csv
+        from .exports import cellule_csv
+        r=HttpResponse(content_type='text/csv; charset=utf-8');r['Content-Disposition']='attachment; filename="appels-115.csv"'
+        w=csv.writer(r,delimiter=';');w.writerow(['appel_id','date','heure','demande_principale','type_appelant','etat_reponse','annule'])
+        for x in lignes:
+            a,v=x['appel'],x['version']
+            w.writerow([cellule_csv(c) for c in [a.pk,v.date,v.heure or '',v.motif_principal,v.get_type_appelant_display(),v.get_etat_reponse_display(),'oui' if a.annule_le else 'non']])
+        r['Cache-Control']='private, no-store';return r
     page=Paginator(lignes,25).get_page(request.GET.get('page'));p=navigation(request);ctx,q,retour=contexte(request)
     return TemplateResponse(request,'appels115/journal.html',{'form':f,'page_obj':page,'query':q,'query_rapport':request.GET.urlencode(),'retour':retour,'nav_params':{k:v for k,v in p.items() if k not in f.fields and k!='page'},**ctx})
 

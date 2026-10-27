@@ -38,7 +38,7 @@
 {% endif %}
 {% if rapport != "ages" %}<label><input type="checkbox" name="comparer" value="1" {% if comparer %}checked{% endif %}> Comparer avec la période précédente de même durée</label>{% endif %}
 <button type="submit">Calculer</button></form>
-{% if modele_actif %}<p>Modèle affiché : <strong>{{ modele_actif.nom }}</strong>. Toute modification des filtres crée une consultation indépendante ; le modèle enregistré reste inchangé.</p>{% endif %}
+{% if modele_actif %}<p>Accès utilisé : <strong>{{ modele_actif.nom }}</strong>. Toute modification des filtres crée une consultation indépendante ; le modèle enregistré reste inchangé.</p>{% endif %}
 
 {% if erreur_comparaison %}<p role="alert">{{ erreur_comparaison }}</p>{% endif %}
 {% if comparaison != None %}
@@ -99,31 +99,10 @@
 <tbody>{% for ligne in evolution %}<tr><th scope="row">{{ ligne.mois }}</th><td>{{ ligne.admissions }}</td><td>{{ ligne.sorties }}</td><td>{{ ligne.nuitees_theoriques }}</td><td>{{ ligne.repas_distribues }}</td></tr>{% endfor %}</tbody></table>
 {% endif %}
 <p>Les populations distinctes mensuelles ne sont pas additives : une personne peut être comptée sur plusieurs mois.</p>{% endif %}
-<form method="get">{% include 'rapports/_contexte.html' %}
-<input type="hidden" name="rapport" value="{{ rapport }}">
-<input type="hidden" name="service" value="{{ service_choisi }}">
-<input type="hidden" name="lieu" value="{{ lieu_choisi }}">
-<input type="hidden" name="regroupement" value="{{ regroupement }}">
-<input type="hidden" name="debut" value="{{ debut_iso }}">
-<input type="hidden" name="fin" value="{{ fin_iso }}">
-{% if comparer %}<input type="hidden" name="comparer" value="1">{% endif %}
-{% if periode_choisie %}<input type="hidden" name="periode" value="{{ periode_choisie }}">{% endif %}
-<button type="submit" name="format" value="csv">Exporter ce rapport (CSV)</button>
-</form></section>
+</section>
 <p>Attention : les nuitées ne prouvent pas une présence physique. Les nuitées théoriques ne déduisent pas les absences et les séjours simultanés peuvent être comptés plusieurs fois. Les nuits hors absences déclarées ne prouvent pas non plus une présence effective. Les repas accordés ne sont pas des repas distribués.</p>
 {% endif %}
 
 <details><summary>Définitions générales des indicateurs</summary><p>Les admissions et sorties comptent des séjours, pas des ménages : les nouveaux séjours sont individuels, les anciens séjours collectifs restent comptés comme un seul séjour. Les nuitées restent calculées par bénéficiaire.</p>
 </details>
-<details class="carte"><summary>Mes modèles de rapports</summary>
-<p>Un modèle peut conserver une période fixe ou une période relative recalculée à chaque ouverture. Les modèles sont personnels et mémorisent les filtres, pas les résultats. Les chiffres sont recalculés à chaque consultation.</p>
-<ul>{% for modele in modeles_rapports %}<li><a href="{% url 'statistiques' %}?modele={{ modele.pk }}">{{ modele.nom }}</a>{% if modele_actif.pk == modele.pk %} <strong>(affiché)</strong>{% endif %}
-<a href="{% url 'dossiers:modele_gerer' modele.pk %}">Renommer ou dupliquer</a>
-<a href="{% url 'dossiers:modele_gerer' modele.pk %}">Supprimer avec confirmation</a></li>{% empty %}<li>Aucun modèle enregistré.</li>{% endfor %}</ul></details>
-{% if resultats != None and not composition_source %}<details><summary>Enregistrer cette configuration comme modèle</summary><form method="post" action="{% url 'statistiques_modele_ajouter' %}">
-{% csrf_token %}<label for="nom_modele">Nom du modèle</label><input id="nom_modele" name="nom" maxlength="100" value="{{ modele_gestion.nom }}" required>
-<input type="hidden" name="rapport" value="{{ rapport }}"><input type="hidden" name="debut" value="{{ debut_iso }}"><input type="hidden" name="fin" value="{{ fin_iso }}">
-<input type="hidden" name="service" value="{{ service_choisi }}"><input type="hidden" name="lieu" value="{{ lieu_choisi }}">
-<input type="hidden" name="regroupement" value="{{ regroupement }}">{% if periode_choisie %}<input type="hidden" name="periode" value="{{ periode_choisie }}">{% endif %}{% if comparer %}<input type="hidden" name="comparer" value="1">{% endif %}
-{% if modele_gestion %}<input type="hidden" name="attendu" value="{{ attendu_modele }}"><button type="submit" name="action" value="remplacer" formaction="{% url 'dossiers:modele_gerer' modele_gestion.pk %}">Remplacer explicitement « {{ modele_gestion.nom }} »</button><button type="submit">Enregistrer un second modèle</button>{% else %}<button type="submit">Enregistrer cette configuration</button>{% endif %}</form></details>{% endif %}
-{% if composition_source %}{% include 'rapports/_enregistrer.html' %}{% endif %}{% endblock %}
+{% include 'rapports/_conserver.html' with source='statistiques' %}{% endblock %}

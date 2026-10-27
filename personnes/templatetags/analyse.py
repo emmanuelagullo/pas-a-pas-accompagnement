@@ -1,4 +1,5 @@
 from django import template
+from django.core.exceptions import PermissionDenied
 from ..personnalisation_rapports import lien, limite_personnalisation as limite
 register=template.Library()
 
@@ -6,7 +7,7 @@ register=template.Library()
 def parametres_courants(context,source):
     request=context['request']
     params=request.GET.dict()
-    modele=context.get('modele_actif')
+    modele=context.get('modele_actif') or context.get('rapport_cible') or context.get('modele_cible')
     if modele:params=modele.parametres.copy()
     form=context.get('form') or context.get('formulaire')
     if form and form.is_bound:params.update({k:v for k,v in form.data.items()})
@@ -76,3 +77,39 @@ def composition_fidele(context,source):
     try:adapter(context['request'].user,source,params)
     except (ValidationError,PermissionDenied,Http404,ValueError,TypeError):return ''
     return lien(source,params)
+
+
+@register.simple_tag(takes_context=True)
+def conserver_reglages(context,source):
+    from django.core import signing
+    from django.urls import reverse
+    from urllib.parse import urlencode
+    params=parametres_courants(context,source)
+    params={k:str(v) if v is not None else '' for k,v in params.items() if k not in ('format','page','modele','modele_cible','attendu_modele','csrfmiddlewaretoken')}
+    if source not in ('exploration','statistiques'):
+        f=context.get('form') or context.get('formulaire')
+        if f is not None:params={k:v for k,v in params.items() if k in set(f.fields)|{'periode','decalage_debut','decalage_fin','personne','menage'}}
+    if source=='exploration':params.update(schema=1,exploration=True)
+    elif source!='statistiques':params['_rapport_source']=source
+    cible=context.get('rapport_cible') or context.get('modele_gestion') or context.get('modele_cible') or context.get('modele_actif')
+    from ..modeles_personnels import jeton,etat
+    attendu=context.get('attendu_rapport') or context.get('attendu_modele')
+    if cible and not attendu:
+        try:attendu=jeton(context['request'].user,cible)
+        except PermissionDenied:attendu=''
+    payload=dict(acteur=str(context['request'].user.pk),source=source,parametres=params,cible=cible.pk if cible else None,attendu=attendu,base=cible.parametres.copy() if cible else None,empreinte_base=(cible.empreinte_source if cible.nature=='personnalisation' else etat(cible)) if cible else '',nom_saisi=context.get('nom_rapport') or context.get('nom_modele_saisi') or '',editeur=bool(context.get('composition_source')),page=str(context['page_obj'].number) if context.get('page_obj') is not None else '1')
+    token=signing.dumps(payload,salt='reglages-rapport-v1',compress=True)
+    return reverse('dossiers:rapport_conserver')+'?'+urlencode({'definition':token})
+
+
+@register.simple_tag
+def definition_export(url):
+    from urllib.parse import urlsplit,parse_qs
+    return parse_qs(urlsplit(url).query).get('definition',[''])[0]
+
+
+@register.simple_tag(takes_context=True)
+def peut_conserver_reglages(context,source):
+    from ..vues_rapports import peut_stockage
+    acteur=context['request'].user
+    return acteur.has_perms(['personnes.view_modelerapport','personnes.add_modelerapport']) if source=='exploration' else peut_stockage(acteur,source)

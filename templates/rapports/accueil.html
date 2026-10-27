@@ -1,6 +1,4 @@
 {% extends 'base.html' %}{% block contenu %}<div class="rapport-entete"><h1>Statistiques et rapports</h1>{% include 'rapports/_actions.html' %}</div>
-<h2>Modèles prêts à utiliser</h2><p>Choisissez un modèle pour obtenir son rapport, puis ajustez au besoin sa période et ses critères.</p>
-<ul class="rapports-catalogue">{% for r in rapports %}<li><a href="{{ r.url }}">{{ r.titre }}</a></li>{% endfor %}</ul>
-<section class="rapport-composer" aria-label="Modèles personnels"><h2>Mes modèles</h2>
-{% if personnels %}<ul>{% for x in personnels %}<li><a href="{{ x.url_rapport }}">{{ x.nom }}</a> — {% if x.parametres.exploration %}modèle composable{% else %}paramètres de rapport spécialisé{% endif %}</li>{% endfor %}</ul>{% else %}<p>Aucun modèle personnel enregistré. Un modèle conserve vos critères et vos choix de présentation ; le rapport est recalculé à chaque ouverture.</p><p><a class="bouton" href="{% url 'dossiers:rapport_nouveau' %}">Créer un modèle</a></p>{% endif %}</section>
-{% endblock %}
+{% if personnels %}<section><h2>Mes accès habituels</h2><ul>{% for x in personnels %}<li><a href="{{ x.url_rapport }}">{{ x.nom }}</a> — {{ x.get_nature_display|lower }}{% if x.modele_source %} de « {{ x.modele_source.nom }} »{% endif %}</li>{% endfor %}</ul></section>{% endif %}
+<h2>Modèles prêts à utiliser</h2><p>Choisissez un modèle pour obtenir son rapport, puis ajustez au besoin sa période et ses critères.</p><ul class="rapports-catalogue">{% for r in rapports %}<li><a href="{{ r.url }}">{{ r.titre }}</a></li>{% endfor %}</ul>
+{% if not personnels %}<p>Aucun accès personnel enregistré. Utilisez directement un modèle proposé ; vous pourrez conserver vos réglages après les résultats.</p>{% endif %}{% endblock %}

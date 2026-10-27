@@ -40,6 +40,9 @@ def reponse_source(request,source,donnees):
     if source=='appels':
         for cle in ('personne','menage'):
             if donnees.get(cle) and not request.user.has_perm('personnes.view_'+cle):raise PermissionDenied
+    from .periodes_rapports import resoudre
+    try:donnees=resoudre(donnees)
+    except (ValueError,TypeError,OverflowError):raise ValidationError('Règle de dates relatives invalide.')
     req=copy(request);req.method='GET';req.GET=QueryDict('',mutable=True)
     for k,v in donnees.items():req.GET[k]=v
     req.POST=QueryDict('')
@@ -71,6 +74,8 @@ def parametres_response(reponse,source,donnees):
                 except (ValueError,TypeError):raise ValidationError('Cible du rapport invalide.')
                 if not modele.objects.filter(pk=pk).exists():raise ValidationError('Cible du rapport introuvable.')
                 p[cle]=str(pk)
+    for cle in ('periode','decalage_debut','decalage_fin'):
+        if donnees.get(cle) is not None:p[cle]=str(donnees[cle])
     p[c.CLE_SOURCE]=source
     return p
 
@@ -135,7 +140,8 @@ def composer(request,source):
     if source in ('coordonnees','familles','identite') and not donnees:
         from django.utils import timezone
         donnees['date']=timezone.localdate().isoformat()
-    reponse=reponse_source(request,source,donnees)
+    try:reponse=reponse_source(request,source,donnees)
+    except ValidationError as erreur:return render(request,'exploration/personnalisation_refusee.html',{'erreur':erreur,'retour':reverse('dossiers:rapports_accueil')},status=400)
     if not hasattr(reponse,'context_data'):return reponse
     ctx=reponse.context_data;statut=200;erreur=''
     if request.method=='GET' and request.GET.get('composer_librement')=='1':
@@ -173,3 +179,84 @@ def composer(request,source):
             if cle in ctx:ctx[cle]=ctx[cle]+('&' if ctx[cle] else '')+urlencode({'modele_cible':cible.pk,'attendu_modele':ticket})
     reponse.status_code=statut
     return reponse
+
+
+class ConservationForm(forms.Form):
+    definition=forms.CharField(widget=forms.HiddenInput)
+    nom=forms.CharField(label='Nom',max_length=100)
+    nature=forms.ChoiceField(label='Conserver',choices=[('personnalisation','Une personnalisation — mes réglages habituels'),('modele','Un modèle — la définition du calcul et de sa présentation'),('ensemble','Un modèle et sa personnalisation')])
+    nom_modele=forms.CharField(label='Nom du nouveau modèle (si vous conservez les deux)',max_length=100,required=False)
+    from .periodes_rapports import PERIODES
+    periode=forms.ChoiceField(label='Dates à retrouver lors des prochaines ouvertures',choices=[('','Garder les dates fixes'),*PERIODES.items()],required=False)
+    decalage_debut=forms.IntegerField(label='Début en jours par rapport à aujourd’hui (autres bornes)',min_value=-36600,max_value=36600,required=False,initial=-6)
+    decalage_fin=forms.IntegerField(label='Fin exclue en jours par rapport à aujourd’hui (autres bornes)',min_value=-36600,max_value=36600,required=False,initial=1)
+    description=forms.CharField(label='Description du modèle (facultative)',max_length=6000,required=False,widget=forms.Textarea(attrs={'rows':3}))
+
+
+@never_cache
+@require_http_methods(['GET','POST'])
+@login_required
+def conserver(request):
+    from django.core import signing
+    valeurs=request.POST if request.method=='POST' else request.GET
+    token=valeurs.get('definition','')
+    try:
+        d=signing.loads(token,salt='reglages-rapport-v1',max_age=86400)
+        if not isinstance(d,dict) or d.get('acteur')!=str(request.user.pk):raise signing.BadSignature()
+    except (signing.BadSignature,TypeError,ValueError):return render(request,'rapports/conserver.html',{'erreur':'Cette définition n’est plus vérifiable. Revenez au rapport pour conserver vos réglages.'},status=409)
+    cible=get_object_or_404(m.ModeleRapport,pk=d['cible'],auteur=request.user) if d.get('cible') else None
+    source=d.get('source')
+    if source not in (*c.SOURCES,'exploration'):raise Http404
+    if source=='exploration':
+        from .suivi import exiger
+        exiger(request.user,'view_modelerapport','add_modelerapport')
+    elif not peut_stockage(request.user,source):raise PermissionDenied
+    initial={'definition':token,'nom':d.get('nom_saisi') or (cible.nom if cible else ''), 'nature':cible.nature if cible and cible.nature=='personnalisation' else 'modele' if source=='exploration' and not cible else 'personnalisation','description':cible.description if cible else ''}
+    from .periodes_rapports import suggerer
+    from django.utils import timezone
+    initial.update(periode=suggerer(d['parametres'],timezone.localdate()),decalage_debut=d['parametres'].get('decalage_debut',-6),decalage_fin=d['parametres'].get('decalage_fin',1))
+    f=ConservationForm(request.POST if request.method=='POST' else None,initial=initial);statut=200
+    if 'date' in d['parametres'] and 'debut' not in d['parametres']:
+        if initial.get('periode')=='date_relative' and not d['parametres'].get('periode'):
+            from datetime import date
+            initial['decalage_debut']=(date.fromisoformat(str(d['parametres']['date']))-timezone.localdate()).days
+            f.initial['decalage_debut']=initial['decalage_debut']
+        f.fields['periode'].choices=[('','Garder la date fixe'),*[(k,v) for k,v in f.fields['periode'].choices if k in ('aujourdhui','hier','demain','date_relative')]]
+        f.fields['decalage_debut'].label='Date en jours par rapport à aujourd’hui'
+        f.fields['decalage_fin'].widget=forms.HiddenInput()
+
+    if request.method=='POST' and f.is_valid():
+        try:
+            from .periodes_rapports import resoudre
+            params=d['parametres'].copy();params.update(periode=f.cleaned_data['periode'],decalage_debut=f.cleaned_data.get('decalage_debut') if f.cleaned_data.get('decalage_debut') is not None else -6,decalage_fin=f.cleaned_data.get('decalage_fin') if f.cleaned_data.get('decalage_fin') is not None else 1)
+            try:params=resoudre(params)
+            except (ValueError,OverflowError,TypeError) as e:raise ValidationError(str(e))
+            params=s.valider(request.user,params)
+            if request.POST.get('action')=='remplacer':
+                if cible is None or cible.nature!=f.cleaned_data['nature']:raise ValidationError('Pour conserver un autre type de définition, enregistrez une nouvelle entrée.')
+                x=s.changer(request.user,cible,d.get('attendu'),f.cleaned_data['nom'],params,description=f.cleaned_data['description'])
+            elif request.POST.get('action')=='creer':
+                if m.ModeleRapport.objects.filter(auteur=request.user).count()>=30:raise ValidationError('Limite de 30 définitions personnelles atteinte.')
+                parent=(cible.modele_source if cible.nature=='personnalisation' else cible) if cible else None
+                nature=f.cleaned_data['nature']
+                structure=lambda p:{k:str(v) for k,v in p.items() if k in ('rapport','population','mesure','nombre_mesures','nombre_colonnes','niveaux','sous_totaux') or k.startswith(('mesure','axe','croisement','classes','colonne'))}
+                if nature=='personnalisation' and cible and structure(params)!=structure(s.valider(request.user,d.get('base') or cible.parametres)):
+                    raise ValidationError('Le calcul ou le classement a changé. Conservez un nouveau modèle, seul ou avec sa personnalisation.')
+                from django.db import transaction
+                with transaction.atomic():
+                    if nature=='ensemble':
+                        if not f.cleaned_data.get('nom_modele'):raise ValidationError('Nommez le modèle à conserver avec la personnalisation.')
+                        if m.ModeleRapport.objects.filter(auteur=request.user).count()>28:raise ValidationError('Deux places sont nécessaires pour conserver les deux définitions.')
+                        parent=m.ModeleRapport.objects.create(auteur=request.user,nom=f.cleaned_data['nom_modele'],nature='modele',description=f.cleaned_data['description'],parametres=params,source_catalogue=source)
+                        nature='personnalisation'
+                    empreinte=(s.etat(parent) if f.cleaned_data['nature']=='ensemble' else d.get('empreinte_base') or s.etat(parent)) if parent else ''
+                    x=m.ModeleRapport.objects.create(auteur=request.user,nom=f.cleaned_data['nom'],nature=nature,description=f.cleaned_data['description'] if nature=='modele' else '',parametres=params,
+                        modele_source=parent if nature=='personnalisation' else None,empreinte_source=empreinte if nature=='personnalisation' else '',source_catalogue=source+(':'+str(params.get('rapport','')) if source=='statistiques' else ''))
+            else:raise ValidationError('Choisissez explicitement Enregistrer ou Remplacer.')
+        except ValidationError as e:f.add_error(None,e.messages);statut=409 if isinstance(e,s.ConflitModele) else 400
+        else:return redirect(c.ouvrir(x))
+    route=reverse('dossiers:explorer') if source=='exploration' else reverse('dossiers:rapport_composer',args=[source]) if d.get('editeur') else reverse(c.SOURCES[source][1])
+    reprise={**d['parametres'],'page':d.get('page','1')}
+    if cible:reprise.update(modele_cible=cible.pk,attendu_modele=d.get('attendu',''))
+    retour=route+'?'+urlencode(reprise)
+    return render(request,'rapports/conserver.html',{'form':f,'cible':cible,'retour':retour},status=statut)

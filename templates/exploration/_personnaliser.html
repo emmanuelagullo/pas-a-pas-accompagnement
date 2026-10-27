@@ -1,9 +1,2 @@
 {% load analyse %}{% deriver_rapport source as url_parametres %}{% composition_fidele source as url_composition %}
-<section class="rapport-composer" aria-label="Actions du rapport"><div class="rapport-entete">
-{% if composition_source %}<div><h2>{% if rapport_cible %}Paramètres de « {{ rapport_cible.nom }} »{% else %}Enregistrer les paramètres de ce rapport{% endif %}</h2><p>Ce modèle conserve les critères ci-dessous. Les indicateurs et la présentation restent ceux du rapport spécialisé ; les résultats sont recalculés à chaque ouverture.</p></div>
-{% else %}<div><a class="bouton" href="{{ url_parametres }}">Enregistrer ces paramètres</a><p class="helptext">Mémoriser la sélection de ce rapport spécialisé, sans changer ses indicateurs.</p></div>{% endif %}
-<a class="bouton secondaire" href="{% url 'dossiers:rapports_gerer' %}">Gérer mes modèles</a></div>
-{% if url_composition %}<p><a class="bouton" href="{{ url_composition }}">Composer à partir de ce rapport</a> — Reprendre fidèlement sa sélection et ses mesures, puis modifier Retenir, Afficher, Compter et Classer. L’enregistrement crée un modèle composable distinct.</p>
-{% elif not perms.personnes.view_personne %}<p class="helptext">La composition libre nécessite le droit de consultation des personnes.</p>
-{% else %}<p class="helptext">Rapport spécialisé : sa définition complète n’est pas encore représentable dans la composition libre. Aucune dérivation composable n’est proposée avec ces critères.</p>{% endif %}
-<p><a href="{% url 'dossiers:rapport_nouveau' %}">Créer un modèle ou choisir une autre définition</a></p></section>
+<details class="rapport-composer"><summary>Adapter ce rapport</summary><p>Les critères ci-dessous permettent d’ajuster le résultat courant. Utilisez « Conserver ces réglages… » après les résultats pour les retrouver.</p>{% if url_composition %}<p><a href="{{ url_composition }}">Composer à partir de ce rapport</a></p>{% else %}<p>Rapport spécialisé : ses indicateurs et sa présentation sont conservés.</p>{% endif %}</details>

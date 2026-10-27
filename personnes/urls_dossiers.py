@@ -28,11 +28,14 @@ from . import vues_complements_identite as identite_declaree
 from . import vues_relations_personnelles as relations
 
 from . import vues_dossier_complet as complet
+from . import exports_rapports
 
 app_name = 'dossiers'
 from . import vues_pieces_dossier as pieces
 
 urlpatterns = [
+    path('rapports/exporter/',exports_rapports.exporter,name='rapport_exporter'),
+    path('rapports/conserver/',vues_rapports.conserver,name='rapport_conserver'),
     path('rapports/',vues_rapports.accueil,name='rapports_accueil'),
     path('rapports/nouveau/',vues_rapports.nouveau,name='rapport_nouveau'),
     path('rapports/composer/<str:source>/',vues_rapports.composer,name='rapport_composer'),
