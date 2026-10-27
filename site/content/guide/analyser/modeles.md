@@ -6,14 +6,15 @@ categorie: "analyser"
 publics: ["equipe"]
 intentions: ["modèle", "JSON", "rapport", "paramètres", "période relative"]
 prerequis: "Droits de consultation et d’ajout des modèles, ainsi que les droits nécessaires au rapport qui sera recalculé."
-depart: "Exploration statistique → modèles personnels"
+depart: "Statistiques → Gérer mes rapports"
 statut: "disponible"
 ---
 
-1. Construire un rapport et vérifier ses critères et sa période.
-2. Enregistrer un modèle personnel avec un nom reconnaissable. Vérifier si sa période est fixe ou relative avant réutilisation.
-3. Recalculer le rapport : les droits actuels sont contrôlés, et les résultats peuvent évoluer avec les données ou corrections.
-4. Pour réutiliser les paramètres dans un autre espace, exporter le modèle JSON puis utiliser l'import. Les paramètres et droits sont revérifiés ; aucun accès supplémentaire n'est accordé.
+1. Depuis **Créer un rapport**, partir de zéro ou reprendre une définition existante.
+2. Vérifier sa période et ses critères, puis choisir un nom et enregistrer.
+3. Pour un rapport personnel déjà ouvert, choisir **Remplacer explicitement** ou **Enregistrer un second rapport**. Un formulaire devenu périmé ne remplace pas les paramètres actuels ; la saisie reste disponible.
+4. **Gérer mes rapports** réunit ouverture, édition, renommage, duplication et suppression confirmée. Deux rapports peuvent porter le même nom ; leur numéro et date de création les distinguent. Supprimer un rapport retire ses paramètres, sans supprimer de dossier.
+5. Pour échanger un modèle d’exploration entre espaces, exporter le JSON puis utiliser l’import. Les autres variantes spécialisées restent réutilisables dans cet espace, sans conversion automatique du format d’échange.
 
 **Résultat attendu :** le modèle reste personnel. Le fichier d’échange contient le nom du modèle et ses critères, sans lignes de résultats ni copie de dossiers. Des noms ou d’autres renseignements personnels saisis dans le nom du modèle, les valeurs des filtres ou les libellés de classes peuvent toutefois y figurer : relire le JSON avant de le transmettre et le conserver privé si nécessaire. Ce n'est ni une copie de base ni un PDF archivé du résultat.
 

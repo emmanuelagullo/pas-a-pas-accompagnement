@@ -23,8 +23,8 @@ from .exports import cellule_csv
 
 
 def nav(request,a):
-    ctx=dossier.lire(request,a)
-    p={k:request.GET[k][:6000] for k in ('contexte_dossier','date_service','retour') if k in request.GET}
+    ctx=dossier.lire(request,a) or dossier.creer(request,a,None,None)
+    p={k:request.GET[k][:6000] for k in ('contexte_dossier','date_service','retour','retour_exploration') if k in request.GET}
     q=urlencode(p)
     if p.get('retour')=='jour':
         from .retour_service import url_jour
@@ -191,7 +191,7 @@ def rapport(request):
             lignes.append({'id':x.pk,'accord':a,'date':a.debut if accords else x.date,'libelle':libelle,'unite':unit,'quantite':quantite,
                 'personnes':personnes,'categorie':getattr(x,'categorie_declaree','') if repas else '',
                 'valeur_bon':a.valeur_bon if not repas else None,'devise':a.devise if not repas else '',
-                'url':reverse('suivi:accord_repas',args=[a.pk]) if repas else url_accord(a,'')})
+                'url':(reverse('suivi:accord_repas',args=[a.pk]) if repas else url_accord(a,''))+('' if accords else ('#repas-' if repas else '#remise-')+str(x.pk))})
         if request.GET.get('format')=='csv':
             response=HttpResponse(content_type='text/csv; charset=utf-8');response['Content-Disposition']='attachment; filename="prestations.csv"'
             w=csv.writer(response,delimiter=';');w.writerow(['mode','element_id','accord_id','date','libelle','unite','quantite','beneficiaires_ids','categorie','valeur_faciale_unitaire','devise'])

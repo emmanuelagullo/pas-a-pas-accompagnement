@@ -569,3 +569,22 @@ définitions spécialisées portent un discriminateur fermé `_rapport_source`.
 La composition libre Retenir/Afficher/Compter/Classer reste accessible séparément.
 Modifier les mesures d'une synthèse composite au-delà de ses paramètres natifs
 nécessitera des blocs de calcul communs ; ce lot ne prétend pas les avoir unifiés.
+
+## ST8 — Objets précis et continuité de navigation
+
+Le relevé de l’explorateur ouvre les accords et faits concernés, avec ancre sur
+le séjour, l’affectation, la distribution, la remise ou la composante/imputation
+financière et sa version. Les liens sont chargés en lot ; les projections de
+colonnes n’effectuent aucune requête supplémentaire. Les critères personnels
+continuent de porter sur les bénéficiaires retenus, sans modifier le fait collectif.
+
+Les rapports spécialisés transmettent un retour signé propre au compte, à leurs
+critères et à leur page. Il est conservé dans le contexte du dossier et s’ajoute
+à sa navigation habituelle, sans donner d’accès supplémentaire. Les retours de
+l’explorateur et leurs justificatifs existants restent compatibles. Les CSV
+gardent leurs colonnes et leurs valeurs ; aucun résultat n’est enregistré.
+
+Vérifications : 12 nuitées collectives, composante 6,30 EUR et version exacte,
+retour depuis fiche familiale puis dossier, confirmations concurrentes/périmées,
+et une seule requête de liens pour plusieurs séjours. Gestion personnelle et
+retours testés en Chromium, au clavier et sans JavaScript sur écran étroit.

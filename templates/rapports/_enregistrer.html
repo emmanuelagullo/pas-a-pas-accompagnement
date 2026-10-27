@@ -4,6 +4,6 @@
 {% for nom,valeur in parametres_composition.items %}<input type="hidden" name="{{ nom }}" value="{{ valeur }}">{% endfor %}
 {% if rapport_cible %}<input type="hidden" name="modele_cible" value="{{ rapport_cible.pk }}"><input type="hidden" name="attendu_modele" value="{{ attendu_rapport }}">{% endif %}
 <label for="nom-rapport">Nom de mon rapport</label><input id="nom-rapport" name="nom" value="{{ nom_rapport }}" maxlength="100" required>
-{% if rapport_cible %}<p>Choisissez explicitement ce que vous souhaitez conserver.</p><button name="action_modele" value="remplacer">Remplacer explicitement « {{ rapport_cible.nom }} »</button><button class="secondaire" name="action_modele" value="creer">Enregistrer un second rapport</button>
+<p class="helptext">Pour un second rapport, choisissez un nom qui le distingue.</p>{% if rapport_cible %}<p>Choisissez explicitement ce que vous souhaitez conserver.</p><button name="action_modele" value="remplacer">Remplacer explicitement « {{ rapport_cible.nom }} »</button><button class="secondaire" name="action_modele" value="creer">Enregistrer un second rapport</button>
 {% else %}<p>Le rapport proposé reste disponible dans le catalogue.</p><button name="action_modele" value="creer">Enregistrer mon rapport</button>{% endif %}
-</form></section>{% elif erreur_composition %}<p role="alert">{{ erreur_composition }}</p>{% endif %}
+</form></section>{% elif erreur_composition %}<p role="alert">{{ erreur_composition }}</p>{% else %}<p class="helptext">Vous pouvez consulter les résultats. Leur enregistrement nécessite les droits de gestion des rapports personnels.</p>{% endif %}

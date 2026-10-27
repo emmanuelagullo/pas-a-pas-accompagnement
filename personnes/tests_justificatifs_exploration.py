@@ -33,7 +33,9 @@ class JustificatifsTests(TestCase):
         fait=self.client.get(r.context['page_obj'][0]['url']);self.assertEqual(fait.status_code,200)
         self.assertEqual(fait.context['objet']['id'],str(self.sejour.pk))
         dossier=self.client.get(fait.context['native']);self.assertContains(dossier,'Revenir aux résultats du rapport')
-        retour=dossier.context['retour_exploration'];self.assertIn('preuve=',retour)
+        import re
+        from html import unescape
+        retour=unescape(re.search(r'href="([^"]+)">← Revenir aux résultats du rapport</a>',dossier.content.decode()).group(1));self.assertIn('preuve=',retour)
         self.assertEqual(self.client.get(retour).context['cellule']['valeur'],4)
         lignes=list(csv.DictReader(StringIO(self.client.get(url+'&format=csv').content.decode()),delimiter=';'))
         self.assertEqual(sum(Decimal(x['Valeur']) for x in lignes),4)

@@ -1,3 +1,12 @@
+## Statistiques — retrouver le fait précis et revenir au rapport (ST8)
+
+- Liens vers accords et faits précis, dont distributions, remises et composantes
+  financières avec la version du calcul et une ancre sur la ligne concernée.
+- Retours privés vers les critères et la page du rapport spécialisé ou de
+  l’explorateur, conservés dans la navigation habituelle du dossier.
+- Confirmation de suppression dans la gestion commune ; liens natifs chargés
+  en lot, guides et recettes navigateur/profils actualisés.
+
 ## Statistiques — rapports prêts à utiliser et gestion personnelle (ST7)
 
 - Catalogue en premier, création depuis zéro ou un rapport existant, bouton Gérer.

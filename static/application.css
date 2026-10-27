@@ -235,3 +235,6 @@ main:has(.bd-dossier) { max-width: 76rem; }
 .rapport-enregistrer { max-width:none; }
 .rapport-enregistrer button { margin:.5rem .5rem 0 0; }
 @media(max-width:40rem) { .rapports-catalogue { grid-template-columns:minmax(0,1fr); } }
+
+.rapport-personnel, .rapport-composer li { overflow-wrap:anywhere; }
+.rapport-entete > div { min-width:0; overflow-wrap:anywhere; }

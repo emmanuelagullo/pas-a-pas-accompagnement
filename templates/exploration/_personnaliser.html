@@ -1,6 +1,6 @@
 {% load analyse %}{% deriver_rapport source as url_variante %}
 <section class="rapport-composer" aria-label="Actions du rapport"><div class="rapport-entete">
-{% if composition_source %}<div><h2>{% if rapport_cible %}Modifier mon rapport{% else %}Créer une variante{% endif %}</h2><p>Les critères et les calculs du rapport source sont conservés. Modifiez ses paramètres ci-dessous, puis choisissez comment l’enregistrer.</p></div>
+{% if composition_source %}<div><h2>{% if rapport_cible %}Paramètres de « {{ rapport_cible.nom }} »{% else %}Créer une variante{% endif %}</h2><p>Les critères et les calculs du rapport source sont conservés. Modifiez ses paramètres ci-dessous, puis choisissez comment l’enregistrer.</p></div>
 {% else %}<div><a class="bouton" href="{{ url_variante }}">Créer une variante de ce rapport</a><p class="helptext">Reprendre sa définition et ses critères dans un nouveau rapport personnel.</p></div>{% endif %}
 <a class="bouton secondaire" href="{% url 'dossiers:rapports_gerer' %}">Gérer mes rapports</a></div>
 {% if not composition_source %}<p><a href="{% url 'dossiers:rapport_nouveau' %}">Créer un rapport à partir de zéro ou choisir un autre rapport</a></p>{% endif %}

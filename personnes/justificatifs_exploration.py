@@ -125,12 +125,14 @@ def fiche_objet(acteur,d,cellule,identifiant,token,page):
     # qui ne possèdent pas encore de route propre (distribution, ligne de coût…).
     native=lignes[0]['url']
     if native:
-        base=native.split('?')[0]
-        native=base+'?'+urlencode({'retour_exploration':signer_retour(acteur,{'page':page},justificatif=token)})
+        from urllib.parse import urlsplit,urlunsplit,parse_qsl
+        u=urlsplit(native);q=dict(parse_qsl(u.query,keep_blank_values=True))
+        q['retour_exploration']=signer_retour(acteur,{'page':page},justificatif=token)
+        native=urlunsplit((u.scheme,u.netloc,u.path,urlencode(q),u.fragment))
     cles=[c for c in x['valeurs'] if c!='total' and c in e.disponibles(acteur)]
     lignes=[]
     for c in cles:
         projection={**d,**{'colonne'+str(i):'' for i in range(1,12)},'colonne1':c}
-        _,rs=relever(projection,[x],acteur)
+        _,rs=relever(projection,[x],acteur,liens=False)
         lignes.append((e.DIMENSIONS[c],rs[0]['valeurs'][0]))
     return x,lignes,native

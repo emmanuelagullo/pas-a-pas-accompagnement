@@ -119,7 +119,7 @@
 <p>Un modèle peut conserver une période fixe ou une période relative recalculée à chaque ouverture. Les modèles sont personnels et mémorisent les filtres, pas les résultats. Les chiffres sont recalculés à chaque consultation.</p>
 <ul>{% for modele in modeles_rapports %}<li><a href="{% url 'statistiques' %}?modele={{ modele.pk }}">{{ modele.nom }}</a>{% if modele_actif.pk == modele.pk %} <strong>(affiché)</strong>{% endif %}
 <a href="{% url 'dossiers:modele_gerer' modele.pk %}">Renommer ou dupliquer</a>
-<form method="post" action="{% url 'statistiques_modele_supprimer' modele.pk %}" style="display:inline">{% csrf_token %}<button type="submit">Supprimer</button></form></li>{% empty %}<li>Aucun modèle enregistré.</li>{% endfor %}</ul></details>
+<a href="{% url 'dossiers:modele_gerer' modele.pk %}">Supprimer avec confirmation</a></li>{% empty %}<li>Aucun modèle enregistré.</li>{% endfor %}</ul></details>
 {% if resultats != None and not composition_source %}<details><summary>Enregistrer cette configuration comme modèle</summary><form method="post" action="{% url 'statistiques_modele_ajouter' %}">
 {% csrf_token %}<label for="nom_modele">Nom du modèle</label><input id="nom_modele" name="nom" maxlength="100" value="{{ modele_gestion.nom }}" required>
 <input type="hidden" name="rapport" value="{{ rapport }}"><input type="hidden" name="debut" value="{{ debut_iso }}"><input type="hidden" name="fin" value="{{ fin_iso }}">

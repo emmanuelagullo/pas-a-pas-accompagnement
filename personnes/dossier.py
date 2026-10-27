@@ -33,6 +33,8 @@ def creer(request, accompagnement, sejour, repas):
                'origine': precedent.get('origine') or ('jour' if request.GET.get('retour') == 'jour' else ''),
                'recherche': precedent.get('recherche', request.GET.get('q', '')[:160]),
                'page': precedent.get('page', request.GET.get('page', '1')[:8])}
+    retour_stats=request.POST.get('retour_exploration') or request.GET.get('retour_exploration') or precedent.get('retour_exploration')
+    if retour_stats:valeurs['retour_exploration']=retour_stats[:20000]
     if precedent.get('vue'):
         valeurs['vue'] = precedent['vue']
     token = signing.dumps(valeurs, salt=SEL, compress=True)

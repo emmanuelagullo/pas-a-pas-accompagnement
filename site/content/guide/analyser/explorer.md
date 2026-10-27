@@ -10,17 +10,14 @@ depart: "Statistiques → Créer un nouveau rapport"
 statut: "disponible"
 ---
 
-Le bloc **Composer un rapport** distingue deux départs :
+Depuis **Créer un rapport**, choisir **Partir de zéro** pour ouvrir directement
+**Retenir**. L’autre choix permet de sélectionner un rapport proposé ou personnel ;
+**Créer une variante de ce rapport** est aussi disponible depuis un rapport ouvert.
 
-- **Personnaliser ce rapport** reprend les paramètres du rapport affiché, puis
-  permet de les modifier. Si sa définition n'est pas encore transposable
-  intégralement, le bouton est désactivé avec une explication sur place.
-- **Créer un nouveau rapport** ouvre directement **Retenir**, avec les paramètres
-  de départ habituels, indépendants des filtres et du modèle précédents. Aucun
-  modèle n'est enregistré tant que vous n'avez pas choisi un nom et confirmé.
-
-Les **Autres rapports disponibles** restent séparés de ces actions. Pour retrouver
-un rapport courant après personnalisation, utiliser son lien de retour.
+Une variante spécialisée garde les calculs et les paramètres de sa définition
+source. Elle n’est pas une conversion approximative dans une autre population.
+Pour choisir librement d’autres colonnes, mesures et classements, utiliser la
+composition libre décrite ci-dessous.
 
 1. Choisir la population réellement étudiée : personnes, demandes, séjours, accords, distributions, appels ou autre population proposée.
 2. Renseigner la période et la référence des données personnelles. La référence peut être commune ou suivre la date de chaque fait ou de sa saisie initiale.
@@ -56,3 +53,16 @@ identifiés dans le tableau, le CSV et le PDF ; ne pas les ajouter aux détails.
 **Retenir** distingue les objets chevauchant la période de ceux dont le début, la fin, ou les deux tombent dans cette période. La fin d’un accord est une fin d’autorisation ; elle ne prouve pas une sortie. Pour les nuitées des épisodes retenus, **Intégralité des épisodes clos** peut dépasser les bornes du rapport. Conserver **Seulement dans la période** pour comparer l’activité d’une même fenêtre.
 
 Les paramètres, les relevés détaillés, CSV et PDF peuvent contenir des données personnelles selon les critères et colonnes choisis. Les conserver et transmettre selon leur contenu ; un export de rapport n’est ni une sauvegarde restaurable ni un document financier émis.
+
+## Aller aux faits et revenir au rapport
+
+Les chiffres de l’explorateur ouvrent leurs contributions. Le relevé et la fiche
+justificative pointent vers l’accord, le séjour, la distribution, la remise ou la
+composante financière précise, avec la version du calcul lorsqu’elle est connue.
+Le lien **Revenir aux résultats du rapport** retrouve critères et page. Les menus
+habituels du dossier et de la prestation restent disponibles. Le retour privé
+expire après une journée et ne donne aucun droit supplémentaire.
+
+Les liens des rapports spécialisés conservent également leur rapport d’origine.
+Les chiffres sont recalculés selon les faits actuellement connus ; les modèles
+enregistrent des paramètres, pas des résultats figés.

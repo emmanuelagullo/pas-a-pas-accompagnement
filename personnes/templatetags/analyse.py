@@ -36,3 +36,30 @@ def deriver_rapport(context,source):
         from ..modeles_personnels import jeton
         params.update(modele_cible=str(cible.pk),attendu_modele=context.get('attendu_rapport') or context.get('attendu_modele') or jeton(context['request'].user,cible))
     return reverse('dossiers:rapport_composer',args=[source])+'?'+urlencode({k:v for k,v in params.items() if k not in ('modele','format','page')})
+
+
+@register.simple_tag(takes_context=True)
+def lien_rapport(context,url,source,**query):
+    from urllib.parse import urlsplit,urlunsplit,parse_qsl,urlencode
+    from ..exploration_releve import signer_retour
+    from ..catalogue_rapports import SOURCES
+    if source not in SOURCES:return url
+    params=parametres_courants(context,source)
+    params={k:v for k,v in params.items() if k not in ('format','retour_exploration')}
+    params.update(_source_rapport=source,_editeur_rapport='1' if context.get('composition_source') else '')
+    params['page']=str(context['page_obj'].number) if context.get('page_obj') is not None else context['request'].GET.get('page','1')
+    cible=context.get('rapport_cible') or context.get('modele_gestion')
+    if cible:params.update(modele_cible=str(cible.pk),attendu_modele=context.get('attendu_rapport') or context.get('attendu_modele',''))
+    token=signer_retour(context['request'].user,params)
+    u=urlsplit(url);p=dict(parse_qsl(u.query,keep_blank_values=True));p.update(query,retour_exploration=token)
+    return urlunsplit((u.scheme,u.netloc,u.path,urlencode(p),u.fragment))
+
+
+@register.simple_tag(takes_context=True)
+def retour_statistiques(context):
+    from ..exploration_releve import retour_verifie
+    request=context.get('request')
+    if request is None or not getattr(request,'user',None) or not request.user.is_authenticated:return None
+    valeurs=context.get('dossier_valeurs') or {}
+    token=request.GET.get('retour_exploration') or request.POST.get('retour_exploration') or valeurs.get('retour_exploration') or (valeurs.get('vue') or {}).get('retour_exploration')
+    return retour_verifie(request.user,token)

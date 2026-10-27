@@ -27,8 +27,8 @@ from .exports import cellule_csv
 def cible(request,nature,pk):
     if nature not in s.CIBLES:raise Http404
     a=get_object_or_404(s.CIBLES[nature],pk=pk);s.droit(request.user,a)
-    ctx=dossier.lire(request,a.accompagnement)
-    params={k:request.GET[k][:6000] for k in ('contexte_dossier','date_service','retour') if k in request.GET}
+    ctx=dossier.lire(request,a.accompagnement) or dossier.creer(request,a.accompagnement,None,None)
+    params={k:request.GET[k][:6000] for k in ('contexte_dossier','date_service','retour','retour_exploration') if k in request.GET}
     return a,ctx,urlencode(params)
 
 
@@ -155,8 +155,8 @@ def emission(request,nature,pk):
 @login_required
 def document(request,pk):
     doc=get_object_or_404(m.DocumentFinancement.objects.select_related('version__financement'),pk=pk)
-    a=doc.version.financement.accord;s.droit(request.user,a);ctx=dossier.lire(request,a.accompagnement)
-    params={k:request.GET[k][:6000] for k in ('contexte_dossier','date_service','retour') if k in request.GET};q=urlencode(params)
+    a=doc.version.financement.accord;s.droit(request.user,a);ctx=dossier.lire(request,a.accompagnement) or dossier.creer(request,a.accompagnement,None,None)
+    params={k:request.GET[k][:6000] for k in ('contexte_dossier','date_service','retour','retour_exploration') if k in request.GET};q=urlencode(params)
     if request.GET.get('annuler')=='1':
         s.droit(request.user,a,'add_annulationdocument')
         f=FormulaireMetier(request.POST if request.method=='POST' else None)
@@ -223,11 +223,11 @@ def rapport(request):
                 if v.debut>=d['fin'] or v.fin and v.fin<=d['debut']:continue
                 for i in v.imputations.filter(phase=d['phase']).select_related('financeur'):
                     if d.get('financeur') and i.financeur!=d['financeur'] or d.get('budget') and i.budget!=d['budget']:continue
-                    rows.append({'lien':url(a),'menage':str(a.accompagnement.menage),'prestation':v.financement.nature,'version':v.version,'date':v.debut,'libelle':str(i.financeur),'unite':'','categorie':'','quantite':'','prix':'','montant':i.montant,'devise':v.devise,'budget':i.budget,'reference':i.reference,'source':v.source})
+                    rows.append({'lien':url(a)+'?version='+str(v.version)+'#imputation-'+str(i.pk),'menage':str(a.accompagnement.menage),'prestation':v.financement.nature,'version':v.version,'date':v.debut,'libelle':str(i.financeur),'unite':'','categorie':'','quantite':'','prix':'','montant':i.montant,'devise':v.devise,'budget':i.budget,'reference':i.reference,'source':v.source})
             else:
                 for x in v.lignes.filter(phase=d['phase'],date__gte=d['debut'],date__lt=d['fin']):
                     if d.get('unite') and x.unite!=d['unite'] or d.get('categorie') and x.categorie!=d['categorie']:continue
-                    rows.append({'lien':url(a),'menage':str(a.accompagnement.menage),'prestation':v.financement.nature,'version':v.version,'date':x.date,'libelle':x.libelle,'unite':x.unite,'categorie':x.categorie,'quantite':x.quantite,'prix':x.prix,'montant':x.montant,'devise':v.devise,'budget':'','reference':v.reference,'source':x.justification})
+                    rows.append({'lien':url(a)+'?version='+str(v.version)+'#cout-'+str(x.pk),'menage':str(a.accompagnement.menage),'prestation':v.financement.nature,'version':v.version,'date':x.date,'libelle':x.libelle,'unite':x.unite,'categorie':x.categorie,'quantite':x.quantite,'prix':x.prix,'montant':x.montant,'devise':v.devise,'budget':'','reference':v.reference,'source':x.justification})
         for r in rows:totaux[r['devise']]=totaux.get(r['devise'],Decimal('0'))+r['montant']
         if request.GET.get('format')=='csv':
             response=HttpResponse(content_type='text/csv; charset=utf-8');response['Content-Disposition']='attachment; filename="financements-fictifs.csv"'

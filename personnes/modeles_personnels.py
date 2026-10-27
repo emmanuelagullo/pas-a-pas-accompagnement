@@ -92,7 +92,7 @@ def supprimer(acteur,modele,attendu):
     from django.db import transaction
     verifier(acteur,modele,attendu)
     with transaction.atomic():
-        nouveaux=modele.parametres.copy();nouveaux[REVISION]=str(modele.parametres.get(REVISION,''))+'-suppression'
+        nouveaux=modele.parametres.copy();revision=nouveaux.get(REVISION,0);nouveaux[REVISION]=(revision if isinstance(revision,int) else 0)+1
         if m.ModeleRapport.objects.filter(pk=modele.pk,auteur=acteur,nom=modele.nom,parametres=modele.parametres).update(parametres=nouveaux)!=1:
             raise ConflitModele('Le rapport a changé ; rechargez avant de supprimer.')
         m.ModeleRapport.objects.filter(pk=modele.pk,auteur=acteur).delete()

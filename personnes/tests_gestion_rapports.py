@@ -72,3 +72,10 @@ class GestionRapportsTests(TestCase):
         self.assertEqual(self.client.get(reverse('dossiers:rapport_nouveau'),{'modele':x.pk}).status_code,404)
         self.client.force_login(self.u);client=Client(enforce_csrf_checks=True);client.force_login(self.u)
         self.assertEqual(client.post(reverse('dossiers:modele_gerer',args=[x.pk]),dict(action='supprimer',nom='Privé',attendu=s.jeton(self.u,x))).status_code,403)
+
+    def test_confirmation_absente_ne_devient_pas_une_confirmation_fraiche(self):
+        params={k:str(v) for k,v in tests_meta_f.ConsolidationStatistiques.config(self,mesure='quantite').items()}
+        params.update(schema=1,exploration=True)
+        x=m.ModeleRapport.objects.create(auteur=self.u,nom='Ne pas écraser',parametres=params)
+        r=self.client.post(reverse('dossiers:explorer'),{**params,'modele_cible':x.pk,'nom':'Écrasement interdit','action_modele':'remplacer'})
+        self.assertEqual(r.status_code,409);x.refresh_from_db();self.assertEqual(x.nom,'Ne pas écraser')

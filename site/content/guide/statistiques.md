@@ -10,15 +10,20 @@ depart: "Navigation → Statistiques"
 statut: "disponible"
 ---
 
-1. Choisir une période rapide ou un début inclus et une fin exclue.
-2. Sélectionner **Synthèse**, **Hébergement**, **Repas**, **Évolution mensuelle** ou l'exploration spécialisée proposée.
-3. Lire la définition de la mesure avant de comparer les valeurs. Exporter le CSV du rapport choisi, ou utiliser son impression lorsqu'elle est proposée.
+1. Choisir un des **Rapports prêts à utiliser**, présentés en premier à l’entrée Statistiques.
+2. Renseigner sa période et ses critères, puis lire les définitions avant de comparer les valeurs.
+3. Exporter le CSV ou utiliser l’impression proposée.
 
-Le bloc **Composer un rapport** permet de reprendre le rapport affiché avec
-**Personnaliser ce rapport**, lorsque sa définition est compatible, ou de
-**Créer un nouveau rapport** indépendant. Une limite de personnalisation est
-expliquée avant le clic ; elle ne change pas les indicateurs du rapport courant.
-Les liens vers les rapports spécialisés sont regroupés sous **Autres rapports disponibles**.
+**Créer un rapport**, accessible à côté de **Gérer mes rapports**, propose de
+**Partir de zéro** ou de sélectionner un rapport proposé/personnel. Depuis un
+rapport ouvert, **Créer une variante de ce rapport** reprend directement sa définition.
+Les variantes spécialisées conservent leurs indicateurs et leurs règles temporelles ;
+la composition libre permet d’autres choix de populations, colonnes, mesures et classements.
+
+Un rapport personnel peut être modifié, renommé, dupliqué ou supprimé depuis
+**Gérer mes rapports**. Après édition, choisir explicitement **Remplacer** ou
+**Enregistrer un second rapport**. Les rapports proposés restent disponibles ;
+aucun dossier n’est supprimé lorsque ses paramètres de rapport le sont.
 
 ## Ce que les chiffres comptent
 

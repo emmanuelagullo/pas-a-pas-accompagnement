@@ -780,57 +780,74 @@ class ConditionSocialeNavigateur(StaticLiveServerTestCase):
 
 @skipIf(sync_playwright is None, 'Module Python Playwright non installé : qualification navigateur ignorée.')
 class RapportsNavigateur(StaticLiveServerTestCase):
-    """Actions du rapport, clavier et création indépendante sans JavaScript."""
+    """Catalogue en premier, variantes fidèles, gestion et retour depuis les faits."""
     navigateur=ProfilsNavigateur.navigateur
 
     def setUp(self):
         from .tests_meta_f import ConsolidationStatistiques
-        from . import repas
+        from . import models as m, financements
         from datetime import date
+        from decimal import Decimal
         ConsolidationStatistiques.setUpTestData.__func__(self)
-        repas.distribuer(self.u,self.ar,self.adulte,date(2026,1,2),2)
-        self.u.set_password('Recette-fictive-CHRS14!')
-        self.u.save(update_fields=['password'])
+        params={k:str(v) for k,v in ConsolidationStatistiques.config(self,mesure='quantite').items()}
+        params.update(schema=1,exploration=True)
+        self.modele=m.ModeleRapport.objects.create(auteur=self.u,nom='Mon analyse initiale',parametres=params)
+        ligne=dict(phase='autorise',date=date(2026,1,2),libelle='Composante fictive repérable',unite='nuit',categorie='',quantite=Decimal(3),prix=Decimal('2.10'),tarif=None,justification='Fictif')
+        financements.enregistrer(self.u,self.accord,financements.jeton(self.accord),'Fictif','definition',[ligne],[],emetteur=None,mentions='',debut=date(2026,1,1),fin=date(2026,1,5),devise='EUR',prestataire=None,prescripteur=None,facturation=None,signataire=None,reference='REF',source='Fictif')
+        self.u.set_password('Recette-fictive-CHRS14!');self.u.save(update_fields=['password'])
 
     def test_nouveau_rapport_ecran_etroit_sans_javascript_et_clavier(self):
         from playwright.sync_api import expect
         page_connectee=self.navigateur()
-        contexte=page_connectee.context.browser.new_context(
-            storage_state=page_connectee.context.storage_state(),
-            java_script_enabled=False,viewport={'width':360,'height':800})
-        self.addCleanup(contexte.close)
-        page=contexte.new_page()
+        contexte=page_connectee.context.browser.new_context(storage_state=page_connectee.context.storage_state(),java_script_enabled=False,viewport={'width':360,'height':800})
+        self.addCleanup(contexte.close);page=contexte.new_page()
         page.goto(self.live_server_url+reverse('statistiques'))
-        expect(page.get_by_role('button',name='Personnaliser ce rapport',exact=True)).to_be_disabled()
-        creer=page.get_by_role('link',name='Créer un nouveau rapport',exact=True)
-        self.assertLess(creer.bounding_box()['y'],page.get_by_role('button',name='Personnaliser ce rapport',exact=True).bounding_box()['y'])
-        creer.focus();creer.press('Enter')
+        expect(page.get_by_role('heading',name='Rapports prêts à utiliser',exact=True)).to_be_visible()
+        creer=page.get_by_role('link',name='Créer un rapport',exact=True);creer.focus();creer.press('Enter')
+        expect(page.get_by_role('heading',name='Partir de zéro',exact=True)).to_be_visible()
+        expect(page.get_by_role('heading',name='À partir d’un rapport existant',exact=True)).to_be_visible()
+        page.get_by_role('link',name='Commencer un rapport vide',exact=True).click()
         expect(page.get_by_role('heading',name='Nouveau rapport',exact=True)).to_be_visible()
         expect(page.locator('#id_population')).to_have_value('personnes')
-        self.assertLess(page.locator('#id_population').bounding_box()['y'],page.locator('#id_cohorte').bounding_box()['y'])
-        expect(page.locator('#id_filtre1')).to_have_value('')
         expect(page.locator('[name=modele_cible]')).to_have_count(0)
         self.assertLessEqual(page.evaluate('document.documentElement.scrollWidth'),361)
-        classer=page.locator('#modifier-classer');classer.focus();classer.press('Enter')
-        expect(page.locator('#id_axe')).to_be_visible()
-        page.locator('#id_axe').select_option('age')
-        page.get_by_role('button',name='Recalculer l’analyse',exact=True).click()
-        expect(page.get_by_role('heading',name='Nouveau rapport',exact=True)).to_be_visible()
-        expect(page.locator('#id_axe')).to_have_value('age')
+        self.assertLess(page.locator('#id_population').bounding_box()['y'],page.locator('#id_cohorte').bounding_box()['y'])
 
     def test_actions_distinctes_du_catalogue_et_personnalisation_fidele(self):
         from playwright.sync_api import expect
         page=self.navigateur();page.set_viewport_size({'width':1280,'height':900})
-        page.goto(self.live_server_url+reverse('statistiques')+'?rapport=exploration_repas&debut=2026-01-01&fin=2026-02-01&service=dejeuner&regroupement=mois_categorie')
-        actions=page.get_by_role('region',name='Composer un rapport')
-        expect(actions.get_by_role('link',name='Personnaliser ce rapport',exact=True)).to_be_visible()
-        catalogue=page.get_by_role('navigation',name='Rapports spécialisés')
-        catalogue.locator('summary').focus();catalogue.locator('summary').press('Enter')
-        expect(catalogue.get_by_role('link',name='Personnaliser ce rapport',exact=True)).to_have_count(0)
-        expect(catalogue.get_by_role('link',name='Créer un nouveau rapport',exact=True)).to_have_count(0)
-        actions.get_by_role('link',name='Personnaliser ce rapport',exact=True).click()
-        expect(page.locator('#id_population')).to_have_value('repas')
-        expect(page.locator('#id_valeur1')).to_have_value('Déjeuner')
-        expect(page.get_by_role('link',name='2',exact=True).first).to_be_visible()
-        page.get_by_role('link',name='← Revenir au rapport courant',exact=True).click()
-        expect(page.locator('[name=service]#service')).to_have_value('dejeuner')
+        page.goto(self.live_server_url+reverse('dossiers:rapport_nouveau'))
+        page.locator('#rapport-depart').select_option('financements')
+        page.get_by_role('button',name='Créer une variante',exact=True).click()
+        page.locator('#id_debut').fill('2026-01-01');page.locator('#id_fin').fill('2026-02-01');page.locator('#id_phase').select_option('autorise')
+        page.get_by_role('button',name='Afficher',exact=True).click()
+        lien=page.locator('a[href*="#cout-"]').first;lien.click()
+        expect(page.get_by_text('Composante fictive repérable',exact=False).first).to_be_visible()
+        retour=page.get_by_role('link',name='← Revenir aux résultats du rapport',exact=True)
+        expect(retour).to_be_visible();retour.click()
+        expect(page.locator('#id_phase')).to_have_value('autorise')
+        page.locator('#nom-rapport').fill('Mes coûts fictifs')
+        page.get_by_role('button',name='Enregistrer mon rapport',exact=True).click()
+        page.get_by_role('link',name='Gérer mes rapports',exact=True).click()
+        expect(page.get_by_role('heading',name='Mes coûts fictifs',exact=True)).to_be_visible()
+        article=page.locator('article').filter(has=page.get_by_role('heading',name='Mes coûts fictifs',exact=True))
+        article.get_by_role('link',name='Créer une variante',exact=True).click()
+        expect(page.get_by_role('button',name='Enregistrer un second rapport',exact=True)).to_be_visible()
+        expect(page.get_by_role('button',name='Remplacer explicitement « Mes coûts fictifs »',exact=True)).to_be_visible()
+
+    def test_deux_fenetres_refusent_remplacement_perime_et_gestion_supprime(self):
+        from playwright.sync_api import expect
+        page=self.navigateur()
+        url=self.live_server_url+reverse('dossiers:explorer')+'?modele='+str(self.modele.pk)
+        page.goto(url);autre=page.context.browser.new_page(storage_state=page.context.storage_state());self.addCleanup(autre.context.close);autre.goto(url)
+        page.locator('#nom-modele').fill('Rapport actualisé')
+        page.get_by_role('button',name='Remplacer explicitement « Mon analyse initiale »',exact=True).click()
+        autre.locator('#nom-modele').fill('Ancienne saisie conservée')
+        autre.get_by_role('button',name='Remplacer explicitement « Mon analyse initiale »',exact=True).click()
+        expect(autre.locator('#nom-modele')).to_have_value('Ancienne saisie conservée')
+        expect(autre.get_by_text('Le modèle a été modifié depuis ce formulaire.',exact=False).first).to_be_visible()
+        page.goto(self.live_server_url+reverse('dossiers:modele_gerer',args=[self.modele.pk]))
+        page.get_by_text('Supprimer ce rapport personnel',exact=True).click()
+        page.get_by_role('button',name='Confirmer la suppression',exact=True).click()
+        expect(page.get_by_role('heading',name='Gérer mes rapports',exact=True)).to_be_visible()
+        expect(page.get_by_role('heading',name='Rapport actualisé',exact=True)).to_have_count(0)

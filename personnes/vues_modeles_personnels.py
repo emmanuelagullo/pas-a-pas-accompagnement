@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError,PermissionDenied
 
 
 class GestionForm(FormulaireMetier):
-    nom=forms.CharField(label='Nom du modèle personnel',max_length=100)
+    nom=forms.CharField(label='Nom du rapport personnel',max_length=100)
     attendu=forms.CharField(widget=forms.HiddenInput)
 
 
@@ -45,7 +45,9 @@ def gerer(request,pk):
     if request.method=='POST' and request.POST.get('action')=='remplacer':
         params={k:v for k,v in request.POST.items() if k not in ('nom','attendu','action','csrfmiddlewaretoken')}
         params.update(modele_cible=str(modele.pk),attendu_modele=request.POST.get('attendu',''))
-        reprise=reverse('dossiers:explorer' if modele.parametres.get('exploration') else 'statistiques')+'?'+urlencode(params)
+        source=modele.parametres.get('_rapport_source')
+        route=reverse('dossiers:rapport_composer',args=[source]) if source else reverse('dossiers:explorer' if modele.parametres.get('exploration') else 'statistiques')
+        reprise=route+'?'+urlencode(params)
     return render(request,'exploration/gerer_modele.html',{'form':f,'modele':modele,'ouvrir_modele':ouvrir(modele),'reprise_configuration':reprise},status=status)
 
 
