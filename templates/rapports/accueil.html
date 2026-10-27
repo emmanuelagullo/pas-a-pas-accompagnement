@@ -1,6 +1,6 @@
 {% extends 'base.html' %}{% block contenu %}<div class="rapport-entete"><h1>Statistiques et rapports</h1>{% include 'rapports/_actions.html' %}</div>
-<h2>Rapports prêts à utiliser</h2><p>Choisissez un rapport, puis sa période et ses critères.</p>
+<h2>Modèles prêts à utiliser</h2><p>Choisissez un modèle pour obtenir son rapport, puis ajustez au besoin sa période et ses critères.</p>
 <ul class="rapports-catalogue">{% for r in rapports %}<li><a href="{{ r.url }}">{{ r.titre }}</a></li>{% endfor %}</ul>
-<section class="rapport-composer" aria-label="Créer et gérer mes rapports"><h2>Mes modèles</h2>
+<section class="rapport-composer" aria-label="Modèles personnels"><h2>Mes modèles</h2>
 {% if personnels %}<ul>{% for x in personnels %}<li><a href="{{ x.url_rapport }}">{{ x.nom }}</a> — {% if x.parametres.exploration %}modèle composable{% else %}paramètres de rapport spécialisé{% endif %}</li>{% endfor %}</ul>{% else %}<p>Aucun modèle personnel enregistré. Un modèle conserve vos critères et vos choix de présentation ; le rapport est recalculé à chaque ouverture.</p><p><a class="bouton" href="{% url 'dossiers:rapport_nouveau' %}">Créer un modèle</a></p>{% endif %}</section>
 {% endblock %}

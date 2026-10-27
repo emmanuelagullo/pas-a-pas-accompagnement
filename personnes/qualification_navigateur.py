@@ -802,7 +802,7 @@ class RapportsNavigateur(StaticLiveServerTestCase):
         contexte=page_connectee.context.browser.new_context(storage_state=page_connectee.context.storage_state(),java_script_enabled=False,viewport={'width':360,'height':800})
         self.addCleanup(contexte.close);page=contexte.new_page()
         page.goto(self.live_server_url+reverse('statistiques'))
-        expect(page.get_by_role('heading',name='Rapports prêts à utiliser',exact=True)).to_be_visible()
+        expect(page.get_by_role('heading',name='Modèles prêts à utiliser',exact=True)).to_be_visible()
         creer=page.get_by_role('link',name='Créer un modèle',exact=True).first;creer.focus();creer.press('Enter')
         expect(page.get_by_role('heading',name='Partir de zéro',exact=True)).to_be_visible()
         expect(page.get_by_role('heading',name='À partir d’une définition composable',exact=True)).to_be_visible()

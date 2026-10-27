@@ -37,7 +37,7 @@ def main():
         browser = playwright.chromium.launch()
         page = browser.new_page(viewport={'width': 1440, 'height': 1000}, device_scale_factor=1)
         page.goto(args.base_url + '/connexion/')
-        page.get_by_role('heading', name='Connexion').wait_for()
+        page.get_by_role('heading', name='Connexion', exact=True).wait_for()
         page.screenshot(path=str(args.output / 'connexion.png'))
         # Le profil jetable affiche des identifiants publics ; ils ne sont jamais
         # extraits d'une base persistante ni d'un environnement de production.
@@ -48,9 +48,9 @@ def main():
         # Qualification visuelle du parcours de relève, sur données fictives.
         # Vérifier les deux temporalités et les accès avant de capturer la page.
         page.goto(args.base_url + '/menages/jour/')
-        page.get_by_role('heading', name='Travail du jour', level=1).wait_for()
-        page.get_by_role('heading', name='Relève actuelle — transmissions récentes').wait_for()
-        page.get_by_role('heading', name='Relève actuelle — actions explicitement en attente').wait_for()
+        page.get_by_role('heading', name='Travail du jour', level=1, exact=True).wait_for()
+        page.get_by_role('heading', name='Relève actuelle — transmissions récentes', exact=True).wait_for()
+        page.get_by_role('heading', name='Relève actuelle — actions explicitement en attente', exact=True).wait_for()
         page.locator('#situation-date').wait_for()
         page.get_by_role('link', name='Écrire une transmission').wait_for()
         page.get_by_role('link', name='Consulter les statistiques d’activité').wait_for()
@@ -60,7 +60,7 @@ def main():
             ('liaison', '/menages/liaison/', 'Cahier de liaison'),
         ):
             page.goto(args.base_url + url)
-            page.get_by_role('heading', name=titre, level=1).wait_for()
+            page.get_by_role('heading', name=titre, level=1, exact=True).wait_for()
             if page.locator('main').count() != 1:
                 raise RuntimeError('Page sans contenu principal : ' + url)
             page.screenshot(path=str(args.output / (slug + '.png')))
@@ -78,7 +78,7 @@ def main():
         ):
             params = {**bornes, 'rapport': rapport, 'regroupement': 'categorie'}
             page.goto(args.base_url + '/statistiques/?' + urlencode(params))
-            page.get_by_role('heading', name=titre).wait_for()
+            page.get_by_role('heading', name=titre, exact=True).wait_for()
             tableau = page.locator('section.carte table').last
             tableau.get_by_role('columnheader', name=mesure).wait_for()
             if tableau.locator('tbody tr').count() < 1:
@@ -101,18 +101,18 @@ def main():
         page.goto(args.base_url + '/statistiques/?' + urlencode({
             **bornes, 'rapport': 'exploration_repas', 'service': 'dejeuner',
             'regroupement': 'categorie', 'comparer': '1'}))
-        page.get_by_role('heading', name='Repas par mois et service').wait_for()
+        page.get_by_role('heading', name='Repas par mois et service', exact=True).wait_for()
         if page.locator('select#service').input_value() != 'dejeuner':
             raise RuntimeError('Le filtre de service n’est pas appliqué')
         if page.locator('select#regroupement').input_value() != 'categorie':
             raise RuntimeError('Le regroupement n’est pas appliqué')
         if not page.locator('input[name="comparer"][type="checkbox"]').is_checked():
             raise RuntimeError('La comparaison n’est pas activée')
-        page.get_by_role('heading', name='Comparaison avec la période précédente').wait_for()
+        page.get_by_role('heading', name='Comparaison avec la période précédente', exact=True).wait_for()
         # Changer de période ne doit pas perdre les autres critères.
         page.locator('select#periode').select_option('mois')
         page.get_by_role('button', name='Appliquer').click()
-        page.get_by_role('heading', name='Repas par mois et service').wait_for()
+        page.get_by_role('heading', name='Repas par mois et service', exact=True).wait_for()
         if (page.locator('select#service').input_value() != 'dejeuner' or
                 page.locator('select#regroupement').input_value() != 'categorie' or
                 not page.locator('input[name="comparer"][type="checkbox"]').is_checked()):
@@ -122,9 +122,9 @@ def main():
         page.get_by_text('Enregistrer cette configuration comme modèle', exact=True).click()
         page.locator('#nom_modele').fill(nom_modele)
         page.get_by_role('button', name='Enregistrer cette configuration').click()
-        page.get_by_text('Mes modèles de rapports', exact=True).click()
-        page.get_by_role('link', name=nom_modele).last.click()
-        page.get_by_role('heading', name='Repas par mois et service').wait_for()
+        page.get_by_role('heading', name='Mes modèles', exact=True).wait_for()
+        page.get_by_role('link', name=nom_modele, exact=True).last.click()
+        page.get_by_role('heading', name='Repas par mois et service', exact=True).wait_for()
         if (page.locator('select#periode').input_value() != 'mois' or
                 page.locator('select#service').input_value() != 'dejeuner' or
                 page.locator('select#regroupement').input_value() != 'categorie' or
@@ -147,7 +147,7 @@ def main():
         if page.locator('select#service').input_value() != 'diner':
             raise RuntimeError('La modification du service n’est pas appliquée')
         page.get_by_text('Mes modèles de rapports', exact=True).click()
-        page.get_by_role('link', name=nom_modele).last.click()
+        page.get_by_role('link', name=nom_modele, exact=True).last.click()
         if page.locator('select#service').input_value() != 'dejeuner':
             raise RuntimeError('La consultation a modifié le modèle enregistré')
         browser.close()

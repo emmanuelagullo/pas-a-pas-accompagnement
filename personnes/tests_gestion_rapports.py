@@ -13,7 +13,7 @@ class GestionRapportsTests(TestCase):
     def composer(self,source,d=None):return self.client.get(reverse('dossiers:rapport_composer',args=[source]),d or {})
     def test_accueil_rapports_en_premier_creation_et_gestion(self):
         r=self.client.get(reverse('statistiques'),follow=True);self.assertEqual(r.status_code,200)
-        html=r.content.decode();self.assertLess(html.index('Rapports prêts à utiliser'),html.index('<h2>Mes modèles</h2>'))
+        html=r.content.decode();self.assertLess(html.index('Modèles prêts à utiliser'),html.index('<h2>Mes modèles</h2>'))
         self.assertContains(r,'Gérer mes modèles');self.assertContains(r,'Mouvements')
         r=self.client.get(reverse('dossiers:rapport_nouveau'));self.assertContains(r,'Partir de zéro');self.assertContains(r,'À partir d’une définition composable')
     def test_catalogue_tous_les_sources_ouvrables_et_derivees(self):

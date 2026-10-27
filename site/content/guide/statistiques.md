@@ -10,7 +10,7 @@ depart: "Navigation → Statistiques"
 statut: "disponible"
 ---
 
-1. Choisir un des **Rapports prêts à utiliser**, présentés en premier à l’entrée Statistiques.
+1. Choisir un des **Modèles prêts à utiliser**, présentés en premier à l’entrée Statistiques.
 2. Renseigner sa période et ses critères, puis lire les définitions avant de comparer les valeurs.
 3. Exporter le CSV ou utiliser l’impression proposée.
 

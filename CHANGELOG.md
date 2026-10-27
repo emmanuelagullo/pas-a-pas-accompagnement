@@ -1,5 +1,10 @@
 ## Statistiques — retrouver le fait précis et revenir au rapport (ST8)
 
+## Correctif ST9 — captures et vocabulaire
+
+- Cibler les titres exacts dans la recette de capture pour éviter les correspondances multiples ; rouvrir le modèle depuis le catalogue après son enregistrement.
+- Présenter le catalogue comme des modèles prêts à utiliser, produisant des rapports.
+
 ## Modèles composables et rapports spécialisés
 
 - Distinguer modèle enregistré et rapport recalculé ; accueil vide actionnable et gestion unifiée.

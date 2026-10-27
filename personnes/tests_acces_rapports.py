@@ -32,7 +32,7 @@ class AccesRapportsTests(TestCase):
         self.assertEqual(str(cible.context['formulaire'].cleaned_data['debut']),'2026-01-01')
     def test_limite_synthese_visible_avant_clic_et_nouveau_rapport_disponible(self):
         r=self.client.get(reverse('statistiques'),follow=True)
-        self.assertContains(r,'Rapports prêts à utiliser')
+        self.assertContains(r,'Modèles prêts à utiliser')
         creation=self.client.get(self.lien(r,'Créer un modèle'),follow=True)
         nouvelle=self.client.get(self.lien(creation,'Commencer un modèle vide'),follow=True)
         self.assertEqual(nouvelle.status_code,200);self.assertContains(nouvelle,'<h1>Nouveau modèle</h1>',html=True)

@@ -200,7 +200,7 @@ r=client.get(sans_prefixe(r['Location']),secure=True);assert r.status_code==200
 r=client.get(chemin('statistiques'),secure=True)
 assert r.status_code==302
 r=client.get(sans_prefixe(r['Location']),secure=True)
-assert r.status_code==200 and 'Rapports prêts à utiliser' in r.content.decode() and 'Gérer mes modèles' in r.content.decode()
+assert r.status_code==200 and 'Modèles prêts à utiliser' in r.content.decode() and 'Gérer mes modèles' in r.content.decode()
 r=client.get(chemin('dossiers:explorer_nouveau'),{'depart':'zero','modele':modele.pk,'population':'imputations'},secure=True)
 assert r.status_code==302
 r=client.get(sans_prefixe(r['Location']),secure=True)
