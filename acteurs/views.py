@@ -23,7 +23,7 @@ def formulaire(request,form,titre,faire,retour,**contexte):
             with transaction.atomic():faire(**form.cleaned_data)
         except (ValidationError,OperationalError) as e:
             form.add_error(None,' '.join(e.messages) if isinstance(e,ValidationError) else 'Écriture non confirmée ; rechargez avant de réessayer.');statut=409
-        else:return redirect(retour)
+        else:return redirect(retour() if callable(retour) else retour)
     return render(request,'acteurs/form.html',{'form':form,'titre':titre,'retour':retour,**contexte},status=statut)
 
 
@@ -182,3 +182,16 @@ def exploitation(request,service_pk):
     f.fields['debut']=forms.DateField(label='Depuis le',initial=timezone.localdate(),widget=forms.DateInput(attrs={'type':'date'}))
     f.fields['attendu']=forms.CharField(widget=forms.HiddenInput,initial=s.jeton(service))
     return formulaire(request,f,'Déclarer un changement d’exploitant',lambda **d:s.changer_exploitation(request.user,service,**d),reverse('acteurs:service',args=[service.pk]))
+
+
+@never_cache
+@login_required
+@require_http_methods(['GET','POST'])
+def terminer(request,pk):
+    x=get_object_or_404(Responsabilite.objects.select_related('dossier'),pk=pk)
+    ds=dossier_autorise(request,x.dossier_id)
+    if x.professionnel_id!=p.professionnel(request.user) and not p.habilitations(request.user).filter(service=ds.service,corriger_autrui=True).exists():raise PermissionDenied
+    f=FormulaireMetier(request.POST if request.method=='POST' else None)
+    f.fields['date']=forms.DateField(label='Fin de l’intervention',initial=timezone.localdate(),widget=forms.DateInput(attrs={'type':'date'}))
+    f.fields['attendu']=forms.CharField(widget=forms.HiddenInput,initial=s.jeton(ds))
+    return formulaire(request,f,'Terminer cette intervention',lambda **d:s.terminer_responsabilite(request.user,x,**d),lambda:retour_dossier(ds,request))

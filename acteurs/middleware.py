@@ -21,6 +21,13 @@ class PerimetreMiddleware:
             if not service:
                 ids=list(hs.order_by('service__etablissement_id','service__libelle','service_id').values_list('service_id',flat=True).distinct()[:1])
                 if ids:service=ids[0]
+            if vue_courante.view_name=='accueil' and not hs.exclude(tache='coordination').exists():
+                h=hs.filter(service_id=service)
+                portee='service' if h.filter(statistiques_service=True).exists() else 'etablissement' if h.filter(statistiques_etablissement=True).exists() else None
+                if portee:
+                    from django.http import HttpResponseRedirect
+                    from django.urls import reverse
+                    return HttpResponseRedirect(reverse('statistiques')+'?rapport=synthese&portee_statistiques='+portee)
             # Le mode regroupé ne s'applique qu'aux rapports, jamais aux faits,
             # justificatifs, téléchargements ou ouvertures depuis leurs résultats.
             modules_rapports={'personnes.vues_statistiques','personnes.vues_exploration','personnes.vues_rapports'}
@@ -56,6 +63,8 @@ class PerimetreMiddleware:
         export_demande=request.GET.get('format') in ('csv','pdf') or any(mot in request.path_info for mot in ('export','/fichier/','/pdf/','.pdf'))
         with perimetre(request.user,service,stats,responsable,creation,export_demande,vue_courante.kwargs.get('nature','')) as ctx:
             response=self.get_response(request)
+            if creation and request.method=='POST' and response.status_code in (301,302,303) and p.active():
+                response=self.retour_creation(request,response,ctx)
             if hasattr(response,'render') and not response.is_rendered:response.render()
             if p.active() and response.get('Content-Disposition','').lower().startswith('attachment'):
                 hs=p.habilitations(request.user)
@@ -69,6 +78,38 @@ class PerimetreMiddleware:
                     exportables=set(hs.filter(exporter=True).values_list('service_id',flat=True))
                     if not exportables or not services.issubset(exportables):return self.refus()
             return response
+
+    def retour_creation(self,request,response,ctx):
+        # Le droit transitoire d'initialiser ne survit pas à la création, y compris
+        # lorsque le professionnel proposé est un collègue en politique individuelle.
+        ctx.nouveaux.clear()
+        from .cache import invalider
+        invalider()
+        from urllib.parse import urlsplit,urlencode
+        from django.urls import resolve,Resolver404,reverse
+        from django.shortcuts import redirect
+        from personnes import models as m
+        chemin=urlsplit(response.get('Location','')).path
+        from django.conf import settings
+        prefixe=settings.FORCE_SCRIPT_NAME or ''
+        if prefixe and chemin.startswith(prefixe):chemin=chemin[len(prefixe):] or '/'
+        try:cible=resolve(chemin)
+        except Resolver404:return response
+        modeles={'personnes:detail':m.Personne,'suivi:detail':m.Menage,
+            'suivi:accompagnement':m.Accompagnement,'suivi:accord_hebergement':m.AccordHebergement,
+            'suivi:accord_repas':m.AccordRepas,'dossiers:aide':m.AccordAide}
+        objets=[]
+        if cible.view_name in ('dossiers:detail','dossiers:prise'):
+            model=m.Personne if cible.kwargs.get('nature')=='personne' else m.Menage
+            objets.append((model,cible.kwargs.get('pk')))
+            if cible.kwargs.get('prise_pk'):objets.append((m.Accompagnement,cible.kwargs['prise_pk']))
+        elif cible.view_name in modeles:objets.append((modeles[cible.view_name],cible.kwargs.get('pk')))
+        if any(not model.objects.filter(pk=pk).exists() for model,pk in objets):
+            from django.contrib import messages
+            messages.info(request,'Création enregistrée. Les accès suivent le professionnel désigné et la politique du service.')
+            params={k:request.GET[k][:160] for k in ('q','mode','filtre','page') if k in request.GET}
+            return redirect(reverse('accueil')+('?' + urlencode(params) if params else ''))
+        return response
 
     def refus(self):
         from django.http import HttpResponseForbidden

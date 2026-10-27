@@ -7,7 +7,7 @@ from .models import (ConfigurationAcces, Habilitation, AppartenanceProfessionnel
     LienCompteProfessionnel, Responsabilite, PorteeObjet, DossierService)
 from .contexte import courant
 
-# Répertoires et catalogues sont transversaux dans un espace d'organisme.
+# Répertoires et catalogues sont transversaux dans cette base applicative.
 # Ils ne donnent jamais accès aux dossiers. Les permissions Django restent nécessaires.
 REPERTOIRES = {'partenaire', 'fichepartenaire', 'revisionfichepartenaire',
     'intervenant', 'ficheintervenant', 'revisionficheintervenant', 'propositionsaisie',
@@ -26,8 +26,8 @@ OPERATIONS = {'accompagnement', 'accordhebergement', 'sejour', 'affectation', 'a
 
 
 def active():
-    # Activation stable pour la requête ; les habilitations et politiques sont
-    # relues, sans cache, à chaque opération.
+    # Activation stable pour la requête ; sélections de lecture mémorisées
+    # dans cette requête uniquement, écritures revalidées sans ce cache.
     ctx=courant()
     if ctx is not None and ctx.controle_actif is not None:return ctx.controle_actif
     try: return ConfigurationAcces.objects.filter(pk=1, active=True).exists()
@@ -46,9 +46,9 @@ def periode(jour=None, prefixe=''):
 def habilitations(compte):
     if not getattr(compte, 'is_authenticated', False) or not compte.is_active:
         return Habilitation.objects.none()
-    lien = LienCompteProfessionnel.objects.filter(compte=compte).first()
-    if not lien: return Habilitation.objects.none()
-    services = AppartenanceProfessionnelle.objects.filter(periode(), professionnel=lien.professionnel).values('service_id')
+    prof=professionnel(compte)
+    if not prof:return Habilitation.objects.none()
+    services = AppartenanceProfessionnelle.objects.filter(periode(), professionnel_id=prof).values('service_id')
     return Habilitation.objects.filter(periode(), compte=compte, revoque_le__isnull=True,
         service__actif=True, service_id__in=services)
 
@@ -64,11 +64,15 @@ def taches(modele):
 
 
 def professionnel(compte):
-    return LienCompteProfessionnel.objects.filter(compte=compte).values_list('professionnel_id', flat=True).first()
+    ctx=courant();cle=('professionnel',compte.pk)
+    if ctx and cle in ctx.memo:return ctx.memo[cle]
+    prof=LienCompteProfessionnel.objects.filter(compte=compte).values_list('professionnel_id', flat=True).first()
+    if ctx:ctx.memo[cle]=prof
+    return prof
 
 
 def missions(compte):
-    return Responsabilite.objects.filter(periode(timezone.now()), professionnel_id=professionnel(compte),
+    return Responsabilite.objects.filter(periode(timezone.now()), annule_le__isnull=True, professionnel_id=professionnel(compte),
         dossier__service_id__in=habilitations(compte).values('service_id'))
 
 
@@ -101,7 +105,8 @@ def portees(compte, modele, ecriture=False):
         q |= Q(dossier__isnull=True, service_id__in=hs.values('service_id'))
     ctx = courant()
     if ctx and ctx.statistiques in ('service','etablissement') and not ecriture:
-        stats = habilitations(compte).filter(service_id=ctx.service_id).filter(Q(statistiques_service=True) | Q(statistiques_etablissement=True))
+        option='statistiques_etablissement' if ctx.statistiques=='etablissement' else 'statistiques_service'
+        stats = habilitations(compte).filter(service_id=ctx.service_id,**{option:True})
         from .models import Service
         services = Service.objects.filter(pk__in=stats.values('service_id')) if ctx.statistiques == 'service' else Service.objects.filter(etablissement_id__in=stats.filter(statistiques_etablissement=True).values('service__etablissement_id'))
         # Les données personnelles ne sont consultées que durant le calcul, jamais
@@ -112,6 +117,18 @@ def portees(compte, modele, ecriture=False):
 
 
 def filtre(modele, ecriture=False):
+    ctx=courant()
+    if ctx is None or not active():return Q()
+    if ecriture:
+        from .cache import invalider
+        invalider()
+        return calculer_filtre(modele,True)
+    cle=('filtre',modele._meta.label_lower,ctx.service_id,ctx.statistiques)
+    if cle not in ctx.memo:ctx.memo[cle]=calculer_filtre(modele)
+    return ctx.memo[cle]
+
+
+def calculer_filtre(modele, ecriture=False):
     ctx = courant()
     if ctx is None or not active(): return Q()
     compte = ctx.compte
@@ -170,6 +187,13 @@ def service_creation(modele):
 def peut_renseigner(compte, origine, modele):
     hs=habilitations(compte).filter(service_id=origine.service_id,tache__in=taches(modele))
     if not hs.exists():return False
+    ctx=courant()
+    if ctx and origine.dossier_id:
+        ds=origine.dossier
+        racine=('personnes.personne',str(ds.personne_id)) if ds.personne_id else ('personnes.menage',str(ds.menage_id))
+        if racine in ctx.nouveaux:return True
+    if ctx and origine.prise_id and ('personnes.accompagnement',str(origine.prise_id)) in ctx.nouveaux:return True
+    if ctx and origine.prestation_id and ('personnes.'+origine.prestation_modele,str(origine.prestation_id)) in ctx.nouveaux:return True
     nom=modele._meta.model_name
     if nom in OPERATIONS|PERSONNELS|FINANCE and hs.filter(tache__in=['accueil','gestion']).exists():
         if nom not in CONTEXTUELS or origine.prestation_id or origine.dossier_id is None:return True

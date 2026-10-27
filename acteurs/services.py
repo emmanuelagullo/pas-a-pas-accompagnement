@@ -90,7 +90,7 @@ def instant(date):
 
 
 def responsables(dossier, objet, quand=None):
-    return Responsabilite.objects.filter(p.periode(quand or timezone.now()), dossier=dossier, **selection_cible(dossier,objet))
+    return Responsabilite.objects.filter(p.periode(quand or timezone.now()), annule_le__isnull=True, dossier=dossier, **selection_cible(dossier,objet))
 
 
 def verifier_professionnel(prof,service,date):
@@ -119,7 +119,7 @@ def proposition_relais(compte,dossier,objet,descendants=True,sortant=None,date=N
     ids=set(bases.values_list('pk',flat=True))
     if descendants:
         from personnes.models import Accompagnement
-        rs=Responsabilite.objects.filter(p.periode(date),dossier=dossier,professionnel_id=sortant)
+        rs=Responsabilite.objects.filter(p.periode(date),annule_le__isnull=True,dossier=dossier,professionnel_id=sortant)
         if isinstance(objet,DossierService):
             rs=rs.filter(Q(prise__fin__isnull=True)|Q(prise__isnull=True))
         elif isinstance(objet,Accompagnement):
@@ -128,9 +128,7 @@ def proposition_relais(compte,dossier,objet,descendants=True,sortant=None,date=N
         for r in rs.select_related('prise','hebergement','repas','aide'):
             cible=r.cible
             # Une prestation échue, annulée ou une prise terminée garde son histoire.
-            fin=getattr(cible,'fin',None)
-            if fin and fin<=date.date() or getattr(cible,'annule_le',None):continue
-            if getattr(cible,'accompagnement_id',None) and cible.accompagnement.fin and cible.accompagnement.fin<=date.date():continue
+            if not en_cours(cible,date):continue
             ids.add(r.pk)
     contenu={'dossier':str(dossier.pk),'revision':dossier.revision,'ids':sorted(ids),'sortant':str(sortant),'date':date.isoformat()}
     return list(Responsabilite.objects.filter(pk__in=ids).select_related('professionnel','prise','hebergement','repas','aide')), signing.dumps(contenu,salt='acteurs-relais-v1')
@@ -147,14 +145,15 @@ def relayer(compte,dossier,entrant,attendu,proposition):
     if d['sortant']!=str(p.professionnel(compte)) and not hs.filter(corriger_autrui=True).exists():raise PermissionDenied('La reprise du suivi d’un collègue nécessite le droit correspondant.')
     verifier_professionnel(entrant,dossier.service,date.date())
     if str(entrant.pk)==d['sortant']:raise ValidationError('Choisissez une autre personne pour le relais.')
-    lignes=list(Responsabilite.objects.filter(pk__in=d['ids'],dossier=dossier,professionnel_id=d['sortant']).filter(p.periode(date)))
+    lignes=list(Responsabilite.objects.filter(pk__in=d['ids'],dossier=dossier,professionnel_id=d['sortant'],annule_le__isnull=True).filter(p.periode(date)))
     if len(lignes)!=len(d['ids']) or not lignes:raise Conflit('Une responsabilité a changé ou aucune responsabilité ne correspond.')
     if any(x.prise_id or not (x.hebergement_id or x.repas_id or x.aide_id) for x in lignes) and not hs.filter(tache='social').exists():raise PermissionDenied
     avant=[];apres=[]
     for x in lignes:
         if date<=x.debut:raise ValidationError('Le relais doit suivre le début de la responsabilité.')
+        if not en_cours(x.cible,date):raise Conflit('Cet élément est terminé ; rechargez le suivi.')
         cible=selection_cible(dossier,x.cible)
-        if Responsabilite.objects.filter(p.periode(date),dossier=dossier,professionnel=entrant,**cible).exists():
+        if Responsabilite.objects.filter(p.periode(date),annule_le__isnull=True,dossier=dossier,professionnel=entrant,**cible).exists():
             raise ValidationError('Le collègue intervient déjà à ce niveau ; terminez votre intervention séparément.')
         x.fin=date;x.full_clean();x.save(update_fields=['fin'])
         y=Responsabilite(dossier=dossier,professionnel=entrant,debut=date,role=x.role,cree_par=compte,**cible);y.full_clean();y.save()
@@ -213,12 +212,15 @@ def inscrire(compte,service,professionnel,debut,fin=None,fonction='',cible_compt
 @transaction.atomic
 def terminer_responsabilite(compte,x,date,attendu):
     dossier=x.dossier;reserver(dossier,attendu)
-    hs=p.habilitations(compte).filter(service=dossier.service)
+    hs=p.habilitations(compte).filter(service=dossier.service,tache__in=['social','accueil','gestion'])
+    p.exiger_objet(compte,dossier.personne or dossier.menage)
+    if (x.prise_id or not(x.hebergement_id or x.repas_id or x.aide_id)) and not hs.filter(tache='social').exists():raise PermissionDenied
     if not hs.exists() or (x.professionnel_id!=p.professionnel(compte) and not hs.filter(corriger_autrui=True).exists()):raise PermissionDenied
     x.refresh_from_db();date=instant(date)
-    if x.fin or date<=x.debut:raise ValidationError('Cette responsabilité est déjà terminée ou sa fin est invalide.')
+    if x.fin or x.annule_le or date<=x.debut:raise ValidationError('Cette responsabilité est déjà terminée ou sa fin est invalide.')
     x.fin=date;x.full_clean();x.save(update_fields=['fin'])
     journal(compte,dossier.service,'fin_responsabilite',{'id':x.pk},{'fin':date.isoformat()},dossier,date.date())
+    oublier_initialisation(dossier,[x])
 
 
 def peut_attribuer(compte,dossier,objet):
@@ -241,9 +243,9 @@ def ajouter_responsabilite(compte,dossier,objet,professionnel,debut,role,attendu
     champs=selection_cible(dossier,objet)
     date=instant(debut)
     verifier_professionnel(professionnel,dossier.service,date.date())
-    if getattr(objet,'annule_le',None) or getattr(objet,'fin',None) and objet.fin<=date.date():
+    if not en_cours(objet,date):
         raise ValidationError('Cet élément est terminé ; son historique reste conservé.')
-    if Responsabilite.objects.filter(p.periode(date),dossier=dossier,professionnel=professionnel,**champs).exists():
+    if Responsabilite.objects.filter(p.periode(date),annule_le__isnull=True,dossier=dossier,professionnel=professionnel,**champs).exists():
         raise ValidationError('Cette personne intervient déjà à ce niveau.')
     x=Responsabilite(dossier=dossier,professionnel=professionnel,debut=date,role=role,cree_par=compte,**champs)
     x.full_clean();x.save()
@@ -287,3 +289,44 @@ def oublier_initialisation(dossier,lignes):
         elif x.aide_id:condition|=Q(prestation_modele='accordaide',prestation_id=x.aide_id)
         else:condition|=Q(dossier=dossier)
     ctx.nouveaux.difference_update(PorteeObjet.objects.filter(condition,dossier=dossier).values_list('modele','identifiant'))
+
+
+def en_cours(objet, quand):
+    """Une fin d'accord n'est pas la sortie effective d'un hébergement."""
+    from personnes.models import AccordHebergement
+    jour=quand.date() if isinstance(quand,datetime) else quand
+    if getattr(objet,'annule_le',None):return False
+    prise=getattr(objet,'accompagnement',None)
+    if prise and prise.fin and prise.fin<=jour:return False
+    if isinstance(objet,AccordHebergement) and objet.sejours.non_annules().filter(debut__lte=jour).filter(Q(fin__isnull=True)|Q(fin__gt=jour)).exists():return True
+    fin=getattr(objet,'fin',None)
+    return not fin or fin>jour
+
+
+@transaction.atomic
+def terminer_prise(compte, prise, fin):
+    """Fin d'accès maintenant si la clôture métier est rétrospective.
+
+    Appelé après le journal métier et dans sa transaction. Les responsabilités
+    du dossier restent distinctes. Une mission future exclue est annulée, gardée.
+    """
+    if not p.active():return
+    quand=max(timezone.now(),timezone.make_aware(datetime.combine(fin,time.min)))
+    rs=Responsabilite.objects.filter(Q(prise=prise)|Q(hebergement__accompagnement=prise)|Q(repas__accompagnement=prise)|Q(aide__accompagnement=prise),annule_le__isnull=True).filter(Q(fin__isnull=True)|Q(fin__gt=quand))
+    dossiers=list(DossierService.objects.filter(pk__in=rs.values('dossier_id')).order_by('pk'))
+    for dossier in dossiers:
+        # Même réservation que le relais : une confirmation antérieure est périmée.
+        DossierService.objects.filter(pk=dossier.pk).update(revision=F('revision')+1)
+        courantes=list(rs.filter(dossier=dossier,debut__lt=quand).values_list('pk',flat=True))
+        futures=list(rs.filter(dossier=dossier,debut__gte=quand).values_list('pk',flat=True))
+        Responsabilite.objects.filter(pk__in=courantes).update(fin=quand)
+        Responsabilite.objects.filter(pk__in=futures).update(annule_le=timezone.now())
+        journal(compte,dossier.service,'fin_prise',{'responsabilites':courantes,'prevues':futures},
+            {'prise':str(prise.pk),'fin_metier':str(fin),'fin_acces':quand.isoformat()},dossier,fin)
+    oublier_initialisation_prise(prise)
+
+
+def oublier_initialisation_prise(prise):
+    from .contexte import courant
+    ctx=courant()
+    if ctx:ctx.nouveaux.difference_update(PorteeObjet.objects.filter(prise=prise).values_list('modele','identifiant'))

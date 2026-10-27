@@ -43,9 +43,11 @@ class QuerySetControle(models.QuerySet):
         from .politique import active
         if courant() is None or not active():return super()._fetch_all()
         ctx=courant()
-        if getattr(self,'_contexte_resultats',None) is not ctx:
+        generation=ctx.memo.get('generation',0)
+        if getattr(self,'_contexte_resultats',None) is not ctx or getattr(self,'_generation_resultats',None)!=generation:
             self._result_cache=None
             self._contexte_resultats=ctx
+            self._generation_resultats=generation
         if self._result_cache is None:
             qs = self.selection()
             qs._fetch_all()
@@ -59,6 +61,11 @@ class QuerySetControle(models.QuerySet):
     def exists(self): return self.selection().exists()
     def aggregate(self, *args, **kwargs): return self.selection().aggregate(*args, **kwargs)
     def iterator(self, *args, **kwargs): return self.selection().iterator(*args, **kwargs)
+    def raw(self,*args,**kwargs):
+        from .politique import active
+        if courant() and active():raise PermissionDenied('Une requête SQL brute ne définit pas de périmètre métier.')
+        return super().raw(*args,**kwargs)
+
     def update(self, **kwargs):
         from .politique import active
         if courant() and active():
@@ -107,6 +114,9 @@ class ModeleControle(models.Model):
             creation=self._state.adding
             ctx=courant()
             from .politique import active
+            if ctx and active():
+                from .cache import invalider
+                invalider()
             if creation and ctx and active() and self.pk is not None:
                 # Un UUID fourni à une création ne doit jamais provoquer l'UPDATE
                 # implicite d'une ligne existante, même invisible au créateur.

@@ -12,6 +12,8 @@ def responsabilites(context,objet,niveau='dossier'):
         token=signing.dumps({'compte':str(request.user.pk),'dossier':str(ligne['dossier'].pk),'url':request.get_full_path()},salt='retour-acteurs-v1',compress=True)
         query='?'+urlencode({'retour_acteurs':token})
         ligne['relais_url']+=query
+        for r in ligne['responsables']:
+            if r.fin_url:r.fin_url+=query
         if ligne['attribution_url']:ligne['attribution_url']+=query
         ligne['retour_acteurs']=token
     return {'lignes':lignes,'niveau':niveau}

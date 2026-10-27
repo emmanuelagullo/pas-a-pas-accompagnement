@@ -7,6 +7,7 @@ def verifier(sender,instance,action,reverse,model,pk_set,**kwargs):
     if action not in ('pre_add','pre_remove','pre_clear') or instance._meta.app_label!='personnes':return
     ctx=courant()
     if not ctx or not p.active():return
+    if reverse:raise PermissionDenied('Modifiez les bénéficiaires depuis la prise en charge ou la prestation autorisée.')
     p.exiger_objet(ctx.compte,instance,True)
     if model._meta.app_label=='personnes' and pk_set:
         from .contexte import perimetre

@@ -282,3 +282,125 @@ class AccesTests(TestCase):
         self.assertEqual(response.status_code,200)
         self.assertIn(self.pa,response.context['form'].fields['professionnel'].queryset)
         self.assertFalse(p.habilitations(self.admin).exists())
+
+    def test_cloture_arrete_suivis_de_prise_et_prestations_pas_dossier(self):
+        self.sa.politique='individuel';self.sa.save()
+        debut=timezone.now()-timedelta(days=2)
+        prise=Responsabilite.objects.create(dossier=self.da,professionnel=self.pa,prise=self.a,debut=debut,cree_par=self.admin)
+        prestation=Responsabilite.objects.create(dossier=self.da,professionnel=self.pa,hebergement=self.h,debut=debut,cree_par=self.admin)
+        future=Responsabilite.objects.create(dossier=self.da,professionnel=self.pc,prise=self.a,debut=timezone.now()+timedelta(days=5),cree_par=self.admin)
+        dossier=Responsabilite.objects.create(dossier=self.da,professionnel=self.pc,debut=debut,cree_par=self.admin)
+        attendu=s.jeton(self.da)
+        with perimetre(self.ua,self.sa):
+            suivi.clore(self.ua,self.a,timezone.localdate())
+            self.assertFalse(m.Accompagnement.objects.filter(pk=self.a.pk).exists())
+        prise.refresh_from_db();prestation.refresh_from_db();future.refresh_from_db();dossier.refresh_from_db()
+        self.assertIsNotNone(prise.fin);self.assertIsNotNone(prestation.fin)
+        self.assertIsNotNone(future.annule_le);self.assertIsNone(dossier.fin)
+        with perimetre(self.uc,self.sa):self.assertTrue(m.Accompagnement.objects.filter(pk=self.a.pk).exists())
+        self.assertEqual(JournalAcces.objects.filter(action='fin_prise').count(),1)
+        with self.assertRaises(s.Conflit):s.reserver(self.da,attendu)
+
+    def test_relais_inclut_hebergement_reel_au_dela_de_fin_accord(self):
+        self.h.fin=timezone.localdate()-timedelta(days=1);self.h.save()
+        sejour=m.Sejour.objects.create(accord=self.h,debut=date(2020,1,1),cree_par=self.ua)
+        r=Responsabilite.objects.create(dossier=self.da,professionnel=self.pa,hebergement=self.h,cree_par=self.admin)
+        lignes,_=s.proposition_relais(self.ua,self.da,self.da)
+        self.assertIn(r.pk,[x.pk for x in lignes])
+        sejour.fin=timezone.localdate();sejour.save()
+        lignes,_=s.proposition_relais(self.ua,self.da,self.da)
+        self.assertNotIn(r.pk,[x.pk for x in lignes])
+
+    def test_affectation_ancienne_verifie_sans_ecrire_et_sans_droits(self):
+        import json,hashlib
+        from tempfile import TemporaryDirectory
+        from pathlib import Path
+        from io import StringIO
+        from django.core.management import call_command,CommandError
+        PorteeObjet.objects.filter(modele='personnes.accordhebergement',identifiant=str(self.h.pk)).delete()
+        manifeste={'service':self.sa.pk,'dossiers':[{'nature':'menage','id':str(self.ma.pk),'objets':[{'modele':'personnes.accordhebergement','id':str(self.h.pk)}]}]}
+        avant=(Habilitation.objects.count(),Responsabilite.objects.count())
+        with TemporaryDirectory() as temporaire:
+            fichier=Path(temporaire)/'inventaire.json';octets=json.dumps(manifeste).encode();fichier.write_bytes(octets)
+            call_command('affecter_donnees_service',str(fichier),auteur=self.admin.username,stdout=StringIO())
+            self.assertFalse(PorteeObjet.objects.filter(identifiant=str(self.h.pk)).exists())
+            with self.assertRaises(CommandError):call_command('affecter_donnees_service',str(fichier),auteur=self.admin.username,appliquer=True,empreinte='fausse',stdout=StringIO())
+            call_command('affecter_donnees_service',str(fichier),auteur=self.admin.username,appliquer=True,empreinte=hashlib.sha256(octets).hexdigest(),stdout=StringIO())
+        origine=PorteeObjet.objects.get(modele='personnes.accordhebergement',identifiant=str(self.h.pk))
+        self.assertEqual(origine.dossier,self.da);self.assertEqual(origine.prise,self.a)
+        self.assertEqual(avant,(Habilitation.objects.count(),Responsabilite.objects.count()))
+
+    def test_activation_explicite_ne_cree_aucune_habilitation(self):
+        from django.core.management import call_command,CommandError
+        from io import StringIO
+        ConfigurationAcces.objects.update(active=False)
+        avant=(Habilitation.objects.count(),Responsabilite.objects.count(),PorteeObjet.objects.count())
+        with self.assertRaises(CommandError):call_command('activer_acces_services',auteur=self.ua.username,stdout=StringIO())
+        self.assertFalse(p.active())
+        call_command('activer_acces_services',auteur=self.ua.username,confirmer=True,stdout=StringIO())
+        self.assertTrue(p.active())
+        self.assertEqual(avant,(Habilitation.objects.count(),Responsabilite.objects.count(),PorteeObjet.objects.count()))
+
+    def test_cache_requete_invalide_par_revocation_et_politique(self):
+        qs=m.Accompagnement.objects.all()
+        with perimetre(self.ua,self.sa):
+            self.assertEqual(len(list(qs)),1)
+            self.assertTrue(self.ua.has_perm('personnes.view_accompagnement'))
+            Habilitation.objects.filter(compte=self.ua).update(revoque_le=timezone.now())
+            self.assertEqual(len(list(qs)),0)
+            self.assertFalse(self.ua.has_perm('personnes.view_accompagnement'))
+        with perimetre(self.uc,self.sa):
+            self.assertEqual(m.Accompagnement.objects.count(),1)
+            Service.objects.filter(pk=self.sa.pk).update(politique='individuel')
+            self.assertEqual(m.Accompagnement.objects.count(),0)
+
+    def test_terminer_intervention_http_ne_garde_pas_acces_individuel(self):
+        from django.urls import reverse
+        self.sa.politique='individuel';self.sa.save()
+        r=Responsabilite.objects.create(dossier=self.da,professionnel=self.pa,debut=timezone.now()-timedelta(days=1),cree_par=self.admin)
+        c=Client();c.force_login(self.ua)
+        url=reverse('acteurs:terminer',args=[r.pk])
+        self.assertEqual(c.get(url).status_code,200)
+        reponse=c.post(url,{'date':timezone.localdate().isoformat(),'attendu':s.jeton(self.da)})
+        self.assertEqual(reponse.status_code,302)
+        self.assertEqual(reponse['Location'],'/')
+        self.assertEqual(c.get(reverse('dossiers:detail',args=['menage',self.ma.pk])).status_code,404)
+
+    def test_creation_menage_confie_collegue_sans_dossier_personnel_cache(self):
+        from django.urls import reverse
+        self.sa.politique='individuel';self.sa.save()
+        c=Client();c.force_login(self.ua)
+        r=c.post(reverse('dossiers:creer',args=['menage']),{'libelle':'Ménage créé pour collègue fictif','premiere_personne':'nouvelle',
+            'designation':'Personne créée pour collègue fictif','prenom':'','debut':timezone.localdate().isoformat(),'responsable_acteurs':str(self.pc.pk)})
+        self.assertEqual(r.status_code,302)
+        self.assertEqual(r['Location'],'/')
+        ds=DossierService.objects.get(menage__libelle='Ménage créé pour collègue fictif')
+        personne=m.Personne._base_manager.get(designation='Personne créée pour collègue fictif')
+        self.assertFalse(DossierService.objects.filter(personne=personne).exists())
+        self.assertEqual(Responsabilite.objects.get(dossier=ds).professionnel,self.pc)
+        with perimetre(self.ua,self.sa):self.assertFalse(m.Personne.objects.filter(pk=personne.pk).exists())
+        with perimetre(self.uc,self.sa):self.assertTrue(m.Personne.objects.filter(pk=personne.pk).exists())
+
+    def test_inventaire_refuse_parent_prive_absent_des_la_verification(self):
+        import json
+        from tempfile import TemporaryDirectory
+        from pathlib import Path
+        from io import StringIO
+        from django.core.management import call_command,CommandError
+        PorteeObjet.objects.filter(modele='personnes.accompagnement',identifiant=str(self.a.pk)).delete()
+        PorteeObjet.objects.filter(modele='personnes.accordhebergement',identifiant=str(self.h.pk)).delete()
+        d={'service':self.sa.pk,'dossiers':[{'nature':'menage','id':str(self.ma.pk),'objets':[{'modele':'personnes.accordhebergement','id':str(self.h.pk)}]}]}
+        with TemporaryDirectory() as temporaire:
+            f=Path(temporaire)/'inventaire.json';f.write_text(json.dumps(d))
+            with self.assertRaises(CommandError):call_command('affecter_donnees_service',str(f),auteur=self.admin.username,stdout=StringIO())
+        self.assertFalse(PorteeObjet.objects.filter(modele='personnes.accordhebergement',identifiant=str(self.h.pk)).exists())
+
+    def test_creation_revalide_lien_professionnel_meme_apres_lecture(self):
+        from django.db import models
+        sans_appartenance=m.Intervenant.objects.create(libelle='Autre professionnel fictif non habilité',cree_par=self.admin)
+        with perimetre(self.ua,self.sa):
+            self.assertTrue(m.Menage.objects.exists())
+            # Simuler une modification externe qui ne partage pas le cache local.
+            models.QuerySet(model=LienCompteProfessionnel).filter(compte=self.ua).update(professionnel=sans_appartenance)
+            with self.assertRaises((ValidationError,PermissionDenied)):
+                m.Personne.objects.create(designation='Création après changement interdite',cree_par=self.ua)

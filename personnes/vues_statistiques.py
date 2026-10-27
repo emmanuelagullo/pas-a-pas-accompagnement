@@ -160,6 +160,9 @@ def statistiques(request):
     rapport = selection.get('rapport', 'synthese')
     if rapport not in RAPPORTS:
         rapport = 'synthese'
+    if getattr(request,'acteurs_statistiques_regroupees',False) and rapport not in ('synthese','hebergement','repas','mensuel'):
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied
     if rapport == 'ages' and not request.user.has_perm('personnes.view_personne'):
         from django.core.exceptions import PermissionDenied
         raise PermissionDenied

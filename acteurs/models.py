@@ -5,9 +5,10 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q, F
 from django.utils import timezone
+from .cache import ModeleOrganisation
 
 
-class Periode(models.Model):
+class Periode(ModeleOrganisation):
     debut = models.DateField(default=timezone.localdate)
     fin = models.DateField(null=True, blank=True, help_text='Fin exclue.')
 
@@ -22,18 +23,18 @@ class Periode(models.Model):
             raise ValidationError({'fin': 'La fin exclue doit suivre le début.'})
 
 
-class OrganismeGestionnaire(models.Model):
+class OrganismeGestionnaire(ModeleOrganisation):
     organisme = models.OneToOneField('personnes.Partenaire', on_delete=models.PROTECT)
     def __str__(self): return str(self.organisme)
 
 
-class Etablissement(models.Model):
+class Etablissement(ModeleOrganisation):
     organisme = models.ForeignKey(OrganismeGestionnaire, on_delete=models.PROTECT)
     fiche = models.OneToOneField('personnes.Partenaire', on_delete=models.PROTECT)
     def __str__(self): return str(self.fiche)
 
 
-class Service(models.Model):
+class Service(ModeleOrganisation):
     POLITIQUES = [('collectif', 'Lecture et écriture collectives'),
         ('lecture', 'Lecture collective, écriture sur les dossiers suivis'),
         ('individuel', 'Lecture et écriture sur les dossiers suivis')]
@@ -48,7 +49,7 @@ class Service(models.Model):
     def __str__(self): return self.libelle
 
 
-class LienCompteProfessionnel(models.Model):
+class LienCompteProfessionnel(ModeleOrganisation):
     compte = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     professionnel = models.OneToOneField('personnes.Intervenant', on_delete=models.PROTECT)
 
@@ -75,7 +76,7 @@ class Habilitation(Periode):
     revision = models.PositiveIntegerField(default=0, editable=False)
 
 
-class DossierService(models.Model):
+class DossierService(ModeleOrganisation):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     service = models.ForeignKey(Service, on_delete=models.PROTECT)
     personne = models.ForeignKey('personnes.Personne', null=True, blank=True, on_delete=models.PROTECT)
@@ -92,7 +93,7 @@ class DossierService(models.Model):
     def __str__(self): return str(self.personne or self.menage)
 
 
-class PorteeObjet(models.Model):
+class PorteeObjet(ModeleOrganisation):
     """Origine explicite des faits ; aucune déduction par le nom ou le créateur."""
     modele = models.CharField(max_length=80)
     identifiant = models.CharField(max_length=64)
@@ -108,6 +109,7 @@ class PorteeObjet(models.Model):
 
 
 class Responsabilite(Periode):
+    annule_le = models.DateTimeField(null=True, blank=True, editable=False)
     debut = models.DateTimeField(default=timezone.now)
     fin = models.DateTimeField(null=True, blank=True)
     dossier = models.ForeignKey(DossierService, on_delete=models.PROTECT, related_name='responsabilites')
@@ -130,7 +132,7 @@ class Responsabilite(Periode):
     def cible(self): return self.hebergement or self.repas or self.aide or self.prise or self.dossier
 
 
-class JournalAcces(models.Model):
+class JournalAcces(ModeleOrganisation):
     action = models.CharField(max_length=40)
     service = models.ForeignKey(Service, on_delete=models.PROTECT)
     dossier = models.ForeignKey(DossierService, on_delete=models.PROTECT, null=True)
@@ -154,7 +156,7 @@ class ExploitationLieu(Periode):
             Q(etablissement__isnull=True, organisme_exterieur__isnull=False), name='act_exploitant_cible')]
 
 
-class ConfigurationAcces(models.Model):
+class ConfigurationAcces(ModeleOrganisation):
     """Activation explicite après affectation ; ne modifie aucun droit ancien."""
     id = models.PositiveSmallIntegerField(primary_key=True, default=1, editable=False)
     active = models.BooleanField(default=False)

@@ -12,6 +12,7 @@ def acteurs(request):
     result={'mode_acces_historique':not actif, 'controle_acteurs':actif, 'portee_statistiques_acteurs':ctx.statistiques}
     if not actif:return result
     hs=p.habilitations(request.user)
+    result['peut_ouvrir_dossiers_acteurs']=hs.exclude(tache='coordination').exists()
     services=Service.objects.filter(pk__in=hs.values('service_id')).select_related('etablissement')
     result.update(services_acteurs=services,service_acteurs=ctx.service_id)
     if ctx.service_id:
@@ -42,7 +43,14 @@ def bloc(compte,objet,niveau='dossier'):
     for d in ds.select_related('service'):
         cible=d if niveau=='dossier' else objet
         rs=list(s.responsables(d,cible).select_related('professionnel'))
-        lignes.append({'dossier':d,'responsables':rs,'attendu':s.jeton(d),
+        corriger=hs.filter(service=d.service,corriger_autrui=True).exists()
+        moi=p.professionnel(compte)
+        for r in rs:
+            r.fin_url=reverse('acteurs:terminer',args=[r.pk]) if r.professionnel_id==moi or corriger else ''
+        historique=Responsabilite.objects.filter(dossier=d,**s.selection_cible(d,cible)).filter(Q(fin__lte=timezone.now())|Q(annule_le__isnull=False)).select_related('professionnel').order_by('-debut')[:20]
+        lignes.append({'dossier':d,'responsables':rs,'historique':historique,'attendu':s.jeton(d),
+            'peut_relayer':any(r.professionnel_id==moi for r in rs) or corriger,
+            'peut_prendre':corriger and any(r.professionnel_id!=moi for r in rs),
             'relais_url':reverse('acteurs:relais_dossier',args=[d.pk]) if niveau=='dossier' else reverse('acteurs:relais_objet',args=[d.pk,niveau,objet.pk]),
             'attribution_url':(reverse('acteurs:attribuer_dossier',args=[d.pk]) if niveau=='dossier' else reverse('acteurs:attribuer_objet',args=[d.pk,niveau,objet.pk])) if s.peut_attribuer(compte,d,cible) else '',
             'peut_reprendre':d.en_attente and hs.filter(service=d.service,tache='social').exists()})

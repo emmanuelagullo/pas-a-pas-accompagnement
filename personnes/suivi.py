@@ -99,3 +99,6 @@ def clore(acteur, objet, fin):
     EvenementSuivi.objects.create(menage=objet.menage, auteur=acteur, date_effet=fin,
         type="accompagnement_clos" if accompagnement else "appartenance_close",
         **({"accompagnement": objet} if accompagnement else {"appartenance": objet}))
+    if accompagnement:
+        from acteurs.services import terminer_prise
+        terminer_prise(acteur,objet,fin)

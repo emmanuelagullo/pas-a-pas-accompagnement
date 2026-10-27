@@ -284,7 +284,7 @@ def detail(request, nature, pk, prise_pk=None):
     if actuelle and request.user.has_perm('personnes.view_notepartagee'):
         from .models import NotePartagee
         notes_actuelles = NotePartagee.objects.filter(accompagnement=actuelle).select_related('auteur').order_by('-cree_le', '-pk')[:3]
-    retour = reverse('accueil') + '?' + urlencode({k: params[k] for k in ('q', 'mode', 'page')})
+    retour = reverse('accueil') + '?' + urlencode({k: params[k] for k in ('q', 'mode', 'page','filtre')})
     origine_url = reverse('dossiers:detail', args=['menage', origine.pk]) + '?' + urlencode({**params, 'vue_sociale': 'date' if condition_vue in ('entree', 'fin') else condition_vue, 'sejour': params.get('origine_sejour', params['sejour']), 'repas': params.get('origine_repas', params['repas'])}) if origine else ''
     personnes_sociales = list(prise.beneficiaires.all()) if prise else [objet] if nature == 'personne' else list({l.personne_id: l.personne for l in liens if l.debut <= condition_jour and (l.fin is None or l.fin > condition_jour)}.values())
     condition_personnes, condition_projets = condition_sociale.presentation(

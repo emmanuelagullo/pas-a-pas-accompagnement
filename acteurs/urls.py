@@ -2,6 +2,7 @@ from django.urls import path
 from . import views as v
 app_name='acteurs'
 urlpatterns=[
+    path('responsabilites/<int:pk>/terminer/',v.terminer,name='terminer'),
     path('services/<int:service_pk>/exploitation/',v.exploitation,name='exploitation'),
     path('dossiers/<uuid:pk>/attribuer/',v.attribuer,name='attribuer_dossier'),
     path('dossiers/<uuid:pk>/attribuer/<str:niveau>/<uuid:objet_pk>/',v.attribuer,name='attribuer_objet'),
