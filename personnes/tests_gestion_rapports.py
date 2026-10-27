@@ -13,14 +13,14 @@ class GestionRapportsTests(TestCase):
     def composer(self,source,d=None):return self.client.get(reverse('dossiers:rapport_composer',args=[source]),d or {})
     def test_accueil_rapports_en_premier_creation_et_gestion(self):
         r=self.client.get(reverse('statistiques'),follow=True);self.assertEqual(r.status_code,200)
-        html=r.content.decode();self.assertLess(html.index('Rapports prêts à utiliser'),html.index('<h2>Mes rapports enregistrés</h2>'))
-        self.assertContains(r,'Gérer mes rapports');self.assertContains(r,'Mouvements')
-        r=self.client.get(reverse('dossiers:rapport_nouveau'));self.assertContains(r,'Partir de zéro');self.assertContains(r,'À partir d’un rapport existant')
+        html=r.content.decode();self.assertLess(html.index('Rapports prêts à utiliser'),html.index('<h2>Mes modèles</h2>'))
+        self.assertContains(r,'Gérer mes modèles');self.assertContains(r,'Mouvements')
+        r=self.client.get(reverse('dossiers:rapport_nouveau'));self.assertContains(r,'Partir de zéro');self.assertContains(r,'À partir d’une définition composable')
     def test_catalogue_tous_les_sources_ouvrables_et_derivees(self):
         for source in c.SOURCES:
             with self.subTest(source=source):
                 r=self.composer(source);self.assertEqual(r.status_code,200,r.content[:200])
-                self.assertContains(r,'Créer une variante');self.assertContains(r,'Enregistrer mon rapport')
+                self.assertContains(r,'Enregistrer les paramètres de ce rapport');self.assertContains(r,'Enregistrer mon modèle')
                 f=r.context.get('form') or r.context.get('formulaire');self.assertTrue(f.is_valid(),f.errors)
                 d=dict(r.context['parametres_composition']);d.update(nom='Essai '+source,action_modele='creer')
                 r=self.client.post(reverse('dossiers:rapport_composer',args=[source]),d)
@@ -39,7 +39,7 @@ class GestionRapportsTests(TestCase):
         r=self.client.post(reverse('dossiers:rapport_composer',args=['statistiques']),{**d,'nom':'Synthèse conservée','action_modele':'creer'})
         self.assertEqual(r.status_code,302);x=m.ModeleRapport.objects.get(nom='Synthèse conservée')
         r=self.composer('statistiques',{'modele':x.pk});ticket=r.context['attendu_rapport']
-        self.assertContains(r,'Enregistrer un second rapport');self.assertContains(r,'Remplacer explicitement')
+        self.assertContains(r,'Enregistrer un second modèle');self.assertContains(r,'Remplacer explicitement')
         r=self.client.post(reverse('dossiers:rapport_composer',args=['statistiques']),{**d,'nom':'Seconde','action_modele':'creer','modele_cible':x.pk,'attendu_modele':ticket,'fin':'2026-01-04'})
         self.assertEqual(r.status_code,302);x.refresh_from_db();self.assertEqual(x.parametres['fin'],'2026-01-05')
         self.assertEqual(m.ModeleRapport.objects.count(),2)

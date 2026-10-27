@@ -63,3 +63,16 @@ def retour_statistiques(context):
     valeurs=context.get('dossier_valeurs') or {}
     token=request.GET.get('retour_exploration') or request.POST.get('retour_exploration') or valeurs.get('retour_exploration') or (valeurs.get('vue') or {}).get('retour_exploration')
     return retour_verifie(request.user,token)
+
+
+@register.simple_tag(takes_context=True)
+def composition_fidele(context,source):
+    """Proposer uniquement une traduction validée avec les critères courants."""
+    from django.core.exceptions import ValidationError,PermissionDenied
+    from django.http import Http404
+    from ..personnalisation_rapports import adapter
+    if not context['request'].user.has_perm('personnes.view_personne'):return ''
+    params=parametres_courants(context,source)
+    try:adapter(context['request'].user,source,params)
+    except (ValidationError,PermissionDenied,Http404,ValueError,TypeError):return ''
+    return lien(source,params)

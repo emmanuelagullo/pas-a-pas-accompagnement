@@ -18,7 +18,7 @@ def lien(source,params):
 
 def limite_personnalisation(source,data):
     """Limites connues, expliquées avant le clic et revalidées par l'adaptateur."""
-    if source not in SOURCES:raise Http404
+    if source not in SOURCES:return 'Ce rapport spécialisé ne dispose pas encore de traduction fidèle vers la composition libre.'
     if source=='statistiques':
         if data.get('comparer')=='1' and data.get('rapport')!='ages':
             return 'La comparaison de périodes juxtapose plusieurs calculs. Elle n’est pas encore représentable comme une seule analyse ; le rapport courant reste disponible.'

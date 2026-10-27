@@ -6,18 +6,18 @@ categorie: "analyser"
 publics: ["equipe"]
 intentions: ["explorer", "croiser", "relevé", "CSV", "filtre", "population"]
 prerequis: "Droits de consultation des populations, mesures et critères choisis ; les droits de modèles ne sont nécessaires que pour les conserver ou les échanger."
-depart: "Statistiques → Créer un nouveau rapport"
+depart: "Statistiques → Créer un modèle"
 statut: "disponible"
 ---
 
-Depuis **Créer un rapport**, choisir **Partir de zéro** pour ouvrir directement
-**Retenir**. L’autre choix permet de sélectionner un rapport proposé ou personnel ;
-**Créer une variante de ce rapport** est aussi disponible depuis un rapport ouvert.
+Depuis **Créer un modèle**, choisir **Partir de zéro** pour ouvrir directement
+**Retenir**, ou partir d’une définition composable proposée ou personnelle.
+**Composer à partir de ce rapport** reprend aussi la définition du rapport ouvert
+quand sa traduction est fidèle. Les repas, les financements et certains appels 115
+sont proposés ; les critères incompatibles ne sont jamais abandonnés.
 
-Une variante spécialisée garde les calculs et les paramètres de sa définition
-source. Elle n’est pas une conversion approximative dans une autre population.
-Pour choisir librement d’autres colonnes, mesures et classements, utiliser la
-composition libre décrite ci-dessous.
+Un rapport spécialisé conserve ses indicateurs propres : **Enregistrer ces
+paramètres** mémorise ses critères, sans ouvrir une composition libre.
 
 1. Choisir la population réellement étudiée : personnes, demandes, séjours, accords, distributions, appels ou autre population proposée.
 2. Renseigner la période et la référence des données personnelles. La référence peut être commune ou suivre la date de chaque fait ou de sa saisie initiale.

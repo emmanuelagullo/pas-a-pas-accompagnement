@@ -1,8 +1,9 @@
-{% load analyse %}{% deriver_rapport source as url_variante %}
+{% load analyse %}{% deriver_rapport source as url_parametres %}{% composition_fidele source as url_composition %}
 <section class="rapport-composer" aria-label="Actions du rapport"><div class="rapport-entete">
-{% if composition_source %}<div><h2>{% if rapport_cible %}Paramètres de « {{ rapport_cible.nom }} »{% else %}Créer une variante{% endif %}</h2><p>Les critères et les calculs du rapport source sont conservés. Modifiez ses paramètres ci-dessous, puis choisissez comment l’enregistrer.</p></div>
-{% else %}<div><a class="bouton" href="{{ url_variante }}">Créer une variante de ce rapport</a><p class="helptext">Reprendre sa définition et ses critères dans un nouveau rapport personnel.</p></div>{% endif %}
-<a class="bouton secondaire" href="{% url 'dossiers:rapports_gerer' %}">Gérer mes rapports</a></div>
-{% if not composition_source %}<p><a href="{% url 'dossiers:rapport_nouveau' %}">Créer un rapport à partir de zéro ou choisir un autre rapport</a></p>{% endif %}
-{% if composition_source %}<p class="helptext">Ce rapport utilise ses indicateurs spécialisés. Pour choisir d’autres populations, colonnes et croisements, utilisez <a href="{% url 'dossiers:explorer_nouveau' %}?depart=zero">la composition libre</a>.</p>{% endif %}
-</section>
+{% if composition_source %}<div><h2>{% if rapport_cible %}Paramètres de « {{ rapport_cible.nom }} »{% else %}Enregistrer les paramètres de ce rapport{% endif %}</h2><p>Ce modèle conserve les critères ci-dessous. Les indicateurs et la présentation restent ceux du rapport spécialisé ; les résultats sont recalculés à chaque ouverture.</p></div>
+{% else %}<div><a class="bouton" href="{{ url_parametres }}">Enregistrer ces paramètres</a><p class="helptext">Mémoriser la sélection de ce rapport spécialisé, sans changer ses indicateurs.</p></div>{% endif %}
+<a class="bouton secondaire" href="{% url 'dossiers:rapports_gerer' %}">Gérer mes modèles</a></div>
+{% if url_composition %}<p><a class="bouton" href="{{ url_composition }}">Composer à partir de ce rapport</a> — Reprendre fidèlement sa sélection et ses mesures, puis modifier Retenir, Afficher, Compter et Classer. L’enregistrement crée un modèle composable distinct.</p>
+{% elif not perms.personnes.view_personne %}<p class="helptext">La composition libre nécessite le droit de consultation des personnes.</p>
+{% else %}<p class="helptext">Rapport spécialisé : sa définition complète n’est pas encore représentable dans la composition libre. Aucune dérivation composable n’est proposée avec ces critères.</p>{% endif %}
+<p><a href="{% url 'dossiers:rapport_nouveau' %}">Créer un modèle ou choisir une autre définition</a></p></section>

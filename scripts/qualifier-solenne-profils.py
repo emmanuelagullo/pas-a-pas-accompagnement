@@ -200,11 +200,11 @@ r=client.get(sans_prefixe(r['Location']),secure=True);assert r.status_code==200
 r=client.get(chemin('statistiques'),secure=True)
 assert r.status_code==302
 r=client.get(sans_prefixe(r['Location']),secure=True)
-assert r.status_code==200 and 'Rapports prêts à utiliser' in r.content.decode() and 'Gérer mes rapports' in r.content.decode()
+assert r.status_code==200 and 'Rapports prêts à utiliser' in r.content.decode() and 'Gérer mes modèles' in r.content.decode()
 r=client.get(chemin('dossiers:explorer_nouveau'),{'depart':'zero','modele':modele.pk,'population':'imputations'},secure=True)
 assert r.status_code==302
 r=client.get(sans_prefixe(r['Location']),secure=True)
-assert r.status_code==200 and '<h1>Nouveau rapport</h1>' in r.content.decode() and 'Remplacer explicitement' not in r.content.decode()
+assert r.status_code==200 and '<h1>Nouveau modèle</h1>' in r.content.decode() and 'Remplacer explicitement' not in r.content.decode()
 # ST7–ST8 : définir et rouvrir une variante spécialisée sous le même préfixe.
 source_params={'debut':'2026-01-01','fin':'2026-02-01','phase':'autorise','mode':'couts'}
 r=client.get(chemin('dossiers:rapport_composer','financements'),source_params,secure=True)
@@ -212,7 +212,7 @@ assert r.status_code==200 and r.context_data['totaux']=={'EUR':Decimal('6.30')}
 r=client.post(chemin('dossiers:rapport_composer','financements'),{**source_params,'nom':'Financement personnel fictif','action_modele':'creer'},secure=True)
 assert r.status_code==302
 r=client.get(sans_prefixe(r['Location']),secure=True)
-assert r.status_code==200 and 'Enregistrer un second rapport' in r.content.decode()
+assert r.status_code==200 and 'Enregistrer un second modèle' in r.content.decode()
 assert client.get(chemin('dossiers:rapports_gerer'),secure=True).status_code==200
 if os.environ.get('SOLENNE_VERIFIER_PDF') == 'oui':
     pdf_analyse=client.get(chemin('dossiers:explorer'),{**params,'format':'pdf'},secure=True)

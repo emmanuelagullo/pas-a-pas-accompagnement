@@ -14,16 +14,24 @@ statut: "disponible"
 2. Renseigner sa période et ses critères, puis lire les définitions avant de comparer les valeurs.
 3. Exporter le CSV ou utiliser l’impression proposée.
 
-**Créer un rapport**, accessible à côté de **Gérer mes rapports**, propose de
-**Partir de zéro** ou de sélectionner un rapport proposé/personnel. Depuis un
-rapport ouvert, **Créer une variante de ce rapport** reprend directement sa définition.
-Les variantes spécialisées conservent leurs indicateurs et leurs règles temporelles ;
-la composition libre permet d’autres choix de populations, colonnes, mesures et classements.
+**Créer un modèle**, à côté de **Gérer mes modèles**, propose de partir de zéro
+ou d’une définition composable. Le **modèle** conserve la sélection, les colonnes,
+les mesures et le classement ; le **rapport** est le résultat recalculé.
 
-Un rapport personnel peut être modifié, renommé, dupliqué ou supprimé depuis
-**Gérer mes rapports**. Après édition, choisir explicitement **Remplacer** ou
-**Enregistrer un second rapport**. Les rapports proposés restent disponibles ;
-aucun dossier n’est supprimé lorsque ses paramètres de rapport le sont.
+Depuis un rapport compatible, **Composer à partir de ce rapport** reprend
+fidèlement sa définition dans Retenir / Afficher / Compter / Classer. Cette action
+est disponible pour les repas, les financements et les appels 115 lorsque leurs
+critères sont représentables. Elle crée un modèle composable distinct.
+
+Pour un rapport spécialisé, **Enregistrer ces paramètres** mémorise ses critères
+sans changer ses indicateurs ou sa présentation. Si la traduction complète vers
+la composition libre manque, aucune dérivation composable n’est proposée.
+
+**Mes modèles** affiche les définitions personnelles enregistrées ; une liste
+vide propose **Créer un modèle**. **Gérer mes modèles** permet de modifier,
+renommer, dupliquer ou supprimer une définition. Après édition, choisir
+explicitement **Remplacer** ou **Enregistrer un second modèle**. Supprimer un
+modèle ne supprime aucun dossier. Les définitions existantes restent lisibles.
 
 ## Ce que les chiffres comptent
 

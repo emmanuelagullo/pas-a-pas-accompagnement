@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError,PermissionDenied
 
 
 class GestionForm(FormulaireMetier):
-    nom=forms.CharField(label='Nom du rapport personnel',max_length=100)
+    nom=forms.CharField(label='Nom du modèle personnel',max_length=100)
     attendu=forms.CharField(widget=forms.HiddenInput)
 
 

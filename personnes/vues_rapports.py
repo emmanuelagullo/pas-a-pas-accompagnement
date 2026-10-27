@@ -11,7 +11,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 from . import models as m,catalogue_rapports as c,modeles_personnels as s
 
-UI={'csrfmiddlewaretoken','nom','action_modele','modele','modele_cible','attendu_modele','derive','page','format'}
+UI={'csrfmiddlewaretoken','nom','action_modele','modele','modele_cible','attendu_modele','derive','page','format','composer_librement'}
 
 
 def source_modele(x):return x.parametres.get(c.CLE_SOURCE) or ('exploration' if x.parametres.get('exploration') else 'statistiques')
@@ -89,7 +89,8 @@ def valider_source(acteur,p):
 def accueil(request):
     rapports=c.catalogue(request.user)
     if not rapports and not request.user.has_perm('personnes.view_personne'):raise PermissionDenied
-    personnels=m.ModeleRapport.objects.filter(auteur=request.user)
+    personnels=list(m.ModeleRapport.objects.filter(auteur=request.user))
+    for x in personnels:x.url_rapport=c.ouvrir(x)
     return render(request,'rapports/accueil.html',{'rapports':rapports,'personnels':personnels})
 
 
@@ -104,9 +105,13 @@ def nouveau(request):
     if request.GET.get('depart'):
         r=next((r for r in choix if r['cle']==request.GET['depart']),None)
         if r is None:raise Http404
-        return redirect(reverse('dossiers:rapport_composer',args=[r['source']])+'?'+urlencode({'rapport':r['rapport']} if r.get('rapport') else {}))
+        params={'rapport':r['rapport']} if r.get('rapport') else {}
+        if request.GET.get('composer_librement')=='1':params['composer_librement']='1'
+        return redirect(reverse('dossiers:rapport_composer',args=[r['source']])+'?'+urlencode(params))
     if not choix and not request.user.has_perm('personnes.view_personne'):raise PermissionDenied
-    return render(request,'rapports/nouveau.html',{'rapports':choix,'personnels':m.ModeleRapport.objects.filter(auteur=request.user)})
+    composables=[x for x in choix if x['source'] in ('financements','appels') or x.get('rapport') in ('repas','exploration_repas')] if request.user.has_perm('personnes.view_personne') else []
+    personnels=m.ModeleRapport.objects.filter(auteur=request.user)
+    return render(request,'rapports/nouveau.html',{'rapports':choix,'composables':composables,'personnels':personnels})
 
 
 @never_cache
@@ -133,6 +138,15 @@ def composer(request,source):
     reponse=reponse_source(request,source,donnees)
     if not hasattr(reponse,'context_data'):return reponse
     ctx=reponse.context_data;statut=200;erreur=''
+    if request.method=='GET' and request.GET.get('composer_librement')=='1':
+        from .personnalisation_rapports import adapter,lien
+        try:
+            p=parametres_response(reponse,source,donnees)
+            p.pop(c.CLE_SOURCE,None)
+            adapter(request.user,source,p)
+        except (ValidationError,ValueError) as erreur:
+            return render(request,'exploration/personnalisation_refusee.html',{'erreur':erreur,'retour':reverse(c.SOURCES[source][1])+'?'+urlencode({k:v for k,v in donnees.items() if k not in ('format','page')})},status=422)
+        return redirect(lien(source,p))
     ticket=valeurs.get('attendu_modele','')
     stockable=peut_stockage(request.user,source)
     if cible and stockable and request.method=='GET' and 'attendu_modele' not in valeurs:ticket=s.jeton(request.user,cible)
@@ -141,12 +155,12 @@ def composer(request,source):
         try:
             params=parametres_response(reponse,source,donnees);nom=s.nom_valide(request.POST.get('nom',''))
             if request.POST.get('action_modele')=='remplacer':
-                if cible is None:raise ValidationError('Choisissez votre rapport personnel à remplacer.')
+                if cible is None:raise ValidationError('Choisissez votre modèle personnel à remplacer.')
                 x=s.changer(request.user,cible,ticket,nom,params)
             elif request.POST.get('action_modele')=='creer':
                 if m.ModeleRapport.objects.filter(auteur=request.user).count()>=30:raise ValidationError('Limite de 30 modèles personnels atteinte.')
                 x=m.ModeleRapport.objects.create(auteur=request.user,nom=nom,parametres=params)
-            else:raise ValidationError('Choisissez explicitement Enregistrer un second rapport ou Remplacer.')
+            else:raise ValidationError('Choisissez explicitement Enregistrer un second modèle ou Remplacer.')
         except ValidationError as e:erreur=' ; '.join(e.messages);statut=409 if isinstance(e,s.ConflitModele) else 400
         else:return redirect(c.ouvrir(x))
     f=ctx.get('form') or ctx.get('formulaire')

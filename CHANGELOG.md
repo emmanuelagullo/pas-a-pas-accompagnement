@@ -1,5 +1,11 @@
 ## Statistiques — retrouver le fait précis et revenir au rapport (ST8)
 
+## Modèles composables et rapports spécialisés
+
+- Distinguer modèle enregistré et rapport recalculé ; accueil vide actionnable et gestion unifiée.
+- Ouvrir la composition fidèle depuis les repas, financements et appels compatibles ; ne plus proposer de dérivation libre pour une définition non traduite.
+- Conserver les formats et paramètres des modèles existants, sans conversion implicite.
+
 - Liens vers accords et faits précis, dont distributions, remises et composantes
   financières avec la version du calcul et une ancre sur la ligne concernée.
 - Retours privés vers les critères et la page du rapport spécialisé ou de

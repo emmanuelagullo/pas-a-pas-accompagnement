@@ -588,3 +588,22 @@ Vérifications : 12 nuitées collectives, composante 6,30 EUR et version exacte,
 retour depuis fiche familiale puis dossier, confirmations concurrentes/périmées,
 et une seule requête de liens pour plusieurs séjours. Gestion personnelle et
 retours testés en Chromium, au clavier et sans JavaScript sur écran étroit.
+
+## ST9 — Modèle enregistré, résultat et traduction fidèle
+
+Les actions visibles distinguent la définition (modèle) du résultat recalculé
+(rapport). Les paramètres enregistrés d’un rapport spécialisé gardent ses
+indicateurs et sa présentation ; ils ne sont pas présentés comme une composition
+libre. La liste personnelle vide propose une action de création.
+
+Les adaptateurs existants de repas, financements et appels compatibles sont
+réutilisés depuis le catalogue et le rapport courant. L’action de composition
+n’est proposée qu’après validation de la traduction avec les critères courants.
+Elle crée une définition composable distincte, sans conversion ou remplacement
+implicite d’un ancien modèle. Formats, sources sociales et droits sont conservés.
+
+L’audit chiffré distingue 14 nuitées additives, 12 nuits distinctes et 10 hors
+absences sur un même jeu ; une durée de quatre jours ne devient pas douze jours
+parce que le séjour concerne trois bénéficiaires. Plusieurs mesures et niveaux
+existent déjà ; l’unification restante exige des contrats de contributions,
+quelques agrégations supplémentaires et, pour la synthèse, plusieurs analyses.

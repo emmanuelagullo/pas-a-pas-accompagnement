@@ -25,7 +25,7 @@ class AccesRapportsTests(TestCase):
         html=r.content.decode();debut=html.index('<section class="rapport-composer"');fin=html.index('</section>',debut)
         self.assertLess(html.index('<h1>Statistiques'),debut)
         self.assertNotIn('class="rapports-navigation"',html)
-        cible=self.client.get(self.lien(r,'Créer une variante de ce rapport'))
+        cible=self.client.get(self.lien(r,'Enregistrer ces paramètres'))
         self.assertEqual(cible.status_code,200)
         self.assertEqual(cible.context['resultats']['repas_distribues'],2)
         self.assertEqual(cible.context['service_choisi'],'dejeuner')
@@ -33,9 +33,9 @@ class AccesRapportsTests(TestCase):
     def test_limite_synthese_visible_avant_clic_et_nouveau_rapport_disponible(self):
         r=self.client.get(reverse('statistiques'),follow=True)
         self.assertContains(r,'Rapports prêts à utiliser')
-        creation=self.client.get(self.lien(r,'Créer un rapport'),follow=True)
-        nouvelle=self.client.get(self.lien(creation,'Commencer un rapport vide'),follow=True)
-        self.assertEqual(nouvelle.status_code,200);self.assertContains(nouvelle,'<h1>Nouveau rapport</h1>',html=True)
+        creation=self.client.get(self.lien(r,'Créer un modèle'),follow=True)
+        nouvelle=self.client.get(self.lien(creation,'Commencer un modèle vide'),follow=True)
+        self.assertEqual(nouvelle.status_code,200);self.assertContains(nouvelle,'<h1>Nouveau modèle</h1>',html=True)
         self.assertEqual([p['cle'] for p in nouvelle.context['parties_analyse'] if p['ouvert']],['retenir'])
         self.assertEqual(nouvelle.context['form']['population'].value(),'personnes')
         retenir=next(p for p in nouvelle.context['parties_analyse'] if p['cle']=='retenir')
@@ -68,14 +68,14 @@ class AccesRapportsTests(TestCase):
             with self.subTest(route=route):
                 r=self.client.get(reverse('dossiers:'+route));self.assertEqual(r.status_code,200)
                 html=r.content.decode();self.assertLess(html.index('</h1>'),html.index('class="rapport-composer"'))
-                self.assertContains(r,'Gérer mes rapports')
+                self.assertContains(r,'Gérer mes modèles')
                 if route in ('rapport_financements','appels115'):
-                    self.assertEqual(self.client.get(self.lien(r,'Créer une variante de ce rapport')).status_code,200)
+                    self.assertEqual(self.client.get(self.lien(r,'Enregistrer ces paramètres')).status_code,200)
     def test_limite_comparaison_et_appels_conserve_les_criteres_du_rapport(self):
         for route,d in [('statistiques',dict(rapport='repas',debut='2026-01-01',fin='2026-02-01',comparer='1')),
                         ('dossiers:appels115',dict(debut='2026-01-01',fin='2026-02-01',q='texte fictif'))]:
             r=self.client.get(reverse(route),d)
-            variante=self.client.get(self.lien(r,'Créer une variante de ce rapport'));self.assertEqual(variante.status_code,200)
+            variante=self.client.get(self.lien(r,'Enregistrer ces paramètres'));self.assertEqual(variante.status_code,200)
             self.assertEqual(variante.context['composition_source'],'statistiques' if route=='statistiques' else 'appels')
     def test_creation_sous_droits_sans_permission_enregistrement_ni_ecriture_get(self):
         u=get_user_model().objects.create_user('composeur-lecture-fictif')
@@ -91,6 +91,56 @@ class AccesRapportsTests(TestCase):
         u.user_permissions.add(*Permission.objects.filter(content_type__app_label='personnes',codename__in=['view_accompagnement','view_sejour','view_repasdistribue']))
         self.client.force_login(u)
         r=self.client.get(reverse('statistiques'),follow=True);self.assertEqual(r.status_code,200)
-        self.assertNotContains(r,'Créer un nouveau rapport')
+        self.assertNotContains(r,'Créer un nouveau modèle')
         creation=self.client.get(reverse('dossiers:rapport_nouveau'))
-        self.assertNotContains(creation,'Commencer un rapport vide')
+        self.assertNotContains(creation,'Commencer un modèle vide')
+        self.assertNotContains(creation,'name="composer_librement"')
+        repas=self.client.get(reverse('statistiques'),{'rapport':'repas'})
+        self.assertNotContains(repas,'Composer à partir de ce rapport')
+
+    def test_accueil_vide_explique_modele_et_propose_action(self):
+        r=self.client.get(reverse('dossiers:rapports_accueil'))
+        self.assertContains(r,'Aucun modèle personnel enregistré.')
+        self.assertContains(r,'le rapport est recalculé à chaque ouverture')
+        self.assertIn(reverse('dossiers:rapport_nouveau'),self.lien(r,'Créer un modèle'))
+
+    def test_menu_composable_exclut_synthese_et_ouvre_reellement_explorateur(self):
+        r=self.client.get(reverse('dossiers:rapport_nouveau'))
+        self.assertEqual({x['cle'] for x in r.context['composables']},{'statistiques:repas','statistiques:exploration_repas','financements','appels'})
+        for depart in ('statistiques:repas','statistiques:exploration_repas','financements','appels'):
+            r=self.client.get(reverse('dossiers:rapport_nouveau'),{'depart':depart,'composer_librement':'1'},follow=True)
+            self.assertEqual(r.status_code,200,r.content[:300]);self.assertIn('parties_analyse',r.context)
+            self.assertFalse(r.context['form'].errors,r.context['form'].errors)
+        r=self.client.get(reverse('dossiers:rapport_nouveau'),{'depart':'statistiques:synthese','composer_librement':'1'},follow=True)
+        self.assertEqual(r.status_code,422);self.assertEqual(m.ModeleRapport.objects.count(),0)
+
+    def test_action_composable_repas_reprend_chiffre_et_permet_changement(self):
+        repas.distribuer(self.u,self.ar,self.adulte,date(2026,1,2),2)
+        d=dict(rapport='exploration_repas',debut='2026-01-01',fin='2026-03-01',service='dejeuner',regroupement='mois_categorie')
+        r=self.client.get(reverse('statistiques'),d)
+        compose=self.client.get(self.lien(r,'Composer à partir de ce rapport'),follow=True)
+        self.assertEqual([x['valeur'] for x in compose.context['page_obj']],[2,0])
+        params={k:str(v) if v is not None else '' for k,v in compose.context['form'].cleaned_data.items()}
+        params.update(mesure='personnes',axe='total',croisement='',lignes_vides='')
+        change=self.client.get(reverse('dossiers:explorer'),params)
+        self.assertEqual(change.context['totaux'],{'personnes':1})
+        self.assertEqual(m.ModeleRapport.objects.count(),0)
+
+    def test_pas_de_promesse_composable_pour_criteres_non_traduits(self):
+        for route,d in [('statistiques',dict(rapport='synthese')),('statistiques',dict(rapport='repas',comparer='1')),('dossiers:appels115',dict(q='texte'))]:
+            r=self.client.get(reverse(route),d)
+            self.assertContains(r,'Enregistrer ces paramètres')
+            self.assertNotContains(r,'Composer à partir de ce rapport')
+            self.assertContains(r,'Aucune dérivation composable')
+
+    def test_conversion_en_modele_composable_ne_remplace_pas_modele_specialise(self):
+        x=m.ModeleRapport.objects.create(auteur=self.u,nom='Repas spécialisé',parametres=dict(rapport='repas',debut='2026-01-01',fin='2026-02-01'))
+        r=self.client.get(reverse('statistiques'),{'modele':x.pk})
+        compose=self.client.get(self.lien(r,'Composer à partir de ce rapport'),follow=True)
+        self.assertIsNone(compose.context['modele_cible'])
+        params={k:str(v) if v is not None else '' for k,v in compose.context['form'].cleaned_data.items()}
+        r=self.client.post(reverse('dossiers:explorer'),{**params,'nom':'Repas composable','action_modele':'variante'})
+        self.assertEqual(r.status_code,302)
+        x.refresh_from_db();self.assertNotIn('exploration',x.parametres)
+        self.assertTrue(m.ModeleRapport.objects.get(nom='Repas composable').parametres['exploration'])
+        self.assertEqual(m.ModeleRapport.objects.count(),2)
