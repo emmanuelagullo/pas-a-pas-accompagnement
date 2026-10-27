@@ -584,6 +584,11 @@ class ModeleRapport(models.Model):
     id = models.BigAutoField(primary_key=True)
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='modeles_rapports')
     nom = models.CharField(max_length=100)
+    nature = models.CharField(max_length=20, choices=[('modele','Modèle'),('personnalisation','Personnalisation')], default='modele')
+    description = models.TextField(blank=True)
+    modele_source = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, related_name='personnalisations')
+    source_catalogue = models.CharField(max_length=80, blank=True)
+    empreinte_source = models.CharField(max_length=64, blank=True)
     parametres = models.JSONField(default=dict)
     cree_le = models.DateTimeField(auto_now_add=True)
 

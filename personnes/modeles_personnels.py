@@ -26,7 +26,7 @@ def exiger(acteur,modele):
 
 
 def etat(modele):
-    return hashlib.sha256(json.dumps([modele.nom,modele.parametres],sort_keys=True,ensure_ascii=False,separators=(',',':')).encode()).hexdigest()
+    return hashlib.sha256(json.dumps([modele.nom,modele.parametres,modele.description,modele.nature,modele.modele_source_id,modele.source_catalogue,modele.empreinte_source],sort_keys=True,ensure_ascii=False,separators=(',',':')).encode()).hexdigest()
 
 
 def jeton(acteur,modele):
@@ -62,7 +62,7 @@ def valider(acteur,params):
     except (ValueError,TypeError):raise ValidationError('Paramètres du modèle de rapport invalides.')
 
 
-def changer(acteur,modele,attendu,nom,params=None):
+def changer(acteur,modele,attendu,nom,params=None,*,description=None):
     verifier(acteur,modele,attendu)
     nouveau_nom=nom_valide(nom)
     # Une simple modification du nom ne réinterprète pas un ancien modèle.
@@ -74,7 +74,7 @@ def changer(acteur,modele,attendu,nom,params=None):
     revision=modele.parametres.get(REVISION,0)
     nouveaux[REVISION]=(revision if isinstance(revision,int) else 0)+1
     try:
-        nombre=m.ModeleRapport.objects.filter(pk=modele.pk,auteur=acteur,nom=modele.nom,parametres=modele.parametres).update(nom=nouveau_nom,parametres=nouveaux)
+        nombre=m.ModeleRapport.objects.filter(pk=modele.pk,auteur=acteur,nom=modele.nom,parametres=modele.parametres,description=modele.description,nature=modele.nature,modele_source_id=modele.modele_source_id,source_catalogue=modele.source_catalogue,empreinte_source=modele.empreinte_source).update(nom=nouveau_nom,parametres=nouveaux,description=modele.description if description is None else description)
     except OperationalError:raise ConflitModele('La modification n’a pas été confirmée. Rechargez le modèle avant de réessayer.')
     if nombre!=1:raise ConflitModele('Le modèle a changé pendant la confirmation ; aucun remplacement n’a été effectué.')
     modele.refresh_from_db()
@@ -85,7 +85,7 @@ def dupliquer(acteur,modele,attendu,nom):
     verifier(acteur,modele,attendu)
     if m.ModeleRapport.objects.filter(auteur=acteur).count()>=30:raise ValidationError('Limite de 30 modèles personnels atteinte.')
     params=valider(acteur,modele.parametres);params.pop(REVISION,None)
-    return m.ModeleRapport.objects.create(auteur=acteur,nom=nom_valide(nom),parametres=params)
+    return m.ModeleRapport.objects.create(auteur=acteur,nom=nom_valide(nom),parametres=params,nature=modele.nature,description=modele.description,modele_source=modele.modele_source,source_catalogue=modele.source_catalogue,empreinte_source=modele.empreinte_source)
 
 
 def supprimer(acteur,modele,attendu):
@@ -93,6 +93,6 @@ def supprimer(acteur,modele,attendu):
     verifier(acteur,modele,attendu)
     with transaction.atomic():
         nouveaux=modele.parametres.copy();revision=nouveaux.get(REVISION,0);nouveaux[REVISION]=(revision if isinstance(revision,int) else 0)+1
-        if m.ModeleRapport.objects.filter(pk=modele.pk,auteur=acteur,nom=modele.nom,parametres=modele.parametres).update(parametres=nouveaux)!=1:
+        if m.ModeleRapport.objects.filter(pk=modele.pk,auteur=acteur,nom=modele.nom,parametres=modele.parametres,description=modele.description,nature=modele.nature,modele_source_id=modele.modele_source_id,source_catalogue=modele.source_catalogue,empreinte_source=modele.empreinte_source).update(parametres=nouveaux)!=1:
             raise ConflitModele('Le rapport a changé ; rechargez avant de supprimer.')
         m.ModeleRapport.objects.filter(pk=modele.pk,auteur=acteur).delete()
