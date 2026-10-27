@@ -195,7 +195,7 @@ captures-demonstration:
         tail -100 .ci-captures-chrs.log >&2
         exit 1
       fi
-      if ! python3 manage.py test personnes.qualification_navigateur --noinput >.ci-qualification-navigateur.log 2>&1; then
+      if ! python3 manage.py test personnes.qualification_navigateur acteurs.qualification_navigateur --noinput >.ci-qualification-navigateur.log 2>&1; then
         echo '=== Échec de la qualification navigateur par profils ===' >&2
         cat .ci-qualification-navigateur.log >&2
         tail -100 .ci-captures-chrs.log >&2

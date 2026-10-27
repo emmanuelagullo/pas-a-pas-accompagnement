@@ -59,9 +59,12 @@ permissions Django `personnes.view_personne` et `personnes.add_personne` ; la
 création exige aussi la lecture pour pouvoir consulter la fiche résultante.
 Les écritures utilisent POST et CSRF ; la déconnexion utilise POST.
 
-Un espace fictif unique, sans organisations ni équipes : tous les comptes ayant
-le droit de consultation y voient toutes les fiches. Les rôles CHRS et l'isolation
-entre structures sont à décider avant leur implémentation. Aucun mécanisme de
+Le contrôle par service peut être préparé et activé explicitement : voir
+[Acteurs et accès](ACTEURS-ACCES.md), notamment l’essai fictif qui rend visibles
+les filtres, responsabilités et relais. Les migrations seules ne l’activent pas.
+Sans cette activation, les comptes ayant les permissions historiques voient
+les mêmes fiches : il n’y a pas de cloisonnement par service.
+Aucun mécanisme de
 synchronisation n'est présent. Les tentatives répétées sont limitées en base.
 Le profil serveur peut proposer ou imposer le TOTP ; voir [AUTHENTIFICATION.md](AUTHENTIFICATION.md).
 

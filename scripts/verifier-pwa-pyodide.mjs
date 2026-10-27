@@ -21,6 +21,37 @@ async function moteur(fichiers={},essai=false){
   p.runPython(`from django.conf import settings; assert settings.VERSION_APPLICATION == ${JSON.stringify(config.application_version)}`);
   return p;
 }
+// ACT04 : mêmes contrôles dans le vrai Python/SQLite WASM, pas un mock Django.
+{
+ const acteurs=await moteur();
+ acteurs.runPython(`
+from django.contrib.auth import get_user_model
+from django.test import Client
+from acteurs.essai import preparer as essai_acteurs
+from acteurs.models import Habilitation
+from django.utils import timezone
+from acteurs.contexte import perimetre
+from personnes.models import Menage
+social=get_user_model().objects.create_user('acteurs-social-wasm-fictif')
+coord=get_user_model().objects.create_user('acteurs-coordination-wasm-fictive')
+service=essai_acteurs(social,coordination=coord)
+client=Client(HTTP_HOST='chrs-fictif.example')
+client.force_login(social,backend='django.contrib.auth.backends.ModelBackend')
+r=client.get('/',secure=True)
+assert r.status_code==200 and 'Dossier réservé à un autre service' not in r.content.decode()
+with perimetre(social,service):assert Menage.objects.count()==5
+client.force_login(coord,backend='django.contrib.auth.backends.ModelBackend')
+params={'rapport':'synthese','portee_statistiques':'service'}
+assert client.get('/statistiques/',params,secure=True).status_code==200
+assert client.get('/statistiques/',{**params,'format':'csv'},secure=True).status_code==403
+Habilitation.objects.filter(compte=coord).update(exporter=True)
+assert client.get('/statistiques/',{**params,'format':'csv'},secure=True).status_code==200
+with perimetre(coord,service):assert Menage.objects.count()==0
+Habilitation.objects.filter(compte=social).update(fin=timezone.localdate())
+with perimetre(social,service):assert Menage.objects.count()==0
+`);
+ console.log('Acteurs WASM : contrôle actif, dossiers bornés, statistiques regroupées distinctes et expiration : OK');
+}
 const premier=await moteur();
 premier.runPython(`
 from personnes import textes_riches as textes_recette
@@ -138,14 +169,17 @@ from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.contrib.sessions.models import Session
 from io import StringIO
-from personnes.models import Personne,Sejour,AccordRepas,Menage
+from personnes.models import Personne,Sejour,AccordRepas,Menage,Accompagnement
 c=Client(enforce_csrf_checks=True,HTTP_HOST='chrs-fictif.example',secure=True)
 assert c.get('/installer/',secure=True).status_code==404
 assert c.login(username='nadia',password='Demonstration-fictive-2026!')
 assert Personne.objects.count()==36 and Menage.objects.count()==18
 assert get_user_model().objects.count()==4
 assert not get_user_model().objects.filter(is_superuser=True).exists()
-assert Sejour.objects.filter(fin__isnull=True).count()==1
+# Même contrat que le jeu natif enrichi : 44 séjours dont 2 ouverts.
+assert Accompagnement.objects.count()==51
+assert Sejour.objects.count()==44
+assert Sejour.objects.filter(fin__isnull=True).count()==2
 assert c.get('/decouverte/',secure=True).status_code==200
 assert c.get('/mon-compte/mot-de-passe/',secure=True).status_code==403
 sortie=StringIO();call_command('dumpdata','personnes','identites.Utilisateur',stdout=sortie)

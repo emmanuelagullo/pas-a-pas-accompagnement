@@ -479,3 +479,17 @@ Les sources inconnues et les motifs des rectifications sociales ordinaires sont
 facultatifs : cela actualise, pour ce périmètre, les anciennes consignes exigeant
 systématiquement un motif. La preuve d’état, les dates, droits, journaux et
 confirmations de portée ne sont pas remplacés par le texte du contexte.
+
+
+Acteurs : lire ACTEURS-ACCES.md. Ne pas confondre appartenance professionnelle,
+responsabilité métier et habilitation actuelle. La migration n’active ni contrôle
+ni droit. « Tous » signifie tous les dossiers accessibles. Les nouveaux faits
+ont une portée explicite ; ne pas déplacer l’histoire lors d’un relais/service.
+Les gestionnaires de base intégraux sont réservés aux migrations, copies et
+opérations techniques explicitement contrôlées, pas aux lectures ordinaires.
+Préserver le contrôle des écritures et l’invalidation du cache limité à la
+requête. Les statistiques regroupées n’ouvrent pas les justificatifs ; les
+options d’export restent bornées à leur service. Tester acteurs,
+acteurs.qualification_navigateur et scripts/qualifier-acteurs-profils.py ;
+distinguer les vues Django PWA des vrais essais Pyodide/OPFS et les recettes
+SQLite de PostgreSQL. Ne pas introduire de nouvelle définition statistique.

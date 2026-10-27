@@ -24,3 +24,5 @@ outils/editeur/node_modules/
 
 # Résultats internes de qualification, sans données réelles.
 /.qualification/
+
+/.ci-*.log

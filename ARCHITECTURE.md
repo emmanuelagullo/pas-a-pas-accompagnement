@@ -747,3 +747,22 @@ proposition sélectionne seulement le petit-déjeuner ; les autres services se
 préparent séparément si leurs bénéficiaires diffèrent. Les seuils reprennent
 le besoin démontré par `Form3.setNbrePetitsDejAuto`, avec une date visible et une
 confirmation moderne, sans compteur familial ni présomption depuis le sexe.
+
+
+## Acteurs et accès par service
+
+L’application `acteurs` distingue organisation/appartenance professionnelle,
+responsabilités au niveau dossier/prise en charge/prestation et habilitations
+actuelles de tâches. `PorteeObjet` conserve l’origine explicite des faits et
+journaux ; un changement de service ne déplace pas les faits antérieurs.
+`ConfigurationAcces` reste inactive après migration. L’affectation des anciennes
+données et l’activation sont des commandes volontaires, sans attribution globale.
+
+Le backend n’authentifie personne. Le middleware ouvre le contexte d’accès ; les
+gestionnaires des modèles métier et les services contrôlent les objets côté
+serveur. Le cache de lecture reste limité à la requête, invalidé par les
+mutations ; les écritures sont revalidées. Les copies physiques restent entières.
+Les droits de statistiques regroupées et d’export sont distincts de l’ouverture
+d’un dossier ou d’un justificatif. Les répertoires sont communs à la base et ne
+constituent pas des espaces isolés. Voir ACTEURS-ACCES.md pour les commandes,
+les fins/relais et les limites des recettes de qualification.
