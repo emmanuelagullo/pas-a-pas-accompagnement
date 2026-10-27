@@ -5,21 +5,33 @@ const vm = require('node:vm');
 const path = require('node:path');
 (async () => {
   const listeners = {}, pending = [], status = {textContent: ''};
+  let disponible = false;
   const boite = {setAttribute() {}, removeAttribute() {}};
   const form = {elements: [{disabled: false}], method: 'post', action: 'https://exemple.invalid/chrs/sortie/',
     closest: selector => selector === '.operation-en-place' ? {} : boite};
   const context = {
     window: {addEventListener: (nom, f) => listeners[nom] = f},
     document: {addEventListener: (nom, f) => listeners[nom] = f,
-      getElementById: () => status},
+      getElementById: () => status,
+      dispatchEvent: evenement => {
+        assert.equal(evenement.type, 'condition:disponible');
+        assert.equal(evenement.cancelable, true);
+        return disponible;
+      }},
     location: {href: 'https://exemple.invalid/chrs/dossiers/menage/fictif/', origin: 'https://exemple.invalid'},
-    URL, FormData: class { append() {} },
+    URL, Event, FormData: class { append() {} },
     fetch: (url, options) => new Promise((resolve, reject) => pending.push({url, options, resolve, reject})),
   };
   const code = fs.readFileSync(path.join(__dirname, '../static/dossier-en-place.js'), 'utf8');
   vm.runInNewContext(code, context);
   listeners.input({target: form});
   const evenement = {target: form, preventDefault() {}};
+  listeners.submit(evenement);
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(pending.length, 0, 'Une saisie sociale ouverte doit bloquer le POST de prestation');
+  assert.equal(form.elements[0].disabled, false, 'Le refus de coordination doit réactiver le formulaire');
+  assert.match(status.textContent, /Terminez ou annulez la saisie/);
+  disponible = true;
   listeners.submit(evenement);
   listeners.submit(evenement);
   assert.equal(pending.length, 1, 'Un double clic ne doit produire qu’un POST');

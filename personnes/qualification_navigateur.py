@@ -56,6 +56,7 @@ class ProfilsNavigateur(StaticLiveServerTestCase):
         page.locator('input[name="username"]').fill(self.u.username)
         page.locator('input[name="password"]').fill('Recette-fictive-CHRS14!')
         page.get_by_role('button', name='Se connecter').click()
+        page.wait_for_load_state('load')
         return page
 
     def ouvrir(self, page, route):
@@ -390,7 +391,7 @@ class NouveauxParcoursNavigateur(StaticLiveServerTestCase):
     def test_rapports_mouvements_et_naissances_incompletes(self):
         page = self.navigateur()
         page.goto(self.live_server_url + reverse('statistiques'))
-        page.locator('select[name="rapport"]').select_option('mouvements')
+        page.get_by_role('link', name='Mouvements et durées des séjours sortis', exact=True).click()
         page.locator('input[type="date"][name="debut"]').fill('2026-01-01')
         page.locator('input[type="date"][name="fin"]').fill('2026-02-01')
         page.get_by_role('button', name='Calculer', exact=True).click()
@@ -564,7 +565,7 @@ class BD6Navigateur(EntreeBDNavigateur):
         rubrique.get_by_role('link', name='Corriger une erreur', exact=True).click()
         self.assertTrue(page.locator('[name=debut]').is_disabled())
         self.assertIsNone(page.locator('[name=motif]').get_attribute('required'))
-        page.get_by_label('Comment le savez-vous ?', exact=True).fill('Entretien fictif corrigé')
+        page.locator('[name=source]').fill('Entretien fictif corrigé')
         page.locator('[name=motif]').fill('Erreur de transcription fictive')
         page.get_by_role('button', name='Enregistrer', exact=True).click()
         page.get_by_text('Entretien fictif corrigé', exact=False).first.wait_for()
