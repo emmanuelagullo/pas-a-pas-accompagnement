@@ -91,8 +91,8 @@ class ModelesRapportsTests(TestCase):
         self.client.post(reverse('statistiques_modele_ajouter'), self.parametres)
         modele = ModeleRapport.objects.get()
         page = self.client.get(reverse('statistiques'), {'modele': modele.pk})
-        self.assertContains(page, 'Modèle affiché')
-        self.assertContains(page, '(affiché)')
+        self.assertContains(page, 'Accès utilisé')
+        self.assertContains(page, modele.nom)
         self.assertContains(page, 'value="dejeuner"')
         page = self.client.get(reverse('statistiques'), {
             'rapport': 'exploration_repas', 'periode': 'mois_precedent',

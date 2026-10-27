@@ -56,6 +56,14 @@ def document(request,d,resume='',inclure_description=False):
     table=list(csv.reader(StringIO(csv_r.content.decode('utf-8-sig')),delimiter=',' if source=='statistiques' else ';'))
     if not table:raise ValidationError('En-tête manquant.')
     entete,*lignes=table;blocs=[];precedent=()
+    if source=='statistiques':
+        from .rapports_metier import LIBELLES_MOUVEMENTS
+        indicateurs={**LIBELLES_MOUVEMENTS,'menages_accompagnes':'Ménages accompagnés','accompagnements':'Prises en charge','personnes_avec_sejour':'Personnes distinctes avec séjour','sejours':'Épisodes de séjour','admissions':'Admissions','sorties':'Sorties','nuitees_theoriques':'Nuitées théoriques','nuits_distinctes':'Nuits distinctes par personne','nuits_hors_absences_declarees':'Nuits distinctes hors absences déclarées','repas_distribues':'Repas distribués'}
+        for ligne in lignes:
+            for i,nom in enumerate(entete):
+                if i<len(ligne) and nom=='service':ligne[i]=dict(m.AccordRepas.SERVICES).get(ligne[i],ligne[i])
+                elif i<len(ligne) and nom=='indicateur':ligne[i]=indicateurs.get(ligne[i],ligne[i])
+
     axes=[i for i,h in enumerate(entete) if h in ('Axe','Croisement') or h.startswith('Niveau ')] if source=='exploration' and f.cleaned_data.get('affichage')!='detail' else []
     for row in lignes:
         chemin=tuple(row[i] for i in axes if i<len(row) and row[i])
@@ -64,6 +72,10 @@ def document(request,d,resume='',inclure_description=False):
         valeurs=[row[i] if i<len(row) else '' for i in indices]
         blocs.append(dict(groupes=groupes,cellules=[(entete[i],row[i] if i<len(row) else '') for i in indices],valeurs=valeurs));precedent=chemin
     if axes:entete=[h for h in entete if h not in ('Population','Référence','Axe','Croisement') and not h.startswith('Niveau ')]
+    noms={'debut_inclus':'Début inclus','fin_exclue':'Fin exclue','quantite_distribuee':'Quantité distribuée','nuitees_affectation_theoriques':'Nuitées théoriques affectées','quantite':'Quantité','unite':'Unité','montant':'Montant','devise':'Devise','libelle':'Libellé','categorie':'Catégorie','date_reference':'Date de référence','etat_reponse':'État de la réponse','demande_principale':'Demande principale'}
+    libelle=lambda h:noms.get(h,str(h).replace('_',' ').capitalize())
+    entete=[libelle(h) for h in entete]
+    for bloc in blocs:bloc['cellules']=[(libelle(h),v) for h,v in bloc['cellules']]
     complements=[]
     if ctx.get('comparaison'):complements=[('Période précédente — '+str(k).replace('_',' '),str(v)) for k,v in ctx['comparaison'].items()]
     if ctx.get('mouvements_comparaison'):complements=[('Période précédente — '+str(nom),str(avant)) for nom,avant,apres in ctx['mouvements_comparaison']]

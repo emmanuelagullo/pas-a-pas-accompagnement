@@ -10,14 +10,14 @@ depart: "Statistiques → Créer un modèle"
 statut: "disponible"
 ---
 
-Depuis **Créer un modèle**, choisir **Partir de zéro** pour ouvrir directement
+Depuis **Gérer les modèles et leurs personnalisations → Créer un modèle**, choisir **Partir de zéro** pour ouvrir directement
 **Retenir**, ou partir d’une définition composable proposée ou personnelle.
 **Composer à partir de ce rapport** reprend aussi la définition du rapport ouvert
 quand sa traduction est fidèle. Les repas, les financements et certains appels 115
 sont proposés ; les critères incompatibles ne sont jamais abandonnés.
 
-Un rapport spécialisé conserve ses indicateurs propres : **Enregistrer ces
-paramètres** mémorise ses critères, sans ouvrir une composition libre.
+Un rapport spécialisé conserve ses indicateurs propres : **Conserver ces
+réglages…** mémorise ses critères, sans ouvrir une composition libre.
 
 1. Choisir la population réellement étudiée : personnes, demandes, séjours, accords, distributions, appels ou autre population proposée.
 2. Renseigner la période et la référence des données personnelles. La référence peut être commune ou suivre la date de chaque fait ou de sa saisie initiale.
@@ -66,3 +66,17 @@ expire après une journée et ne donne aucun droit supplémentaire.
 Les liens des rapports spécialisés conservent également leur rapport d’origine.
 Les chiffres sont recalculés selon les faits actuellement connus ; les modèles
 enregistrent des paramètres, pas des résultats figés.
+
+## Vérifier les unités et les contributions
+
+Les **durées civiles des épisodes clos** restent des jours, sans multiplication
+par leurs bénéficiaires. La moyenne est arrondie au dixième. Les **participations**
+comptent les bénéficiaires par épisode, et peuvent dépasser le nombre de personnes
+distinctes. Les **nuits distinctes** dédoublonnent les paires personne/nuit ;
+l’option hors absences retire les contributions concernées, sans prouver une
+présence constatée. Les liens des chiffres expliquent les contributions retenues,
+les doublons et les absences. Les totaux et sous-totaux se recalculent.
+
+Les définitions et personnalisations enregistrées s’ouvrent avec les quatre
+parties de composition fermées ; choisir **Modifier** sur la partie voulue pour
+l’approfondir. Les règles temporelles se choisissent sans assistant obligatoire.

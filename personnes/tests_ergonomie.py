@@ -95,7 +95,7 @@ class ErgonomieTests(Donnees, TestCase):
                 for nom in ('service', 'lieu', 'regroupement'):
                     self.assertNotContains(page, 'id="' + nom + '"')
             html = page.content.decode()
-            self.assertLess(html.index('Exporter ce rapport'), html.index('Mes modèles de rapports'))
+            self.assertLess(html.index('Exporter ce rapport'), html.index('>Conserver ces réglages…</a>'))
 
     def test_notes_ne_revelent_pas_identite_sans_droit_personne(self):
         self.u.user_permissions.remove(Permission.objects.get(

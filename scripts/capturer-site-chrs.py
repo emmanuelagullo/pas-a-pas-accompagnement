@@ -87,7 +87,7 @@ def main():
                 raise RuntimeError('Erreur dans le rapport : ' + rapport)
             page.screenshot(path=str(args.output / (slug + '.png')), full_page=True)
             with page.expect_download() as telechargement:
-                page.get_by_role('button', name='Exporter ce rapport (CSV)').click()
+                page.get_by_role('button', name='Exporter le CSV', exact=True).click()
             fichier = telechargement.value
             if not fichier.suggested_filename.endswith('.csv'):
                 raise RuntimeError('Export CSV manquant : ' + rapport)
@@ -119,21 +119,19 @@ def main():
             raise RuntimeError('La période rapide a effacé les filtres ou la comparaison')
         # Le scénario peut être relancé sur la même base : éviter les homonymes.
         nom_modele = 'Repas du mois — recette navigateur'
-        page.get_by_text('Enregistrer cette configuration comme modèle', exact=True).click()
-        page.locator('#nom_modele').fill(nom_modele)
-        page.get_by_role('button', name='Enregistrer cette configuration').click()
-        page.get_by_role('heading', name='Mes modèles', exact=True).wait_for()
-        page.get_by_role('link', name=nom_modele, exact=True).last.click()
+        page.get_by_role('link',name='Conserver ces réglages…',exact=True).click()
+        page.locator('#id_nom').fill(nom_modele)
+        page.get_by_role('button',name='Enregistrer',exact=True).click()
         page.get_by_role('heading', name='Repas par mois et service', exact=True).wait_for()
         if (page.locator('select#periode').input_value() != 'mois' or
                 page.locator('select#service').input_value() != 'dejeuner' or
                 page.locator('select#regroupement').input_value() != 'categorie' or
                 not page.locator('input[name="comparer"][type="checkbox"]').is_checked()):
             raise RuntimeError('Le modèle rouvert ne conserve pas ses critères')
-        page.get_by_text('Modèle affiché :').wait_for()
+        page.get_by_text('Accès utilisé :').wait_for()
         page.screenshot(path=str(args.output / 'modele-rapport.png'), full_page=True)
         with page.expect_download() as telechargement:
-            page.get_by_role('button', name='Exporter ce rapport (CSV)').click()
+            page.get_by_role('button', name='Exporter le CSV', exact=True).click()
         fichier = telechargement.value
         if not fichier.suggested_filename.endswith('.csv'):
             raise RuntimeError('Export du modèle de rapport absent')
@@ -146,8 +144,8 @@ def main():
         page.get_by_role('button', name='Calculer').click()
         if page.locator('select#service').input_value() != 'diner':
             raise RuntimeError('La modification du service n’est pas appliquée')
-        page.get_by_text('Mes modèles de rapports', exact=True).click()
-        page.get_by_role('link', name=nom_modele, exact=True).last.click()
+        page.goto(args.base_url+'/dossiers/rapports/')
+        page.get_by_role('link',name=nom_modele,exact=True).last.click()
         if page.locator('select#service').input_value() != 'dejeuner':
             raise RuntimeError('La consultation a modifié le modèle enregistré')
         browser.close()

@@ -1,5 +1,5 @@
 ## Statistiques — retrouver le fait précis et revenir au rapport (ST8)
-
+\n## ST10 — Modèles, personnalisations et rapports\n\n- Centraliser les accès habituels et la gestion ; conserver modèle, personnalisation ou les deux après les résultats, sans écrasement périmé.\n- Ajouter descriptions facultatives et filiation conservée sans modification silencieuse des anciennes définitions.\n- Compléter les règles de dates relatives, avec propositions visibles et dates fixes toujours disponibles.\n- Réunir CSV/PDF, résumé et description optionnels ; restitutions structurées et exports natifs conservés sans notes.\n- Distinguer jours civils, participations, nuitées additives et nuits distinctes, avec justificatifs des doublons et absences.\n
 ## Correctif ST9 — captures et vocabulaire
 
 - Cibler les titres exacts dans la recette de capture pour éviter les correspondances multiples ; rouvrir le modèle depuis le catalogue après son enregistrement.

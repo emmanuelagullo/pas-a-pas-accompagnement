@@ -607,3 +607,36 @@ absences sur un même jeu ; une durée de quatre jours ne devient pas douze jour
 parce que le séjour concerne trois bénéficiaires. Plusieurs mesures et niveaux
 existent déjà ; l’unification restante exige des contrats de contributions,
 quelques agrégations supplémentaires et, pour la synthèse, plusieurs analyses.
+
+## ST10 — Définition, personnalisation et restitution
+
+Les définitions existantes restent des modèles autonomes. Une migration additive
+distingue les nouvelles personnalisations, ajoute la description et conserve
+la filiation lorsqu’elle est connue. La personnalisation mémorise la définition
+et les réglages à l’enregistrement : une modification ou suppression ultérieure
+du modèle source ne réécrit pas les consultations habituelles. La gestion signale
+une origine modifiée. La conservation du modèle et de sa personnalisation est
+atomique ; les remplacements restent explicites et protégés par preuve d’état.
+
+L’accueil ouvre directement les accès habituels et centralise la gestion.
+Après les résultats : un bloc CSV/PDF, textes facultatifs, puis une action de
+conservation. Les routes historiques sont maintenues. Les descriptions peuvent
+accompagner les JSON existants sans introduire de version obligatoire nouvelle.
+
+Les règles civiles nommées et les bornes en jours relatifs sont recalculées à
+l’ouverture. La période historique fixe reste disponible ; la suggestion est
+visible et confirmée. Les rapports à date unique ne deviennent pas des rapports
+d’événements dans une période. Les exports figent les dates affichées ; leurs
+données sont relues sous les droits courants, sans résultat archivé implicitement.
+
+Les nouveaux PDF utilisent une restitution structurée depuis les données des
+exports natifs, avec critères, résumé et description optionnels, hiérarchie et
+sous-totaux déjà calculés. Aucun total n’est reconstruit par addition de lignes.
+Le navigateur conserve le backend texte paginé du socle ; aucun moteur natif
+n’est chargé dans la PWA. Les CSV sans notes gardent leurs en-têtes et données.
+
+L’explorateur propose des durées civiles de séjour clos (moyenne au dixième),
+des participations par épisode et des nuits distinctes, éventuellement hors
+absences déclarées. Les justificatifs explicitent doublons et absences.
+Ces extensions ne rendent pas automatiquement composables les synthèses
+réunissant plusieurs populations ; leur assemblage reste un chantier distinct.

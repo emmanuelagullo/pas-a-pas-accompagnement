@@ -200,7 +200,7 @@ r=client.get(sans_prefixe(r['Location']),secure=True);assert r.status_code==200
 r=client.get(chemin('statistiques'),secure=True)
 assert r.status_code==302
 r=client.get(sans_prefixe(r['Location']),secure=True)
-assert r.status_code==200 and 'Modèles prêts à utiliser' in r.content.decode() and 'Gérer mes modèles' in r.content.decode()
+assert r.status_code==200 and 'Modèles prêts à utiliser' in r.content.decode() and 'Gérer les modèles et leurs personnalisations' in r.content.decode()
 r=client.get(chemin('dossiers:explorer_nouveau'),{'depart':'zero','modele':modele.pk,'population':'imputations'},secure=True)
 assert r.status_code==302
 r=client.get(sans_prefixe(r['Location']),secure=True)
@@ -212,9 +212,15 @@ assert r.status_code==200 and r.context_data['totaux']=={'EUR':Decimal('6.30')}
 r=client.post(chemin('dossiers:rapport_composer','financements'),{**source_params,'nom':'Financement personnel fictif','action_modele':'creer'},secure=True)
 assert r.status_code==302
 r=client.get(sans_prefixe(r['Location']),secure=True)
-assert r.status_code==200 and 'Enregistrer un second modèle' in r.content.decode()
+assert r.status_code==200 and 'Conserver ces réglages…' in r.content.decode()
 assert client.get(chemin('dossiers:rapports_gerer'),secure=True).status_code==200
 if os.environ.get('SOLENNE_VERIFIER_PDF') == 'oui':
+    import re
+    from html import unescape
+    export_source=client.get(chemin('dossiers:rapport_composer','financements'),source_params,secure=True)
+    jeton=unescape(re.search(r'name="definition" value="([^"]+)"',export_source.content.decode())[1])
+    pdf_commun=client.post(chemin('dossiers:rapport_exporter'),{'definition':jeton,'format':'pdf','resume':'Résumé fictif de qualification'},secure=True)
+    assert pdf_commun.status_code==200 and pdf_commun.content.startswith(b'%PDF-')
     pdf_analyse=client.get(chemin('dossiers:explorer'),{**params,'format':'pdf'},secure=True)
     assert pdf_analyse.status_code==200 and pdf_analyse.content.startswith(b'%PDF-')
     response = client.get(chemin('personnes:fiche_pdf', p.pk), secure=True)

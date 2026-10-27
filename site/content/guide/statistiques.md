@@ -14,24 +14,33 @@ statut: "disponible"
 2. Renseigner sa période et ses critères, puis lire les définitions avant de comparer les valeurs.
 3. Exporter le CSV ou utiliser l’impression proposée.
 
-**Créer un modèle**, à côté de **Gérer mes modèles**, propose de partir de zéro
-ou d’une définition composable. Le **modèle** conserve la sélection, les colonnes,
-les mesures et le classement ; le **rapport** est le résultat recalculé.
+Les **accès habituels** ouvrent directement les réglages enregistrés. Le bouton
+**Gérer les modèles et leurs personnalisations** centralise les actions de gestion
+et de création. Le modèle définit le calcul ; sa personnalisation conserve les
+choix d’application ; le rapport est le résultat recalculé.
 
-Depuis un rapport compatible, **Composer à partir de ce rapport** reprend
-fidèlement sa définition dans Retenir / Afficher / Compter / Classer. Cette action
-est disponible pour les repas, les financements et les appels 115 lorsque leurs
-critères sont représentables. Elle crée un modèle composable distinct.
+Après les résultats, **Conserver ces réglages…** permet de retrouver une
+personnalisation, un modèle ou les deux. Remplacer un enregistrement reste un
+choix explicite. Les définitions antérieures restent utilisables.
 
-Pour un rapport spécialisé, **Enregistrer ces paramètres** mémorise ses critères
-sans changer ses indicateurs ou sa présentation. Si la traduction complète vers
-la composition libre manque, aucune dérivation composable n’est proposée.
+**Exporter ce rapport** réunit CSV et PDF. Le résumé optionnel décrit ce résultat ;
+une case permet d’inclure aussi la description du modèle. Dans le CSV, ces textes
+ajoutent des lignes de notes avant l’en-tête ; sans texte ajouté, le format
+tabulaire reste inchangé. Le PDF reprend critères, groupes et sous-totaux
+calculés. Serveur et bureau utilisent le rendu HTML/CSS du socle ; le navigateur
+produit les mêmes informations sous forme textuelle paginée.
 
-**Mes modèles** affiche les définitions personnelles enregistrées ; une liste
-vide propose **Créer un modèle**. **Gérer mes modèles** permet de modifier,
-renommer, dupliquer ou supprimer une définition. Après édition, choisir
-explicitement **Remplacer** ou **Enregistrer un second modèle**. Supprimer un
-modèle ne supprime aucun dossier. Les définitions existantes restent lisibles.
+Les périodes relatives distinguent notamment **mois en cours jusqu’à aujourd’hui**
+et **mois civil entier**, jours précédents/suivants, semaines, trimestres, années
+et bornes libres en jours relatifs. Une suggestion ne remplace jamais
+silencieusement des dates historiques. Les rapports à une date unique proposent
+des dates relatives, et restent des situations à date plutôt que des événements
+dans une période.
+
+Depuis un rapport compatible, le dépliant **Adapter ce rapport** permet de
+composer à partir de sa définition : repas, financements et appels compatibles.
+Les autres rapports spécialisés conservent leurs indicateurs ; une absence de
+traduction complète n’est pas remplacée par une approximation.
 
 ## Ce que les chiffres comptent
 

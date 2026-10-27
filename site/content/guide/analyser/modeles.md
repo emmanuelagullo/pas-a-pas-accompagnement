@@ -6,15 +6,27 @@ categorie: "analyser"
 publics: ["equipe"]
 intentions: ["modèle", "JSON", "rapport", "paramètres", "période relative"]
 prerequis: "Droits de consultation et d’ajout des modèles, ainsi que les droits nécessaires au rapport qui sera recalculé."
-depart: "Statistiques → Gérer mes modèles"
+depart: "Statistiques → Gérer les modèles et leurs personnalisations"
 statut: "disponible"
 ---
 
-1. Depuis **Créer un modèle**, partir de zéro ou reprendre une définition composable. Un modèle conserve la définition ; le rapport est le résultat recalculé.
-2. Vérifier sa période et ses critères, puis choisir un nom et enregistrer.
-3. Pour un modèle personnel déjà ouvert, choisir **Remplacer explicitement** ou **Enregistrer un second modèle**. Un formulaire devenu périmé ne remplace pas les paramètres actuels ; la saisie reste disponible.
-4. **Gérer mes modèles** réunit ouverture, édition, renommage, duplication et suppression confirmée. Deux modèles peuvent porter le même nom ; leur numéro et date de création les distinguent. Supprimer un modèle retire ses paramètres, sans supprimer de dossier.
-5. Pour échanger un modèle d’exploration entre espaces, exporter le JSON puis utiliser l’import. Les paramètres enregistrés des rapports spécialisés restent réutilisables dans cet espace, sans conversion automatique du format d’échange.
+Un **modèle** définit le calcul et la présentation. Une **personnalisation**
+retrouve les choix habituels d’application. Le **rapport** est le résultat recalculé.
+
+1. À l’entrée Statistiques, ouvrir directement un **accès habituel** ou un modèle proposé.
+2. Ajuster si besoin la période et les critères, puis consulter les résultats.
+3. Après les résultats, **Conserver ces réglages…** enregistre une personnalisation. Pour une nouvelle composition libre, le choix proposé est un modèle.
+4. Choisir des dates fixes ou une règle relative affichée. La proposition reste modifiable ; les règles relatives seront recalculées à chaque ouverture.
+5. Dans **Conserver aussi une définition de modèle**, choisir un modèle seul ou un modèle avec sa personnalisation. Une modification du calcul ou du classement d’un modèle existant demande de conserver une nouvelle définition, plutôt que changer discrètement son sens.
+6. **Gérer les modèles et leurs personnalisations** réunit création, ouverture, renommage, description, duplication et suppression. Remplacer reste explicite ; un formulaire périmé conserve la saisie et refuse l’écrasement.
+
+Une personnalisation liée conserve les paramètres de l’enregistrement. Si le
+modèle source évolue, la gestion le signale ; les rapports habituels gardent leur
+définition précédente. Supprimer le modèle source ne supprime pas les réglages de
+sa personnalisation. Les anciennes définitions restent des modèles autonomes.
+
+Le JSON échange les définitions d’exploration et peut conserver leur description.
+La filiation privée vers un autre enregistrement n’est pas transférée.
 
 **Résultat attendu :** le modèle reste personnel. Le fichier d’échange contient le nom du modèle et ses critères, sans lignes de résultats ni copie de dossiers. Des noms ou d’autres renseignements personnels saisis dans le nom du modèle, les valeurs des filtres ou les libellés de classes peuvent toutefois y figurer : relire le JSON avant de le transmettre et le conserver privé si nécessaire. Ce n'est ni une copie de base ni un PDF archivé du résultat.
 

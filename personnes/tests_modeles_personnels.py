@@ -44,7 +44,7 @@ class ModelesPersonnelsTests(TestCase):
     def test_explorateur_variante_remplacement_et_recalcul_garde_ticket(self):
         url=reverse('dossiers:explorer')
         r=self.client.get(url,{'modele':self.modele.pk});ticket=r.context['attendu_modele']
-        self.assertContains(r,'Enregistrer un second modèle');self.assertContains(r,'Remplacer explicitement')
+        self.assertContains(r,'Conserver ces réglages…')
         d={**self.params,'modele_cible':self.modele.pk,'attendu_modele':ticket,'nom':'Personnes','mesure':'personnes'}
         r=self.client.get(url,d);self.assertEqual(r.context['attendu_modele'],ticket)
         self.assertEqual(r.context['totaux'],{'personnes':3})
@@ -72,7 +72,7 @@ class ModelesPersonnelsTests(TestCase):
         self.modele.parametres=dict(rapport='repas',debut='2026-01-01',fin='2026-01-05',periode='',regroupement='mois_categorie',service='',lieu='',comparer='')
         self.modele.save();ticket=s.jeton(self.u,self.modele)
         r=self.client.get(reverse('statistiques'),{'modele':self.modele.pk})
-        self.assertEqual(r.status_code,200);self.assertContains(r,'Remplacer explicitement')
+        self.assertEqual(r.status_code,200);self.assertContains(r,'Conserver ces réglages…')
         d={**self.modele.parametres,'rapport':'ages','nom':'Âges','attendu':ticket,'action':'remplacer'}
         r=self.client.post(self.url(),d);self.assertEqual(r.status_code,302)
         self.modele.refresh_from_db();self.assertNotIn('exploration',self.modele.parametres)

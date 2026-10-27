@@ -1449,3 +1449,23 @@ les bénéficiaires du seul petit-déjeuner : tous, âge entre seuils visibles,
 ou âge/grossesse déclarée avec les droits nécessaires. La date de référence
 est explicite. Les inconnus restent à vérifier, aucune distribution ni aucun
 prix n'est calculé. L'accord exige ensuite l'enregistrement ordinaire.
+
+### Recharger une démonstration locale Linux sans la recréer
+
+Le démarrage jetable accepte les arguments Gunicorn existants, notamment un
+fichier PID explicite :
+
+~~~sh
+ACCOMPAGNEMENT_HOSTS=127.0.0.1,localhost ACCOMPAGNEMENT_BIND=127.0.0.1 PORT=8001 GUNICORN_CMD_ARGS="--pid /tmp/pas-a-pas-demo-8001.pid" bash start-render.sh
+~~~
+
+Après application d’un patch, dans le même environnement de travail :
+
+~~~sh
+python3 scripts/recharger-demo.py --pid-file /tmp/pas-a-pas-demo-8001.pid
+~~~
+
+Cette commande Linux vérifie le processus, migre sa base fictive existante,
+actualise ses ressources et envoie HUP. Elle ne relance pas l’initialisation des
+données. Le serveur doit avoir été démarré avec le fichier PID indiqué. Un nouveau
+démarrage jetable initialise au contraire une nouvelle démonstration.
