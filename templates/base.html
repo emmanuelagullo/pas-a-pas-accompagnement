@@ -8,6 +8,7 @@
 <a class="evitement" href="#contenu">Aller au contenu</a>
 <header><a class="marque" href="{% url 'accueil' %}">Pas à Pas <span>Accompagnement</span></a>
 {% if user.is_authenticated %}<nav aria-label="Navigation principale">
+{% if demonstration_acteurs %}<a href="{% url 'decouverte' %}">Découvrir les acteurs et les relais</a>{% endif %}
 <span>Compte : {{ user.get_username }}</span>
 {% if not controle_acteurs or peut_ouvrir_dossiers_acteurs %}<a href="{% url 'accueil' %}">Dossiers</a>{% endif %}{% if perms.personnes.view_partenaire and perms.personnes.view_fichepartenaire and perms.personnes.view_revisionfichepartenaire and not request.inscription_2fa_requise %}<a href="{% url 'dossiers:partenaires' %}">Partenaires</a>{% endif %}
 {% if not demonstration_publique and not espace_essai %}<a href="{% url 'securite_compte' %}">Sécurité du compte</a>{% endif %}

@@ -43,7 +43,7 @@ def serveur_fictif(args):
     if url.scheme!='http' or url.hostname!='127.0.0.1' or url.path or url.query or url.fragment:
         raise ValueError('--demarrer-serveur exige une URL http://127.0.0.1:PORT sans chemin.')
     env=dict(os.environ,PYTHONUNBUFFERED='1',ACCOMPAGNEMENT_HOSTS='127.0.0.1,localhost',
-        ACCOMPAGNEMENT_BIND='127.0.0.1',PORT=str(url.port or 80))
+        ACCOMPAGNEMENT_BIND='127.0.0.1',PORT=str(url.port or 80),ACCOMPAGNEMENT_SCENARIO_DEMO='complet')
     with (RACINE_DEPOT/'.ci-captures-chrs.log').open('wb') as journal:
         processus=subprocess.Popen(['bash','start-render.sh'],cwd=RACINE_DEPOT,env=env,
             stdout=journal,stderr=subprocess.STDOUT,start_new_session=True)

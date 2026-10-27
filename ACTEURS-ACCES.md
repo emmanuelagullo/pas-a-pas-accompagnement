@@ -112,6 +112,21 @@ contrôle actif dans le vrai Python/SQLite WASM sous Node ; elle ne remplace pas
 les essais OPFS dans un navigateur. La qualification PostgreSQL reste celle du job existant ; les
 essais locaux SQLite ne la remplacent pas.
 
+## Découverte par le lancement habituel
+
+`start-render.sh` prépare désormais par défaut un jeu fictif compact avec le
+contrôle des accès actif. Le port ne sélectionne pas le scénario. Se connecter
+avec `essai` pour les filtres et les relais, `remi` pour l’accueil ou
+`coordination` pour les statistiques regroupées. Le mot de passe public est
+indiqué sur la page de connexion. Le lien « Découvrir les acteurs et les relais »
+donne les étapes dans l’application. Les comptes ont des tâches distinctes et
+le jeu reste partagé et jetable, sans modification d’une base existante.
+
+Le grand jeu métier historique reste disponible avec
+`ACCOMPAGNEMENT_SCENARIO_DEMO=complet bash start-render.sh`. Les captures du
+site choisissent explicitement ce grand jeu. Les espaces bureau/PWA existants
+et leur scénario ne sont pas modifiés par ce choix du serveur jetable.
+
 ## Voir immédiatement les changements sur une base fictive séparée
 
 Les commandes suivantes créent un espace temporaire vide. Le mot de passe du

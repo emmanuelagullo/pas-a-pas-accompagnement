@@ -7,7 +7,9 @@ def contexte(request):
     from django.conf import settings
     if not getattr(settings, 'DEMONSTRATION_PUBLIQUE', False):
         return {}
-    return {'demonstration_publique': True, 'identifiant_demo': IDENTIFIANT,
+    from acteurs.models import ConfigurationAcces
+    return {'demonstration_acteurs': ConfigurationAcces.objects.filter(pk=1, active=True).exists(),
+            'demonstration_publique': True, 'identifiant_demo': IDENTIFIANT,
             'mot_de_passe_demo': MOT_DE_PASSE}
 
 

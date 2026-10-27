@@ -10,6 +10,16 @@ fiche. Les comptes professionnels sont distincts des personnes suivies.
 Non disponible : documents joints, invitations. Une PWA fictive est disponible sous #SOC5a ; voir ci-dessous. La date et l'auteur de création ne sont pas un journal
 d'audit. Ce prototype n'est pas une installation de production.
 
+## Découvrir les acteurs et les relais
+
+Le lancement habituel `bash start-render.sh` prépare maintenant le parcours
+acteurs : se connecter avec **essai**, puis utiliser les filtres **Mes dossiers**,
+**Mon service** et **En attente**. Le lien de découverte guide l’attribution et
+le relais. **remi** illustre l’accueil et **coordination** les statistiques.
+Le mot de passe public est affiché à la connexion. Données fictives, partagées
+et recréées à chaque lancement. Pour le grand jeu métier décrit ci-dessous :
+`ACCOMPAGNEMENT_SCENARIO_DEMO=complet bash start-render.sh`.
+
 ## Démonstration métier
 
 Le jeu fictif **Établissement Les Passerelles** est proposé sur le serveur jetable et,

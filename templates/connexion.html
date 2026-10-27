@@ -5,7 +5,10 @@
 {% if demonstration_publique %}<aside aria-label="Démonstration publique">
 <p>Démonstration publique partagée, remise à zéro à chaque redémarrage. N’inscrivez aucune information réelle.</p>
 <p>Identifiant : <strong>{{ identifiant_demo }}</strong> — Mot de passe : <strong>{{ mot_de_passe_demo }}</strong></p>
-<p>Vous pouvez aussi utiliser <strong>nadia</strong> (accompagnement social), <strong>remi</strong> (accueil et hébergement) ou <strong>camille</strong> (restauration), avec le même mot de passe public. Ces fonctions sont narratives : mêmes droits CHRS1–7 dans un espace partagé, sans administration.</p>
+{% if demonstration_acteurs %}
+<p><strong>essai</strong> : travail social ; <strong>remi</strong> : accueil ; <strong>coordination</strong> : statistiques regroupées. Même mot de passe public, tâches distinctes.</p>
+<p>Avec essai, ouvrez Dossiers : essayez Mes dossiers, Mon service et En attente, puis commencez le suivi du dossier en attente.</p>
+{% else %}<p>Vous pouvez aussi utiliser <strong>nadia</strong> (accompagnement social), <strong>remi</strong> (accueil et hébergement) ou <strong>camille</strong> (restauration), avec le même mot de passe public. Ces fonctions sont narratives : mêmes droits CHRS1–7 dans un espace partagé, sans administration.</p>{% endif %}
 </aside>{% endif %}
 <p>Retrouvez les personnes fictives de votre espace d’essai.</p>
 <form method="post">{% csrf_token %}{{ form.as_p }}

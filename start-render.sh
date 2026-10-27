@@ -26,7 +26,11 @@ export DJANGO_SETTINGS_MODULE=pas_a_pas_accompagnement.settings_demo
 # Pas de suppression récursive automatique au redémarrage.
 python3 manage.py check --deploy --fail-level ERROR
 python3 manage.py migrate --noinput
-python3 manage.py preparer_demonstration
+case "${ACCOMPAGNEMENT_SCENARIO_DEMO:-acteurs}" in
+    acteurs) python3 manage.py preparer_demonstration --acteurs ;;
+    complet) python3 manage.py preparer_demonstration ;;
+    *) echo 'Scénario inconnu : choisir acteurs ou complet.' >&2; exit 1 ;;
+esac
 python3 manage.py collectstatic --noinput
 exec gunicorn --workers 1 --threads 1 --forwarded-allow-ips="" \
     --bind "${ACCOMPAGNEMENT_BIND:-0.0.0.0}:${PORT:-8000}" pas_a_pas_accompagnement.wsgi:application
