@@ -5,6 +5,7 @@ from django.contrib.auth.models import Permission
 from django.db import connections
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.urls import reverse
+from django.test import SimpleTestCase
 from unittest import skipIf
 
 try:
@@ -863,3 +864,30 @@ class RapportsNavigateur(StaticLiveServerTestCase):
         expect(page.locator('#id_population')).to_have_value('couts')
         page.goto(self.live_server_url+reverse('dossiers:rapports_gerer'))
         expect(page.get_by_text('Coûts par phase et devise.',exact=True)).to_be_visible()
+
+
+@skipIf(sync_playwright is None, 'Module Python Playwright non installé.')
+class BoutonsConditionNavigateur(SimpleTestCase):
+    def test_modifier_lisible_herite_et_courant_sans_survol(self):
+        from django.contrib.staticfiles import finders
+        from django.template.loader import render_to_string
+        from pathlib import Path
+        styles='\n'.join(Path(finders.find(n)).read_text() for n in ('application.css','condition-sociale.css'))
+        fragment=render_to_string('dossiers/_condition_actions.html', {'fiche': {'changer':'/modifier/'}})
+        with sync_playwright() as p:
+            browser=p.chromium.launch()
+            page=browser.new_page()
+            page.emulate_media(reduced_motion="reduce")
+            for largeur in (390,1280):
+                page.set_viewport_size({'width':largeur,'height':900})
+                for classe in ('condition-heritee',''):
+                    page.set_content('<style>'+styles+'</style><div class="'+classe+'">'+fragment+'</div>')
+                    bouton=page.get_by_role('link',name='Modifier',exact=True)
+                    page.mouse.move(largeur-1,899)
+                    def couleurs():
+                        return bouton.evaluate('(e) => [getComputedStyle(e).color, getComputedStyle(e).backgroundColor]')
+                    self.assertEqual(couleurs(),['rgb(255, 255, 255)','rgb(23, 92, 80)'])
+                    bouton.focus()
+                    self.assertEqual(couleurs(),['rgb(255, 255, 255)','rgb(23, 92, 80)'])
+                    bouton.hover()
+                    self.assertEqual(couleurs(),['rgb(255, 255, 255)','rgb(16, 72, 63)'])

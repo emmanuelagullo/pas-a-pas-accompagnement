@@ -27,7 +27,7 @@
 .condition-origine-champ { display: none; font-size: .9rem; font-weight: normal; }
 .condition-origines .condition-origine-champ { display: block; }
 .condition-portee { background: #edf5ef; border-left: .25rem solid #175c50; padding: .8rem; margin: .8rem 0; }
-.condition-heritee a { color: #175c50; }
+.condition-heritee a:not(.bouton) { color: #175c50; }
 .condition-origine { display: none; font-size: .95rem; }
 .condition-origines .condition-origine { display: block; }
 .condition-fiche + .condition-fiche { border-top: 1px dashed #c8d9ce; padding-top: .8rem; }
