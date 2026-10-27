@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Écritures CHRS3, périodes civiles et sérialisation par séjour."""
 from .verrous_metier import serialiser
 from django.core.exceptions import ValidationError
@@ -8,10 +9,12 @@ from .models import (AccordHebergement, Sejour, Affectation, Absence, LieuHeberg
 from .suivi import exiger
 
 
+@service_metier
 def droit(acteur, action):
     exiger(acteur, "view_personne", "view_menage", "view_accompagnement", "view_accordhebergement", "view_sejour", action)
 
 
+@service_metier
 def audit(acteur, accord, action, date, **liens):
     OperationHebergement.objects.create(auteur=acteur, accord=accord, action=action, date_effet=date, **liens)
 
@@ -46,6 +49,7 @@ def bornes(sejour, debut, fin):
         raise ValidationError("Le début effectif ne peut pas être futur.")
 
 
+@service_metier
 @serialiser("accompagnement")
 @transaction.atomic
 def accorder(acteur, accompagnement, beneficiaires, debut, fin):
@@ -63,6 +67,7 @@ def accorder(acteur, accompagnement, beneficiaires, debut, fin):
     return accord
 
 
+@service_metier
 @serialiser("accord")
 @transaction.atomic
 def admettre(acteur, accord, beneficiaires, debut):
@@ -84,6 +89,7 @@ def admettre(acteur, accord, beneficiaires, debut):
     return sejour
 
 
+@service_metier
 @transaction.atomic
 def creer_lieu(acteur, libelle, partenaire="", organisme=None, parent=None, niveau=""):
     droit(acteur, "add_lieuhebergement")
@@ -98,6 +104,7 @@ def creer_lieu(acteur, libelle, partenaire="", organisme=None, parent=None, nive
     return lieu
 
 
+@service_metier
 @serialiser("sejour")
 @transaction.atomic
 def ajouter_periode(acteur, sejour, debut, fin, lieu=None, absence=False):
@@ -120,6 +127,7 @@ def ajouter_periode(acteur, sejour, debut, fin, lieu=None, absence=False):
     return objet
 
 
+@service_metier
 @serialiser("objet")
 @transaction.atomic
 def terminer_periode(acteur, objet, fin):
@@ -136,6 +144,7 @@ def terminer_periode(acteur, objet, fin):
         sejour=sejour, **({"absence": objet} if absence else {"affectation": objet}))
 
 
+@service_metier
 @serialiser("sejour")
 @transaction.atomic
 def sortir(acteur, sejour, fin):
@@ -161,6 +170,7 @@ def sortir(acteur, sejour, fin):
     audit(acteur, sejour.accord, "Sortie effective", fin, sejour=sejour)
 
 
+@service_metier
 @serialiser("objet")
 @transaction.atomic
 def changer_lieu(acteur, objet, debut, lieu, attendu):
@@ -178,6 +188,7 @@ def changer_lieu(acteur, objet, debut, lieu, attendu):
     return ajouter_periode(acteur, objet.sejour, debut, None, lieu)
 
 
+@service_metier
 @serialiser("accord")
 @transaction.atomic
 def admettre_individuellement(acteur, accord, beneficiaires, debut):
@@ -191,6 +202,7 @@ def admettre_individuellement(acteur, accord, beneficiaires, debut):
     return [admettre(acteur, accord, [p], debut) for p in sorted({p.pk: p for p in personnes}.values(), key=lambda p: str(p.pk))]
 
 
+@service_metier
 def corriger_lieu(acteur,lieu,attendu,motif,**valeurs):
     droit(acteur,'change_lieuhebergement');exiger(acteur,'view_lieuhebergement','view_revisionlieu')
     from . import bd6

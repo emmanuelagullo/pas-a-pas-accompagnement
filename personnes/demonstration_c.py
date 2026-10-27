@@ -1,9 +1,11 @@
+from acteurs.contexte import service_metier
 """Aides complémentaires du seul scénario neuf, sans modifier les repas des 60 jours."""
 from datetime import timedelta
 from decimal import Decimal as D
 from . import aides as s,models as m,bd6
 
 
+@service_metier
 def completer(acteur,personnes,suivis,jour,organismes):
     org=next(v for k,v in organismes.items() if 'Rives' in k)
     types={}

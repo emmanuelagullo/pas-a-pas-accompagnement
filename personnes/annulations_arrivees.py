@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Retirer un fait d'arrivée erroné sans supprimer son histoire ou ses dépendances."""
 from django.core import signing
 from django.core.exceptions import ValidationError
@@ -28,6 +29,7 @@ def jeton(s):
     return signing.dumps(json.loads(json.dumps(photographie(racine(s)),cls=DjangoJSONEncoder)),salt='annulation-arrivee-v1')
 
 
+@service_metier
 def droits(acteur,ecriture=False):
     h.droit(acteur,'view_annulationarrivee');h.exiger(acteur,'view_affectation','view_absence')
     if ecriture:h.exiger(acteur,'annuler_sejour','add_annulationarrivee')
@@ -37,6 +39,7 @@ def documents_actifs(s):
     return m.DocumentFinancement.objects.filter(version__financement__hebergement=s.accord,annulation__isnull=True)
 
 
+@service_metier
 def annuler(acteur,sejour,attendu,motif,*,accord_correct=None,beneficiaires=(),reprendre_mouvements=False):
     droits(acteur,ecriture=True);motif=corrections.motif_valide(motif)
     if accord_correct is not None:

@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Catalogue fermé des rapports proposés, de leurs accès et de leurs éditeurs."""
 from django.urls import reverse
 
@@ -17,6 +18,7 @@ SOURCES={
 CLE_SOURCE='_rapport_source'
 
 
+@service_metier
 def accessible(acteur,source,rapport=None):
     if source=='statistiques':
         droits=['view_accompagnement','view_sejour','view_repasdistribue']
@@ -55,6 +57,7 @@ def accessible(acteur,source,rapport=None):
     return acteur.has_perms(['personnes.'+d if '.' not in d else d for d in droits])
 
 
+@service_metier
 def catalogue(acteur):
     from .vues_statistiques import RAPPORTS
     from urllib.parse import urlencode

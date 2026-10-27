@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Rôles professionnels datés, distincts de l'auteur et du contact de ménage."""
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -19,6 +20,7 @@ def photographie(x):
         'annule_le':x.annule_le.isoformat() if x.annule_le else None,'motif_annulation':x.motif_annulation}
 
 
+@service_metier
 @serialiser('accompagnement')
 @transaction.atomic
 def affecter(acteur, accompagnement, debut, fin, role, intervenant, organisme, source, attendu,
@@ -91,6 +93,7 @@ def a_date(accompagnement, jour):
     return accompagnement.interventions.filter(debut__lte=jour,annule_le__isnull=True).filter(Q(fin__isnull=True) | Q(fin__gt=jour)).select_related('intervenant', 'organisme')
 
 
+@service_metier
 @serialiser('accompagnement')
 @transaction.atomic
 def annuler(acteur,accompagnement,affectation,motif,attendu):
@@ -107,6 +110,7 @@ def annuler(acteur,accompagnement,affectation,motif,attendu):
         avant=avant,apres=photographie(x),motif=motif.strip(),auteur=acteur)
 
 
+@service_metier
 def presentation(acteur, accompagnement, jour):
     if not acteur.has_perms(DROITS_LECTURE):
         return []

@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Adaptateurs explicites de rapports ; aucun rapprochement approximatif."""
 from datetime import date,timedelta
 from urllib.parse import urlencode
@@ -33,6 +34,7 @@ def limite_personnalisation(source,data):
     return ''
 
 
+@service_metier
 def adapter(acteur,source,data):
     if source not in SOURCES:raise Http404
     p=dict(population='repas',mesure='quantite',axe='total',croisement='',classes='',filtre1='',operation1='egal',valeur1='',filtre2='',operation2='egal',valeur2='',reference=timezone.localdate().isoformat())
@@ -96,11 +98,13 @@ def adapter(acteur,source,data):
     return p
 
 
+@service_metier
 def signer_origine(acteur,source,params):
     from django.core import signing
     return signing.dumps(dict(acteur=str(acteur.pk),source=source,params={k:str(v) for k,v in params.items() if k not in ('page','format','modele')}),salt='origine-personnalisation-v1',compress=True)
 
 
+@service_metier
 def retour_origine(acteur,token):
     from django.core import signing
     try:p=signing.loads(token,salt='origine-personnalisation-v1',max_age=86400)

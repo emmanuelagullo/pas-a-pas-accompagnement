@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Présentation commune des faits existants ; aucune nouvelle définition métier.
 
 Les lectures sont regroupées par modèle, puis réparties par personne. Les
@@ -234,6 +235,7 @@ def presentation(request, personnes, jour, objet, nature, prise, params):
     return list(resultats.values()), projets
 
 
+@service_metier
 def documents(acteur, cible):
     """Métadonnées des documents ; aucun chargement des fichiers binaires."""
     from django.db.models import OuterRef, Subquery
@@ -244,10 +246,11 @@ def documents(acteur, cible):
         return []
     versions = m.VersionPieceDossier.objects.filter(piece_id=OuterRef('pk')).order_by('-version')
     return list(m.PieceDossier.objects.filter(**{type_cible: cible}, annule_le__isnull=True).annotate(
-        titre_courant=Subquery(versions.values('titre')[:1]),
-        version_courante=Subquery(versions.values('pk')[:1])).order_by('-enregistre_le'))
+        titre_courant=Subquery(versions.values('titre')[:1].selection()),
+        version_courante=Subquery(versions.values('pk')[:1].selection())).order_by('-enregistre_le'))
 
 
+@service_metier
 def contextes(acteur, personnes, objet=None):
     """Libellés récents des journaux autorisés, sans nouvel objet d'entretien.
 

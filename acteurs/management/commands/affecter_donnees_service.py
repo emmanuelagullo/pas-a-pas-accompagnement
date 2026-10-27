@@ -1,0 +1,75 @@
+"""Inventaire exact, vérification sans écriture puis confirmation par empreinte."""
+import hashlib
+import json
+from pathlib import Path
+from django.apps import apps
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.management.base import BaseCommand, CommandError
+from django.db import transaction
+from acteurs.models import Service, DossierService, PorteeObjet, JournalAcces
+from acteurs.politique import REPERTOIRES
+
+
+class Command(BaseCommand):
+    help='Affecter volontairement des objets anciens à un service. Vérification sans écriture par défaut ; aucun parcours récursif des données.'
+    def add_arguments(self,p):
+        p.add_argument('manifeste')
+        p.add_argument('--auteur',required=True,help='Compte existant responsable de cette affectation.')
+        p.add_argument('--appliquer',action='store_true')
+        p.add_argument('--empreinte')
+    @transaction.atomic
+    def handle(self,*args,**o):
+        try:
+            octets=Path(o['manifeste']).read_bytes()
+            if len(octets)>5_000_000:raise ValueError
+            d=json.loads(octets)
+            if set(d)!={'service','dossiers'} or not isinstance(d['dossiers'],list):raise ValueError
+            service=Service.objects.get(pk=d['service'])
+            auteur=get_user_model().objects.get(username=o['auteur'],is_active=True)
+            entrees=[];vus=set()
+            for dossier in d['dossiers']:
+                if set(dossier)!={'nature','id','objets'} or dossier['nature'] not in ('personne','menage'):raise ValueError
+                cible=apps.get_model('personnes',dossier['nature'])._base_manager.get(pk=dossier['id'])
+                for entree in dossier['objets']:
+                    if set(entree)!={'modele','id'}:raise ValueError
+                    label=entree['modele'].lower()
+                    if not label.startswith('personnes.') or label.split('.')[1] in REPERTOIRES|{'modelerapport','importparametrage'}:raise ValueError
+                    model=apps.get_model(label)
+                    objet=model._base_manager.get(pk=entree['id'])
+                    cle=(model._meta.label_lower,str(objet.pk))
+                    if cle in vus:raise ValueError
+                    vus.add(cle)
+                    ancienne=PorteeObjet.objects.filter(modele=cle[0],identifiant=cle[1]).first()
+                    if ancienne and ancienne.service_id!=service.pk:raise CommandError('Un objet relève déjà d’un autre service : aucun transfert implicite.')
+                    if ancienne and (getattr(ancienne.dossier,dossier['nature']+'_id',None)!=cible.pk):raise CommandError('Un objet relève déjà d’un autre dossier : aucun déplacement implicite.')
+                    entrees.append((dossier,cible,objet,cle))
+        except (OSError,ValueError,KeyError,LookupError,ObjectDoesNotExist,ValidationError,TypeError,AttributeError) as e:
+            raise CommandError('Inventaire invalide, entrée dupliquée ou objet introuvable ; aucune affectation.') from e
+        sha=hashlib.sha256(octets).hexdigest()
+        self.stdout.write(f'{len(d["dossiers"])} dossiers ; {len(entrees)} objets précis ; SHA-256 {sha}')
+        if not o['appliquer']:return
+        if o['empreinte']!=sha:raise CommandError('Empreinte absente ou différente ; aucune affectation.')
+        dossiers={}
+        # Chaque ligne est un choix explicite de l'exploitant. Les éléments non
+        # inventoriés, y compris les journaux et versions, ne sont pas partagés.
+        for info,cible,objet,cle in entrees:
+            k=(info['nature'],str(cible.pk))
+            if k not in dossiers:
+                ds,_=DossierService.objects.get_or_create(service=service,**{info['nature']:cible},defaults={'cree_par':auteur,'en_attente':True})
+                dossiers[k]=ds
+            ds=dossiers[k]
+            from acteurs.portees import parent
+            origine=parent(objet)
+            prise=objet if objet._meta.model_name=='accompagnement' else getattr(objet,'accompagnement',None)
+            accord=objet if objet._meta.model_name in ('accordhebergement','accordrepas','accordaide') else getattr(objet,'accord',None)
+            if accord and accord._meta.model_name not in ('accordhebergement','accordrepas','accordaide'):accord=None
+            if accord:prise=accord.accompagnement
+            PorteeObjet.objects.get_or_create(modele=cle[0],identifiant=cle[1],defaults={'dossier':ds,'service':service,
+                'prise':prise or (origine.prise if origine else None),
+                'prestation_modele':accord._meta.model_name if accord else (origine.prestation_modele if origine else ''),
+                'prestation_id':accord.pk if accord else (origine.prestation_id if origine else None)})
+        from django.utils import timezone
+        JournalAcces.objects.create(service=service,auteur=auteur,action='affectation_ancienne',date_effet=timezone.localdate(),
+            apres={'empreinte':sha,'objets':len(entrees),'dossiers':[str(x.pk) for x in dossiers.values()]})
+        self.stdout.write('Inventaire affecté ; aucune responsabilité ni habilitation créée.')

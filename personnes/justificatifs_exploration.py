@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Justification des cellules calculées, sans reconstruire des filtres textuels."""
 from collections import defaultdict
 from decimal import Decimal
@@ -37,6 +38,7 @@ def totaux_cellules(totaux,selection,code):
         valeur=v,unite=u) for u,v in totaux.items()]
 
 
+@service_metier
 def lien(acteur,params,code,cellule,page=1):
     # Les périodes relatives sont figées pour expliquer ce calcul précis ; le
     # retour à l'analyse garde l'expression relative du formulaire d'origine.
@@ -47,6 +49,7 @@ def lien(acteur,params,code,cellule,page=1):
     return reverse('dossiers:explorer_justificatifs')+'?'+urlencode({'preuve':token})
 
 
+@service_metier
 def lire(acteur,token):
     if not token or len(token)>50000:raise Http404('Justificatif non vérifiable.')
     try:p=signing.loads(token,salt=SEL,max_age=86400)
@@ -72,6 +75,7 @@ def retour_analyse(p):
     return reverse('dossiers:explorer')+'?'+urlencode({**p['params'],'page':p.get('page','1')})
 
 
+@service_metier
 def contributions(acteur,d,code,cellule,token,page=1):
     xs=cellule['_objets'];lignes=[]
     # Chaque lien désigne un objet de la sélection signée et revalidée.
@@ -126,6 +130,7 @@ def contributions(acteur,d,code,cellule,token,page=1):
     return lignes,regle
 
 
+@service_metier
 def fiche_objet(acteur,d,cellule,identifiant,token,page):
     x=next((x for x in cellule['_objets'] if x['id']==identifiant),None)
     if x is None:raise Http404

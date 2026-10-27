@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Répertoire daté de professionnels, indépendant des personnes et comptes de l'équipe."""
 from uuid import uuid4, UUID
 from django.core import signing
@@ -16,10 +17,12 @@ def jeton_creation():
     return signing.dumps(str(uuid4()), salt='solenne-intervenant-creation-v1')
 
 
+@service_metier
 def droits(acteur):
     suivi.exiger(acteur, 'view_intervenant', 'view_ficheintervenant', 'view_revisionficheintervenant', 'add_ficheintervenant')
 
 
+@service_metier
 def creer(acteur, debut, source, attendu, motif='', **valeurs):
     droits(acteur)
     suivi.exiger(acteur, 'add_intervenant')
@@ -41,6 +44,7 @@ def creer(acteur, debut, source, attendu, motif='', **valeurs):
         raise ValidationError('Cette confirmation a déjà été utilisée. Rechargez le répertoire.') from erreur
 
 
+@service_metier
 def renseigner(acteur, intervenant, debut, source, attendu, motif='', correction=None, **valeurs):
     droits(acteur)
     if valeurs.get('organisme') is not None:
@@ -48,6 +52,7 @@ def renseigner(acteur, intervenant, debut, source, attendu, motif='', correction
     return _renseigner(acteur, intervenant, debut, source, attendu, motif, correction, valeurs)
 
 
+@service_metier
 @transaction.atomic
 def _renseigner(acteur, intervenant, debut, source, attendu, motif, correction, valeurs):
     fiche = series_personnelles.enregistrer(acteur, intervenant, debut, source, attendu, motif, correction, valeurs,

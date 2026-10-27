@@ -60,5 +60,9 @@ class NavigationRapportsTests(TestCase):
         for _ in range(12):
             s=m.Sejour.objects.create(accord=self.accord,debut=date(2026,1,1),fin=date(2026,1,5),cree_par=self.u);s.beneficiaires.set([self.adulte])
         _,_,xs=e.calculer(self.u,self.config())
-        with self.assertNumQueries(1):relever(self.config(),xs,self.u)
-        with self.assertNumQueries(0):relever(self.config(),xs,self.u,liens=False)
+        from acteurs.contexte import perimetre
+        # Comme une requête HTTP, ouvrir le contexte avant de mesurer les accès
+        # aux faits : l'unique lecture de configuration n'est pas un N+1.
+        with perimetre(self.u):
+            with self.assertNumQueries(1):relever(self.config(),xs,self.u)
+            with self.assertNumQueries(0):relever(self.config(),xs,self.u,liens=False)

@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Échange explicite de paramètres de rapports, sans résultats ni droits importés."""
 import json
 from datetime import timedelta
@@ -19,6 +20,7 @@ def lire(contenu):
     return d
 
 
+@service_metier
 def valider(acteur,params):
     if params.get('schema')!=1 or params.get('exploration') is not True:raise ValidationError('Version de paramètres non prise en charge.')
     data=params.copy()
@@ -39,6 +41,7 @@ def valider(acteur,params):
     return retour
 
 
+@service_metier
 def importer(acteur,contenu):
     suivi.exiger(acteur,'view_modelerapport','add_modelerapport')
     d=lire(contenu);nom=d.get('nom','')
@@ -50,6 +53,7 @@ def importer(acteur,contenu):
     return m.ModeleRapport.objects.create(auteur=acteur,nom=nom.strip(),parametres=params,description=description,nature=nature)
 
 
+@service_metier
 def exporter(acteur,modele):
     suivi.exiger(acteur,'view_modelerapport','add_modelerapport')
     if modele.auteur_id!=acteur.pk:

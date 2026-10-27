@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """CHRS2 : accords et réalisations, décisions BD3 tracées et droits explicites."""
 from .verrous_metier import serialiser
 from django.core.exceptions import ValidationError
@@ -7,10 +8,12 @@ from .models import AccordRepas, RepasDistribue, OperationRepas, Accompagnement
 from .suivi import exiger
 
 
+@service_metier
 def droit(acteur, action):
     exiger(acteur, "view_personne", "view_menage", "view_accompagnement", "view_accordrepas", action)
 
 
+@service_metier
 @serialiser("accompagnement")
 @transaction.atomic
 def accorder(acteur, accompagnement, beneficiaires, debut, fin, service, prestataire="", jours_semaine=None):
@@ -29,6 +32,7 @@ def accorder(acteur, accompagnement, beneficiaires, debut, fin, service, prestat
     return accord
 
 
+@service_metier
 @serialiser("accord")
 @transaction.atomic
 def distribuer(acteur, accord, beneficiaire, date, quantite, categorie_declaree=""):
@@ -59,6 +63,7 @@ def distribuer(acteur, accord, beneficiaire, date, quantite, categorie_declaree=
     return repas
 
 
+@service_metier
 @serialiser("repas")
 @transaction.atomic
 def annuler(acteur, repas, motif):
@@ -101,6 +106,7 @@ def jeton_services(accompagnement):
         sorted(str(pk) for pk in accompagnement.beneficiaires.values_list('pk', flat=True))], salt='chrs25-services-repas')
 
 
+@service_metier
 @serialiser('accompagnement')
 def accorder_services(acteur, accompagnement, beneficiaires, debut, fin, services, attendu, prestataire='', jours_semaine=None):
     from django.core import signing

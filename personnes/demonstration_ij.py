@@ -1,8 +1,10 @@
+from acteurs.contexte import service_metier
 """Un fait erroné conservé, exclusivement lors de la génération du jeu neuf."""
 from datetime import timedelta
 from . import models as m,hebergement as h,annulations_arrivees as erreurs,accords
 
 
+@service_metier
 def completer(acteur,personnes,suivis,jour):
     prise=suivis['Robin A'];prise.refresh_from_db()
     debut=max(prise.debut,min(jour-timedelta(days=3),prise.fin-timedelta(days=1)) if prise.fin else jour-timedelta(days=3))

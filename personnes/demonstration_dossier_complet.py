@@ -1,9 +1,11 @@
+from acteurs.contexte import service_metier
 """Fin du méta-lot A dans les seuls jeux neufs, sans calcul de droits réels."""
 from datetime import timedelta
 from decimal import Decimal
 from . import dossier_complet as s,bd6
 
 
+@service_metier
 def completer(acteur,personnes,jour,organismes,professionnels):
     def j(n):return jour+timedelta(days=n)
     source='Déclarations entièrement fictives — Établissement Les Passerelles'

@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Données personnelles typées du dossier : aucun accord ni droit implicite.
 
 Le registre fixe décrit sept schémas Django concrets partageant le même cycle
@@ -34,6 +35,7 @@ def droits_lecture(code):
     return tuple(d)
 
 
+@service_metier
 def exiger_lecture(acteur,code):
     from django.core.exceptions import PermissionDenied
     if not acteur.has_perms(droits_lecture(code)):raise PermissionDenied
@@ -56,6 +58,7 @@ def administration_a_date(personnes,jour):
     return m.SituationAdministrative.objects.filter(personne__in=personnes,debut__lte=jour).filter(Q(fin__isnull=True)|Q(fin__gt=jour))
 
 
+@service_metier
 def administration(acteur,personne,debut,source,attendu,motif='',correction=None,**valeurs):
     suivi.exiger(acteur,'view_personne','view_situationadministrative','view_revisionsituationadministrative','add_situationadministrative')
     return series_personnelles.enregistrer(acteur,personne,debut,source,attendu,motif,correction,valeurs,
@@ -84,6 +87,7 @@ def _memes_postes(code,voisins,x):
     return voisins
 
 
+@service_metier
 def enregistrer(acteur,code,personne,debut,fin,source,attendu,motif='',correction=None,remplace=None,cloture=False,remplacer_ensemble=False,**valeurs):
     # Les appels antérieurs à la qualification de fréquentation restent non qualifiés.
     if code=='antecedents':valeurs.setdefault('frequentation','')
@@ -93,6 +97,7 @@ def enregistrer(acteur,code,personne,debut,fin,source,attendu,motif='',correctio
     return _enregistrer(acteur,code,personne,debut,fin,source,attendu,motif,correction,remplace,cloture,remplacer_ensemble,valeurs)
 
 
+@service_metier
 @transaction.atomic
 def _enregistrer(acteur,code,personne,debut,fin,source,attendu,motif,correction,remplace,cloture,ensemble,valeurs):
     r=RUBRIQUES[code];bd6.reserver(personne,attendu)
@@ -140,11 +145,13 @@ def _enregistrer(acteur,code,personne,debut,fin,source,attendu,motif,correction,
     return x
 
 
+@service_metier
 def annuler(acteur,code,personne,fait,motif,attendu):
     exiger_lecture(acteur,code);suivi.exiger(acteur,'annuler_'+RUBRIQUES[code].modele._meta.model_name)
     return _annuler(acteur,code,personne,fait,motif,attendu)
 
 
+@service_metier
 @transaction.atomic
 def _annuler(acteur,code,personne,fait,motif,attendu):
     r=RUBRIQUES[code];bd6.reserver(personne,attendu)
@@ -167,6 +174,7 @@ def totaux(code,lignes):
     return sorted((devise,nature,montant) for (devise,nature),montant in comptes.items())
 
 
+@service_metier
 def syntheses(acteur,personnes,jour):
     """Lectures groupées par rubrique ; aucune donnée d'une autre rubrique sans droit."""
     personnes=list(personnes);resultat={p.pk:[] for p in personnes}

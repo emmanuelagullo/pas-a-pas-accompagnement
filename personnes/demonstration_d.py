@@ -1,9 +1,11 @@
+from acteurs.contexte import service_metier
 """Financements et documents du scénario neuf ; ne complète jamais un essai existant."""
 from datetime import timedelta
 from decimal import Decimal as D
 from . import models as m,financements as s,bd6
 
 
+@service_metier
 def completer(acteur,personnes,suivis,jour,organismes,professionnels):
     org=list(organismes.values());operateur=org[1];payeur=org[0];prescripteur=org[2]
     def tarif(libelle,unite,prix,categorie=''):

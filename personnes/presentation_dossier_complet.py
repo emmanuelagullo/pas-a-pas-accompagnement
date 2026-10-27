@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Présentation des schémas fixes ; valeurs et unités restent explicites."""
 from datetime import date
 from decimal import Decimal
@@ -26,6 +27,7 @@ def snapshot(code,x):
         'lignes':[(r.modele._meta.get_field(c).verbose_name,valeur(r.modele._meta.get_field(c),x.get(c))) for c in r.champs]}
 
 
+@service_metier
 def preparer(code,facts,jour,acteur):
     from . import intervenants,partenaires
     r=service.RUBRIQUES[code];faits=list(facts)

@@ -1,8 +1,10 @@
+from acteurs.contexte import service_metier
 """Documents et rapports de consolidation, exclusivement dans le jeu neuf."""
 from django.core.files.uploadedfile import SimpleUploadedFile
 from . import pieces_dossier as s,bd6,models as m
 
 
+@service_metier
 def enrichir(acteur,personnes,suivis,jour):
     p=personnes['Noor']
     from . import dossier_complet as dc,coordonnees

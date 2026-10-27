@@ -1,0 +1,4 @@
+{% extends 'base.html' %}{% block contenu %}<p><a href="{{ retour }}">← Revenir</a></p><h1>{{ titre }}</h1>
+{% if proposition_relais %}<p>Le relais conserve les autres intervenants et l’histoire des éléments terminés. L’accès restant suit la politique du service.</p>
+<section class="carte"><h2>Ce qui sera transmis</h2><ul>{% for x in lignes_relais %}<li>{{ x.cible }} · {{ x.get_role_display }}</li>{% empty %}<li>Aucune responsabilité à transmettre avec cette sélection.</li>{% endfor %}</ul></section>{% endif %}
+<form method="post" class="carte">{% csrf_token %}{{ form.as_p }}<button type="submit">{% if proposition_relais %}Confirmer le relais{% else %}Enregistrer{% endif %}</button> <a class="bouton secondaire" href="{{ retour }}">Annuler</a></form>{% endblock %}

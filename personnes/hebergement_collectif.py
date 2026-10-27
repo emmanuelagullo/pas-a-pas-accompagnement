@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Actions explicites sur une sélection de séjours, avec transaction unique."""
 from django.core import signing
 from django.core.exceptions import ValidationError
@@ -25,6 +26,7 @@ def jeton(accord, sejours):
     return signing.dumps([str(accord.pk), {str(s.pk): etat(s) for s in sejours}], salt='chrs25-selection')
 
 
+@service_metier
 @serialiser('accord')
 def appliquer(acteur, accord, sejours, action, date, lieu, attendu):
     h.droit(acteur, 'view_sejour')

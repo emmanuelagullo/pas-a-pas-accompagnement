@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Admission guidée : services existants, sous une transaction commune."""
 from django.core import signing
 from django.core.exceptions import ValidationError
@@ -16,6 +17,7 @@ def jeton(accompagnement):
     return signing.dumps(etat(accompagnement), salt='bd6-sejour-unifie-v1')
 
 
+@service_metier
 @serialiser('accompagnement')
 def accueillir(acteur, accompagnement, beneficiaires, debut, fin, admission, attendu, lieu=None, arrivee_effectuee=True):
     h.droit(acteur, 'add_accordhebergement')
@@ -45,6 +47,7 @@ def accueillir(acteur, accompagnement, beneficiaires, debut, fin, admission, att
     return accord
 
 
+@service_metier
 @serialiser('accord')
 def enregistrer_arrivee(acteur, accord, beneficiaires, debut, attendu, lieu=None):
     """Confirmer les premières arrivées d’un accord existant, sans créer d’accord."""

@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Correction atomique d’une identité, indépendante des liens de ménage."""
 from django.core import signing
 from django.core.exceptions import ValidationError
@@ -14,11 +15,13 @@ def jeton(personne):
         [str(getattr(personne, champ)) for champ in CHAMPS]], salt='chrs25-identite')
 
 
+@service_metier
 def corriger(acteur, personne, motif, attendu, **donnees):
     exiger(acteur, 'view_personne', 'change_personne', 'view_revisionidentite')
     return _corriger(acteur, personne.pk, motif, attendu, donnees)
 
 
+@service_metier
 @transaction.atomic
 def _corriger(acteur, pk, motif, attendu, donnees):
     try:

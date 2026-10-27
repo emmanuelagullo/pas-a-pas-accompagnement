@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Prises en charge et histoire sociale personnelle, sans réécriture des anciens journaux."""
 from . import textes_riches as tr
 from django.core import signing
@@ -36,6 +37,7 @@ def reserver(objet, attendu):
     objet.refresh_from_db()
 
 
+@service_metier
 @serialiser('accompagnement')
 @transaction.atomic
 def prolonger(acteur, accompagnement, fin_prevue, motif, attendu):
@@ -55,6 +57,7 @@ def prolonger(acteur, accompagnement, fin_prevue, motif, attendu):
         nouvelle_fin=fin_prevue, motif=motif, auteur=acteur)
 
 
+@service_metier
 @serialiser('accompagnement')
 @transaction.atomic
 def corriger_prevision(acteur, accompagnement, fin_prevue, motif, attendu):
@@ -77,6 +80,7 @@ def corriger_prevision(acteur, accompagnement, fin_prevue, motif, attendu):
         nouvelle_fin=fin_prevue, action='correction', motif=motif.strip(), auteur=acteur)
 
 
+@service_metier
 @serialiser('accompagnement')
 @transaction.atomic
 def clore_prise(acteur, accompagnement, fin, attendu):
@@ -91,6 +95,7 @@ def photographie(personne, dimension):
             for x in SituationPersonnelle.objects.filter(personne=personne, dimension=dimension).order_by('debut')]
 
 
+@service_metier
 @transaction.atomic
 def renseigner(acteur, personne, dimension, valeur, debut, source, attendu, motif='', correction=None):
     suivi.exiger(acteur, 'view_personne', 'view_situationpersonnelle', 'view_revisionsituationpersonnelle', 'add_situationpersonnelle')
@@ -139,6 +144,7 @@ def renseigner(acteur, personne, dimension, valeur, debut, source, attendu, moti
     return fait
 
 
+@service_metier
 def etat(acteur, personnes, date):
     """Restitution datée ; les divergences historiques restent visibles, jamais fusionnées en migration."""
     if not acteur.has_perm('personnes.view_personne'):
@@ -190,6 +196,7 @@ def cible_commentaire(objet):
     return {'menage' if isinstance(objet, Menage) else 'accompagnement' if isinstance(objet, Accompagnement) else 'personne': objet}
 
 
+@service_metier
 @transaction.atomic
 def commenter(acteur, objet, texte, motif, attendu):
     suivi.exiger(acteur, 'view_personne', 'view_commentairedossier', 'add_commentairedossier')
@@ -209,6 +216,7 @@ def commenter(acteur, objet, texte, motif, attendu):
     return commentaire
 
 
+@service_metier
 @transaction.atomic
 def ajouter_membre(acteur, menage, debut, attendu, personne=None, designation='', prenom=''):
     suivi.exiger(acteur, 'view_personne', 'view_menage', 'add_appartenance')

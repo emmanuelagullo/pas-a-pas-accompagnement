@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Retrait conservatoire des seules séries personnelles à valeur unique.
 
 Les collections (dettes, ressources détaillées, liens...) ne sont pas des
@@ -61,6 +62,7 @@ def etat(serie, personne):
     return photographie(personne, serie.modele, serie.champs)
 
 
+@service_metier
 def apercu(acteur, personne, code, fait_pk):
     serie = configuration(code)
     if not acteur.has_perms(droits(serie)):
@@ -80,6 +82,7 @@ def preuve(code, personne, fait, precedent):
         fait.fin.isoformat() if fait.fin else None, precedent.pk if precedent else None], salt=SEL)
 
 
+@service_metier
 def prises_concernees(acteur, personne, debut, fin):
     from . import dossier
     if not acteur.has_perms(dossier.DROITS):
@@ -91,6 +94,7 @@ def prises_concernees(acteur, personne, debut, fin):
     return {'nombre': q.count(), 'entrees': list(q[:10])}
 
 
+@service_metier
 def retirer(acteur, personne, code, fait_pk, attendu, preuve_portee, confirmer, motif=''):
     serie = configuration(code)
     if not acteur.has_perms(droits(serie)):

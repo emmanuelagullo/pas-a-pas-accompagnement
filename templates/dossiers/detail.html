@@ -1,7 +1,8 @@
-{% extends 'base.html' %}{% load static %}{% block contenu %}{% if retour_exploration %}<p><a href="{{ retour_exploration }}">← Revenir aux résultats du rapport</a></p>{% endif %}
+{% extends 'base.html' %}{% load acteurs %}{% load static %}{% block contenu %}{% if retour_exploration %}<p><a href="{{ retour_exploration }}">← Revenir aux résultats du rapport</a></p>{% endif %}
 <div class="bd-dossier condition-page">{% include 'dossiers/_condition_sommaire.html' %}<p class="bd-chemin"><a href="{{ retour }}">← Rechercher un dossier</a> <span>1 · Recherche / <strong>2 · Dossier</strong></span></p>
 <header class="bd-titre"><p class="surtitre">{% if nature == 'menage' %}Ménage{% else %}Personne{% endif %}</p><h1>Dossier — {{ objet }}</h1>{% if origine %}<a href="{{ origine_url }}">← Revenir au ménage {{ origine }}</a>{% endif %}</header>
 
+{% responsabilites objet %}
 <div id="note-dossier">{% include 'dossiers/_commentaire.html' %}</div>
 {% include 'dossiers/_condition_documents.html' %}
 {% include 'dossiers/_condition_sociale.html' %}

@@ -18,7 +18,7 @@ DEBUG = True
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "[::1]"]
 INSTALLED_APPS = [
     "django.contrib.auth", "django.contrib.contenttypes", "django.contrib.sessions",
-    "django.contrib.messages", "django.contrib.staticfiles", "identites", "personnes",
+    "django.contrib.messages", "django.contrib.staticfiles", "identites", "personnes", "acteurs",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -27,6 +27,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "identites.middleware.DoubleFacteurMiddleware",
+    "acteurs.middleware.PerimetreMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -36,6 +37,7 @@ TEMPLATES = [{
     "DIRS": [BASE_DIR / "templates"], "APP_DIRS": True,
     "OPTIONS": {"context_processors": [
         "pas_a_pas_accompagnement.version.contexte",
+        "acteurs.context_processors.acteurs",
         "django.template.context_processors.request",
         "django.contrib.auth.context_processors.auth",
         "django.contrib.messages.context_processors.messages",
@@ -45,6 +47,7 @@ WSGI_APPLICATION = "pas_a_pas_accompagnement.wsgi.application"
 DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": LOCAL_DIR / "accompagnement.sqlite3"}}
 AUTH_USER_MODEL = "identites.Utilisateur"
 AUTHENTICATION_BACKENDS = [
+    "acteurs.backend.HabilitationsBackend",
     "pas_communs.authentification.mots_de_passe.PlafondMotDePasse",
     "django.contrib.auth.backends.ModelBackend",
 ]

@@ -76,7 +76,7 @@ def construire(sortie,runtime_cache=None,wheels_cache=None,test=False):
     with ZipFile(sortie/"application.zip","w",ZIP_DEFLATED) as archive:
         info=ZipInfo("version-application.txt",(2026,1,1,0,0,0));info.compress_type=ZIP_DEFLATED
         archive.writestr(info,(provenance['application_version']+'\n').encode('utf-8'))
-        for dossier in ["pas_a_pas_accompagnement","identites","personnes","templates","pwa"]:
+        for dossier in ["pas_a_pas_accompagnement","identites","personnes","acteurs","templates","pwa"]:
             for path in sorted((ROOT/dossier).rglob("*")):
                 if not path.is_file() or any(part in {"__pycache__", "node_modules"} for part in path.parts) or path.name.startswith("tests") or path.suffix not in {".py",".html"}:continue
                 if dossier == "pwa" and (path.parent != ROOT/"pwa" or path.suffix != ".py"):continue

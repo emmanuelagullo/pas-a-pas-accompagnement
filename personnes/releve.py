@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Recherche chronologique de contributions ; les droits de cible restent nécessaires."""
 from datetime import timedelta
 from django.core.exceptions import PermissionDenied,ValidationError
@@ -10,11 +11,13 @@ from . import models as m,transmissions as s,bd6,suivi
 def date_de(x):return x.date_fait or timezone.localdate(x.cree_le)
 
 
+@service_metier
 def lecture(acteur,x):
     s._droit(acteur,'view','transmission' if isinstance(x,m.Transmission) else 'notepartagee')
     if isinstance(x,m.NotePartagee):s._droit(acteur,'view',s.cible_note(x)._meta.model_name)
 
 
+@service_metier
 def contributions(acteur,debut=None,fin=None,q='',auteur=None,annules=False,notes=False):
     model=m.NotePartagee if notes else m.Transmission
     s._droit(acteur,'view','notepartagee' if notes else 'transmission')
@@ -33,6 +36,7 @@ def contributions(acteur,debut=None,fin=None,q='',auteur=None,annules=False,note
     return sorted(resultat,key=lambda x:(date_de(x),x.cree_le,x.pk),reverse=True)
 
 
+@service_metier
 @transaction.atomic
 def creer_action(acteur,libelle,echeance,transmission=None,note=None,appel=None):
     suivi.exiger(acteur,'view_actionrelais','add_actionrelais')
@@ -53,6 +57,7 @@ def photo(x):
     return [{c:valeur_journal(getattr(x,c)) for c in ('libelle','echeance','terminee_le','terminee_par','annule_le','annule_par','motif_annulation')}]
 
 
+@service_metier
 @transaction.atomic
 def changer_action(acteur,action,attendu,motif,libelle=None,echeance=None,terminer=False,reouvrir=False,annuler=False):
     suivi.exiger(acteur,'view_actionrelais','change_actionrelais','view_revisionactionrelais');bd6.reserver(action,attendu)
@@ -75,6 +80,7 @@ def changer_action(acteur,action,attendu,motif,libelle=None,echeance=None,termin
     action.save();m.RevisionActionRelais.objects.create(action_relais=action,action='annulation' if annuler else 'changement' if terminer or reouvrir else 'correction',avant=avant,apres=photo(action),motif=motif.strip(),auteur=acteur);return action
 
 
+@service_metier
 @transaction.atomic
 def terminer(acteur,action,attendu=None):
     suivi.exiger(acteur,'view_actionrelais','change_actionrelais')

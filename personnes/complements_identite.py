@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Renseignements d'identité déclarés, datés, facultatifs et corrigibles."""
 from django.db.models import Q
 from . import suivi, series_personnelles
@@ -7,6 +8,7 @@ CHAMPS=('sexe_declare','naissance_lieu','naissance_ville','naissance_pays','nati
 DROITS_LECTURE=('personnes.view_personne','personnes.view_complementidentite','personnes.view_revisioncomplementidentite')
 
 
+@service_metier
 def renseigner(acteur,personne,debut,source,attendu,motif='',correction=None,**valeurs):
     suivi.exiger(acteur,'view_personne','view_complementidentite','view_revisioncomplementidentite','add_complementidentite')
     # La collection est typée et conservée comme telle, jamais une chaîne CSV.

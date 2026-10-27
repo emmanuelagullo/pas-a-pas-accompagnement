@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Corrections limitées, contrôles de dépendances et avant/après persistants."""
 from . import textes_riches as tr
 from django.core import signing
@@ -27,6 +28,7 @@ def suivi_de(objet):
     return objet.sejour.accord.accompagnement
 
 
+@service_metier
 def droits(acteur, nature):
     exiger(acteur,'view_personne','view_menage','view_'+nature,'change_'+nature,
         'view_revisiontextesocial' if nature in TEXTES else 'view_correctionperiode')
@@ -120,6 +122,7 @@ def valider(objet):
         date_valide(objet.accompagnement,objet.debut)
 
 
+@service_metier
 def enregistrer(acteur,objet,ancien,motif):
     nature=objet._meta.model_name
     m.CorrectionPeriode.objects.create(menage=menage_de(objet),suivi=suivi_de(objet),nature=nature,
@@ -128,6 +131,7 @@ def enregistrer(acteur,objet,ancien,motif):
         nouvelle_source=getattr(objet,'source',''),motif=motif,auteur=acteur)
 
 
+@service_metier
 @serialiser('objet')
 def periode(acteur,objet,debut,fin,motif,attendu,source=None):
     nature=objet._meta.model_name
@@ -164,6 +168,7 @@ def periode(acteur,objet,debut,fin,motif,attendu,source=None):
     return objet
 
 
+@service_metier
 @serialiser('objet')
 def texte(acteur,objet,date_effet,texte,motif,attendu,source=''):
     nature=objet._meta.model_name

@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Modèles personnels : propriété, paramètres fermés et remplacement conditionnel."""
 import hashlib
 import json
@@ -13,6 +14,7 @@ class ConflitModele(ValidationError):
     pass
 
 
+@service_metier
 def exiger(acteur,modele):
     if modele.auteur_id!=acteur.pk:raise PermissionDenied
     if modele.parametres.get('_rapport_source'):
@@ -29,11 +31,13 @@ def etat(modele):
     return hashlib.sha256(json.dumps([modele.nom,modele.parametres,modele.description,modele.nature,modele.modele_source_id,modele.source_catalogue,modele.empreinte_source],sort_keys=True,ensure_ascii=False,separators=(',',':')).encode()).hexdigest()
 
 
+@service_metier
 def jeton(acteur,modele):
     exiger(acteur,modele)
     return signing.dumps(dict(acteur=str(acteur.pk),modele=str(modele.pk),etat=etat(modele)),salt='modele-personnel-v1',compress=True)
 
 
+@service_metier
 def verifier(acteur,modele,attendu):
     exiger(acteur,modele)
     try:p=signing.loads(attendu,salt='modele-personnel-v1',max_age=86400)
@@ -47,6 +51,7 @@ def nom_valide(nom):
     return nom.strip()
 
 
+@service_metier
 def valider(acteur,params):
     if params.get('_rapport_source'):
         suivi.exiger(acteur,'view_modelerapport','add_modelerapport')
@@ -62,6 +67,7 @@ def valider(acteur,params):
     except (ValueError,TypeError):raise ValidationError('Paramètres du modèle de rapport invalides.')
 
 
+@service_metier
 def changer(acteur,modele,attendu,nom,params=None,*,description=None,export_prioritaire=None):
     verifier(acteur,modele,attendu)
     nouveau_nom=nom_valide(nom)
@@ -84,6 +90,7 @@ def changer(acteur,modele,attendu,nom,params=None,*,description=None,export_prio
     return modele
 
 
+@service_metier
 def dupliquer(acteur,modele,attendu,nom,*,export_prioritaire=None):
     verifier(acteur,modele,attendu)
     if m.ModeleRapport.objects.filter(auteur=acteur).count()>=30:raise ValidationError('Limite de 30 modèles personnels atteinte.')
@@ -94,6 +101,7 @@ def dupliquer(acteur,modele,attendu,nom,*,export_prioritaire=None):
     return m.ModeleRapport.objects.create(auteur=acteur,nom=nom_valide(nom),parametres=params,nature=modele.nature,description=modele.description,modele_source=modele.modele_source,source_catalogue=modele.source_catalogue,empreinte_source=modele.empreinte_source)
 
 
+@service_metier
 def supprimer(acteur,modele,attendu):
     from django.db import transaction
     verifier(acteur,modele,attendu)

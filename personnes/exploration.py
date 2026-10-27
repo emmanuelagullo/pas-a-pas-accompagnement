@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Exploration bornée de populations explicites ; aucun SQL ou chemin de champ libre."""
 from collections import defaultdict
 from decimal import Decimal,InvalidOperation,ROUND_HALF_UP
@@ -33,6 +34,7 @@ PARCOURS={
 DIMENSIONS={**{'mission.'+c:label for c,label in MISSIONS.items()},**{g+'.'+c:parcours.RUBRIQUES[code].titre+' — '+str(parcours.RUBRIQUES[code].version._meta.get_field(c).verbose_name) for g,(code,champs) in PARCOURS.items() for c in champs},**BASE,**{g+'.'+c:g.replace('_',' ').capitalize()+' — '+str(model._meta.get_field(c).verbose_name) for g,(model,cs,ps) in GROUPES.items() for c in cs},**{'social.'+c:label+' (déclaration personnelle saisie)' for c,label in m.SituationSociale.DIMENSIONS}}
 
 
+@service_metier
 def disponibles(acteur):
     suivi.exiger(acteur,'view_personne')
     def autorise(k):
@@ -53,6 +55,7 @@ def categorie_valeur(objet,champ,valeur):
     return valeur if isinstance(valeur,(int,Decimal)) else str(valeur)
 
 
+@service_metier
 def selection_appels(acteur,d,personne=None,menage=None):
     from .vues_appels115 import visibles
     lignes=[]
@@ -75,6 +78,7 @@ def ligne(pk,date,ps,menages,*,saisie=None,version_saisie=None,prise=None,**vale
     return dict(id=str(pk),date=date,prise=prise,_ordre_saisie=saisie.isoformat() if saisie else '',personnes={p.pk for p in ps},menages=set(menages),valeurs={'total':['Ensemble'],'jour_semaine':[['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'][date.weekday()]],'mois':[date.strftime('%Y-%m')],'jour':[date.isoformat()],'date_saisie':[timezone.localdate(saisie).isoformat()] if saisie else [],'date_version':[timezone.localdate(version_saisie).isoformat()] if version_saisie else [],**valeurs},quantite=Decimal('0'),unite='sans quantité additive')
 
 
+@service_metier
 def population(acteur,d):
     debut,fin=d['debut'],d['fin'];ref=d['reference'];code=d['population'];lignes=[]
     suivi.exiger(acteur,'view_personne')
@@ -197,6 +201,7 @@ def population(acteur,d):
     return lignes
 
 
+@service_metier
 def enrichir(acteur,lignes,cles,ref):
     autorise=disponibles(acteur)
     if any(c not in autorise for c in cles if c):raise PermissionDenied
@@ -346,6 +351,7 @@ def accepte(x,c,op,val):
     return any(str(v).casefold()==val.casefold() for v in vs)
 
 
+@service_metier
 def calculer(acteur,d,*,contributions=False):
     from . import cohortes_exploration as cohortes
     cohorte=cohortes.verifier(d)

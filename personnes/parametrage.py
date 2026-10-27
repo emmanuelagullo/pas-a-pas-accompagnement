@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Échange fermé des répertoires et catalogues : aperçu, puis création atomique.
 
 Les homonymes ne sont jamais fusionnés. Une confirmation séparée peut autoriser
@@ -24,6 +25,7 @@ LECTURE=('view_partenaire','view_fichepartenaire','view_revisionfichepartenaire'
 ECRITURE=('add_importparametrage','add_partenaire','add_fichepartenaire','add_intervenant','add_ficheintervenant','add_lieuhebergement','add_typeaide','add_tarifprestation','add_versiontarif')
 
 
+@service_metier
 def droits(acteur,ecriture=False):
     suivi.exiger(acteur,*LECTURE)
     if ecriture:
@@ -35,6 +37,7 @@ def serialiser(x):return json.dumps(x,cls=DjangoJSONEncoder,ensure_ascii=False,s
 def empreinte(x):return hashlib.sha256(serialiser(x).encode()).hexdigest()
 
 
+@service_metier
 def exporter(acteur):
     droits(acteur);suivi.exiger(acteur,'exporter_parametrage')
     if sum(modele.objects.count() for modele in MODELES.values())>MAX_ENTREES:raise ValidationError('Au plus 500 entrées par fichier de paramétrage.')
@@ -159,6 +162,7 @@ def collisions(x):
     return resultat
 
 
+@service_metier
 def preparer(acteur,x):
     droits(acteur,ecriture=True);verifier(x)
     if m.ImportParametrage.objects.filter(empreinte=empreinte(x)).exists():raise ValidationError('Ce fichier a déjà été importé ; consultez son reçu.')
@@ -172,6 +176,7 @@ def lire_apercu(attendu):
     verifier(p['contenu']);return p
 
 
+@service_metier
 def confirmer(acteur,attendu,motif,accepter_homonymes=False):
     droits(acteur,ecriture=True)
     if not isinstance(motif,str) or not motif.strip() or len(motif)>240:raise ValidationError('Expliquez cet import (240 caractères maximum).')

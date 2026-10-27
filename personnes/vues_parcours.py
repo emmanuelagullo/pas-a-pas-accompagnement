@@ -311,7 +311,7 @@ def rapport(request):
         d=f.cleaned_data;jour=d['date']
         if code=='prises':
             derniere=m.InformationsAccompagnement.objects.filter(accompagnement_id=OuterRef('accompagnement_id')).order_by('-version').values('pk')[:1]
-            qs=m.InformationsAccompagnement.objects.filter(pk=Subquery(derniere),accompagnement__debut__lte=jour).select_related('accompagnement__menage')
+            qs=m.InformationsAccompagnement.objects.filter(pk=Subquery(derniere.selection()),accompagnement__debut__lte=jour).select_related('accompagnement__menage')
             if d.get('etat')=='ouverte':qs=qs.filter(Q(accompagnement__fin__isnull=True)|Q(accompagnement__fin__gt=jour))
             elif d.get('etat')=='close':qs=qs.filter(accompagnement__fin__lte=jour)
             if d.get('depuis'):qs=qs.filter(accompagnement__debut__gte=d['depuis'])
@@ -324,7 +324,7 @@ def rapport(request):
             if code=='demandes':qs=qs.select_related('element__accompagnement')
             if d.get('etat'):qs=qs.filter(etat=d['etat'])
             premiere=r.version.objects.filter(element_id=OuterRef('element_id')).order_by('debut').values('debut')[:1]
-            qs=qs.annotate(premiere_date=Subquery(premiere))
+            qs=qs.annotate(premiere_date=Subquery(premiere.selection()))
             if d.get('depuis'):qs=qs.filter(premiere_date__gte=d['depuis'])
             if d.get('jusqua'):qs=qs.filter(premiere_date__lte=d['jusqua'])
         if d['q']:

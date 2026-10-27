@@ -9,6 +9,7 @@ from identites import vues as identites
 from .copies_locales import copies
 
 urlpatterns = [
+    path("organisation/", include("acteurs.urls")),
     path("essai-local/", choisir_espace_local, name="choisir_espace_local"),
     path("decouverte/", decouverte, name="decouverte"),
     path("copies-locales/", copies, name="copies_locales"),

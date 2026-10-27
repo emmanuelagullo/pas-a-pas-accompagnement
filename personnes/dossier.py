@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Contexte de navigation signé, jamais une autorisation d'accès ou d'écriture."""
 from urllib.parse import urlencode
 from django.core import signing
@@ -42,6 +43,7 @@ def creer(request, accompagnement, sejour, repas):
             'retour_dossier': retour(accompagnement, valeurs, token)}
 
 
+@service_metier
 def vue_autorisee(acteur, accompagnement, vue):
     """Le jeton de retour ne remplace jamais la cible ni ses droits actuels."""
     if not isinstance(vue, dict) or not acteur.has_perms(DROITS):

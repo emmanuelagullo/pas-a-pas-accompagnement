@@ -1,9 +1,11 @@
+from acteurs.contexte import service_metier
 """Appels, relève et modèles exploratoires du seul scénario neuf."""
 from datetime import timedelta,time
 from decimal import Decimal
 from . import models as m,appels115 as s,bd6,transmissions,releve,propositions
 
 
+@service_metier
 def completer(acteur,personnes,suivis,jour,organismes,professionnels):
     from . import textes_riches as tr
     org=list(organismes.values())

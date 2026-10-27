@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Pièces opaques de petit volume : octets et versions dans la copie transactionnelle.
 
 Aucun chemin local fourni par l'utilisateur, lancement de programme ou rendu
@@ -21,6 +22,7 @@ def nature(cible):
     raise ValidationError('Cible de document inconnue.')
 
 
+@service_metier
 def droit(acteur,cible):
     suivi.exiger(acteur,'view_personne','view_piecedossier','view_versionpiecedossier','view_'+nature(cible))
     if isinstance(cible,m.Accompagnement):suivi.exiger(acteur,'view_personne','view_menage')
@@ -40,6 +42,7 @@ def lire_fichier(fichier):
     return nom,contenu
 
 
+@service_metier
 @transaction.atomic
 def ajouter(acteur,cible,attendu,*,titre,date_document,source,fichier,piece=None,motif=''):
     droit(acteur,cible)
@@ -63,6 +66,7 @@ def ajouter(acteur,cible,attendu,*,titre,date_document,source,fichier,piece=None
     v.full_clean();v.save();return piece
 
 
+@service_metier
 @transaction.atomic
 def annuler(acteur,piece,attendu,motif):
     cible=piece.cible;droit(acteur,cible);suivi.exiger(acteur,'annuler_piecedossier')
@@ -73,6 +77,7 @@ def annuler(acteur,piece,attendu,motif):
     piece.annule_le=timezone.now();piece.annule_par=acteur;piece.motif_annulation=motif.strip();piece.full_clean();piece.save(update_fields=['annule_le','annule_par','motif_annulation'])
 
 
+@service_metier
 def octets(acteur,version):
     droit(acteur,version.piece.cible)
     contenu=bytes(version.contenu)

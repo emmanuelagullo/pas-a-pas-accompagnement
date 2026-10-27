@@ -1,8 +1,10 @@
+from acteurs.contexte import service_metier
 """Méta-lot B : histoires inventées uniquement dans les espaces d'essai neufs."""
 from datetime import timedelta
 from . import parcours as s, models as m, bd6, informations_suivi, propositions
 
 
+@service_metier
 def completer(acteur, personnes, suivis, jour, organismes, professionnels):
     source='Scénario fictif — Établissement Les Passerelles'
     org=next(v for k,v in organismes.items() if 'Rives' in k)

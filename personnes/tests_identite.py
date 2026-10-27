@@ -166,7 +166,9 @@ class CompatibiliteIdentiteTests(TransactionTestCase):
         from django.db import connection
         from django.db.migrations.executor import MigrationExecutor
         compte = get_user_model().objects.create_user('migration-identite-fictive')
-        cible = MigrationExecutor(connection).loader.graph.leaf_nodes('personnes')
+        # La migration arrière désinstalle aussi les applications dépendantes.
+        # Restaurer tout le graphe, pas seulement personnes.
+        cible = MigrationExecutor(connection).loader.graph.leaf_nodes()
         try:
             executor = MigrationExecutor(connection)
             ancienne = [('personnes', '0009_modelerapport')]

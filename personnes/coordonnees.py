@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Coordonnées déclarées d'une personne ; ni lieu d'hébergement ni partenaire."""
 from django.db.models import Q
 from . import suivi, series_personnelles
@@ -8,6 +9,7 @@ DROITS_LECTURE = ('personnes.view_personne', 'personnes.view_coordonneespersonne
     'personnes.view_revisioncoordonneespersonnelles')
 
 
+@service_metier
 def renseigner(acteur, personne, debut, source, attendu, motif='', correction=None, **valeurs):
     valeurs.setdefault('usage_adresse','')
     suivi.exiger(acteur, 'view_personne', 'view_coordonneespersonnelles',

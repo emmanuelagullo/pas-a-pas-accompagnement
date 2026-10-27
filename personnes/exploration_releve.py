@@ -1,8 +1,10 @@
+from acteurs.contexte import service_metier
 """Projection des mêmes objets/critères, avec colonnes explicitement choisies."""
 from django.urls import reverse
 from . import exploration as e
 
 
+@service_metier
 def relever(d,selection,acteur,*,liens=True):
     from urllib.parse import urlencode
     token=signer_retour(acteur,d) if liens else ''
@@ -58,12 +60,14 @@ def relever(d,selection,acteur,*,liens=True):
     return colonnes,lignes
 
 
+@service_metier
 def signer_retour(acteur,d,*,justificatif=None):
     from django.core import signing
     params={k:str(v) if v is not None else '' for k,v in d.items()}
     return signing.dumps({'acteur':str(acteur.pk),'parametres':params,'justificatif':justificatif},salt='retour-exploration-v1',compress=True)
 
 
+@service_metier
 def retour_verifie(acteur,token):
     from django.core import signing
     from urllib.parse import urlencode

@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Lecture transversale : déclarations personnelles et faits de prises distincts.
 
 Aucune écriture ni prolongation implicite de période. Les comparaisons réutilisent
@@ -8,6 +9,7 @@ from . import bd6, dossier, dossier_complet
 from .models import SituationSociale, SituationPersonnelle, EvenementSocial, BilanSocial, RepasDistribue, Sejour
 
 
+@service_metier
 def construire(accompagnement, acteur, beneficiaire=None, debut=None, fin=None, *,
                 prises=None, personnes=None, dans_dossier=None):
     """Bornes incluses sur les faits, sans inventer un fait à l'ouverture du filtre.
@@ -93,6 +95,7 @@ def ordre(ligne):
     return ligne['date'], ligne['enregistre'], ligne['nature'], str(ligne['beneficiaire'])
 
 
+@service_metier
 def comparer(acteur, personnes, date_initiale, date_finale, *, dans_dossier=None):
     """Même lecture qu'au dossier/à l'entrée, jamais un classement de progression."""
     personnes = list(personnes)

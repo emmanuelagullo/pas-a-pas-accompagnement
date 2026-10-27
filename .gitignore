@@ -21,3 +21,6 @@ htmlcov/
 
 # Dépendances de reconstruction de l’éditeur, jamais distribuées.
 outils/editeur/node_modules/
+
+# Résultats internes de qualification, sans données réelles.
+/.qualification/

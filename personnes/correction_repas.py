@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 from django.core import signing
 from django.core.exceptions import ValidationError
 from . import repas as service, models as m
@@ -8,6 +9,7 @@ def etat(r):return [str(r.pk),r.quantite,r.categorie_declaree,str(r.annule_le)]
 def jeton(r):return signing.dumps(etat(r),salt='correction-repas-c')
 
 
+@service_metier
 @serialiser('repas')
 def corriger(acteur,repas,quantite,categorie_declaree,motif,attendu):
     service.droit(acteur,'change_repasdistribue');service.exiger(acteur,'view_repasdistribue','view_revisionrepas')
@@ -25,6 +27,7 @@ def corriger(acteur,repas,quantite,categorie_declaree,motif,attendu):
     return r.accord
 
 
+@service_metier
 @serialiser('accord')
 def corriger_service(acteur,accord,jours_semaine,prestataire,motif,attendu):
     from . import accords

@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Écriture transactionnelle des transmissions et notes métier."""
 from . import textes_riches as tr
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -5,6 +6,7 @@ from django.db import transaction
 from .models import Transmission, NotePartagee
 
 
+@service_metier
 def _droit(auteur, action, modele):
     if not auteur.is_authenticated or not auteur.has_perm(f"personnes.{action}_{modele}"):
         raise PermissionDenied
@@ -17,6 +19,7 @@ def _texte(valeur):
     return valeur
 
 
+@service_metier
 @transaction.atomic
 def transmettre(auteur, contenu, date_fait=None):
     _droit(auteur, "add", "transmission")
@@ -24,6 +27,7 @@ def transmettre(auteur, contenu, date_fait=None):
     return Transmission.objects.create(auteur=auteur, date_fait=date_fait, **tr.colonnes('contenu', contenu, required=True))
 
 
+@service_metier
 @transaction.atomic
 def noter(auteur, contenu, *, personne=None, accompagnement=None, sejour=None, accord_hebergement=None, accord_repas=None, accord_aide=None, date_fait=None):
     _droit(auteur, "add", "notepartagee")
@@ -37,6 +41,7 @@ def noter(auteur, contenu, *, personne=None, accompagnement=None, sejour=None, a
                                       accompagnement=accompagnement, sejour=sejour)
 
 
+@service_metier
 @transaction.atomic
 def rectifier(auteur, contribution, nouveau_texte, motif, *, texte_attendu=None, etat_attendu=None, date_fait=...):
     """Correction conservant chaque version, sous verrou transactionnel."""
@@ -100,6 +105,7 @@ def date_valide(date):
     from django.utils import timezone
     if date and date>timezone.localdate():raise ValidationError({'date_fait':'La date de la contribution ne peut pas être future.'})
 
+@service_metier
 @transaction.atomic
 def annuler(auteur,contribution,attendu,motif):
     from .models import AnnulationContribution

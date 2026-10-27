@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Ouverture explicite depuis un dossier, atomique et sans rejeu de confirmation."""
 from uuid import uuid4, UUID
 
@@ -23,6 +24,7 @@ def jeton(objet):
         'prise': str(uuid4()), 'nouveau_menage': str(uuid4())}, salt=SEL)
 
 
+@service_metier
 def ouvrir(acteur, objet, beneficiaires, debut, fin_prevue, attendu, menage=None,
            creer_menage=False, libelle_menage='', demande=None, attendu_demande=None):
     suivi.exiger(acteur, 'view_personne', 'view_menage', 'view_accompagnement', 'add_accompagnement')

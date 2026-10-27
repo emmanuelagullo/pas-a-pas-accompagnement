@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """BD3 : décisions sur les accords, sans réécriture des réalisations."""
 from django.core import signing
 from django.core.exceptions import ValidationError
@@ -10,6 +11,7 @@ from .corrections import motif_valide
 MODELES = {'repas': m.AccordRepas, 'hebergement': m.AccordHebergement}
 
 
+@service_metier
 def droits(acteur, accord, action):
     nature = accord._meta.model_name
     exiger(acteur, 'view_personne', 'view_menage', 'view_accompagnement', 'view_' + nature,
@@ -43,12 +45,14 @@ def verifier(accord, attendu):
         raise ValidationError('L’accord, ses bénéficiaires ou ses opérations ont changé. Rechargez la fiche avant de réessayer.')
 
 
+@service_metier
 def tracer(acteur, accord, action, ancienne_fin, nouvelle_fin, motif):
     lien = 'accord_repas' if isinstance(accord, m.AccordRepas) else 'accord_hebergement'
     m.EvolutionAccord.objects.create(**{lien: accord}, action=action,
         ancienne_fin=ancienne_fin, nouvelle_fin=nouvelle_fin, motif=motif, auteur=acteur)
 
 
+@service_metier
 @serialiser('accord')
 def prolonger(acteur, accord, fin, motif, attendu):
     droits(acteur, accord, 'prolonger')
@@ -71,6 +75,7 @@ def prolonger(acteur, accord, fin, motif, attendu):
     return accord
 
 
+@service_metier
 @serialiser('accord')
 def annuler(acteur, accord, motif, attendu):
     droits(acteur, accord, 'annuler')

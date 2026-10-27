@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Continuer un ancien séjour collectif par personne à une date confirmée.
 
 L'histoire commune antérieure reste sur l'original. Les continuations ne sont
@@ -15,6 +16,7 @@ def jeton(sejour):
     return signing.dumps([str(sejour.pk),collectif.etat(sejour),sorted(str(p.pk) for p in sejour.beneficiaires.all())],salt='continuite-sejour')
 
 
+@service_metier
 @serialiser('sejour')
 def individualiser(acteur,sejour,date,motif,attendu):
     h.droit(acteur,'add_sejour')
@@ -62,6 +64,7 @@ def jeton_coupure(sejour):
         {str(s.pk):collectif.etat(s) for s in sejour.continuations.order_by('pk')}],salt='correction-continuite')
 
 
+@service_metier
 @serialiser('sejour')
 def corriger_coupure(acteur,sejour,date,motif,attendu):
     h.droit(acteur,'change_continuitesejour');h.exiger(acteur,'view_continuitesejour','view_revisioncontinuite','change_sejour','change_affectation','change_absence')

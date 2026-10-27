@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Listes volontaires de propositions ; jamais un collecteur de saisies de dossiers."""
 from django.core import signing
 from django.core.exceptions import ValidationError
@@ -15,6 +16,7 @@ def photo(x):
     return {'champ':x.champ, 'valeur':x.valeur, 'active':x.active}
 
 
+@service_metier
 def enregistrer(acteur, champ, valeur, active, motif, *, objet=None, attendu=None):
     suivi.exiger(acteur, 'view_propositionsaisie', 'view_revisionpropositionsaisie',
         'change_propositionsaisie' if objet else 'add_propositionsaisie')
@@ -24,6 +26,7 @@ def enregistrer(acteur, champ, valeur, active, motif, *, objet=None, attendu=Non
         raise ValidationError('Cette proposition existe déjà ou sa confirmation n’a pas abouti. Rechargez la liste.') from erreur
 
 
+@service_metier
 @transaction.atomic
 def _enregistrer(acteur, champ, valeur, active, motif, *, objet, attendu):
     if not motif.strip() or len(motif)>240:
@@ -47,6 +50,7 @@ def _enregistrer(acteur, champ, valeur, active, motif, *, objet, attendu):
     return objet
 
 
+@service_metier
 @transaction.atomic
 def importer(acteur,contenu,motif):
     """Ajouts explicites en bloc ; aucune proposition existante n'est réécrite."""
@@ -67,6 +71,7 @@ def importer(acteur,contenu,motif):
     return nouveaux,existants
 
 
+@service_metier
 def exporter(acteur):
     import json
     suivi.exiger(acteur,'view_propositionsaisie','view_revisionpropositionsaisie')

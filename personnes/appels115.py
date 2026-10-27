@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Appels autonomes : faits, versions et liaisons explicites, aucune admission implicite."""
 from uuid import uuid4
 from django.core import signing
@@ -11,9 +12,11 @@ LECTURE=('view_appel115','view_versionappel115','view_revisionappel115','view_li
 CHAMPS=('adultes_declares','enfants_declares','grossesses_declarees','date','heure','type_appelant','appelant_personne','appelant_intervenant','appelant_organisme','appelant_libre','telephone','lieu_appel','menage','motif_principal','details','demandes_secondaires','reponses','etat_reponse','orientation','orientation_declaree','information_complementaire','source')
 
 
+@service_metier
 def droit(acteur,*actions):suivi.exiger(acteur,*LECTURE,*actions)
 
 
+@service_metier
 def cibles(acteur,v):
     if v.menage_id:suivi.exiger(acteur,'view_menage','view_personne')
     if v.appelant_personne_id or v.beneficiaires.exists():suivi.exiger(acteur,'view_personne')
@@ -21,6 +24,7 @@ def cibles(acteur,v):
     if v.appelant_organisme_id or v.orientation_id:suivi.exiger(acteur,'view_partenaire','view_fichepartenaire')
 
 
+@service_metier
 def lire(acteur,appel):
     droit(acteur);v=appel.versions.first()
     if v:cibles(acteur,v)
@@ -37,6 +41,7 @@ def motif_valide(motif):
     if not motif.strip() or len(motif)>240:raise ValidationError({'motif':'Expliquez cette action (240 caractères au plus).'})
 
 
+@service_metier
 @transaction.atomic
 def _ecrire(acteur,attendu,beneficiaires,action,motif='',appel=None,**valeurs):
     droit(acteur,'add_versionappel115')
@@ -74,6 +79,7 @@ def ecrire(*args,**kwargs):
     except IntegrityError as e:raise ValidationError('Confirmation déjà utilisée ; rechargez le journal des appels.') from e
 
 
+@service_metier
 @transaction.atomic
 def annuler(acteur,appel,attendu,motif):
     droit(acteur,'annuler_appel115');bd6.reserver(appel,attendu);lire(acteur,appel);motif_valide(motif)
@@ -84,6 +90,7 @@ def annuler(acteur,appel,attendu,motif):
     return appel
 
 
+@service_metier
 def droits_lien(acteur,cible):
     if isinstance(cible,m.DemandeAccueil):
         from .parcours import exiger
@@ -91,6 +98,7 @@ def droits_lien(acteur,cible):
     else:suivi.exiger(acteur,'view_personne','view_menage','view_accompagnement')
 
 
+@service_metier
 def verifier_lien(acteur,v,cible):
     droits_lien(acteur,cible)
     ids=set(v.beneficiaires.values_list('pk',flat=True));autres=set(cible.beneficiaires.values_list('pk',flat=True))
@@ -98,6 +106,7 @@ def verifier_lien(acteur,v,cible):
     if getattr(cible,'annule_le',None):raise ValidationError('La demande cible est annulée.')
 
 
+@service_metier
 @transaction.atomic
 def lier(acteur,appel,attendu,motif,demande=None,accompagnement=None):
     droit(acteur,'add_lienappelparcours');bd6.reserver(appel,attendu);v=lire(acteur,appel);motif_valide(motif)
@@ -106,6 +115,7 @@ def lier(acteur,appel,attendu,motif,demande=None,accompagnement=None):
     x=m.LienAppelParcours(appel=appel,demande=demande,accompagnement=accompagnement,auteur=acteur,motif=motif.strip());x.full_clean();x.save();return x
 
 
+@service_metier
 @transaction.atomic
 def delier(acteur,appel,lien,attendu,motif):
     droit(acteur,'annuler_lienappelparcours');bd6.reserver(appel,attendu);v=lire(acteur,appel);motif_valide(motif)

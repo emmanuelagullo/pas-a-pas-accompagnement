@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Liens déclarés indépendants des ménages ; verrouillage de la paire ordonnée."""
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -45,12 +46,14 @@ def photo(x):
         'motif_annulation':x.motif_annulation}
 
 
+@service_metier
 def enregistrer(acteur,personne,autre,debut,fin,role,precision,source,attendu,motif='',correction=None,remplace=None,cloture=False):
     suivi.exiger(acteur,'view_personne','view_relationpersonnelle','view_revisionrelationpersonnelle','add_relationpersonnelle')
     if correction is not None or remplace is not None:suivi.exiger(acteur,'change_relationpersonnelle')
     return _enregistrer(acteur,personne,autre,debut,fin,role,precision,source,attendu,motif,correction,remplace,cloture)
 
 
+@service_metier
 @transaction.atomic
 def _enregistrer(acteur,personne,autre,debut,fin,role,precision,source,attendu,motif,correction,remplace,cloture):
     reserver(personne,autre,attendu)
@@ -100,12 +103,14 @@ def _enregistrer(acteur,personne,autre,debut,fin,role,precision,source,attendu,m
     return x
 
 
+@service_metier
 def annuler(acteur,personne,relation,motif,attendu):
     suivi.exiger(acteur,'view_personne','view_relationpersonnelle','view_revisionrelationpersonnelle','annuler_relationpersonnelle')
     if personne.pk not in (relation.personne_a_id,relation.personne_b_id):raise ValidationError('Lien étranger à cette personne.')
     return _annuler(acteur,personne,relation,motif,attendu)
 
 
+@service_metier
 @transaction.atomic
 def _annuler(acteur,personne,relation,motif,attendu):
     reserver(personne,relation.autre(personne),attendu)

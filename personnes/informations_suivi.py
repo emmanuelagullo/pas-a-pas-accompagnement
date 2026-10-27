@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Informations facultatives : une nouvelle version, jamais d’écrasement."""
 from . import textes_riches as tr
 from django.core import signing
@@ -14,6 +15,7 @@ def jeton(accompagnement, information):
     return signing.dumps([str(accompagnement.pk), information.pk if information else None], salt='chrs25-informations')
 
 
+@service_metier
 @serialiser('accompagnement')
 def enregistrer(acteur, accompagnement, attendu, motif, **donnees):
     droit(acteur, 'view_informationsaccompagnement')

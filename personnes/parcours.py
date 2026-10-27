@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Demandes, orientations et objectifs : quatre chronologies métier typées.
 
 Aucun état ne clôture une prise ou ne crée une prestation. Une cible et ses
@@ -31,6 +32,7 @@ def droits(code):
     return tuple('personnes.'+d for d in ds)
 
 
+@service_metier
 def exiger(acteur, code, *actions):
     if not acteur.has_perms(droits(code)):
         from django.core.exceptions import PermissionDenied
@@ -75,6 +77,7 @@ def contexte_valide(objet, beneficiaires, accompagnement=None, demande=None):
             raise ValidationError({'demande':'Les bénéficiaires ne correspondent pas à la demande.'})
 
 
+@service_metier
 def creer(acteur, code, objet, beneficiaires, debut, source, attendu, motif='', accompagnement=None, demande=None, **valeurs):
     exiger(acteur,code,'add')
     if isinstance(objet,m.Menage):suivi.exiger(acteur,'view_menage')
@@ -97,6 +100,7 @@ def creer(acteur, code, objet, beneficiaires, debut, source, attendu, motif='', 
         return e
 
 
+@service_metier
 def enregistrer(acteur,code,element,debut,source,attendu,motif='',correction=None,**valeurs):
     exiger(acteur,code,'change')
     if element.menage_id:suivi.exiger(acteur,'view_menage')
@@ -105,6 +109,7 @@ def enregistrer(acteur,code,element,debut,source,attendu,motif='',correction=Non
         return _version(acteur,code,element,debut,source,motif,correction,valeurs)
 
 
+@service_metier
 def _version(acteur,code,e,debut,source,motif,correction,valeurs):
     r=RUBRIQUES[code]
     if e.annule_le:raise ValidationError('Cette saisie est annulée ; elle reste dans l’histoire.')
@@ -142,6 +147,7 @@ def _version(acteur,code,e,debut,source,motif,correction,valeurs):
     return e
 
 
+@service_metier
 def annuler(acteur,code,element,motif,attendu):
     exiger(acteur,code,'annuler')
     if element.menage_id:suivi.exiger(acteur,'view_menage')
@@ -155,6 +161,7 @@ def annuler(acteur,code,element,motif,attendu):
         RUBRIQUES[code].journal.objects.create(element=element,action='annulation',avant=avant,apres=photographie(code,element),motif=motif.strip(),auteur=acteur)
 
 
+@service_metier
 def lier(acteur,demande,prise,attendu,motif,retirer=False):
     """Ordre de verrouillage : ménage, puis demande ; jamais personne puis ménage."""
     exiger(acteur,'demandes','change')

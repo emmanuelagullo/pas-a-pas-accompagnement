@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Chronologie commune à deux histoires personnelles typées, sans moteur de champs."""
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -20,6 +21,7 @@ def photographie(personne, modele, champs, champ_cible='personne'):
         for x in modele.objects.filter(**{champ_cible: personne}).order_by('debut', 'pk')]
 
 
+@service_metier
 @transaction.atomic
 def enregistrer(acteur, personne, debut, source, attendu, motif, correction, valeurs, *, modele, journal, champs, lien, champ_cible='personne'):
     # Les droits sont chargés avant d'ouvrir la transaction : la réservation

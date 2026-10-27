@@ -41,6 +41,14 @@ def recherche(request):
         if mode == 'menage':
             objets = objets.prefetch_related(Prefetch('appartenances', queryset=Appartenance.objects.select_related('personne').order_by('debut', 'pk')))
         objets = objets.order_by('libelle', 'pk') if mode == 'menage' else objets.order_by('designation', 'prenom', 'pk')
+    from acteurs import politique as politique_acces
+    from acteurs.contexte import courant
+    controle_actif = politique_acces.active()
+    filtre_acteurs = request.GET.get('filtre', 'tous')
+    if filtre_acteurs not in ('tous','mes','service','attente'):filtre_acteurs='tous'
+    if controle_actif:
+        from acteurs.recherche import classer
+        objets=classer(request.user,objets,mode,filtre_acteurs,courant().service_id if courant() else None)
     page = Paginator(objets, 25).get_page(request.GET.get('page'))
     jour = timezone.localdate()
     for objet in page:
@@ -48,12 +56,12 @@ def recherche(request):
             liens = list(objet.appartenances.all())
             objet.nombre_actuel = len({l.personne_id for l in liens if l.debut <= jour and (l.fin is None or l.fin > jour)})
             objet.correspondances = [l for l in liens if q and any(m.casefold() in str(l.personne).casefold() for m in q.split())]
-        objet.url_dossier = reverse('dossiers:detail', args=[mode, objet.pk]) + '?' + urlencode({'q': q, 'mode': mode, 'page': page.number})
+        objet.url_dossier = reverse('dossiers:detail', args=[mode, objet.pk]) + '?' + urlencode({'q': q, 'mode': mode, 'page': page.number, 'filtre':filtre_acteurs})
     creation = peut_personnes and request.user.has_perm('personnes.add_personne')
     if mode == 'menage':
         creation = peut_menages and request.user.has_perms(['personnes.add_menage', 'personnes.add_appartenance'])
     contexte = {'mode': mode, 'recherche': q, 'page_obj': page, 'peut_menages': peut_menages,
-                'peut_personnes': peut_personnes, 'peut_creer': creation}
+                'peut_personnes': peut_personnes, 'peut_creer': creation, 'controle_acteurs':controle_actif, 'filtre_acteurs':filtre_acteurs}
     template = 'dossiers/resultats.html' if request.GET.get('fragment') == '1' else 'accueil.html'
     return render(request, template, contexte)
 
@@ -101,7 +109,7 @@ class NouveauMenageForm(FormulaireMetier):
 
 def parametres(request):
     return {'q': request.GET.get('q', '')[:160], 'mode': 'personne' if request.GET.get('mode') == 'personne' else 'menage',
-            'page': request.GET.get('page', '1')[:8], 'retour_exploration':request.GET.get('retour_exploration','')[:20000]}
+            'page': request.GET.get('page', '1')[:8], 'filtre':request.GET.get('filtre','tous')[:12], 'retour_exploration':request.GET.get('retour_exploration','')[:20000]}
 
 
 @never_cache

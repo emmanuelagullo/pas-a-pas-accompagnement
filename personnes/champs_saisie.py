@@ -68,10 +68,13 @@ class FormulaireMetier(forms.Form):
         adapter(self)
         from .periodes_saisie import preparer
         preparer(self)
+        from acteurs.saisie import preparer as proposer_responsable
+        proposer_responsable(self)
 
     def clean(self):
         from .periodes_saisie import nettoyer
-        return nettoyer(self, super().clean())
+        from acteurs.saisie import nettoyer as retirer_responsable
+        return retirer_responsable(nettoyer(self, super().clean()))
 
 
 class FormulaireModeleMetier(forms.ModelForm):
@@ -80,10 +83,13 @@ class FormulaireModeleMetier(forms.ModelForm):
         adapter(self)
         from .periodes_saisie import preparer
         preparer(self)
+        from acteurs.saisie import preparer as proposer_responsable
+        proposer_responsable(self)
 
     def clean(self):
         from .periodes_saisie import nettoyer
-        return nettoyer(self, super().clean())
+        from acteurs.saisie import nettoyer as retirer_responsable
+        return retirer_responsable(nettoyer(self, super().clean()))
 
 
 def valeurs_proposees(request, faits, champs, correction=None):

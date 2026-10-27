@@ -291,7 +291,7 @@ def statistiques(request):
         'services_possibles': AccordRepas.SERVICES, 'service_choisi': service_choisi,
         'periodes': PERIODES, 'periode_choisie': periode_choisie,
         'erreur_comparaison': erreur_comparaison, 'comparaison': comparaison, 'comparer': selection.get('comparer') == '1' and rapport != 'ages',
-        'titre_rapport':RAPPORTS[rapport], 'rapport': rapport, 'rapports': {code: label for code, label in RAPPORTS.items() if (code != 'ages' or request.user.has_perm('personnes.view_personne')) and (code != 'exploration_hebergement' or lecture_lieux)},
+        'titre_rapport':RAPPORTS[rapport], 'rapport': rapport, 'rapports': {code: label for code, label in RAPPORTS.items() if (not getattr(request,'acteurs_statistiques_regroupees',False) or code in ('synthese','hebergement','repas','mensuel')) and (code != 'ages' or request.user.has_perm('personnes.view_personne')) and (code != 'exploration_hebergement' or lecture_lieux)},
         'mouvements': [(code, metier.LIBELLES_MOUVEMENTS[code], valeur) for code, valeur in (mouvements or {}).items()],
         'mouvements_comparaison': [(metier.LIBELLES_MOUVEMENTS[code], mouvements_precedents[code], valeur) for code, valeur in (mouvements or {}).items()] if mouvements_precedents is not None else [],
         'age_reference': ages[0] if ages else None,

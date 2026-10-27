@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Suggestion explicite de bénéficiaires, jamais une admission ou distribution."""
 from django import forms
 from django.core.exceptions import ValidationError
@@ -6,6 +7,7 @@ from . import repas, famille, suivi
 CHAMPS=('regle_petit_dejeuner','date_reference_petit_dejeuner','age_min_petit_dejeuner','age_max_petit_dejeuner')
 
 
+@service_metier
 def proposer(acteur,prise,reference,regle,age_min=2,age_max=12):
     repas.droit(acteur,'add_accordrepas')
     if regle not in ('tous','age','age_grossesse'):raise ValidationError('Choisissez une règle de proposition.')

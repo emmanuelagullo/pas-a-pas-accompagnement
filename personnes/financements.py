@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Calculs déclarés versionnés ; aucune dépense, facture ou réalisation implicite."""
 from decimal import Decimal, ROUND_HALF_UP, InvalidOperation
 import hashlib,json
@@ -18,6 +19,7 @@ LIGNE=('phase','date','libelle','unite','categorie','quantite','prix','tarif','j
 IMPUTATION=('phase','financeur','budget','montant','reference')
 
 
+@service_metier
 def droit(acteur,accord=None,*actions):
     suivi.exiger(acteur,*LECTURE,*actions)
     if accord:suivi.exiger(acteur,'view_'+accord._meta.model_name)
@@ -30,6 +32,7 @@ def requis(texte,nom,maximum):
 def creation_tarif():return signing.dumps(str(uuid4()),salt='financement-tarif')
 
 
+@service_metier
 @transaction.atomic
 def _definir_tarif(acteur,attendu,motif,action='definition',tarif=None,**valeurs):
     suivi.exiger(acteur,'view_tarifprestation','view_versiontarif','add_versiontarif','change_tarifprestation' if tarif else 'add_tarifprestation')
@@ -97,6 +100,7 @@ def detail_totaux(version):
         'reste':t[p]-sum((i.montant for i in version.imputations.all() if i.phase==p),Decimal('0'))} for p,label in m.LigneCout.PHASES]
 
 
+@service_metier
 @serialiser('accord')
 def enregistrer(acteur,accord,attendu,motif,action,lignes,imputations,**valeurs):
     droit(acteur,accord,'add_versionfinancement')
@@ -176,6 +180,7 @@ def contenu_document(v,accord,modele,phase,jour):
 def empreinte(contenu):return hashlib.sha256(json.dumps(contenu,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()).hexdigest()
 
 
+@service_metier
 @serialiser('accord')
 def emettre(acteur,accord,attendu,modele,phase,date,remplace=None):
     droit(acteur,accord,'add_documentfinancement');f=reserver(accord,attendu)
@@ -192,6 +197,7 @@ def emettre(acteur,accord,attendu,modele,phase,date,remplace=None):
     x.full_clean();x.save();return x
 
 
+@service_metier
 @serialiser('accord')
 def annuler_document(acteur,accord,document,attendu,motif):
     droit(acteur,accord,'add_annulationdocument');reserver(accord,attendu);requis(motif,'motif',240)
@@ -201,6 +207,7 @@ def annuler_document(acteur,accord,document,attendu,motif):
     x=m.AnnulationDocument(document=document,motif=motif.strip(),auteur=acteur);x.full_clean();x.save();return x
 
 
+@service_metier
 def quantites_documentees(acteur,accord,debut,fin):
     """Suggestions de quantités, jamais des prix ni des factures automatiques."""
     from datetime import timedelta

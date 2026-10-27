@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Mesures explicites : personnes uniques, déclarations et nuitées ventilées.
 
 Les catégories d'âge des nuitées sont évaluées à chaque nuit civile, jamais
@@ -69,6 +70,7 @@ def ventiler_nuitees(personne, debut, fin):
     return (adultes, jours - inconnus - adultes, inconnus)
 
 
+@service_metier
 def preparer(acteur, lignes, d):
     mesure = d['mesure']
     if mesure not in PERSONNES and mesure not in FAMILLE and mesure not in NUITEES:

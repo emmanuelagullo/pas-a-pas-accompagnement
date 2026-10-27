@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Un contact daté, sans fonction professionnelle ni responsabilité juridique implicite."""
 from django.db.models import Q
 from . import suivi, series_personnelles
@@ -7,6 +8,7 @@ DROITS_LECTURE = ('personnes.view_personne', 'personnes.view_menage',
     'personnes.view_contactmenage', 'personnes.view_revisioncontactmenage')
 
 
+@service_metier
 def designer(acteur, menage, contact, debut, source, attendu, motif='', correction=None):
     suivi.exiger(acteur, 'view_personne', 'view_menage', 'view_contactmenage',
         'view_revisioncontactmenage', 'add_contactmenage')

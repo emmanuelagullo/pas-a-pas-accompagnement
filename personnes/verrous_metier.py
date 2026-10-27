@@ -26,7 +26,9 @@ def serialiser(argument):
             # Les relations de parenté ne sont pas modifiables par les parcours.
             menage_id = menage_de(objet).pk
             with transaction.atomic():
-                Menage.objects.filter(pk=menage_id).update(revision=F("revision") + 1)
+                # Réservation technique après validation de la cible par le service ;
+                # elle ne modifie pas les données du dossier ni ses autorisations.
+                Menage._base_manager.filter(pk=menage_id).update(revision=F("revision") + 1)
                 return fonction(*args, **kwargs)
         return executer
     return decorer

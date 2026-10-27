@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """Prestations à unités explicites : autoriser, remettre, constater l'usage.
 
 Quatre natures fixes ; aucun tarif ni trajet effectué n'est déduit d'un titre.
@@ -19,6 +20,7 @@ CATALOGUE=('nature','libelle','unite','fractionnable','precision','actif')
 CHAMPS=('debut','fin','quantite','prestataire','financeur','valeur_bon','devise','source')
 
 
+@service_metier
 def droit(acteur,*actions):
     from django.core.exceptions import PermissionDenied
     if not acteur.has_perms(LECTURE):raise PermissionDenied
@@ -33,6 +35,7 @@ def source_valide(source,motif='',obligatoire=False):
 def jeton_catalogue():return signing.dumps(str(uuid4()),salt='type-aide-creation')
 
 
+@service_metier
 def _cataloguer(acteur,attendu,motif,objet=None,**valeurs):
     suivi.exiger(acteur,'view_typeaide','view_revisiontypeaide','change_typeaide' if objet else 'add_typeaide')
     if set(valeurs)!=set(CATALOGUE):raise ValidationError('Précisez le schéma complet du type d’aide.')
@@ -76,6 +79,7 @@ def beneficiaires_valides(selection,parents):
     return ids
 
 
+@service_metier
 @serialiser('accompagnement')
 def accorder(acteur,accompagnement,type_aide,beneficiaires,attendu,**valeurs):
     droit(acteur,'add_accordaide')
@@ -94,6 +98,7 @@ def accorder(acteur,accompagnement,type_aide,beneficiaires,attendu,**valeurs):
     return a
 
 
+@service_metier
 @serialiser('accord')
 def modifier(acteur,accord,attendu,motif,prolongation=False,**valeurs):
     droit(acteur,'change_accordaide');bd6.reserver(accord,attendu)
@@ -116,6 +121,7 @@ def modifier(acteur,accord,attendu,motif,prolongation=False,**valeurs):
     return accord
 
 
+@service_metier
 @serialiser('accord')
 def remettre(acteur,accord,beneficiaires,date,quantite,source,attendu,motif='',correction=None):
     droit(acteur,'change_remiseaide' if correction else 'add_remiseaide');bd6.reserver(accord,attendu)
@@ -140,6 +146,7 @@ def remettre(acteur,accord,beneficiaires,date,quantite,source,attendu,motif='',c
     return accord
 
 
+@service_metier
 @serialiser('accord')
 def annuler(acteur,accord,attendu,motif,remise=None):
     droit(acteur,'annuler_remiseaide' if remise else 'annuler_accordaide');bd6.reserver(accord,attendu)
@@ -157,6 +164,7 @@ def annuler(acteur,accord,attendu,motif,remise=None):
     return accord
 
 
+@service_metier
 @serialiser('accord')
 def constater(acteur,accord,remise,date,quantite,source,attendu,motif=''):
     droit(acteur,'add_usageaide');bd6.reserver(accord,attendu);source_valide(source)

@@ -1,3 +1,4 @@
+from acteurs.contexte import service_metier
 """CHRS4 : valeurs datées par dimension, sans reconstruction événementielle."""
 from . import textes_riches as tr
 from .verrous_metier import serialiser
@@ -10,6 +11,7 @@ from .models import Accompagnement, SituationSociale, EvenementSocial, BilanSoci
 from .suivi import exiger
 
 
+@service_metier
 def droit(acteur, action):
     exiger(acteur, "view_personne", "view_menage", "view_accompagnement", action)
 
@@ -48,6 +50,7 @@ def verifier_situations(accompagnement, attendu):
         raise ValidationError('Le suivi social a changé. Rechargez le formulaire.')
 
 
+@service_metier
 @serialiser("accompagnement")
 @transaction.atomic
 def renseigner(acteur, accompagnement, beneficiaire, dimension, valeur, debut, source, motif='', attendu=None):
@@ -98,6 +101,7 @@ def jeton_valeur(situation):
     return signing.dumps(etat_valeur(situation), salt='chrs25-valeur')
 
 
+@service_metier
 @serialiser("situation")
 @transaction.atomic
 def corriger(acteur, situation, valeur, motif, attendu=None):
@@ -120,6 +124,7 @@ def corriger(acteur, situation, valeur, motif, attendu=None):
     return situation
 
 
+@service_metier
 @serialiser("accompagnement")
 @transaction.atomic
 def evenement(acteur, accompagnement, beneficiaire, date_effet, texte, source, anterieur=False):
@@ -135,6 +140,7 @@ def evenement(acteur, accompagnement, beneficiaire, date_effet, texte, source, a
     return objet
 
 
+@service_metier
 @serialiser("accompagnement")
 @transaction.atomic
 def bilan(acteur, accompagnement, date_effet, texte):
