@@ -1,3 +1,4 @@
+from django.template.response import TemplateResponse
 """Deux rubriques du dossier et une recherche transversale, sans nouveau menu."""
 import csv,json
 from urllib.parse import urlencode
@@ -230,5 +231,5 @@ def rapport(request):
             return response
         lignes=[{'fait':x,'lignes':presentation.lignes(model,x,champs)} for x in objets]
     selection.pop('format',None);selection.pop('page',None)
-    return render(request,'dossiers/rapport_dossier_complet.html',{'form':f,'code':code,'nombre':len(objets),'personnes_distinctes':len({x.personne_id for x in objets}),
+    return TemplateResponse(request,'dossiers/rapport_dossier_complet.html',{'form':f,'code':code,'nombre':len(objets),'personnes_distinctes':len({x.personne_id for x in objets}),
         'page_obj':Paginator(lignes,50).get_page(request.GET.get('page')),'totaux':totaux,'query_rapport':selection.urlencode()})

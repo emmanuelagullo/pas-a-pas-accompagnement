@@ -1,3 +1,4 @@
+from django.template.response import TemplateResponse
 import csv
 from datetime import timedelta
 from decimal import Decimal
@@ -235,4 +236,4 @@ def rapport(request):
             return response
     data.pop('page',None);data.pop('format',None)
     page=Paginator(rows,50).get_page(request.GET.get('page'))
-    return render(request,'financements/rapport.html',{'form':form,'lignes':page,'page_obj':page,'totaux':totaux,'query':data.urlencode(),'query_rapport':data.urlencode()})
+    return TemplateResponse(request,'financements/rapport.html',{'form':form,'lignes':page,'page_obj':page,'totaux':totaux,'query':data.urlencode(),'query_rapport':data.urlencode()})

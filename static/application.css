@@ -228,3 +228,10 @@ main:has(.bd-dossier) { max-width: 76rem; }
 .rapports-liens { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem 1.5rem; padding-left: 1.25rem; }
 @media (max-width: 40rem) { .rapport-choix, .rapports-liens { grid-template-columns: minmax(0, 1fr); } }
 @media print { .rapport-composer, .rapports-navigation, .rapport-entete > .bouton { display: none; } }
+
+.rapports-catalogue { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.6rem; list-style:none; padding:0; }
+.rapports-catalogue a { display:block; border:1px solid #cadbd3; border-radius:.5rem; padding:.75rem 1rem; background:white; text-decoration:none; }
+.rapports-catalogue a:hover { background:#edf5f0; border-color:#175c50; }
+.rapport-enregistrer { max-width:none; }
+.rapport-enregistrer button { margin:.5rem .5rem 0 0; }
+@media(max-width:40rem) { .rapports-catalogue { grid-template-columns:minmax(0,1fr); } }

@@ -1,3 +1,4 @@
+from django.template.response import TemplateResponse
 import csv
 from urllib.parse import urlencode
 from django import forms
@@ -119,4 +120,4 @@ def rapport(request):
             for x in faits:w.writerow([d['date'].isoformat(),x.pk,x.personne_a_id,cellule_csv(x.personne_a),x.role_depuis(x.personne_a),x.personne_b_id,cellule_csv(x.personne_b),x.debut.isoformat(),x.fin.isoformat() if x.fin else '',cellule_csv(x.precision),cellule_csv(x.source)])
             return response
     selection.pop('format',None);selection.pop('page',None)
-    return render(request,'dossiers/rapport_relations.html',{'form':f,'page_obj':Paginator(faits,50).get_page(request.GET.get('page')),'nombre':faits.count(),'query_rapport':selection.urlencode()})
+    return TemplateResponse(request,'dossiers/rapport_relations.html',{'form':f,'page_obj':Paginator(faits,50).get_page(request.GET.get('page')),'nombre':faits.count(),'query_rapport':selection.urlencode()})

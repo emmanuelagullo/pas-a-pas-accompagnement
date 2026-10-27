@@ -19,6 +19,7 @@ from .exports import cellule_csv
 @require_http_methods(['GET'])
 @login_required
 def nouveau(request):
+    if request.GET.get('depart')!='zero':return redirect('dossiers:rapport_nouveau')
     # Entrée indépendante : aucun critère ni cible de modèle n'est repris.
     e.disponibles(request.user)
     from django.urls import reverse
@@ -37,10 +38,12 @@ def explorer(request):
     cible=modele
     if not cible and (request.POST.get('modele_cible') or request.GET.get('modele_cible')):
         cible=get_object_or_404(m.ModeleRapport,pk=request.POST.get('modele_cible') or request.GET.get('modele_cible'),auteur=request.user)
-    attendu_modele=request.POST.get('attendu_modele') or request.GET.get('attendu_modele') or (gestion.jeton(request.user,cible) if cible and request.user.has_perms(['personnes.view_modelerapport','personnes.add_modelerapport']) else '')
+    attendu_modele=(request.POST.get('attendu_modele','') if request.method=='POST' else request.GET.get('attendu_modele',gestion.jeton(request.user,cible) if cible and request.user.has_perms(['personnes.view_modelerapport','personnes.add_modelerapport']) else ''))
     contexte_retour={k:(request.POST if request.method=='POST' else request.GET).get(k,'') for k in ('origine_rapport','panneau','page','nouveau')}
     if cible:contexte_retour.update(modele_cible=str(cible.pk),attendu_modele=attendu_modele)
-    if modele and not data.get('exploration'):return redirect('statistiques')
+    if modele and not data.get('exploration'):
+        from .catalogue_rapports import ouvrir
+        return redirect(ouvrir(modele))
     if modele and data.get('schema')!=1:return HttpResponse('Version du modèle non prise en charge ; aucun résultat calculé.',status=409)
     jour=timezone.localdate()
     for c,v in dict(population='personnes',debut=jour.replace(day=1).isoformat(),fin=(jour+timedelta(days=1)).isoformat(),reference=jour.isoformat(),mesure='objets',axe='total',croisement='',classes='',filtre1='',operation1='egal',valeur1='',filtre2='',operation2='egal',valeur2='').items():data.setdefault(c,v)

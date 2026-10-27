@@ -1,0 +1,9 @@
+{% if peut_enregistrer_rapport %}<section class="carte rapport-enregistrer"><h2>Enregistrer ce rapport</h2>
+{% if erreur_composition %}<p role="alert">{{ erreur_composition }}</p>{% endif %}
+<form method="post">{% csrf_token %}
+{% for nom,valeur in parametres_composition.items %}<input type="hidden" name="{{ nom }}" value="{{ valeur }}">{% endfor %}
+{% if rapport_cible %}<input type="hidden" name="modele_cible" value="{{ rapport_cible.pk }}"><input type="hidden" name="attendu_modele" value="{{ attendu_rapport }}">{% endif %}
+<label for="nom-rapport">Nom de mon rapport</label><input id="nom-rapport" name="nom" value="{{ nom_rapport }}" maxlength="100" required>
+{% if rapport_cible %}<p>Choisissez explicitement ce que vous souhaitez conserver.</p><button name="action_modele" value="remplacer">Remplacer explicitement « {{ rapport_cible.nom }} »</button><button class="secondaire" name="action_modele" value="creer">Enregistrer un second rapport</button>
+{% else %}<p>Le rapport proposé reste disponible dans le catalogue.</p><button name="action_modele" value="creer">Enregistrer mon rapport</button>{% endif %}
+</form></section>{% elif erreur_composition %}<p role="alert">{{ erreur_composition }}</p>{% endif %}

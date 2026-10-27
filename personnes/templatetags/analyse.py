@@ -24,3 +24,15 @@ def personnaliser_rapport(context,source):
 @register.simple_tag(takes_context=True)
 def limite_personnalisation(context,source):
     return limite(source,parametres_courants(context,source))
+
+
+@register.simple_tag(takes_context=True)
+def deriver_rapport(context,source):
+    from django.urls import reverse
+    from urllib.parse import urlencode
+    params=parametres_courants(context,source)
+    cible=context.get('rapport_cible') or context.get('modele_gestion')
+    if cible:
+        from ..modeles_personnels import jeton
+        params.update(modele_cible=str(cible.pk),attendu_modele=context.get('attendu_rapport') or context.get('attendu_modele') or jeton(context['request'].user,cible))
+    return reverse('dossiers:rapport_composer',args=[source])+'?'+urlencode({k:v for k,v in params.items() if k not in ('modele','format','page')})

@@ -1,3 +1,4 @@
+from django.template.response import TemplateResponse
 """Consultation, saisie et exploitation des déclarations familiales datées."""
 import csv
 from collections import Counter
@@ -134,6 +135,6 @@ def rapport(request):
                     *[cellule_csv(('Oui' if getattr(fait, c) else 'Non') if c == 'grossesse' and fait and fait.grossesse is not None
                         else getattr(fait, c) if fait else None) for c in famille.CHAMPS], cellule_csv(fait.source if fait else '')])
             return response
-    return render(request, 'dossiers/rapport_famille.html', {'form': form,
+    return TemplateResponse(request, 'dossiers/rapport_famille.html', {'form': form,
         'page_obj': Paginator(lignes, 50).get_page(request.GET.get('page')), 'bilan': bilan,
         'nombre': len(lignes), 'query_rapport': query})

@@ -1,3 +1,4 @@
+from django.template.response import TemplateResponse
 from datetime import timedelta
 from urllib.parse import urlencode
 from django import forms
@@ -82,7 +83,7 @@ def journal(request):
     f=AppelsRechercheForm(donnees);lignes=[]
     if f.is_valid():lignes=selection_appels(request.user,f.cleaned_data,personne=request.GET.get('personne'),menage=request.GET.get('menage'))
     page=Paginator(lignes,25).get_page(request.GET.get('page'));p=navigation(request);ctx,q,retour=contexte(request)
-    return render(request,'appels115/journal.html',{'form':f,'page_obj':page,'query':q,'query_rapport':request.GET.urlencode(),'retour':retour,'nav_params':{k:v for k,v in p.items() if k not in f.fields and k!='page'},**ctx})
+    return TemplateResponse(request,'appels115/journal.html',{'form':f,'page_obj':page,'query':q,'query_rapport':request.GET.urlencode(),'retour':retour,'nav_params':{k:v for k,v in p.items() if k not in f.fields and k!='page'},**ctx})
 
 
 @never_cache

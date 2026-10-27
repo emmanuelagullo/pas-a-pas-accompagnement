@@ -1,3 +1,4 @@
+from django.template.response import TemplateResponse
 from django import forms
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
@@ -106,7 +107,7 @@ def rapport_hebergement(request):
             for x in lignes:w.writerow([x['origine'],x['sejour'].pk,x['personne'].pk,cellule_csv(x['personne']),x['sejour'].debut,x['sejour'].fin or '',x['nuits'],x['hors_absences'],cellule_csv(x['lieux'])])
             return response
     p.pop('format',None)
-    return render(request,'aides/hebergement_individuel.html',{'form':f,'lignes':lignes,'query':p.urlencode()})
+    return TemplateResponse(request,'aides/hebergement_individuel.html',{'form':f,'lignes':lignes,'query':p.urlencode()})
 
 
 @never_cache

@@ -552,3 +552,20 @@ personnes distinctes, remplacement explicite, puis refus d'un second remplacemen
 avec la confirmation initiale. Deux confirmations concurrentes sur SQLite : une
 réussite et un conflit. Tests HTTP/HTML, propriété, CSRF, export et anciens modèles.
 Ces tests ne constituent pas une observation réelle dans un navigateur.
+
+## ST7 — Catalogue, variantes et gestion personnelle
+
+L'entrée Statistiques présente d'abord les rapports prêts à utiliser. Créer un
+rapport propose Partir de zéro ou sélectionner une définition proposée/personnelle.
+Gérer mes rapports réunit ouverture, édition, renommage, duplication et suppression
+confirmée. Les remplacements et suppressions contrôlent l'état signé du modèle ;
+la suppression ne touche aucun fait de dossier. Aucun partage entre comptes.
+
+Les variantes de rapports spécialisés conservent leur calcul natif et leurs
+critères validés par le même formulaire et les mêmes droits que leur rapport
+source. La dérivation n'est pas une conversion approximative dans une population
+de l'explorateur. Les modèles historiques gardent leur format ; les nouvelles
+définitions spécialisées portent un discriminateur fermé `_rapport_source`.
+La composition libre Retenir/Afficher/Compter/Classer reste accessible séparément.
+Modifier les mesures d'une synthèse composite au-delà de ses paramètres natifs
+nécessitera des blocs de calcul communs ; ce lot ne prétend pas les avoir unifiés.

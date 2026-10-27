@@ -6,7 +6,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 from . import models as m, modeles_personnels as s
 from .champs_saisie import FormulaireMetier
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError,PermissionDenied
 
 
 class GestionForm(FormulaireMetier):
@@ -15,8 +15,8 @@ class GestionForm(FormulaireMetier):
 
 
 def ouvrir(modele):
-    return reverse('dossiers:explorer' if modele.parametres.get('exploration') else 'statistiques')+'?modele='+str(modele.pk)
-
+    from .catalogue_rapports import ouvrir
+    return ouvrir(modele)
 
 @never_cache
 @require_http_methods(['GET','POST'])
@@ -30,6 +30,9 @@ def gerer(request,pk):
             action=request.POST.get('action')
             if action=='renommer':x=s.changer(request.user,modele,f.cleaned_data['attendu'],f.cleaned_data['nom'])
             elif action=='dupliquer':x=s.dupliquer(request.user,modele,f.cleaned_data['attendu'],f.cleaned_data['nom'])
+            elif action=='supprimer':
+                s.supprimer(request.user,modele,f.cleaned_data['attendu'])
+                return redirect('dossiers:rapports_gerer')
             elif action=='remplacer':
                 params={k:v for k,v in request.POST.items() if k not in ('nom','attendu','action','csrfmiddlewaretoken')}
                 x=s.changer(request.user,modele,f.cleaned_data['attendu'],f.cleaned_data['nom'],params)
@@ -44,3 +47,15 @@ def gerer(request,pk):
         params.update(modele_cible=str(modele.pk),attendu_modele=request.POST.get('attendu',''))
         reprise=reverse('dossiers:explorer' if modele.parametres.get('exploration') else 'statistiques')+'?'+urlencode(params)
     return render(request,'exploration/gerer_modele.html',{'form':f,'modele':modele,'ouvrir_modele':ouvrir(modele),'reprise_configuration':reprise},status=status)
+
+
+@never_cache
+@require_http_methods(['GET'])
+@login_required
+def liste(request):
+    lignes=[]
+    for x in m.ModeleRapport.objects.filter(auteur=request.user):
+        try:s.exiger(request.user,x);autorise=True
+        except PermissionDenied:autorise=False
+        lignes.append(dict(modele=x,url=ouvrir(x),autorise=autorise))
+    return render(request,'rapports/gestion.html',{'lignes':lignes})

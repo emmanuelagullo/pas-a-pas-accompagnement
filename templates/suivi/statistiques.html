@@ -3,10 +3,9 @@
 <p>Les indicateurs portent sur la période civile choisie, début inclus et fin exclue.</p>
 
 {% include 'exploration/_personnaliser.html' with source='statistiques' %}
-<nav class="rapports-navigation" aria-label="Rapports spécialisés">
-<details><summary>Autres rapports disponibles</summary><ul class="rapports-liens">{% if perms.personnes.view_financementprestation %}<li><a href="{% url 'dossiers:rapport_financements' %}">Coûts et financements par phase, budget et devise</a></li>{% endif %}{% if perms.personnes.view_continuitesejour %}<li><a href="{% url 'dossiers:rapport_hebergement_individuel' %}">Hébergement : périodes individuelles, absences et continuités</a></li>{% endif %}{% if perms.personnes.view_accordaide and perms.personnes.view_remiseaide %}<li><a href="{% url 'dossiers:rapport_aides' %}">Prestations, remises et unités</a></li>{% endif %}{% lecture_rapport_parcours request.user as lecture_parcours %}{% if lecture_parcours %}<li><a href="{% url 'dossiers:rapport_parcours' %}">Demandes, orientations et projet longitudinal</a></li>{% endif %}{% if perms.personnes.view_personne and perms.personnes.view_coordonneespersonnelles and perms.personnes.view_revisioncoordonneespersonnelles %}<li><a href="{% url 'dossiers:rapport_coordonnees' %}">Coordonnées personnelles à une date</a></li>{% endif %}{% if perms.personnes.view_personne and perms.personnes.view_declarationfamiliale and perms.personnes.view_revisiondeclarationfamiliale %}<li><a href="{% url 'dossiers:rapport_familles' %}">Déclarations familiales à une date</a></li>{% endif %}{% if perms.personnes.view_personne and perms.personnes.view_complementidentite and perms.personnes.view_revisioncomplementidentite %}<li><a href="{% url 'dossiers:rapport_complements_identite' %}">Compléments d’identité à une date</a></li>{% endif %}{% if perms.personnes.view_personne and perms.personnes.view_relationpersonnelle and perms.personnes.view_revisionrelationpersonnelle %}<li><a href="{% url 'dossiers:rapport_relations' %}">Liens personnels déclarés à une date</a></li>{% endif %}{% load dossier_a %}{% rapport_a_autorise request.user as peut_rapport_a %}{% if peut_rapport_a %}<li><a href="{% url 'dossiers:rapport_a' %}">Déclarations économiques et administratives à une date</a></li>{% endif %}</ul></details></nav>
+<p><a href="{% url 'dossiers:rapports_accueil' %}">← Tous les rapports proposés</a></p>
 <h2>Rapport affiché — {{ titre_rapport }}</h2>
-<form method="get" aria-label="Périodes prédéfinies">
+<form method="get" aria-label="Périodes prédéfinies">{% include 'rapports/_contexte.html' %}
 {% if modele_gestion %}<input type="hidden" name="modele_cible" value="{{ modele_gestion.pk }}"><input type="hidden" name="attendu_modele" value="{{ attendu_modele }}">{% endif %}
 <input type="hidden" name="service" value="{{ service_choisi }}">
 <input type="hidden" name="lieu" value="{{ lieu_choisi }}">
@@ -18,7 +17,7 @@
 {% for code, libelle in periodes.items %}<option value="{{ code }}" {% if periode_choisie == code %}selected{% endif %}>{{ libelle }}</option>{% endfor %}
 </select><input type="hidden" name="rapport" value="{{ rapport }}">
 <button type="submit">Appliquer</button></form>
-<form method="get">{% if modele_gestion %}<input type="hidden" name="modele_cible" value="{{ modele_gestion.pk }}"><input type="hidden" name="attendu_modele" value="{{ attendu_modele }}">{% endif %}<label for="rapport">Rapport</label>
+<form method="get">{% include 'rapports/_contexte.html' %}{% if modele_gestion %}<input type="hidden" name="modele_cible" value="{{ modele_gestion.pk }}"><input type="hidden" name="attendu_modele" value="{{ attendu_modele }}">{% endif %}<label for="rapport">Rapport</label>
 <select id="rapport" name="rapport">
 {% for code, libelle in rapports.items %}<option value="{{ code }}" {% if code == rapport %}selected{% endif %}>{{ libelle }}</option>{% endfor %}
 </select>{% adapter_saisie formulaire request.user %}{{ formulaire.as_p }}
@@ -100,7 +99,7 @@
 <tbody>{% for ligne in evolution %}<tr><th scope="row">{{ ligne.mois }}</th><td>{{ ligne.admissions }}</td><td>{{ ligne.sorties }}</td><td>{{ ligne.nuitees_theoriques }}</td><td>{{ ligne.repas_distribues }}</td></tr>{% endfor %}</tbody></table>
 {% endif %}
 <p>Les populations distinctes mensuelles ne sont pas additives : une personne peut être comptée sur plusieurs mois.</p>{% endif %}
-<form method="get">
+<form method="get">{% include 'rapports/_contexte.html' %}
 <input type="hidden" name="rapport" value="{{ rapport }}">
 <input type="hidden" name="service" value="{{ service_choisi }}">
 <input type="hidden" name="lieu" value="{{ lieu_choisi }}">
@@ -121,10 +120,10 @@
 <ul>{% for modele in modeles_rapports %}<li><a href="{% url 'statistiques' %}?modele={{ modele.pk }}">{{ modele.nom }}</a>{% if modele_actif.pk == modele.pk %} <strong>(affiché)</strong>{% endif %}
 <a href="{% url 'dossiers:modele_gerer' modele.pk %}">Renommer ou dupliquer</a>
 <form method="post" action="{% url 'statistiques_modele_supprimer' modele.pk %}" style="display:inline">{% csrf_token %}<button type="submit">Supprimer</button></form></li>{% empty %}<li>Aucun modèle enregistré.</li>{% endfor %}</ul></details>
-{% if resultats != None %}<details><summary>Enregistrer cette configuration comme modèle</summary><form method="post" action="{% url 'statistiques_modele_ajouter' %}">
+{% if resultats != None and not composition_source %}<details><summary>Enregistrer cette configuration comme modèle</summary><form method="post" action="{% url 'statistiques_modele_ajouter' %}">
 {% csrf_token %}<label for="nom_modele">Nom du modèle</label><input id="nom_modele" name="nom" maxlength="100" value="{{ modele_gestion.nom }}" required>
 <input type="hidden" name="rapport" value="{{ rapport }}"><input type="hidden" name="debut" value="{{ debut_iso }}"><input type="hidden" name="fin" value="{{ fin_iso }}">
 <input type="hidden" name="service" value="{{ service_choisi }}"><input type="hidden" name="lieu" value="{{ lieu_choisi }}">
 <input type="hidden" name="regroupement" value="{{ regroupement }}">{% if periode_choisie %}<input type="hidden" name="periode" value="{{ periode_choisie }}">{% endif %}{% if comparer %}<input type="hidden" name="comparer" value="1">{% endif %}
-{% if modele_gestion %}<input type="hidden" name="attendu" value="{{ attendu_modele }}"><button type="submit" name="action" value="remplacer" formaction="{% url 'dossiers:modele_gerer' modele_gestion.pk %}">Remplacer explicitement « {{ modele_gestion.nom }} »</button><button type="submit">Conserver une variante</button>{% else %}<button type="submit">Enregistrer cette configuration</button>{% endif %}</form></details>{% endif %}
-{% endblock %}
+{% if modele_gestion %}<input type="hidden" name="attendu" value="{{ attendu_modele }}"><button type="submit" name="action" value="remplacer" formaction="{% url 'dossiers:modele_gerer' modele_gestion.pk %}">Remplacer explicitement « {{ modele_gestion.nom }} »</button><button type="submit">Enregistrer un second rapport</button>{% else %}<button type="submit">Enregistrer cette configuration</button>{% endif %}</form></details>{% endif %}
+{% if composition_source %}{% include 'rapports/_enregistrer.html' %}{% endif %}{% endblock %}

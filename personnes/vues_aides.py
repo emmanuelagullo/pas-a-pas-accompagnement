@@ -1,3 +1,4 @@
+from django.template.response import TemplateResponse
 import csv,json
 from datetime import timedelta
 from decimal import Decimal
@@ -197,7 +198,7 @@ def rapport(request):
             for x in lignes:w.writerow([d['mode'],x['id'],x['accord'].pk,x['date'].isoformat(),cellule_csv(x['libelle']),cellule_csv(x['unite']),x['quantite'] if x['quantite'] is not None else '',','.join(str(p.pk) for p in x['personnes']),cellule_csv(x['categorie']),x['valeur_bon'] if x['valeur_bon'] is not None else '',x['devise']])
             return response
     params.pop('format',None);params.pop('page',None)
-    return render(request,'aides/rapport.html',{'form':f,'page_obj':Paginator(lignes,40).get_page(request.GET.get('page')),'nombre':len(lignes),'totaux':list(totaux.items()),'query_rapport':params.urlencode()})
+    return TemplateResponse(request,'aides/rapport.html',{'form':f,'page_obj':Paginator(lignes,40).get_page(request.GET.get('page')),'nombre':len(lignes),'totaux':list(totaux.items()),'query_rapport':params.urlencode()})
 
 
 def date_retenue(request,accompagnement=None):

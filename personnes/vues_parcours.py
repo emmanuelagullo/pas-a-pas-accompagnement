@@ -1,3 +1,4 @@
+from django.template.response import TemplateResponse
 """Un accès de parcours depuis la BD, sélection locale et actions au niveau de l'élément."""
 import csv
 import json
@@ -373,5 +374,5 @@ def rapport(request):
                     *[cellule_csv(json.dumps(s.valeur_journal(getattr(v,c)),ensure_ascii=False) if isinstance(getattr(v,c),Model) else getattr(v,c) if getattr(v,c) is not None else '') for c in champs],cellule_csv(v.motif if code=='prises' else v.source),a.pk if a else '',a.debut.isoformat() if a else '',x['delai'] if x['delai'] is not None else ''])
             return response
     params.pop('format',None);params.pop('page',None)
-    return render(request,'dossiers/rapport_parcours.html',{'form':f,'code':code,'nombre':len(objets),'delais':delais,
+    return TemplateResponse(request,'dossiers/rapport_parcours.html',{'form':f,'code':code,'nombre':len(objets),'delais':delais,
         'repartition':repartition,'moyenne_delai':sum(delais)/len(delais) if delais else None,'page_obj':Paginator(lignes_rapport,40).get_page(request.GET.get('page')),'query_rapport':params.urlencode()})

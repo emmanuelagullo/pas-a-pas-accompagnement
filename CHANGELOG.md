@@ -1,3 +1,13 @@
+## Statistiques — rapports prêts à utiliser et gestion personnelle (ST7)
+
+- Catalogue en premier, création depuis zéro ou un rapport existant, bouton Gérer.
+- Variantes fidèles de tous les rapports proposés, avec leurs critères et calculs
+  spécialisés conservés ; composition libre toujours accessible séparément.
+- Gestion personnelle : ouvrir, modifier, renommer, dupliquer et supprimer avec
+  confirmation ; choix explicite entre remplacer et enregistrer un second rapport.
+- Conservation des confirmations périmées et contrôles de suppression conditionnels,
+  sans modification des sources sociales, des droits ou des tables.
+
 ## Statistiques — distinguer les rapports et leurs actions
 
 - Bloc « Composer un rapport » distinct de la navigation vers les rapports

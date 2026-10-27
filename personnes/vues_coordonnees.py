@@ -1,3 +1,4 @@
+from django.template.response import TemplateResponse
 """Coordonnées personnelles datées et recherche géographique explicite."""
 import csv
 from collections import Counter
@@ -137,6 +138,6 @@ def rapport(request):
                     *[cellule_csv(getattr(fait, c) if fait else '') for c in coordonnees.CHAMPS],
                     cellule_csv(fait.source if fait else '')])
             return response
-    return render(request, 'dossiers/rapport_coordonnees.html', {'form': form,
+    return TemplateResponse(request, 'dossiers/rapport_coordonnees.html', {'form': form,
         'page_obj': Paginator(lignes, 50).get_page(request.GET.get('page')), 'bilan': bilan,
         'nombre': len(lignes), 'query_rapport': query})

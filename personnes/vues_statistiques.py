@@ -1,3 +1,4 @@
+from django.template.response import TemplateResponse
 from django.urls import reverse
 """Consultation des statistiques agrégées CHRS10."""
 from datetime import timedelta, date
@@ -135,6 +136,8 @@ def enregistrer_modele_rapport(request):
                       'personnes.view_repasdistribue'), raise_exception=True)
 def supprimer_modele_rapport(request, pk):
     modele = get_object_or_404(ModeleRapport, pk=pk, auteur=request.user)
+    from .modeles_personnels import exiger
+    exiger(request.user,modele)
     modele.delete()
     return redirect('statistiques')
 
@@ -144,6 +147,7 @@ def supprimer_modele_rapport(request, pk):
 @permission_required(('personnes.view_accompagnement', 'personnes.view_sejour',
                       'personnes.view_repasdistribue'), raise_exception=True)
 def statistiques(request):
+    if not request.GET:return redirect('dossiers:rapports_accueil')
     aujourd_hui = timezone.localdate()
     initial = {'debut': aujourd_hui.replace(day=1), 'fin': aujourd_hui + timedelta(days=1)}
     modele = None
@@ -156,7 +160,11 @@ def statistiques(request):
     if not cible and request.GET.get('modele_cible'):
         cible=get_object_or_404(ModeleRapport,pk=request.GET['modele_cible'],auteur=request.user)
     attendu=request.GET.get('attendu_modele') or (gestion.jeton(request.user,cible) if cible else '')
-    selection = modele.parametres if modele else request.GET
+    if modele and modele.parametres.get('_rapport_source'):
+        from .catalogue_rapports import ouvrir
+        return redirect(ouvrir(modele))
+    selection = modele.parametres.copy() if modele else request.GET.copy()
+    selection.setdefault('debut',initial['debut'].isoformat());selection.setdefault('fin',initial['fin'].isoformat())
     periode_choisie = selection.get('periode', '')
     if periode_choisie in PERIODES:
         debut, fin = bornes_periode(periode_choisie, aujourd_hui)
@@ -286,7 +294,7 @@ def statistiques(request):
             else:
                 comparaison = bilan(precedent, formulaire.cleaned_data['debut'])
     periode = formulaire.cleaned_data if formulaire.is_valid() else {}
-    return render(request, 'suivi/statistiques.html', {
+    return TemplateResponse(request, 'suivi/statistiques.html', {
         'formulaire': formulaire, 'resultats': resultats,
         'modeles_rapports': [x for x in ModeleRapport.objects.filter(auteur=request.user) if not x.parametres.get('exploration')],
         'modele_actif': modele, 'modele_gestion':cible,'attendu_modele':attendu,

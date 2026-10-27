@@ -44,7 +44,7 @@ class ModelesPersonnelsTests(TestCase):
     def test_explorateur_variante_remplacement_et_recalcul_garde_ticket(self):
         url=reverse('dossiers:explorer')
         r=self.client.get(url,{'modele':self.modele.pk});ticket=r.context['attendu_modele']
-        self.assertContains(r,'Conserver une variante');self.assertContains(r,'Remplacer explicitement')
+        self.assertContains(r,'Enregistrer un second rapport');self.assertContains(r,'Remplacer explicitement')
         d={**self.params,'modele_cible':self.modele.pk,'attendu_modele':ticket,'nom':'Personnes','mesure':'personnes'}
         r=self.client.get(url,d);self.assertEqual(r.context['attendu_modele'],ticket)
         self.assertEqual(r.context['totaux'],{'personnes':3})

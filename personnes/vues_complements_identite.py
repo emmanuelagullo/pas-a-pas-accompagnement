@@ -1,3 +1,4 @@
+from django.template.response import TemplateResponse
 """Compléments d’identité déclarés, consultation à date et exploitation."""
 import csv
 from collections import Counter
@@ -137,4 +138,4 @@ def rapport(request):
                 w.writerow([d['date'].isoformat(),p.pk,cellule_csv(p),f.debut.isoformat() if f else '',*[cellule_csv(v) for v in vals],cellule_csv(f.source if f else '')])
             return response
     selection.pop('format',None);selection.pop('page',None)
-    return render(request,'dossiers/rapport_complements_identite.html',{'form':form,'page_obj':Paginator(lignes,50).get_page(request.GET.get('page')),'nombre':len(lignes),'bilan':bilan,'query_rapport':selection.urlencode()})
+    return TemplateResponse(request,'dossiers/rapport_complements_identite.html',{'form':form,'page_obj':Paginator(lignes,50).get_page(request.GET.get('page')),'nombre':len(lignes),'bilan':bilan,'query_rapport':selection.urlencode()})

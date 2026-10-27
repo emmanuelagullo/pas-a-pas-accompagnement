@@ -15,7 +15,11 @@ class ConflitModele(ValidationError):
 
 def exiger(acteur,modele):
     if modele.auteur_id!=acteur.pk:raise PermissionDenied
-    if modele.parametres.get('exploration'):
+    if modele.parametres.get('_rapport_source'):
+        from .catalogue_rapports import accessible
+        suivi.exiger(acteur,'view_modelerapport','add_modelerapport')
+        if not accessible(acteur,modele.parametres['_rapport_source']):raise PermissionDenied
+    elif modele.parametres.get('exploration'):
         suivi.exiger(acteur,'view_modelerapport','add_modelerapport')
     else:
         suivi.exiger(acteur,'view_accompagnement','view_sejour','view_repasdistribue')
@@ -44,6 +48,10 @@ def nom_valide(nom):
 
 
 def valider(acteur,params):
+    if params.get('_rapport_source'):
+        suivi.exiger(acteur,'view_modelerapport','add_modelerapport')
+        from .vues_rapports import valider_source
+        return valider_source(acteur,params)
     if params.get('exploration'):
         suivi.exiger(acteur,'view_modelerapport','add_modelerapport')
         from .modeles_echange import valider
@@ -60,6 +68,8 @@ def changer(acteur,modele,attendu,nom,params=None):
     # Une simple modification du nom ne réinterprète pas un ancien modèle.
     if params is not None and bool(params.get('exploration'))!=bool(modele.parametres.get('exploration')):
         raise ValidationError('Conservez le type du modèle ; enregistrez une variante séparée pour une autre définition.')
+    if params is not None and params.get('_rapport_source')!=modele.parametres.get('_rapport_source'):
+        raise ValidationError('Conservez la définition source du rapport à remplacer.')
     nouveaux=modele.parametres.copy() if params is None else valider(acteur,params)
     revision=modele.parametres.get(REVISION,0)
     nouveaux[REVISION]=(revision if isinstance(revision,int) else 0)+1
@@ -76,3 +86,13 @@ def dupliquer(acteur,modele,attendu,nom):
     if m.ModeleRapport.objects.filter(auteur=acteur).count()>=30:raise ValidationError('Limite de 30 modèles personnels atteinte.')
     params=valider(acteur,modele.parametres);params.pop(REVISION,None)
     return m.ModeleRapport.objects.create(auteur=acteur,nom=nom_valide(nom),parametres=params)
+
+
+def supprimer(acteur,modele,attendu):
+    from django.db import transaction
+    verifier(acteur,modele,attendu)
+    with transaction.atomic():
+        nouveaux=modele.parametres.copy();nouveaux[REVISION]=str(modele.parametres.get(REVISION,''))+'-suppression'
+        if m.ModeleRapport.objects.filter(pk=modele.pk,auteur=acteur,nom=modele.nom,parametres=modele.parametres).update(parametres=nouveaux)!=1:
+            raise ConflitModele('Le rapport a changé ; rechargez avant de supprimer.')
+        m.ModeleRapport.objects.filter(pk=modele.pk,auteur=acteur).delete()

@@ -1,23 +1,8 @@
-{% load analyse %}
-{% if perms.personnes.view_personne %}
-{% personnaliser_rapport source as url_personnaliser %}
-{% limite_personnalisation source as limite %}
-<section class="rapport-composer" aria-labelledby="composer-rapport">
-  <h2 id="composer-rapport">Composer un rapport</h2>
-  <div class="rapport-choix">
-    {% if limite %}{% include 'exploration/_nouveau_rapport.html' %}{% endif %}
-    <div>
-      <h3>À partir du rapport affiché</h3>
-      {% if limite %}
-      <button type="button" disabled aria-describedby="limite-personnalisation">Personnaliser ce rapport</button>
-      <p id="limite-personnalisation" class="helptext">Cette définition ne peut pas encore être reprise intégralement dans l’explorateur.</p>
-      <details><summary>Pourquoi ?</summary><p>{{ limite }}</p></details>
-      {% else %}
-      <a class="bouton" href="{{ url_personnaliser }}">Personnaliser ce rapport</a>
-      <p class="helptext">Reprenez sa population, ses critères, ses mesures et ses règles de dates, puis adaptez-les.</p>
-      {% endif %}
-    </div>
-    {% if not limite %}{% include 'exploration/_nouveau_rapport.html' %}{% endif %}
-  </div>
+{% load analyse %}{% deriver_rapport source as url_variante %}
+<section class="rapport-composer" aria-label="Actions du rapport"><div class="rapport-entete">
+{% if composition_source %}<div><h2>{% if rapport_cible %}Modifier mon rapport{% else %}Créer une variante{% endif %}</h2><p>Les critères et les calculs du rapport source sont conservés. Modifiez ses paramètres ci-dessous, puis choisissez comment l’enregistrer.</p></div>
+{% else %}<div><a class="bouton" href="{{ url_variante }}">Créer une variante de ce rapport</a><p class="helptext">Reprendre sa définition et ses critères dans un nouveau rapport personnel.</p></div>{% endif %}
+<a class="bouton secondaire" href="{% url 'dossiers:rapports_gerer' %}">Gérer mes rapports</a></div>
+{% if not composition_source %}<p><a href="{% url 'dossiers:rapport_nouveau' %}">Créer un rapport à partir de zéro ou choisir un autre rapport</a></p>{% endif %}
+{% if composition_source %}<p class="helptext">Ce rapport utilise ses indicateurs spécialisés. Pour choisir d’autres populations, colonnes et croisements, utilisez <a href="{% url 'dossiers:explorer_nouveau' %}?depart=zero">la composition libre</a>.</p>{% endif %}
 </section>
-{% endif %}

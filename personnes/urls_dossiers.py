@@ -1,3 +1,4 @@
+from . import vues_rapports
 from . import vues_appels115 as appels115,vues_exploration as exploration,vues_releve as releve
 from . import vues_financements as financements
 from . import vues_aides as aides, vues_complements_c as complements_c
@@ -32,7 +33,11 @@ app_name = 'dossiers'
 from . import vues_pieces_dossier as pieces
 
 urlpatterns = [
+    path('rapports/',vues_rapports.accueil,name='rapports_accueil'),
+    path('rapports/nouveau/',vues_rapports.nouveau,name='rapport_nouveau'),
+    path('rapports/composer/<str:source>/',vues_rapports.composer,name='rapport_composer'),
     path('personne/<uuid:pk>/condition/<str:code>/<int:fait_pk>/retirer/', vues_retraits_chronologiques.retirer, name='condition_retirer'),
+    path('rapports/gerer/',vues_modeles_personnels.liste,name='rapports_gerer'),
     path('modeles/<int:pk>/gerer/', vues_modeles_personnels.gerer, name='modele_gerer'),
     path('rapports/<str:source>/personnaliser/', exploration.personnaliser, name='personnaliser_rapport'),
     path('explorer/justificatifs/', exploration.justificatifs, name='explorer_justificatifs'),
