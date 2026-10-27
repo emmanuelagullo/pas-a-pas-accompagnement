@@ -1450,22 +1450,39 @@ ou âge/grossesse déclarée avec les droits nécessaires. La date de référenc
 est explicite. Les inconnus restent à vérifier, aucune distribution ni aucun
 prix n'est calculé. L'accord exige ensuite l'enregistrement ordinaire.
 
-### Recharger une démonstration locale Linux sans la recréer
+### Relancer la démonstration locale
 
-Le démarrage jetable accepte les arguments Gunicorn existants, notamment un
-fichier PID explicite :
-
-~~~sh
-ACCOMPAGNEMENT_HOSTS=127.0.0.1,localhost ACCOMPAGNEMENT_BIND=127.0.0.1 PORT=8001 GUNICORN_CMD_ARGS="--pid /tmp/pas-a-pas-demo-8001.pid" bash start-render.sh
-~~~
-
-Après application d’un patch, dans le même environnement de travail :
+Arrêter le serveur au premier plan avec Ctrl+C, puis relancer :
 
 ~~~sh
-python3 scripts/recharger-demo.py --pid-file /tmp/pas-a-pas-demo-8001.pid
+ACCOMPAGNEMENT_HOSTS=127.0.0.1,localhost ACCOMPAGNEMENT_BIND=127.0.0.1 PORT=8001 bash start-render.sh
 ~~~
 
-Cette commande Linux vérifie le processus, migre sa base fictive existante,
-actualise ses ressources et envoie HUP. Elle ne relance pas l’initialisation des
-données. Le serveur doit avoir été démarré avec le fichier PID indiqué. Un nouveau
-démarrage jetable initialise au contraire une nouvelle démonstration.
+Ce démarrage recrée une démonstration fictive et actualise ses ressources.
+Il ne conserve pas les modifications faites dans la précédente démonstration.
+Aucun fichier PID n’est nécessaire.
+
+La dernière commande de `start-render.sh` peut aussi être exécutée seule
+lorsque le même environnement est déjà exporté : profil Django, dossier de
+données, indicateur de démonstration et configuration réseau. Elle relance
+Gunicorn, sans migration ni collecte des ressources. Ces variables créées par
+le script ne sont pas exportées dans le terminal parent ; depuis un nouveau
+terminal, employer le démarrage complet ci-dessus ou configurer explicitement
+le profil et le dossier à reprendre. Ne pas lancer Gunicorn sans ce contexte
+en pensant retrouver automatiquement la démonstration.
+
+### Export mis en avant dans les modèles statistiques
+
+PDF puis CSV restent toujours disponibles dans cet ordre. Le choix « Export à
+mettre en avant », dans « Conserver ces réglages… » et la gestion d’un modèle,
+change uniquement le bouton principal. Une personnalisation conserve son propre
+choix ; modifier son modèle parent ne la réécrit pas.
+
+Par défaut, les bilans d’activité, repas, hébergement, mouvements et âges mettent
+le PDF en avant. L’évolution mensuelle, les deux explorations par mois et les
+relevés spécialisés (financements, périodes individuelles, prestations,
+parcours, déclarations, coordonnées, familles, identité, relations et appels)
+privilégient le CSV, adapté au retraitement de leurs lignes. Une nouvelle
+composition privilégie le PDF en synthèse et le CSV en détail. Le passage fidèle
+d’un rapport à une composition reprend sa préférence. Les modèles existants sans
+préférence utilisent ces défauts sans modification de leur enregistrement.

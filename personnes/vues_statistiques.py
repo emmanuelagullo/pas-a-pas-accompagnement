@@ -44,10 +44,14 @@ class PeriodeStatistiquesForm(FormulaireMetier):
 
 # Seuls les paramètres publics et validés sont conservés ; ni données nominatives,
 # ni export CSV, ni identifiants d'autres utilisateurs.
-PARAMETRES_MODELE = ('rapport', 'debut', 'fin', 'periode', 'service', 'lieu', 'regroupement', 'comparer', 'decalage_debut', 'decalage_fin')
+PARAMETRES_MODELE = ('export_prioritaire', 'rapport', 'debut', 'fin', 'periode', 'service', 'lieu', 'regroupement', 'comparer', 'decalage_debut', 'decalage_fin')
 
 
 def parametres_modele(donnees):
+    from .presentation_exports import valider
+    from django.core.exceptions import ValidationError
+    try:preference=valider(donnees.get('export_prioritaire',''))
+    except ValidationError as erreur:raise ValueError(str(erreur))
     code_periode = donnees.get('periode', '')
     if code_periode and code_periode not in PERIODES:
         raise ValueError('Période relative inconnue')
@@ -77,6 +81,7 @@ def parametres_modele(donnees):
         if mois > 24:
             raise ValueError('Période trop longue')
     return {
+        'export_prioritaire': preference,
         'rapport': rapport,
         'debut': periode.cleaned_data['debut'].isoformat(),
         'fin': periode.cleaned_data['fin'].isoformat(),

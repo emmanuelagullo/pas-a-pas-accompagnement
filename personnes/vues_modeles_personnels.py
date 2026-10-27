@@ -10,8 +10,10 @@ from django.core.exceptions import ValidationError,PermissionDenied
 
 
 class GestionForm(FormulaireMetier):
+    from .presentation_exports import CHOIX as CHOIX_EXPORT
     nom=forms.CharField(label='Nom du modèle personnel',max_length=100)
     description=forms.CharField(label='Description du modèle',required=False,widget=forms.Textarea(attrs={'rows':3}),max_length=6000)
+    export_prioritaire=forms.ChoiceField(label="Export à mettre en avant",choices=CHOIX_EXPORT,required=False,help_text="Les deux exports restent disponibles : PDF puis CSV.")
     attendu=forms.CharField(widget=forms.HiddenInput)
 
 
@@ -24,13 +26,15 @@ def ouvrir(modele):
 @login_required
 def gerer(request,pk):
     modele=get_object_or_404(m.ModeleRapport,pk=pk,auteur=request.user);s.exiger(request.user,modele)
-    f=GestionForm(request.POST if request.method=='POST' else None,initial={'nom':modele.nom,'attendu':s.jeton(request.user,modele),'description':modele.description})
+    from .presentation_exports import prioritaire
+    from .vues_rapports import source_modele
+    f=GestionForm(request.POST if request.method=='POST' else None,initial={'nom':modele.nom,'attendu':s.jeton(request.user,modele),'description':modele.description,'export_prioritaire':prioritaire(source_modele(modele),modele.parametres)})
     status=200
     if request.method=='POST' and f.is_valid():
         try:
             action=request.POST.get('action')
-            if action=='renommer':x=s.changer(request.user,modele,f.cleaned_data['attendu'],f.cleaned_data['nom'],description=f.cleaned_data['description'])
-            elif action=='dupliquer':x=s.dupliquer(request.user,modele,f.cleaned_data['attendu'],f.cleaned_data['nom'])
+            if action=='renommer':x=s.changer(request.user,modele,f.cleaned_data['attendu'],f.cleaned_data['nom'],description=f.cleaned_data['description'],export_prioritaire=f.cleaned_data['export_prioritaire'] if 'export_prioritaire' in request.POST else None)
+            elif action=='dupliquer':x=s.dupliquer(request.user,modele,f.cleaned_data['attendu'],f.cleaned_data['nom'],export_prioritaire=f.cleaned_data['export_prioritaire'] if 'export_prioritaire' in request.POST else None)
             elif action=='supprimer':
                 s.supprimer(request.user,modele,f.cleaned_data['attendu'])
                 return redirect('dossiers:rapports_gerer')

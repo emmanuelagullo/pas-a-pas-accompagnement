@@ -7,7 +7,7 @@ register=template.Library()
 def parametres_courants(context,source):
     request=context['request']
     params=request.GET.dict()
-    modele=context.get('modele_actif') or context.get('rapport_cible') or context.get('modele_cible')
+    modele=context.get('modele_actif') or context.get('modele_gestion') or context.get('rapport_cible') or context.get('modele_cible')
     if modele:params=modele.parametres.copy()
     form=context.get('form') or context.get('formulaire')
     if form and form.is_bound:params.update({k:v for k,v in form.data.items()})
@@ -88,7 +88,7 @@ def conserver_reglages(context,source):
     params={k:str(v) if v is not None else '' for k,v in params.items() if k not in ('format','page','modele','modele_cible','attendu_modele','csrfmiddlewaretoken')}
     if source not in ('exploration','statistiques'):
         f=context.get('form') or context.get('formulaire')
-        if f is not None:params={k:v for k,v in params.items() if k in set(f.fields)|{'periode','decalage_debut','decalage_fin','personne','menage'}}
+        if f is not None:params={k:v for k,v in params.items() if k in set(f.fields)|{'periode','decalage_debut','decalage_fin','personne','menage','export_prioritaire'}}
     if source=='exploration':params.update(schema=1,exploration=True)
     elif source!='statistiques':params['_rapport_source']=source
     cible=context.get('rapport_cible') or context.get('modele_gestion') or context.get('modele_cible') or context.get('modele_actif')
@@ -113,3 +113,14 @@ def peut_conserver_reglages(context,source):
     from ..vues_rapports import peut_stockage
     acteur=context['request'].user
     return acteur.has_perms(['personnes.view_modelerapport','personnes.add_modelerapport']) if source=='exploration' else peut_stockage(acteur,source)
+
+
+@register.simple_tag(takes_context=True)
+def export_prioritaire(context,source):
+    from ..presentation_exports import prioritaire
+    return prioritaire(source,parametres_courants(context,source))
+
+
+@register.simple_tag(takes_context=True)
+def preference_export(context):
+    return parametres_courants(context,context.get('composition_source','')).get('export_prioritaire','')

@@ -76,6 +76,8 @@ def parametres_response(reponse,source,donnees):
                 p[cle]=str(pk)
     for cle in ('periode','decalage_debut','decalage_fin'):
         if donnees.get(cle) is not None:p[cle]=str(donnees[cle])
+    from .presentation_exports import valider
+    p['export_prioritaire']=valider(donnees.get('export_prioritaire',''))
     p[c.CLE_SOURCE]=source
     return p
 
@@ -182,6 +184,8 @@ def composer(request,source):
 
 
 class ConservationForm(forms.Form):
+    from .presentation_exports import CHOIX as CHOIX_EXPORT
+    export_prioritaire=forms.ChoiceField(label="Export à mettre en avant",choices=CHOIX_EXPORT,required=False,help_text="PDF puis CSV restent disponibles dans le même ordre. Seul le bouton principal change.")
     definition=forms.CharField(widget=forms.HiddenInput)
     nom=forms.CharField(label='Nom',max_length=100)
     nature=forms.ChoiceField(label='Conserver',choices=[('personnalisation','Une personnalisation — mes réglages habituels'),('modele','Un modèle — la définition du calcul et de sa présentation'),('ensemble','Un modèle et sa personnalisation')])
@@ -214,6 +218,8 @@ def conserver(request):
     initial={'definition':token,'nom':d.get('nom_saisi') or (cible.nom if cible else ''), 'nature':cible.nature if cible and cible.nature=='personnalisation' else 'modele' if source=='exploration' and not cible else 'personnalisation','description':cible.description if cible else ''}
     from .periodes_rapports import suggerer
     from django.utils import timezone
+    from .presentation_exports import prioritaire
+    initial['export_prioritaire']=prioritaire(source,d['parametres'])
     initial.update(periode=suggerer(d['parametres'],timezone.localdate()),decalage_debut=d['parametres'].get('decalage_debut',-6),decalage_fin=d['parametres'].get('decalage_fin',1))
     f=ConservationForm(request.POST if request.method=='POST' else None,initial=initial);statut=200
     if 'date' in d['parametres'] and 'debut' not in d['parametres']:
@@ -228,7 +234,7 @@ def conserver(request):
     if request.method=='POST' and f.is_valid():
         try:
             from .periodes_rapports import resoudre
-            params=d['parametres'].copy();params.update(periode=f.cleaned_data['periode'],decalage_debut=f.cleaned_data.get('decalage_debut') if f.cleaned_data.get('decalage_debut') is not None else -6,decalage_fin=f.cleaned_data.get('decalage_fin') if f.cleaned_data.get('decalage_fin') is not None else 1)
+            params=d['parametres'].copy();params['export_prioritaire']=f.cleaned_data['export_prioritaire'];params.update(periode=f.cleaned_data['periode'],decalage_debut=f.cleaned_data.get('decalage_debut') if f.cleaned_data.get('decalage_debut') is not None else -6,decalage_fin=f.cleaned_data.get('decalage_fin') if f.cleaned_data.get('decalage_fin') is not None else 1)
             try:params=resoudre(params)
             except (ValueError,OverflowError,TypeError) as e:raise ValidationError(str(e))
             params=s.valider(request.user,params)

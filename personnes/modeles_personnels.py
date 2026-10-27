@@ -62,7 +62,7 @@ def valider(acteur,params):
     except (ValueError,TypeError):raise ValidationError('Paramètres du modèle de rapport invalides.')
 
 
-def changer(acteur,modele,attendu,nom,params=None,*,description=None):
+def changer(acteur,modele,attendu,nom,params=None,*,description=None,export_prioritaire=None):
     verifier(acteur,modele,attendu)
     nouveau_nom=nom_valide(nom)
     # Une simple modification du nom ne réinterprète pas un ancien modèle.
@@ -71,6 +71,9 @@ def changer(acteur,modele,attendu,nom,params=None,*,description=None):
     if params is not None and params.get('_rapport_source')!=modele.parametres.get('_rapport_source'):
         raise ValidationError('Conservez la définition source du rapport à remplacer.')
     nouveaux=modele.parametres.copy() if params is None else valider(acteur,params)
+    if export_prioritaire is not None:
+        from .presentation_exports import valider as valider_export
+        nouveaux['export_prioritaire']=valider_export(export_prioritaire)
     revision=modele.parametres.get(REVISION,0)
     nouveaux[REVISION]=(revision if isinstance(revision,int) else 0)+1
     try:
@@ -81,10 +84,13 @@ def changer(acteur,modele,attendu,nom,params=None,*,description=None):
     return modele
 
 
-def dupliquer(acteur,modele,attendu,nom):
+def dupliquer(acteur,modele,attendu,nom,*,export_prioritaire=None):
     verifier(acteur,modele,attendu)
     if m.ModeleRapport.objects.filter(auteur=acteur).count()>=30:raise ValidationError('Limite de 30 modèles personnels atteinte.')
     params=valider(acteur,modele.parametres);params.pop(REVISION,None)
+    if export_prioritaire is not None:
+        from .presentation_exports import valider as valider_export
+        params['export_prioritaire']=valider_export(export_prioritaire)
     return m.ModeleRapport.objects.create(auteur=acteur,nom=nom_valide(nom),parametres=params,nature=modele.nature,description=modele.description,modele_source=modele.modele_source,source_catalogue=modele.source_catalogue,empreinte_source=modele.empreinte_source)
 
 

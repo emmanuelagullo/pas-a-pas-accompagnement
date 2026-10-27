@@ -866,6 +866,29 @@ class RapportsNavigateur(StaticLiveServerTestCase):
         expect(page.get_by_text('Coûts par phase et devise.',exact=True)).to_be_visible()
 
 
+    def test_export_principal_creation_puis_gestion(self):
+        from playwright.sync_api import expect
+        from .models import ModeleRapport
+        page=self.navigateur()
+        page.goto(self.live_server_url+reverse('statistiques')+'?rapport=repas&debut=2026-01-01&fin=2026-02-01')
+        def verifier(format):
+            boutons=page.locator('.rapport-export button[name=format]')
+            self.assertEqual(boutons.evaluate_all('(bs) => bs.map(b => b.value)'),['pdf','csv'])
+            self.assertEqual(boutons.evaluate_all('(bs) => bs.filter(b => !b.classList.contains("secondaire")).map(b => b.value)'),[format])
+        verifier('pdf')
+        self.conserver(page,'Mon modèle CSV','modele')
+        page.get_by_label('Export à mettre en avant',exact=False).select_option('csv')
+        page.get_by_role('button',name='Enregistrer',exact=True).click()
+        expect(page.get_by_role('heading',name='Exporter ce rapport',exact=True)).to_be_visible()
+        verifier('csv')
+        pk=verifier_hors_boucle_playwright(lambda:ModeleRapport.objects.get(nom='Mon modèle CSV').pk)
+        page.goto(self.live_server_url+reverse('dossiers:modele_gerer',args=[pk]))
+        page.get_by_label('Export à mettre en avant',exact=False).select_option('pdf')
+        page.get_by_role('button',name='Enregistrer les modifications',exact=True).click()
+        expect(page.get_by_role('heading',name='Exporter ce rapport',exact=True)).to_be_visible()
+        verifier('pdf')
+
+
 @skipIf(sync_playwright is None, 'Module Python Playwright non installé.')
 class BoutonsConditionNavigateur(SimpleTestCase):
     def test_modifier_lisible_herite_et_courant_sans_survol(self):

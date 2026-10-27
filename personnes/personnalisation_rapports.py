@@ -91,6 +91,8 @@ def adapter(acteur,source,data):
     p['filtres']=max(2,len(filtres))
     for i,(c,op,v) in enumerate(filtres,1):p.update({f'filtre{i}':c,f'operation{i}':op,f'valeur{i}':v})
     p['reference']=str(p['fin']-timedelta(days=1)) if not isinstance(p['fin'],str) else (date.fromisoformat(p['fin'])-timedelta(days=1)).isoformat()
+    from .presentation_exports import prioritaire
+    p['export_prioritaire']=prioritaire(source,data)
     return p
 
 
