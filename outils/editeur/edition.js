@@ -122,11 +122,15 @@ function initialiser(ta) {
     synchroniser();
     const form = ta.form;
     const avantEnvoi = e => {
+      // Prendre en compte la dernière mutation DOM avant de valider le document.
+      editeur.view.domObserver.flush();
       synchroniser();
       const valeur = projection(documentV1(editeur.getJSON())).trim();
       const max = Number(ta.dataset.maxTexte || 0);
       if ((ta.dataset.texteObligatoire === '1' && !valeur) || (max && Array.from(valeur).length > max) || hidden.value.length > 65536) {
-        e.preventDefault(); e.stopImmediatePropagation(); erreur.textContent = !valeur ? 'Le texte est obligatoire.' : 'Le texte est trop long ou trop complexe.'; editeur.commands.focus();
+        e.preventDefault(); e.stopImmediatePropagation(); erreur.textContent = !valeur ? 'Le texte est obligatoire.' : 'Le texte est trop long ou trop complexe.';
+        // Un focus différé peut rétablir une sélection périmée après la frappe suivante.
+        editeur.view.focus();
       }
     };
     form?.addEventListener('submit', avantEnvoi, true);

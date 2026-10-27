@@ -190,10 +190,7 @@ captures-demonstration:
   script:
     - test -z "${DATABASE_URL:-}" && test -z "${ACCOMPAGNEMENT_DONNEES:-}"
     - |
-      ACCOMPAGNEMENT_HOSTS=127.0.0.1,localhost ACCOMPAGNEMENT_BIND=127.0.0.1 bash start-render.sh >.ci-captures-chrs.log 2>&1 &
-      application_pid=$!
-      trap 'kill "$application_pid" 2>/dev/null || true' EXIT
-      if ! python3 scripts/capturer-site-chrs.py --output site/static/captures; then
+      if ! python3 scripts/capturer-site-chrs.py --demarrer-serveur --output site/static/captures; then
         echo '=== Journal du serveur fictif ===' >&2
         tail -100 .ci-captures-chrs.log >&2
         exit 1
@@ -205,9 +202,6 @@ captures-demonstration:
         exit 1
       fi
       cat .ci-qualification-navigateur.log
-      kill "$application_pid" 2>/dev/null || true
-      wait "$application_pid" || true
-      trap - EXIT
   artifacts:
     when: always
     paths: [site/static/captures, .ci-captures-chrs.log, .ci-qualification-navigateur.log]

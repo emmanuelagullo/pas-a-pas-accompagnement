@@ -58,10 +58,18 @@ const serveur = http.createServer((req,res) => {
   await zone.fill('*pas de Markdown*');assert.equal(await zone.locator('em').count(),0);
   // La validation cliente n’envoie pas un texte obligatoire vide.
   await page.evaluate(()=>{window.envoye=false;document.querySelector('form').addEventListener('submit',e=>{e.preventDefault();window.envoye=true;});});
-  await zone.fill('');await page.getByRole('button',{name:'Enregistrer',exact:true}).click();
+  await zone.press('ControlOrMeta+a');await zone.press('Backspace');
+  await page.locator('.edition-etat').filter({hasText:/^0 \/ 100 caractères$/}).waitFor();
+  await page.getByRole('button',{name:'Enregistrer',exact:true}).click();
   assert.equal(await page.evaluate(()=>window.envoye),false);
-  await zone.fill('x'.repeat(101));await page.getByRole('button',{name:'Enregistrer',exact:true}).click();
+  await zone.fill('x'.repeat(101));
+  await page.locator('.edition-etat').filter({hasText:/^101 \/ 100 caractères$/}).waitFor();
+  await page.getByRole('button',{name:'Enregistrer',exact:true}).click();
   assert.equal(await page.evaluate(()=>window.envoye),false);
+  await zone.fill('Texte valide');
+  await page.locator('.edition-etat').filter({hasText:/^12 \/ 100 caractères$/}).waitFor();
+  await page.getByRole('button',{name:'Enregistrer',exact:true}).click();
+  assert.equal(await page.evaluate(()=>window.envoye),true,'un texte valide reste envoyable');
   await page.setViewportSize({width:360,height:900});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   const sansJS=await navigateur.newContext({javaScriptEnabled:false});const repli=await sansJS.newPage();await repli.goto(origine);

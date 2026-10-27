@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 """Captures publiques de la base jetable Les Passerelles (jamais de données réelles)."""
 import argparse
+from contextlib import contextmanager
+import os
+import signal
+import subprocess
+from urllib.parse import urlsplit
 import sys
 import time
 import urllib.request
@@ -11,30 +16,65 @@ RACINE_DEPOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RACINE_DEPOT))
 
 from pas_a_pas_accompagnement.demo import IDENTIFIANT, MOT_DE_PASSE
-from playwright.sync_api import sync_playwright
 
 
-def attendre(url):
-    for _ in range(90):
+def attendre(url, delai=300, processus=None):
+    limite=time.monotonic()+delai
+    derniere='aucune réponse HTTP'
+    while time.monotonic()<limite:
+        if processus is not None and processus.poll() is not None:
+            raise RuntimeError(f'Le serveur fictif s’est arrêté (code {processus.returncode}). Consulter .ci-captures-chrs.log.')
         try:
             with urllib.request.urlopen(url + '/connexion/', timeout=2) as r:
-                if r.status == 200:
-                    return
-        except OSError:
-            pass
-        time.sleep(1)
-    raise RuntimeError('Le serveur fictif ne répond pas')
+                if r.status == 200:return
+                derniere=f'HTTP {r.status}'
+        except OSError as e:
+            derniere=str(e)
+        time.sleep(.2)
+    raise RuntimeError(f'Le serveur fictif ne répond pas après {delai:g} s : {derniere}')
+
+
+@contextmanager
+def serveur_fictif(args):
+    if not args.demarrer_serveur:
+        yield None
+        return
+    url=urlsplit(args.base_url)
+    if url.scheme!='http' or url.hostname!='127.0.0.1' or url.path or url.query or url.fragment:
+        raise ValueError('--demarrer-serveur exige une URL http://127.0.0.1:PORT sans chemin.')
+    env=dict(os.environ,PYTHONUNBUFFERED='1',ACCOMPAGNEMENT_HOSTS='127.0.0.1,localhost',
+        ACCOMPAGNEMENT_BIND='127.0.0.1',PORT=str(url.port or 80))
+    with (RACINE_DEPOT/'.ci-captures-chrs.log').open('wb') as journal:
+        processus=subprocess.Popen(['bash','start-render.sh'],cwd=RACINE_DEPOT,env=env,
+            stdout=journal,stderr=subprocess.STDOUT,start_new_session=True)
+        try:yield processus
+        finally:
+            # Un groupe de processus temporaire, jamais un fichier PID persistant.
+            if processus.poll() is None:
+                os.killpg(processus.pid,signal.SIGTERM)
+                try:processus.wait(timeout=20)
+                except subprocess.TimeoutExpired:
+                    os.killpg(processus.pid,signal.SIGKILL);processus.wait()
 
 
 def main():
     p = argparse.ArgumentParser()
     p.add_argument('--base-url', default='http://127.0.0.1:8000')
     p.add_argument('--output', type=Path, required=True)
+    p.add_argument('--demarrer-serveur',action='store_true',help='Démarrer puis arrêter le vrai serveur jetable pour ces captures.')
+    p.add_argument('--delai-demarrage',type=float,default=300)
     args = p.parse_args()
-    attendre(args.base_url)
+    if args.delai_demarrage<=0:p.error('Le délai doit être positif.')
+    with serveur_fictif(args) as processus:
+        attendre(args.base_url,args.delai_demarrage,processus)
+        capturer(args)
+
+
+def capturer(args):
+    from playwright.sync_api import sync_playwright
     args.output.mkdir(parents=True, exist_ok=True)
     with sync_playwright() as playwright:
-        browser = playwright.chromium.launch()
+        browser = playwright.chromium.launch(**({'executable_path':os.environ['PWA_CHROMIUM']} if os.environ.get('PWA_CHROMIUM') else {}))
         page = browser.new_page(viewport={'width': 1440, 'height': 1000}, device_scale_factor=1)
         page.goto(args.base_url + '/connexion/')
         page.get_by_role('heading', name='Connexion', exact=True).wait_for()
