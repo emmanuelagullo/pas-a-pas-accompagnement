@@ -16,6 +16,23 @@ def lien(source,params):
     return reverse('dossiers:personnaliser_rapport',args=[source])+'?'+urlencode({k:v for k,v in params.items() if k not in ('page','format','modele')})
 
 
+def limite_personnalisation(source,data):
+    """Limites connues, expliquées avant le clic et revalidées par l'adaptateur."""
+    if source not in SOURCES:raise Http404
+    if source=='statistiques':
+        if data.get('comparer')=='1' and data.get('rapport')!='ages':
+            return 'La comparaison de périodes juxtapose plusieurs calculs. Elle n’est pas encore représentable comme une seule analyse ; le rapport courant reste disponible.'
+        if data.get('rapport','synthese') not in ('repas','exploration_repas'):
+            return 'Ce rapport combine des populations ou des règles de décompte qui ne sont pas encore représentables fidèlement dans une seule analyse (notamment nuits distinctes, mouvements ou durées civiles). Aucune approximation n’a été produite.'
+    elif source=='appels':
+        from django.forms import CheckboxInput
+        if CheckboxInput().value_from_datadict(data,{},'annules') or str(data.get('q') or '').strip() or data.get('personne') or data.get('menage'):
+            return 'L’inclusion des appels annulés, la recherche textuelle transversale ou le filtre de dossier ne sont pas encore repris fidèlement dans cet explorateur. Aucun critère n’a été abandonné silencieusement.'
+    elif source!='financements':
+        return 'Ce rapport conserve des règles et des informations propres qui ne sont pas encore reprises intégralement par cet adaptateur. Le rapport courant reste accessible ; aucune nouvelle analyse approximative n’a été créée.'
+    return ''
+
+
 def adapter(acteur,source,data):
     if source not in SOURCES:raise Http404
     p=dict(population='repas',mesure='quantite',axe='total',croisement='',classes='',filtre1='',operation1='egal',valeur1='',filtre2='',operation2='egal',valeur2='',reference=timezone.localdate().isoformat())
@@ -27,9 +44,8 @@ def adapter(acteur,source,data):
         from .suivi import exiger
         exiger(acteur,'view_accompagnement','view_sejour','view_repasdistribue')
         d=parametres_modele(data);rapport=d['rapport']
-        if d.get('comparer'):raise ValidationError('La comparaison de périodes juxtapose plusieurs calculs. Elle n’est pas encore représentable comme une seule analyse ; le rapport courant reste disponible.')
-        if rapport not in ('repas','exploration_repas'):
-            raise ValidationError('Ce rapport combine des populations ou des règles de décompte qui ne sont pas encore représentables fidèlement dans une seule analyse (notamment nuits distinctes, mouvements ou durées civiles). Aucune approximation n’a été produite.')
+        limite=limite_personnalisation(source,d)
+        if limite:raise ValidationError(limite)
         p.update(debut=d['debut'],fin=d['fin'],periode=d['periode'],lignes_vides=True)
         p['axe']='type'
         if rapport=='exploration_repas':
@@ -62,15 +78,15 @@ def adapter(acteur,source,data):
         f=AppelsRechercheForm(data)
         if not f.is_valid():raise ValidationError('Les critères du rapport d’appels doivent être valides.')
         d=f.cleaned_data
-        if d.get('annules') or d.get('q') or data.get('personne') or data.get('menage'):
-            raise ValidationError('L’inclusion des appels annulés, la recherche textuelle transversale ou le filtre de dossier ne sont pas encore repris fidèlement dans cet explorateur. Aucun critère n’a été abandonné silencieusement.')
+        limite=limite_personnalisation(source,{**d,'personne':data.get('personne'),'menage':data.get('menage')})
+        if limite:raise ValidationError(limite)
         p.update(population='appels',mesure='objets',debut=d['debut'],fin=d['fin'])
         for c,dest in [('motif_principal','motif'),('lieu_appel','origine'),('secondaire','secondaire'),('reponse','reponse')]:filtrer(dest,d.get(c))
         if d.get('type_appelant'):filtrer('type',dict(m.VersionAppel115.TYPES)[d['type_appelant']])
         if d.get('etat_reponse'):filtrer('etat',dict(m.VersionAppel115._meta.get_field('etat_reponse').choices)[d['etat_reponse']])
         filtrer('heure',d.get('heure_min'),'gte');filtrer('heure',d.get('heure_max'),'lt')
     else:
-        raise ValidationError('Ce rapport conserve des règles et des informations propres qui ne sont pas encore reprises intégralement par cet adaptateur. Le rapport courant reste accessible ; aucune nouvelle analyse approximative n’a été créée.')
+        raise ValidationError(limite_personnalisation(source,data))
     if len(filtres)>20:raise ValidationError('Plus de vingt critères sont nécessaires pour ce rapport : personnalisation refusée sans perte silencieuse.')
     p['filtres']=max(2,len(filtres))
     for i,(c,op,v) in enumerate(filtres,1):p.update({f'filtre{i}':c,f'operation{i}':op,f'valeur{i}':v})

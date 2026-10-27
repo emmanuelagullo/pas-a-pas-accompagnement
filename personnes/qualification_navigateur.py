@@ -776,3 +776,61 @@ class ConditionSocialeNavigateur(StaticLiveServerTestCase):
         evolution.locator('[name=vue_fin]').select_option('today')
         expect(page.locator('[data-evolution-selection] [name=vue_fin]')).to_have_value('today')
         expect(page.locator('[data-evolution-selection] input[type=date][name=fin]')).to_be_disabled()
+
+
+@skipIf(sync_playwright is None, 'Module Python Playwright non installé : qualification navigateur ignorée.')
+class RapportsNavigateur(StaticLiveServerTestCase):
+    """Actions du rapport, clavier et création indépendante sans JavaScript."""
+    navigateur=ProfilsNavigateur.navigateur
+
+    def setUp(self):
+        from .tests_meta_f import ConsolidationStatistiques
+        from . import repas
+        from datetime import date
+        ConsolidationStatistiques.setUpTestData.__func__(self)
+        repas.distribuer(self.u,self.ar,self.adulte,date(2026,1,2),2)
+        self.u.set_password('Recette-fictive-CHRS14!')
+        self.u.save(update_fields=['password'])
+
+    def test_nouveau_rapport_ecran_etroit_sans_javascript_et_clavier(self):
+        from playwright.sync_api import expect
+        page_connectee=self.navigateur()
+        contexte=page_connectee.context.browser.new_context(
+            storage_state=page_connectee.context.storage_state(),
+            java_script_enabled=False,viewport={'width':360,'height':800})
+        self.addCleanup(contexte.close)
+        page=contexte.new_page()
+        page.goto(self.live_server_url+reverse('statistiques'))
+        expect(page.get_by_role('button',name='Personnaliser ce rapport',exact=True)).to_be_disabled()
+        creer=page.get_by_role('link',name='Créer un nouveau rapport',exact=True)
+        self.assertLess(creer.bounding_box()['y'],page.get_by_role('button',name='Personnaliser ce rapport',exact=True).bounding_box()['y'])
+        creer.focus();creer.press('Enter')
+        expect(page.get_by_role('heading',name='Nouveau rapport',exact=True)).to_be_visible()
+        expect(page.locator('#id_population')).to_have_value('personnes')
+        self.assertLess(page.locator('#id_population').bounding_box()['y'],page.locator('#id_cohorte').bounding_box()['y'])
+        expect(page.locator('#id_filtre1')).to_have_value('')
+        expect(page.locator('[name=modele_cible]')).to_have_count(0)
+        self.assertLessEqual(page.evaluate('document.documentElement.scrollWidth'),361)
+        classer=page.locator('#modifier-classer');classer.focus();classer.press('Enter')
+        expect(page.locator('#id_axe')).to_be_visible()
+        page.locator('#id_axe').select_option('age')
+        page.get_by_role('button',name='Recalculer l’analyse',exact=True).click()
+        expect(page.get_by_role('heading',name='Nouveau rapport',exact=True)).to_be_visible()
+        expect(page.locator('#id_axe')).to_have_value('age')
+
+    def test_actions_distinctes_du_catalogue_et_personnalisation_fidele(self):
+        from playwright.sync_api import expect
+        page=self.navigateur();page.set_viewport_size({'width':1280,'height':900})
+        page.goto(self.live_server_url+reverse('statistiques')+'?rapport=exploration_repas&debut=2026-01-01&fin=2026-02-01&service=dejeuner&regroupement=mois_categorie')
+        actions=page.get_by_role('region',name='Composer un rapport')
+        expect(actions.get_by_role('link',name='Personnaliser ce rapport',exact=True)).to_be_visible()
+        catalogue=page.get_by_role('navigation',name='Rapports spécialisés')
+        catalogue.locator('summary').focus();catalogue.locator('summary').press('Enter')
+        expect(catalogue.get_by_role('link',name='Personnaliser ce rapport',exact=True)).to_have_count(0)
+        expect(catalogue.get_by_role('link',name='Créer un nouveau rapport',exact=True)).to_have_count(0)
+        actions.get_by_role('link',name='Personnaliser ce rapport',exact=True).click()
+        expect(page.locator('#id_population')).to_have_value('repas')
+        expect(page.locator('#id_valeur1')).to_have_value('Déjeuner')
+        expect(page.get_by_role('link',name='2',exact=True).first).to_be_visible()
+        page.get_by_role('link',name='← Revenir au rapport courant',exact=True).click()
+        expect(page.locator('[name=service]#service')).to_have_value('dejeuner')

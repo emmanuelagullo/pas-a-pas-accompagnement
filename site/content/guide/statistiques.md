@@ -14,6 +14,12 @@ statut: "disponible"
 2. Sélectionner **Synthèse**, **Hébergement**, **Repas**, **Évolution mensuelle** ou l'exploration spécialisée proposée.
 3. Lire la définition de la mesure avant de comparer les valeurs. Exporter le CSV du rapport choisi, ou utiliser son impression lorsqu'elle est proposée.
 
+Le bloc **Composer un rapport** permet de reprendre le rapport affiché avec
+**Personnaliser ce rapport**, lorsque sa définition est compatible, ou de
+**Créer un nouveau rapport** indépendant. Une limite de personnalisation est
+expliquée avant le clic ; elle ne change pas les indicateurs du rapport courant.
+Les liens vers les rapports spécialisés sont regroupés sous **Autres rapports disponibles**.
+
 ## Ce que les chiffres comptent
 
 | Indicateur | Lecture |

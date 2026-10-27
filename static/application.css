@@ -209,3 +209,22 @@ main:has(.bd-dossier) { max-width: 76rem; }
 #composition-analyse summary { cursor: pointer; font-weight: 600; overflow-wrap: anywhere; }
 .niveau-analyse { margin: .75rem 0; padding: .75rem; min-width: 0; }
 #composition-analyse select, #composition-analyse textarea { max-width: 100%; }
+
+/* Actions du rapport distinctes du choix des autres rapports, sans assistant. */
+.rapport-entete { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; }
+.rapport-entete h1 { margin-bottom: .5rem; }
+.rapport-composer { margin: 1.25rem 0; padding: 1rem 1.25rem; border: 1px solid #b6cec1; border-left: .3rem solid #175c50; border-radius: .65rem; background: #edf5f0; }
+.rapport-composer h2 { margin: 0 0 .75rem; }
+.rapport-choix { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem 2rem; }
+.rapport-choix > div { min-width: 0; }
+.rapport-choix h3 { font-size: 1rem; margin: 0 0 .6rem; }
+.rapport-choix .helptext { max-width: 36rem; margin: .6rem 0 0; }
+.rapport-choix details { margin-top: .5rem; }
+.rapport-choix summary, .rapports-navigation summary { cursor: pointer; }
+.rapport-choix button:disabled { background: #dfe8e2; color: #41594f; border-color: #93aa9d; cursor: default; }
+.rapport-composer .bouton, .rapport-composer button { max-width: 100%; overflow-wrap: anywhere; }
+.rapports-navigation { display: block; margin: 1rem 0; }
+.rapports-navigation summary { font-weight: 650; }
+.rapports-liens { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem 1.5rem; padding-left: 1.25rem; }
+@media (max-width: 40rem) { .rapport-choix, .rapports-liens { grid-template-columns: minmax(0, 1fr); } }
+@media print { .rapport-composer, .rapports-navigation, .rapport-entete > .bouton { display: none; } }

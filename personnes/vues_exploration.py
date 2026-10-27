@@ -16,6 +16,16 @@ from .exports import cellule_csv
 
 
 @never_cache
+@require_http_methods(['GET'])
+@login_required
+def nouveau(request):
+    # Entrée indépendante : aucun critère ni cible de modèle n'est repris.
+    e.disponibles(request.user)
+    from django.urls import reverse
+    return redirect(reverse('dossiers:explorer')+'?nouveau=1&panneau=retenir#modifier-retenir')
+
+
+@never_cache
 @require_http_methods(['GET','POST'])
 @login_required
 def explorer(request):
@@ -28,7 +38,7 @@ def explorer(request):
     if not cible and (request.POST.get('modele_cible') or request.GET.get('modele_cible')):
         cible=get_object_or_404(m.ModeleRapport,pk=request.POST.get('modele_cible') or request.GET.get('modele_cible'),auteur=request.user)
     attendu_modele=request.POST.get('attendu_modele') or request.GET.get('attendu_modele') or (gestion.jeton(request.user,cible) if cible and request.user.has_perms(['personnes.view_modelerapport','personnes.add_modelerapport']) else '')
-    contexte_retour={k:(request.POST if request.method=='POST' else request.GET).get(k,'') for k in ('origine_rapport','panneau','page')}
+    contexte_retour={k:(request.POST if request.method=='POST' else request.GET).get(k,'') for k in ('origine_rapport','panneau','page','nouveau')}
     if cible:contexte_retour.update(modele_cible=str(cible.pk),attendu_modele=attendu_modele)
     if modele and not data.get('exploration'):return redirect('statistiques')
     if modele and data.get('schema')!=1:return HttpResponse('Version du modèle non prise en charge ; aucun résultat calculé.',status=409)
@@ -119,7 +129,7 @@ def explorer(request):
                     'Les ventilations multi-valeurs ne sont pas additives. Une première entrée connue n’est pas une première entrée absolue.'],'exploration-fictive.pdf')
     if not calcul_effectue:colonnes=[];details=[]
     query={c:str(form.data.get(c,'')) for c in form.fields}
-    for cle in ('origine_rapport','panneau'):
+    for cle in ('origine_rapport','panneau','nouveau'):
         if contexte_retour.get(cle):query[cle]=contexte_retour[cle]
     if cible:query.update(modele_cible=str(cible.pk),attendu_modele=attendu_modele)
     page=Paginator(details if form.cleaned_data.get('affichage')=='detail' else lignes,50).get_page(contexte_retour.get('page'))
@@ -128,7 +138,7 @@ def explorer(request):
             ligne['url_preuves']=preuves.lien(request.user,{**form.cleaned_data,**contexte_retour},ligne['_code_mesure'],ligne,page.number)
     parties,niveaux_composition=composition.presenter(form,request)
     from urllib.parse import urlencode
-    return render(request,'exploration/rapport.html',{'calcul_effectue':calcul_effectue,'modele_cible':cible,'attendu_modele':attendu_modele,'nom_modele_saisi':request.POST.get('nom',cible.nom if cible else ''),'parties_analyse':parties,'niveaux_composition':niveaux_composition,'origine_rapport':contexte_retour.get('origine_rapport',''),'retour_rapport_source':retour_origine(request.user,contexte_retour.get('origine_rapport')), 'liens_totaux':liens_totaux,'form':form,'colonnes_detail':colonnes,'qualite_mesures':qualite_mesures,'champs_courants':[f for f in form if f.name in ('population','debut','fin','reference','periode','mesure','axe','croisement')],'champs_complementaires':[f for f in form if f.name not in ('population','debut','fin','reference','periode','mesure','axe','croisement')],'niveaux_actifs':[i for i in range(3,8) if form.data.get('axe'+str(i))],'page_obj':page,'query_rapport':urlencode(query),'totaux':totaux,'quantites_inconnues':sum(x['quantite'] is None for x in selection) if calcul_effectue else 0,'nombre':nombre,'modele':modele,
+    return render(request,'exploration/rapport.html',{'nouveau_rapport':not cible and contexte_retour.get('nouveau')=='1','calcul_effectue':calcul_effectue,'modele_cible':cible,'attendu_modele':attendu_modele,'nom_modele_saisi':request.POST.get('nom',cible.nom if cible else ''),'parties_analyse':parties,'niveaux_composition':niveaux_composition,'origine_rapport':contexte_retour.get('origine_rapport',''),'retour_rapport_source':retour_origine(request.user,contexte_retour.get('origine_rapport')), 'liens_totaux':liens_totaux,'form':form,'colonnes_detail':colonnes,'qualite_mesures':qualite_mesures,'champs_courants':[f for f in form if f.name in ('population','debut','fin','reference','periode','mesure','axe','croisement')],'champs_complementaires':[f for f in form if f.name not in ('population','debut','fin','reference','periode','mesure','axe','croisement')],'niveaux_actifs':[i for i in range(3,8) if form.data.get('axe'+str(i))],'page_obj':page,'query_rapport':urlencode(query),'totaux':totaux,'quantites_inconnues':sum(x['quantite'] is None for x in selection) if calcul_effectue else 0,'nombre':nombre,'modele':modele,
         'modeles':[x for x in m.ModeleRapport.objects.filter(auteur=request.user) if x.parametres.get('exploration')]},status=statut)
 
 

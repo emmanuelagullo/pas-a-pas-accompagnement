@@ -1,3 +1,13 @@
+## Statistiques — distinguer les rapports et leurs actions
+
+- Bloc « Composer un rapport » distinct de la navigation vers les rapports
+  spécialisés ; personnalisation placée après le titre et expliquée sur place.
+- « Créer un nouveau rapport » ouvre directement Retenir, sans reprendre les
+  filtres ou la cible d'enregistrement précédente ; conservation sous un nom
+  toujours explicite et sous les droits existants.
+- Limites de personnalisation visibles avant le clic ; aucune approximation
+  ajoutée pour les définitions non représentables.
+
 ## Analyses progressives et modèles personnels — ST2 à ST5
 
 - Chiffres reliés à leurs contributions vérifiées, à l'objet exact et au dossier ;

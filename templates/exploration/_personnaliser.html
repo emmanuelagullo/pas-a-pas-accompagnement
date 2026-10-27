@@ -1,1 +1,23 @@
-{% load analyse %}{% personnaliser_rapport source as url_personnaliser %}<p><a href="{{ url_personnaliser }}">Personnaliser ce rapport</a></p>
+{% load analyse %}
+{% if perms.personnes.view_personne %}
+{% personnaliser_rapport source as url_personnaliser %}
+{% limite_personnalisation source as limite %}
+<section class="rapport-composer" aria-labelledby="composer-rapport">
+  <h2 id="composer-rapport">Composer un rapport</h2>
+  <div class="rapport-choix">
+    {% if limite %}{% include 'exploration/_nouveau_rapport.html' %}{% endif %}
+    <div>
+      <h3>À partir du rapport affiché</h3>
+      {% if limite %}
+      <button type="button" disabled aria-describedby="limite-personnalisation">Personnaliser ce rapport</button>
+      <p id="limite-personnalisation" class="helptext">Cette définition ne peut pas encore être reprise intégralement dans l’explorateur.</p>
+      <details><summary>Pourquoi ?</summary><p>{{ limite }}</p></details>
+      {% else %}
+      <a class="bouton" href="{{ url_personnaliser }}">Personnaliser ce rapport</a>
+      <p class="helptext">Reprenez sa population, ses critères, ses mesures et ses règles de dates, puis adaptez-les.</p>
+      {% endif %}
+    </div>
+    {% if not limite %}{% include 'exploration/_nouveau_rapport.html' %}{% endif %}
+  </div>
+</section>
+{% endif %}

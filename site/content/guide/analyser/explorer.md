@@ -6,13 +6,25 @@ categorie: "analyser"
 publics: ["equipe"]
 intentions: ["explorer", "croiser", "relevé", "CSV", "filtre", "population"]
 prerequis: "Droits de consultation des populations, mesures et critères choisis ; les droits de modèles ne sont nécessaires que pour les conserver ou les échanger."
-depart: "Statistiques → Explorer et croiser les populations"
+depart: "Statistiques → Créer un nouveau rapport"
 statut: "disponible"
 ---
 
+Le bloc **Composer un rapport** distingue deux départs :
+
+- **Personnaliser ce rapport** reprend les paramètres du rapport affiché, puis
+  permet de les modifier. Si sa définition n'est pas encore transposable
+  intégralement, le bouton est désactivé avec une explication sur place.
+- **Créer un nouveau rapport** ouvre directement **Retenir**, avec les paramètres
+  de départ habituels, indépendants des filtres et du modèle précédents. Aucun
+  modèle n'est enregistré tant que vous n'avez pas choisi un nom et confirmé.
+
+Les **Autres rapports disponibles** restent séparés de ces actions. Pour retrouver
+un rapport courant après personnalisation, utiliser son lien de retour.
+
 1. Choisir la population réellement étudiée : personnes, demandes, séjours, accords, distributions, appels ou autre population proposée.
 2. Renseigner la période et la référence des données personnelles. La référence peut être commune ou suivre la date de chaque fait ou de sa saisie initiale.
-3. Choisir une mesure et un premier axe. Dans **Affiner**, ajouter au besoin filtres, classes, niveaux de classement ou mesures : jusqu'à 7 axes et 9 mesures.
+3. Modifier directement **Retenir**, **Afficher**, **Compter** ou **Classer** selon le besoin : jusqu'à 7 niveaux de classement et 9 mesures. Chaque partie conserve les paramètres des autres ; aucun assistant n'est imposé.
 4. Pour examiner les lignes, choisir un relevé détaillé avec jusqu'à 11 colonnes. Depuis un dossier ouvert par ce relevé, le retour retrouve les critères du rapport ; ce retour privé expire après une journée.
 5. Exporter le CSV ou le PDF de la même sélection.
 
@@ -22,7 +34,7 @@ Pour les définitions des indicateurs, lire les [statistiques d'activité]({{< r
 
 ## Retenir une personne à un moment du parcours
 
-Dans **Affiner**, le premier ou dernier objet chronologique s'applique **après
+Dans **Retenir**, le premier ou dernier objet chronologique s'applique **après
 les filtres**, pour les mesures de personnes distinctes des prises en charge,
 demandes et prestations. Le premier objet de cette sélection n'est pas une
 première admission absolue. Avec la référence à la date du fait, l'âge et les

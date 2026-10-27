@@ -54,6 +54,8 @@ def presenter(form,request):
         cle='compter' if f.name=='mesure' or f.name.startswith('mesure') else 'afficher' if f.name in ('affichage','lignes_vides') or f.name.startswith('colonne') else 'classer' if f.name=='sous_totaux' else 'retenir'
         par_cle[cle]['champs'].append(f)
         if f.errors:par_cle[cle]['ouvert']=True
+    priorite={nom:i for i,nom in enumerate(('population','periode','debut','fin','reference_mode','reference','mouvement','portion','cohorte'))}
+    par_cle['retenir']['champs'].sort(key=lambda champ:priorite.get(champ.name,len(priorite)))
     if form.non_field_errors():
         for p in parties:p['ouvert']=True
     for n in niveaux:

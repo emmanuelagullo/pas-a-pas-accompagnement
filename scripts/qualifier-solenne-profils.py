@@ -196,6 +196,13 @@ assert r.status_code==409 and 'Formulaire périmé' in r.content.decode()
 r=client.get(chemin('dossiers:personnaliser_rapport','statistiques'),{'rapport':'repas','debut':'2026-01-01','fin':'2026-02-01'},secure=True)
 assert r.status_code==302
 r=client.get(sans_prefixe(r['Location']),secure=True);assert r.status_code==200
+# ST6 : actions propres au rapport et entrée de création indépendante.
+r=client.get(chemin('statistiques'),secure=True)
+assert r.status_code==200 and 'class="rapport-composer"' in r.content.decode() and 'Autres rapports disponibles' in r.content.decode()
+r=client.get(chemin('dossiers:explorer_nouveau'),{'modele':modele.pk,'population':'imputations'},secure=True)
+assert r.status_code==302
+r=client.get(sans_prefixe(r['Location']),secure=True)
+assert r.status_code==200 and '<h1>Nouveau rapport</h1>' in r.content.decode() and 'Remplacer explicitement' not in r.content.decode()
 if os.environ.get('SOLENNE_VERIFIER_PDF') == 'oui':
     pdf_analyse=client.get(chemin('dossiers:explorer'),{**params,'format':'pdf'},secure=True)
     assert pdf_analyse.status_code==200 and pdf_analyse.content.startswith(b'%PDF-')

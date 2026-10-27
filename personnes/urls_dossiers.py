@@ -51,6 +51,7 @@ urlpatterns = [
     path('appels115/<uuid:pk>/pdf/',appels115.pdf,name='appel115_pdf'),
     path('explorer/modeles/importer/',exploration.echanger_modele,name='explorer_importer_modele'),
     path('explorer/modeles/<int:pk>/exporter/',exploration.echanger_modele,name='explorer_exporter_modele'),
+    path('explorer/nouveau/',exploration.nouveau,name='explorer_nouveau'),
     path('explorer/',exploration.explorer,name='explorer'),
     path('explorer/modeles/<int:pk>/supprimer/',exploration.supprimer_modele,name='explorer_supprimer_modele'),
     path('releve/recherche/',releve.recherche,name='releve_recherche'),
