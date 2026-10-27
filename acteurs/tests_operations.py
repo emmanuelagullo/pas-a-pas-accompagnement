@@ -97,3 +97,21 @@ assert JournalAcces.objects.filter(action='revocation').count()==1
             env=dict(os.environ,ACCOMPAGNEMENT_DONNEES=str(destination),DJANGO_SETTINGS_MODULE='pas_a_pas_accompagnement.settings')
             r=subprocess.run([sys.executable,'-c',code],env=env,capture_output=True,text=True,timeout=45)
             self.assertEqual(r.returncode,0,r.stderr)
+
+
+class EssaiTests(TransactionTestCase):
+    def test_essai_volontaire_visible_sans_creer_de_compte(self):
+        from acteurs.essai import preparer
+        from django.test import Client
+        from personnes.models import Menage
+        u=get_user_model().objects.create_user('essai-social-fictif')
+        service=preparer(u)
+        self.assertEqual(get_user_model().objects.count(),1)
+        c=Client();c.force_login(u)
+        r=c.get('/')
+        self.assertEqual(r.status_code,200)
+        self.assertContains(r,'En attente')
+        self.assertContains(r,'Mes dossiers')
+        self.assertNotContains(r,'Dossier réservé à un autre service')
+        with perimetre(u,service):self.assertEqual(Menage.objects.count(),5)
+        with self.assertRaises(ValidationError):preparer(u)
