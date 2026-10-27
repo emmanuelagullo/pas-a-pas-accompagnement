@@ -33,6 +33,8 @@ class PerimetreMiddleware:
             modules_rapports={'personnes.vues_statistiques','personnes.vues_exploration','personnes.vues_rapports'}
             if vue_courante.func.__module__ in modules_rapports:
                 stats='mes'
+            if vue_courante.view_name=='statistiques':
+                stats={'tous':'accessibles','mes':'mes','service':'service_accessible','attente':'attente'}.get(request.GET.get('filtre','mes'),'mes')
             if request.GET.get('portee_statistiques') in ('service','etablissement'):
                 vue=vue_courante
                 if vue.func.__module__=='personnes.vues_statistiques' and vue.func.__name__=='statistiques':
@@ -107,7 +109,7 @@ class PerimetreMiddleware:
         if any(not model.objects.filter(pk=pk).exists() for model,pk in objets):
             from django.contrib import messages
             messages.info(request,'Création enregistrée. Les accès suivent le professionnel désigné et la politique du service.')
-            params={k:request.GET[k][:160] for k in ('q','mode','filtre','page') if k in request.GET}
+            params={k:request.GET[k][:160] for k in ('q','mode','filtre','page','en_cours') if k in request.GET}
             return redirect(reverse('accueil')+('?' + urlencode(params) if params else ''))
         return response
 

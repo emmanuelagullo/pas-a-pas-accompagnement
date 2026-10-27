@@ -12,12 +12,11 @@ d'audit. Ce prototype n'est pas une installation de production.
 
 ## Découvrir les acteurs et les relais
 
-Le lancement habituel `bash start-render.sh` prépare maintenant le parcours
+Le lancement habituel `bash start-render.sh` prépare le jeu Les Passerelles enrichi avec les
 acteurs : se connecter avec **essai**, puis utiliser les filtres **Mes dossiers**,
-**Mon service** et **En attente**. Le lien de découverte guide l’attribution et
-le relais. **remi** illustre l’accueil et **coordination** les statistiques.
+**Mon service** et **En attente**. Le dossier de Noor attend une attribution ; Alex et Samira permettent d’essayer le relais. **remi** illustre l’accueil et **coordination** les statistiques.
 Le mot de passe public est affiché à la connexion. Données fictives, partagées
-et recréées à chaque lancement. Pour le grand jeu métier décrit ci-dessous :
+et recréées à chaque lancement. Pour comparer avec les accès historiques, sur le même jeu métier :
 `ACCOMPAGNEMENT_SCENARIO_DEMO=complet bash start-render.sh`.
 
 ## Démonstration métier

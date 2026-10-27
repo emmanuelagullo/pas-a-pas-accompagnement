@@ -26,12 +26,12 @@ const server=(tls?require('node:https'):http).createServer(options,(req,res)=>{
  catch{res.writeHead(404).end();}
 });
 (async()=>{
- let browser;
+ let browser,page;
  try{
   await new Promise(r=>server.listen(0,'127.0.0.1',r));
   const url=`${tls?'https':'http'}://127.0.0.1:${server.address().port}${base}`;
   browser=await chromium.launch({headless:true,...(process.env.PWA_CHROMIUM?{executablePath:process.env.PWA_CHROMIUM}:{}),args:['--no-sandbox','--disable-dev-shm-usage',...(tls?['--ignore-certificate-errors']:[])]});
-  const context=await browser.newContext({ignoreHTTPSErrors:tls});let page=await context.newPage();
+  const context=await browser.newContext({ignoreHTTPSErrors:tls});page=await context.newPage();
   page.on('pageerror',e=>console.error('PAGE',String(e)));
   page.on('console',m=>{if(m.type()==='error')console.error('CONSOLE',m.text());});
   async function changerEspace(essai){
@@ -53,6 +53,7 @@ const server=(tls?require('node:https'):http).createServer(options,(req,res)=>{
    await cliquerLienPwa(app.getByRole('button',{name:'Rechercher',exact:true}));
   }
   async function ouvrir(){await page.goto(url);await page.frameLocator('#app').locator('h1').waitFor({timeout:120000});}
+  console.log('PWA : démarrage du parcours navigateur');
   await ouvrir();const frame=page.frameLocator('#app');
   await frame.locator('[name=username]').fill('essai-pwa');
   await frame.locator('[name=password1]').fill('Phrase fictive navigateur-854!');
@@ -63,6 +64,7 @@ const server=(tls?require('node:https'):http).createServer(options,(req,res)=>{
   await frame.locator('[name=designation]').fill('Personne fictive conservée');
   await cliquerLienPwa(frame.getByRole('button',{name:'Créer et ouvrir le dossier',exact:true}));
   await frame.getByRole('heading',{name:'Dossier — Personne fictive conservée',exact:true}).waitFor();
+  console.log('PWA : création du dossier conservée');
   const autre=await context.newPage();await autre.goto(url);
   await autre.getByText('Cet espace est déjà ouvert dans un autre onglet.').waitFor();await autre.close();
   await context.setOffline(true);await page.reload();
@@ -75,11 +77,13 @@ const server=(tls?require('node:https'):http).createServer(options,(req,res)=>{
   await apres.getByText('Personne fictive conservée').waitFor();
   // Le PDF doit être un téléchargement réel, y compris sans réseau.
   await cliquerLienPwa(apres.getByText('Personne fictive conservée',{exact:true}));
-  await apres.getByText('Identité et appartenances',{exact:true}).click();
-  await cliquerLienPwa(apres.getByRole('link',{name:'Consulter la fiche d’identité et ses corrections',exact:true}));
+  const identite=apres.locator('[data-condition-groupe]').filter({has:apres.getByRole('heading',{name:'Identité',exact:true})});
+  await identite.getByText('Autres actions de la rubrique',{exact:true}).click();
+  await cliquerLienPwa(identite.getByRole('link',{name:'Historique',exact:true}));
   const pdfFini=page.waitForEvent('download',{timeout:120000});
   await apres.getByRole('link',{name:'Télécharger la fiche PDF'}).click();
   const pdf=await pdfFini;
+  console.log('PWA : identité et téléchargement PDF hors ligne atteints');
   assert.match(pdf.suggestedFilename(),/^fiche-personne-[a-f0-9-]+\.pdf$/);
   assert.equal(fs.readFileSync(await pdf.path()).subarray(0,5).toString(),'%PDF-');
   await cliquerLienPwa(apres.getByRole('link',{name:'Retour aux personnes'}));
@@ -89,7 +93,8 @@ const server=(tls?require('node:https'):http).createServer(options,(req,res)=>{
   await context.setOffline(true);
   await changerEspace(true);
   const df=page.frameLocator('#app');
-  await df.locator('[name=username]').waitFor({timeout:120000});
+  // Première génération complète des Passerelles dans WASM, hors ligne.
+  await df.locator('[name=username]').waitFor({timeout:300000});
   assert.equal(await df.locator('[name=password1]').count(),0);
   await df.locator('[name=username]').fill('nadia');
   await df.locator('[name=password]').fill('Demonstration-fictive-2026!');
@@ -331,5 +336,5 @@ for mode in ['etranger','altere','future']:
   await require('./verifier-stockage-pwa.cjs')(page,url);
   assert(!sorties.some(p=>p.startsWith(base+'app/')),'Requête métier sortie vers le serveur statique');
   console.log('Chromium CHRS : création → second onglet refusé → relance hors ligne → reconnexion et persistance : OK');
- }finally{await browser?.close();await new Promise(r=>server.close(r));if(certificat)fs.rmSync(certificat,{recursive:true,force:true});}
+ }catch(e){console.error('Échec du parcours PWA :',e);if(page){console.error('État du moteur :',await page.locator('#status').textContent().catch(()=>''),await page.locator('#notice').textContent().catch(()=>''));}throw e;}finally{await browser?.close();server.closeAllConnections();await new Promise(r=>server.close(r));if(certificat)fs.rmSync(certificat,{recursive:true,force:true});}
 })().catch(e=>{console.error(e);process.exitCode=1;});

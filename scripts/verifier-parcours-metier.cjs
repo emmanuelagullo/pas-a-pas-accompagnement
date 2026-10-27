@@ -53,6 +53,7 @@ module.exports = async function verifierParcoursMetier(app) {
   await cliquerLienPwa(historique.getByRole('link', {name:'Historique des corrections', exact:true}));
   await app.getByText('Correction fictive du parcours navigateur', {exact:false}).waitFor();
   await app.getByText('Installation dans un logement autonome fictif.', {exact:false}).waitFor();
+  await app.locator('.menu-chantiers > summary').click();
   await cliquerLienPwa(app.getByRole('link', {name:'Travail du jour', exact:true}));
   await app.locator('input[name$="-quantite"]').first().fill('1');
   await cliquerLienPwa(app.getByRole('button', {name:'Enregistrer les distributions renseignées', exact:true}));

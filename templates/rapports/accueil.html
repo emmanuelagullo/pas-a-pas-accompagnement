@@ -1,4 +1,5 @@
 {% extends 'base.html' %}{% block contenu %}<div class="rapport-entete"><h1>Statistiques et rapports</h1>{% include 'rapports/_actions.html' %}</div>
 {% if personnels %}<section><h2>Mes accès habituels</h2><ul>{% for x in personnels %}<li><a href="{{ x.url_rapport }}">{{ x.nom }}</a> — {{ x.get_nature_display|lower }}{% if x.modele_source %} de « {{ x.modele_source.nom }} »{% endif %}</li>{% endfor %}</ul></section>{% endif %}
+{% include 'acteurs/perimetre_statistiques.html' %}
 <h2>Modèles prêts à utiliser</h2><p>Choisissez un modèle pour obtenir son rapport, puis ajustez au besoin sa période et ses critères.</p><ul class="rapports-catalogue">{% for r in rapports %}<li><a href="{{ r.url }}">{{ r.titre }}</a></li>{% endfor %}</ul>
 {% if not personnels %}<p>Aucun accès personnel enregistré. Utilisez directement un modèle proposé ; vous pourrez conserver vos réglages après les résultats.</p>{% endif %}{% endblock %}

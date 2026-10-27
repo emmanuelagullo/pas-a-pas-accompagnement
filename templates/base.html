@@ -8,21 +8,27 @@
 <a class="evitement" href="#contenu">Aller au contenu</a>
 <header><a class="marque" href="{% url 'accueil' %}">Pas à Pas <span>Accompagnement</span></a>
 {% if user.is_authenticated %}<nav aria-label="Navigation principale">
-{% if demonstration_acteurs %}<a href="{% url 'decouverte' %}">Découvrir les acteurs et les relais</a>{% endif %}
-<span>Compte : {{ user.get_username }}</span>
-{% if not controle_acteurs or peut_ouvrir_dossiers_acteurs %}<a href="{% url 'accueil' %}">Dossiers</a>{% endif %}{% if perms.personnes.view_partenaire and perms.personnes.view_fichepartenaire and perms.personnes.view_revisionfichepartenaire and not request.inscription_2fa_requise %}<a href="{% url 'dossiers:partenaires' %}">Partenaires</a>{% endif %}
-{% if not demonstration_publique and not espace_essai %}<a href="{% url 'securite_compte' %}">Sécurité du compte</a>{% endif %}
-{% if not controle_acteurs or peut_ouvrir_dossiers_acteurs %}{% if perms.personnes.view_personne and perms.personnes.view_menage and perms.personnes.view_accompagnement and not request.inscription_2fa_requise %}<a href="{% url 'suivi:jour' %}">Travail du jour</a>{% endif %}{% endif %}{% if perms.personnes.view_appel115 and not request.inscription_2fa_requise %}{% if not perms.personnes.view_personne or not perms.personnes.view_menage or not perms.personnes.view_accompagnement %}<a href="{% url 'dossiers:appels115' %}">Appels 115</a>{% endif %}{% endif %}
-{% if perms.personnes.view_accompagnement and perms.personnes.view_sejour and perms.personnes.view_repasdistribue and not request.inscription_2fa_requise %}<a href="{% url 'statistiques' %}">Statistiques</a>{% endif %}{% if perms.personnes.view_personne and not request.inscription_2fa_requise %}{% if not perms.personnes.view_accompagnement or not perms.personnes.view_sejour or not perms.personnes.view_repasdistribue %}<a href="{% url 'dossiers:explorer' %}">Explorer</a>{% endif %}{% endif %}
-{% if perms.personnes.view_transmission and not request.inscription_2fa_requise %}<a href="{% url 'suivi:cahier' %}">Cahier de liaison</a>{% endif %}
-<form method="post" action="{% url 'deconnexion' %}">{% csrf_token %}<button class="secondaire" type="submit">Se déconnecter</button></form>
+{% if not controle_acteurs or peut_ouvrir_dossiers_acteurs %}<a href="{% url 'accueil' %}">Dossiers</a>{% endif %}
+{% if perms.personnes.view_accompagnement and perms.personnes.view_sejour and perms.personnes.view_repasdistribue and not request.inscription_2fa_requise %}<a href="{% url 'statistiques' %}">Statistiques</a>{% endif %}
+{% if perms.acteurs.gerer_organisation and not request.inscription_2fa_requise %}<a href="{% url 'acteurs:organisation' %}">Établissement</a>{% endif %}
+<details class="menu-utilisateur"><summary>Compte : {{ user.get_username }}</summary><div class="menu-utilisateur-contenu">
+{% if not demonstration_publique and not espace_essai %}<a href="{% url 'securite_compte' %}">Mon compte</a>{% else %}<p>Compte public de démonstration</p>{% endif %}
+{% if controle_acteurs and peut_ouvrir_dossiers_acteurs %}<a href="{% url 'accueil' %}?filtre=mes&amp;en_cours=1">Mes dossiers en cours</a>{% endif %}
+{% if services_acteurs|length > 1 %}<form method="post" action="{% url 'acteurs:choisir_service' %}">{% csrf_token %}<label for="service-acteurs">Service de travail</label><select name="service" id="service-acteurs">{% for s in services_acteurs %}<option value="{{ s.pk }}"{% if s.pk == service_acteurs %} selected{% endif %}>{{ s.libelle }} — {{ s.etablissement }}</option>{% endfor %}</select><p class="helptext">Pour les nouveaux dossiers et le filtre Mon service. Les dossiers existants restent dans leur service.</p><button>Choisir</button></form>{% endif %}
+<form method="post" action="{% url 'deconnexion' %}">{% csrf_token %}<button class="secondaire">Se déconnecter</button></form>
+</div></details>
+{% if not request.inscription_2fa_requise %}<details class="menu-utilisateur menu-chantiers"><summary>En chantier</summary><div class="menu-utilisateur-contenu">
+{% if perms.personnes.view_partenaire and perms.personnes.view_fichepartenaire and perms.personnes.view_revisionfichepartenaire %}<a href="{% url 'dossiers:partenaires' %}">Partenaires</a>{% endif %}
+{% if not controle_acteurs or peut_ouvrir_dossiers_acteurs %}{% if perms.personnes.view_personne and perms.personnes.view_menage and perms.personnes.view_accompagnement %}<a href="{% url 'suivi:jour' %}">Travail du jour</a>{% endif %}{% endif %}
+{% if perms.personnes.view_transmission %}<a href="{% url 'suivi:cahier' %}">Cahier de liaison</a>{% endif %}
+{% if perms.personnes.view_appel115 %}<a href="{% url 'dossiers:appels115' %}">Appels 115</a>{% endif %}
+{% if perms.personnes.view_personne %}<a href="{% url 'dossiers:explorer' %}">Explorer les rapports</a>{% endif %}
+</div></details>{% endif %}
 </nav>{% endif %}</header>
 {% if espace_essai %}<aside aria-label="Espace d’essai"><p><strong>Espace d’essai Établissement Les Passerelles</strong> — distinct de votre espace habituel. Données fictives uniquement. Vos essais sont conservés.</p>
 <p>Comptes du jeu de départ : <strong>nadia</strong>, <strong>remi</strong>, <strong>camille</strong> ou <strong>essai</strong> ; mot de passe <strong>{{ mot_de_passe_essai }}</strong>. Mêmes droits métier d’essai, sans administration.</p></aside>{% endif %}
 {% if outils_copies_bureau %}<p><a href="{% url 'choisir_espace_local' %}">{% if espace_essai %}Revenir à mon espace habituel{% else %}Essayer avec Établissement Les Passerelles{% endif %}</a></p><p><a href="{% url 'copies_locales' %}">Copies et restauration sur cet appareil</a></p>{% endif %}
-{% if user.is_authenticated and not request.inscription_2fa_requise %}{% if perms.acteurs.gerer_organisation %}<p><a href="{% url 'acteurs:organisation' %}">Organisation et accès</a></p>{% endif %}{% if controle_acteurs %}<aside aria-label="Service de travail"><form method="post" action="{% url 'acteurs:choisir_service' %}">{% csrf_token %}<label for="service-acteurs">Service pour les nouvelles saisies</label><select name="service" id="service-acteurs">{% for s in services_acteurs %}<option value="{{ s.pk }}"{% if s.pk == service_acteurs %} selected{% endif %}>{{ s }} — {{ s.etablissement }}</option>{% empty %}<option>Aucun service autorisé</option>{% endfor %}</select><button>Choisir</button></form>{% if rapport_service_acteurs %}<a href="{{ rapport_service_acteurs }}">Statistiques de mon service</a>{% endif %}{% if rapport_etablissement_acteurs %} · <a href="{{ rapport_etablissement_acteurs }}">Statistiques de mon établissement</a>{% endif %}</aside>{% endif %}{% endif %}
-{% if mode_acces_historique %}<p class="helptext">Cet espace utilise les accès historiques, sans séparation des dossiers par service.</p>{% endif %}
-<p class="prototype">Prototype d’essai — Données fictives uniquement.</p>
+<p class="prototype">Démonstration — données fictives uniquement.</p>
 <main id="contenu">{% retour_statistiques as retour_global_statistiques %}{% if retour_global_statistiques and not retour_exploration and not retour_rapport %}<p><a href="{{ retour_global_statistiques }}">← Revenir aux résultats du rapport</a></p>{% endif %}{% for message in messages %}<p role="status">{{ message }}</p>{% endfor %}{% block contenu %}{% endblock %}</main>
-<footer>Pas à Pas — Accompagnement · Premier espace d’essai · Version {{ version_application }}</footer>
+<footer>Pas à Pas — Accompagnement · Version {{ version_application }}</footer>
 </body></html>

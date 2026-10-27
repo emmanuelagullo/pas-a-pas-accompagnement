@@ -27,8 +27,8 @@ class ParcoursActeurs(StaticLiveServerTestCase):
         self.accueil=get_user_model().objects.create_user('accueil-fictif',password='Recette-acteurs-fictive-2026!')
         self.coord=get_user_model().objects.create_user('coordination-fictive',password='Recette-acteurs-fictive-2026!')
         self.service=preparer(self.social,self.accueil,self.coord)
-        self.attente=DossierService.objects.get(menage__libelle='Essai — En attente de suivi')
-        self.protege=DossierService.objects.get(menage__libelle='Essai — Dossier réservé à un autre service')
+        self.attente=DossierService.objects.get(menage__libelle='Samira Benali')
+        self.protege=DossierService.objects.get(menage__libelle='Louise Durand')
 
     def navigateur(self,compte):
         if not hasattr(self,'chromium'):
@@ -48,19 +48,19 @@ class ParcoursActeurs(StaticLiveServerTestCase):
         page=self.navigateur(self.social)
         expect(page.get_by_role('heading',name='Quel dossier souhaitez-vous ouvrir ?',exact=True)).to_be_visible()
         expect(page.locator('body')).not_to_contain_text('Dossier réservé à un autre service')
-        page.get_by_role('link',name='Essai — En attente de suivi',exact=False).click()
+        page.get_by_role('link',name='Samira Benali',exact=False).click()
         page.get_by_role('button',name='Commencer le suivi',exact=True).click()
-        expect(page.locator('[aria-label="Responsabilités"]')).to_contain_text('Professionnel social fictif')
+        expect(page.locator('[aria-label="Responsabilités"]')).to_contain_text('Nadia Martin')
         if os.environ.get('ACTEURS_CAPTURE_DIR'):
             from pathlib import Path
             sortie=Path(os.environ['ACTEURS_CAPTURE_DIR']);sortie.mkdir(parents=True,exist_ok=True)
             page.screenshot(path=str(sortie/'dossier-acteurs.png'),full_page=True)
         page.get_by_role('link',name='Passer le relais',exact=True).click()
-        page.get_by_label('À qui ?',exact=True).select_option(label='Collègue fictif — sans compte')
+        page.get_by_label('À qui ?',exact=True).select_option(label='Joël Bernard')
         page.get_by_role('button',name='Confirmer le relais',exact=True).click()
-        expect(page.locator('[aria-label="Responsabilités"]')).to_contain_text('Collègue fictif')
+        expect(page.locator('[aria-label="Responsabilités"]')).to_contain_text('Joël Bernard')
         page.get_by_text('Interventions précédentes',exact=True).click()
-        expect(page.locator('[aria-label="Responsabilités"]')).to_contain_text('Professionnel social fictif')
+        expect(page.locator('[aria-label="Responsabilités"]')).to_contain_text('Nadia Martin')
         cible=reverse('dossiers:detail',args=['menage',self.protege.menage_id])
         self.assertEqual(page.goto(self.live_server_url+cible).status,404)
         base(lambda:Service.objects.filter(pk=self.service.pk).update(politique='individuel'))

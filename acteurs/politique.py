@@ -113,6 +113,9 @@ def portees(compte, modele, ecriture=False):
         # dans les justificatifs ou l'ouverture d'un dossier.
         p = PorteeObjet.objects.filter(service_id__in=services.values('pk'))
         return p
+    if ctx and not ecriture:
+        if ctx.statistiques=='service_accessible':p=p.filter(service_id=ctx.service_id)
+        elif ctx.statistiques=='attente':p=p.filter(dossier__en_attente=True)
     return p.filter(q)
 
 
@@ -143,6 +146,8 @@ def calculer_filtre(modele, ecriture=False):
         # Les identités nécessaires à une reprise sont visibles ; aucun fait social
         # n'est ouvert par cette sélection d'accueil.
         ds = DossierService.objects.filter(service_id__in=hs.exclude(tache='coordination').values('service_id'))
+        if ctx.statistiques=='service_accessible':ds=ds.filter(service_id=ctx.service_id)
+        elif ctx.statistiques=='attente':ds=ds.filter(en_attente=True)
         collectifs = ds.filter(pk__in=missions(compte).values('dossier_id')) if ctx.statistiques=='mes' else ds.filter(Q(service_id__in=pleines(compte)) | Q(pk__in=missions(compte).values('dossier_id')) | Q(en_attente=True))
         q |= Q(pk__in=collectifs.values(nom+'_id'))
         if nom == 'personne':
@@ -158,7 +163,10 @@ def calculer_filtre(modele, ecriture=False):
             q |= Q(pk__in=Appartenance._base_manager.filter(menage_id__in=ds.values('menage_id')).values('personne_id'))
     if nom == 'accompagnement' and not ecriture:
         ids = missions(compte).values_list('hebergement__accompagnement_id', 'repas__accompagnement_id', 'aide__accompagnement_id')
-        q |= Q(pk__in={v for ligne in ids for v in ligne if v})
+        supplement={v for ligne in ids for v in ligne if v}
+        if ctx.statistiques in ('service_accessible','attente'):
+            supplement &= set(modele._base_manager.filter(pk__in=list(ps.filter(modele=modele._meta.label_lower).values_list('identifiant',flat=True))).values_list('pk',flat=True))
+        q |= Q(pk__in=supplement)
     if ecriture and nom in ('transmission','notepartagee'):
         q &= Q(auteur=compte) | Q(pk__in=list(ps.filter(modele=modele._meta.label_lower,
             service_id__in=hs.filter(corriger_autrui=True).values('service_id')).values_list('identifiant',flat=True)))

@@ -114,18 +114,34 @@ essais locaux SQLite ne la remplacent pas.
 
 ## Découverte par le lancement habituel
 
-`start-render.sh` prépare désormais par défaut un jeu fictif compact avec le
-contrôle des accès actif. Le port ne sélectionne pas le scénario. Se connecter
-avec `essai` pour les filtres et les relais, `remi` pour l’accueil ou
-`coordination` pour les statistiques regroupées. Le mot de passe public est
-indiqué sur la page de connexion. Le lien « Découvrir les acteurs et les relais »
-donne les étapes dans l’application. Les comptes ont des tâches distinctes et
-le jeu reste partagé et jetable, sans modification d’une base existante.
+`start-render.sh` prépare le jeu Les Passerelles existant, enrichi avec
+les appartenances, habilitations et responsabilités. Les 36 personnes, 51 prises
+en charge, prestations et histoires métier sont conservées. Noor attend une
+attribution ; essai suit Alex et Samira, Nadia suit les autres ménages.
+Les comptes remi, camille et coordination ont respectivement les tâches d’accueil,
+de gestion et de coordination. Le mot de passe public figure à la connexion.
+Les noms du jeu neuf ne répètent plus la mention fictif, conservée globalement.
+L’affectation automatique est strictement réservée à cette génération neuve et
+transactionnelle ; elle ne constitue pas une politique de reprise de données.
 
-Le grand jeu métier historique reste disponible avec
-`ACCOMPAGNEMENT_SCENARIO_DEMO=complet bash start-render.sh`. Les captures du
-site choisissent explicitement ce grand jeu. Les espaces bureau/PWA existants
-et leur scénario ne sont pas modifiés par ce choix du serveur jetable.
+Navigation : Dossiers, Statistiques et Établissement (si autorisé). Les raccourcis
+personnels et, pour plusieurs appartenances, le choix du service de travail,
+sont dans Compte. Les écrans provisoires restent accessibles dans En chantier.
+Le service de travail sélectionne le service des nouveaux dossiers ; il ne
+transfère aucune donnée. Dossiers et Statistiques partagent les boutons Tous,
+Mes dossiers, Mon service, En attente, toujours bornés aux lectures autorisées.
+Les rapports regroupés restent un choix distinct, soumis à leur habilitation.
+Une responsabilité terminée ne conserve pas de droits de consultation.
+
+`ACCOMPAGNEMENT_SCENARIO_DEMO=complet bash start-render.sh` permet de comparer
+le même jeu sous les accès historiques. Les captures suivent le lancement
+normal. Les espaces bureau/PWA existants restent inchangés.
+
+Le menu Compte reprend le principe de Petits Pas : raccourcis personnels
+repliés dans un élément natif details/summary. Les destinations restent métier ;
+aucune nouvelle abstraction ni dépendance du socle n’est nécessaire.
+Le contrôle du relais compare les dates dans le fuseau métier, y compris
+quand le jour local diffère du jour UTC. Les anciens instants restent conservés.
 
 ## Voir immédiatement les changements sur une base fictive séparée
 

@@ -35,7 +35,7 @@ def chemin(route,*args):
 client=Client(HTTP_HOST=settings.ALLOWED_HOSTS[0]);client.force_login(u,backend='django.contrib.auth.backends.ModelBackend')
 r=client.get(chemin('accueil'),secure=True);assert r.status_code==200
 assert 'Dossier réservé à un autre service' not in r.content.decode()
-ds=DossierService.objects.get(menage__libelle='Essai — Mon dossier en cours')
+ds=DossierService.objects.get(menage__libelle='Alex Martin')
 with CaptureQueriesContext(connection) as requetes:
     r=client.get(chemin('dossiers:detail','menage',ds.menage_id),secure=True)
 assert r.status_code==200 and 'Qui s’en occupe' in r.content.decode()

@@ -1,0 +1,3 @@
+<fieldset class="choix-dossiers"><legend>Dossiers</legend>
+{% for valeur,libelle in filtres_dossiers_acteurs %}<label><input type="radio" name="filtre" value="{{ valeur }}"{% if filtre_acteurs == valeur %} checked{% endif %}>{{ libelle }}</label>{% endfor %}
+</fieldset>

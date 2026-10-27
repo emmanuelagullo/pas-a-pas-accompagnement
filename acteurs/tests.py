@@ -404,3 +404,36 @@ class AccesTests(TestCase):
             models.QuerySet(model=LienCompteProfessionnel).filter(compte=self.ua).update(professionnel=sans_appartenance)
             with self.assertRaises((ValidationError,PermissionDenied)):
                 m.Personne.objects.create(designation='Création après changement interdite',cree_par=self.ua)
+
+    def test_filtres_statistiques_restreignent_sans_ouvrir_un_service(self):
+        c=Client();c.force_login(self.ua)
+        params={'rapport':'synthese','debut':'2026-01-01','fin':'2026-02-01'}
+        for filtre,nombre in [('tous',1),('service',1),('mes',0),('attente',0)]:
+            with self.subTest(filtre=filtre):
+                r=c.get('/statistiques/',{**params,'filtre':filtre})
+                self.assertEqual(r.status_code,200)
+                self.assertEqual(r.context_data['resultats']['accompagnements'],nombre)
+        DossierService.objects.filter(pk=self.da.pk).update(en_attente=True)
+        r=c.get('/statistiques/',{**params,'filtre':'attente'})
+        self.assertEqual(r.context_data['resultats']['accompagnements'],1)
+        Service.objects.filter(pk=self.sa.pk).update(politique='individuel')
+        for filtre in ('tous','service','attente'):
+            r=c.get('/statistiques/',{**params,'filtre':filtre})
+            self.assertEqual(r.context_data['resultats']['accompagnements'],0)
+        self.assertEqual(c.get('/statistiques/',{**params,'filtre':'tous','portee_statistiques':'service'}).status_code,403)
+
+    def test_fin_metier_et_date_du_relais_sont_locales(self):
+        from datetime import datetime, timezone as tz
+        from unittest.mock import patch
+        instant=datetime(2026,1,1,23,30,tzinfo=tz.utc)
+        self.h.fin=date(2026,1,2);self.h.save()
+        with timezone.override('Europe/Paris'), patch('django.utils.timezone.now',return_value=instant):
+            self.assertFalse(s.en_cours(self.h,instant))
+            Responsabilite.objects.create(dossier=self.da,professionnel=self.pa,cree_par=self.admin,debut=datetime(2025,1,1,tzinfo=tz.utc))
+            c=Client();c.force_login(self.ua)
+            from django.urls import reverse
+            url=reverse('acteurs:relais_dossier',args=[self.da.pk]);page=c.get(url)
+            f=page.context['form']
+            r=c.post(url,{'entrant':str(self.pc.pk),'sortant':str(self.pa.pk),'date':'2026-01-02',
+                'descendants':'on','attendu':f.initial['attendu'],'proposition':f.initial['proposition']})
+            self.assertEqual(r.status_code,302)

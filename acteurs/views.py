@@ -1,3 +1,4 @@
+from datetime import datetime
 from django import forms
 from django.contrib.auth.decorators import login_required
 from django.core import signing
@@ -137,7 +138,11 @@ def relais(request,pk,niveau='dossier',objet_pk=None):
         except (signing.BadSignature,TypeError):ancienne={}
         nouvelle=signing.loads(proposition_attendue,salt='acteurs-relais-v1')
         # L'heure du clic reste celle photographiée à la proposition pour aujourd'hui.
-        concorde=all(ancienne.get(k)==nouvelle.get(k) for k in ('dossier','revision','ids','sortant')) and str(ancienne.get('date',''))[:10]==str(d['date'])
+        try:
+            instant=datetime.fromisoformat(ancienne.get('date',''))
+            jour=timezone.localtime(instant).date() if timezone.is_aware(instant) else None
+        except (ValueError,TypeError):jour=None
+        concorde=all(ancienne.get(k)==nouvelle.get(k) for k in ('dossier','revision','ids','sortant')) and jour==d['date']
         prop=proposition_attendue
         if concorde:
             try:s.relayer(request.user,ds,d['entrant'],d['attendu'],d['proposition'])

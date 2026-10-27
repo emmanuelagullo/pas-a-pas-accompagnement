@@ -5,7 +5,8 @@
 <fieldset class="choix-recherche"><legend>Rechercher dans</legend>
 {% if peut_menages %}<label><input type="radio" name="mode" value="menage"{% if mode == 'menage' %} checked{% endif %}> Ménages</label>{% endif %}
 <label><input type="radio" name="mode" value="personne"{% if mode == 'personne' %} checked{% endif %}> Personnes</label></fieldset>
-{% if controle_acteurs %}<label for="filtre-acteurs">Dossiers à afficher</label><select name="filtre" id="filtre-acteurs"><option value="tous"{% if filtre_acteurs == 'tous' %} selected{% endif %}>Tous les dossiers accessibles</option><option value="mes"{% if filtre_acteurs == 'mes' %} selected{% endif %}>Mes dossiers</option><option value="service"{% if filtre_acteurs == 'service' %} selected{% endif %}>Mon service</option><option value="attente"{% if filtre_acteurs == 'attente' %} selected{% endif %}>En attente</option></select><p class="helptext">En attente, puis mes dossiers, puis ceux du service. Dans chaque groupe, les prises en charge en cours passent en premier.</p>{% endif %}
+{% if controle_acteurs %}{% include 'acteurs/filtre_dossiers.html' %}{% endif %}
+{% if controle_acteurs %}<label class="choix-en-cours"><input type="checkbox" name="en_cours" value="1"{% if en_cours %} checked{% endif %}> Avec une prise en charge en cours</label>{% endif %}
 <label for="recherche-nom">Nom, prénom ou libellé du dossier</label>
 <input type="search" id="recherche-nom" name="q" value="{{ recherche }}" maxlength="160" placeholder="Rechercher ou commencer un nouveau dossier" autocomplete="off" aria-describedby="aide-recherche">
 <p class="helptext" id="aide-recherche">Ménages : recherche aussi dans les noms des membres actuels et anciens. Personnes : recherche dans les identités.</p>

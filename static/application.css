@@ -238,3 +238,25 @@ main:has(.bd-dossier) { max-width: 76rem; }
 
 .rapport-personnel, .rapport-composer li { overflow-wrap:anywhere; }
 .rapport-entete > div { min-width:0; overflow-wrap:anywhere; }
+
+/* Même principe que Petits Pas : les raccourcis personnels sont repliés. */
+header > nav .menu-utilisateur { position: relative; }
+.menu-utilisateur > summary { cursor: pointer; color: #175c50; }
+.menu-chantiers > summary { font-size: .85rem; }
+.menu-utilisateur-contenu { position: absolute; right: 0; top: 100%; z-index: 50; width: min(22rem, 85vw); padding: 1rem; background: white; border: 1px solid #cadbd3; border-radius: .4rem; box-shadow: 0 .3rem 1rem #243b3b22; }
+.menu-utilisateur-contenu > a { display: block; margin-bottom: .7rem; }
+.menu-utilisateur-contenu form { margin-top: .8rem; }
+.menu-utilisateur-contenu select { max-width: 100%; }
+.choix-dossiers { display: flex; flex-wrap: wrap; gap: .3rem; border: 0; padding: .3rem 0; }
+.choix-dossiers label { display: inline-flex; align-items: center; gap: .35rem; border: 1px solid #cadbd3; border-radius: .35rem; padding: .25rem .6rem; font-weight: 450; cursor: pointer; }
+.choix-dossiers label:has(input:checked) { background: #e1eee8; border-color: #175c50; }
+.choix-dossiers input { width: auto; margin: 0; }
+@media print { header > nav { display: none; } }
+
+.choix-en-cours { display: flex; align-items: center; gap: .4rem; font-weight: 450; }
+.choix-en-cours input { width: auto; }
+
+.resultats-dossiers .dossier-en-attente { border-inline-start: .3rem solid #9a6700; background: #fff8e5; }
+.resultats-dossiers .badge-attente { display: inline-block; width: fit-content; padding: .05rem .5rem; border: 1px solid #9a6700; border-radius: 1rem; color: #694500; background: #fff0bd; font-weight: 650; }
+
+.resultats-dossiers .badge-attente { margin-inline-start: .5rem; }

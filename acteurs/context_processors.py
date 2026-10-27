@@ -11,6 +11,10 @@ def acteurs(request):
     actif=p.active()
     result={'mode_acces_historique':not actif, 'controle_acteurs':actif, 'portee_statistiques_acteurs':ctx.statistiques}
     if not actif:return result
+    from .recherche import FILTRES
+    statistiques=request.resolver_match and request.resolver_match.view_name in ('statistiques','dossiers:rapports_accueil')
+    filtre=request.GET.get('filtre','mes' if statistiques else 'tous')
+    result.update(filtres_dossiers_acteurs=FILTRES,filtre_acteurs=filtre if filtre in dict(FILTRES) else ('mes' if statistiques else 'tous'))
     hs=p.habilitations(request.user)
     result['peut_ouvrir_dossiers_acteurs']=hs.exclude(tache='coordination').exists()
     services=Service.objects.filter(pk__in=hs.values('service_id')).select_related('etablissement')

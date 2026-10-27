@@ -294,7 +294,7 @@ def oublier_initialisation(dossier,lignes):
 def en_cours(objet, quand):
     """Une fin d'accord n'est pas la sortie effective d'un hébergement."""
     from personnes.models import AccordHebergement
-    jour=quand.date() if isinstance(quand,datetime) else quand
+    jour=timezone.localtime(quand).date() if isinstance(quand,datetime) and timezone.is_aware(quand) else quand.date() if isinstance(quand,datetime) else quand
     if getattr(objet,'annule_le',None):return False
     prise=getattr(objet,'accompagnement',None)
     if prise and prise.fin and prise.fin<=jour:return False

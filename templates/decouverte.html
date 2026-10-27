@@ -2,19 +2,11 @@
 {% block titre %}Découvrir Établissement Les Passerelles — Pas à Pas{% endblock %}
 {% block contenu %}
 <h1>Établissement Les Passerelles : découverte en cinq minutes</h1>
-{% if demonstration_acteurs %}
-<p>Parcours acteurs — données entièrement fictives. La démonstration est partagée ; un autre visiteur peut avoir commencé le suivi ou passé un relais. Chaque redémarrage prépare un jeu neuf.</p>
-<ol>
-<li>Connectez-vous avec <strong>essai</strong>, compte de travail social. Dans <a href="{% url 'accueil' %}">Dossiers</a>, comparez Tous les dossiers accessibles, Mes dossiers, Mon service et En attente.</li>
-<li>Ouvrez « Essai — En attente de suivi » et choisissez Commencer le suivi. Retrouvez-le dans Mes dossiers.</li>
-<li>Dans ce dossier, passez le relais au collègue fictif sans compte. Consultez les responsabilités et leur histoire. Le service commence en lecture et écriture collectives : le dossier reste accessible.</li>
-<li>Ouvrez « Essai — Ma prestation seule » : la responsabilité sur l’hébergement est distincte de celle du dossier.</li>
-<li>Déconnectez-vous et essayez <strong>remi</strong> pour l’accueil, puis <strong>coordination</strong> pour les statistiques regroupées sans accès aux dossiers. Le mot de passe est celui indiqué à la connexion.</li>
-</ol>
-<p>Le compte essai peut aussi ouvrir Organisation et accès pour comparer les politiques du service. Ces changements concernent tous les visiteurs de cette démonstration partagée.</p>
-{% else %}
+{% if demonstration_acteurs %}<p>Les comptes ont des tâches distinctes : essai et nadia pour l’accompagnement social, remi pour l’accueil, camille pour la gestion et coordination pour les statistiques regroupées. Le mot de passe public figure à la connexion.</p>
+<p>Depuis Dossiers, comparez Tous, Mes dossiers, Mon service et En attente. Noor attend une attribution : ouvrez son dossier et commencez le suivi. Dans Alex ou Samira, essayez le relais vers Nadia. Le service commence en lecture et écriture collectives : le relais change la responsabilité sans retirer la consultation collective.</p>{% endif %}
+
 <p>CHRS, personnes et lieux entièrement fictifs. Les versions récentes enrichissent uniquement les jeux neufs ; les anciens essais restent intacts. Ce guide décrit le jeu préparé à la première ouverture de l’espace d’essai distinct ou par le serveur jetable. Il ne charge ni ne remplace aucune donnée.</p>
-<p>Nadia illustre l’accompagnement social, Rémi l’accueil et l’hébergement, Camille la restauration. Ce sont des fonctions narratives : les comptes publics ont les mêmes permissions explicites CHRS1–7, sans administration. Dans l’espace d’essai distinct, utilisez ces mêmes comptes publics. Si vous aviez chargé le jeu dans votre espace habituel avec une ancienne version, conservez vos identifiants privés. Un espace unique : aucun cloisonnement professionnel ou entre établissements.</p>
+{% if not demonstration_acteurs %}<p>Nadia illustre l’accompagnement social, Rémi l’accueil et l’hébergement, Camille la restauration. Ce sont des fonctions narratives : les comptes publics ont les mêmes permissions explicites CHRS1–7, sans administration. Dans l’espace d’essai distinct, utilisez ces mêmes comptes publics. Si vous aviez chargé le jeu dans votre espace habituel avec une ancienne version, conservez vos identifiants privés. Un espace unique : aucun cloisonnement professionnel ou entre établissements.</p>{% endif %}
 <ol>
 <li><strong>Consulter un ménage.</strong> Depuis <a href="{% url 'accueil' %}">la recherche des dossiers</a>, ouvrir « Samira, Lina et Adam ». Consulter les trois fiches et les bénéficiaires du suivi. Les enfants bénéficient explicitement de l’hébergement et des repas ; aucune représentation légale n’est modélisée.</li>
 <li><strong>Distinguer accord et réalisation.</strong> Ouvrir le ménage d’Alex puis son accord de déjeuner. L’accord est ouvert, deux repas sont déjà distribués ; aucun hébergement n’est associé à ce suivi.</li>
@@ -30,4 +22,4 @@
 </ol>
 <p>Pour poursuivre : ajouter un événement fictif ou un bilan chez Thomas. Les dates historiques sont calculées par rapport au jour de génération ; les copies conservées ne sont jamais redatées à leur ouverture. Utiliser une date comprise dans l’accompagnement.</p>
 <p>Sur le serveur public, les modifications sont partagées et perdues à la recréation du service. PWA et programmes : l’espace persiste ; utiliser les outils habituels de sauvegarde et restauration. Une copie ZIP contient vos comptes et secrets : elle reste privée. Ce guide n’ajoute aucune remise à zéro.</p>
-{% endif %}{% endblock %}
+{% endblock %}
