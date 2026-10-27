@@ -3,7 +3,7 @@
 Les catégories d'âge des nuitées sont évaluées à chaque nuit civile, jamais
 à partir de l'âge à la fin du rapport ou d'un effectif familial recopié.
 """
-from datetime import date
+from datetime import date,timedelta
 from decimal import Decimal
 from django.core.exceptions import ValidationError
 from . import models as m, suivi
@@ -130,4 +130,46 @@ def valeurs_familiales(xs,code):
 
 
 def inconnus(xs,code):
+    if code in DUREES:return sum(not x['valeurs'].get('duree') for x in xs)
     return sum(v is None for v in valeurs_familiales(xs,code).values()) if code in FAMILLE else None
+
+DUREES={
+ 'durees_total':'Durées civiles des épisodes clos — total (jours)',
+ 'durees_min':'Durées civiles des épisodes clos — minimum (jours)',
+ 'durees_max':'Durées civiles des épisodes clos — maximum (jours)',
+ 'durees_moyenne':'Durées civiles des épisodes clos — moyenne (jours, arrondie au dixième)',
+}
+NUITS_DISTINCTES={
+ 'nuits_distinctes':'Nuits distinctes par personne',
+ 'nuits_hors_absences':'Nuits distinctes hors absences déclarées',
+}
+CHOIX.extend([*DUREES.items(),*NUITS_DISTINCTES.items(),('participations','Participations de bénéficiaires — comptées par épisode')])
+
+def contributions_nuits(xs,code):
+    """L'union porte sur personne/date ; une absence concerne son fragment."""
+    deja=set();nombre=0
+    for x in sorted(xs,key=lambda x:x['id']):
+        for a,b,ps,absences in x.get('_fragments_justifies',[]):
+            jour=a
+            while jour<b:
+                for pk in sorted(ps & x['personnes'],key=str):
+                    cle=(pk,jour)
+                    absent=code=='nuits_hors_absences' and any(d<=jour and (f is None or jour<f) for d,f in absences)
+                    valeur=int(not absent and cle not in deja)
+                    if valeur:deja.add(cle)
+                    nombre+=1
+                    if nombre>100000:raise ValidationError('Plus de 100 000 contributions de nuits : réduisez la sélection. Aucun résultat tronqué.')
+                    yield x,pk,jour,valeur,absent
+                jour+=timedelta(days=1)
+
+def mesure_complementaire(xs,code):
+    xs=list(xs)
+    if code in NUITS_DISTINCTES:return sum(v for x,p,j,v,a in contributions_nuits(xs,code))
+    if code=='participations':return sum(len(x['personnes']) for x in xs)
+    valeurs=[Decimal(x['valeurs']['duree'][0]) for x in xs if x['valeurs'].get('duree')]
+    if not valeurs:return None
+    if code=='durees_total':return sum(valeurs)
+    if code=='durees_min':return min(valeurs)
+    if code=='durees_max':return max(valeurs)
+    from decimal import ROUND_HALF_UP
+    return (sum(valeurs)/len(valeurs)).quantize(Decimal('.1'),rounding=ROUND_HALF_UP)

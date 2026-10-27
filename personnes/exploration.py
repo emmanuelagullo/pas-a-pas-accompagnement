@@ -110,6 +110,10 @@ def population(acteur,d):
         for a in model.objects.filter(annule_le__isnull=True,debut__lt=fin).filter(Q(fin__isnull=True)|Q(**{('fin__gte' if d.get('mouvement')=='sorties' else 'fin__gt'):debut})).select_related('accompagnement').prefetch_related('beneficiaires'):
             lignes.append(ligne(a.pk,a.debut,a.beneficiaires.all(),[a.accompagnement.menage_id],prise=a.accompagnement_id,saisie=a.cree_le,date_fin=[a.fin.isoformat()] if a.fin else [],type=[a.get_service_display()] if code=='accords_repas' else ['Hébergement'],origine=[a.prestataire] if code=='accords_repas' else [],etat=['Autorisé'],duree=[(a.fin-a.debut).days] if a.fin else []))
     elif code=='sejours':
+        absences_par_sejour=defaultdict(list)
+        if d.get('mesure')=='nuits_hors_absences':
+            suivi.exiger(acteur,'view_absence')
+            for a in m.Absence.objects.filter(sejour__annule_le__isnull=True).only('sejour_id','debut','fin'):absences_par_sejour[a.sejour_id].append((a.debut,a.fin))
         suivi.exiger(acteur,'view_accompagnement','view_accordhebergement','view_sejour')
         from .continuite_hebergement import episodes
         premieres={}
@@ -125,6 +129,8 @@ def population(acteur,d):
             fragments=[a,*a.continuations.all()]
             if d.get('portion')=='integrale' and f is None:raise ValidationError('La durée intégrale exige des épisodes clos. Choisissez la partie dans la période pour les séjours en cours.')
             x['_fragments']=[(max(s.debut,debut) if d.get('portion')!='integrale' else s.debut,min(s.fin or fin,fin) if d.get('portion')!='integrale' else s.fin,{p.pk for p in s.beneficiaires.all()}) for s in fragments if (d.get('portion')=='integrale' or s.debut<fin and (s.fin is None or s.fin>debut))]
+            if d.get('mesure') in mesures.NUITS_DISTINCTES:
+                x['_fragments_justifies']=[(max(s.debut,debut) if d.get('portion')!='integrale' else s.debut,min(s.fin or fin,fin) if d.get('portion')!='integrale' else s.fin,{p.pk for p in s.beneficiaires.all()},absences_par_sejour.get(s.pk,[])) for s in fragments if d.get('portion')=='integrale' or s.debut<fin and (s.fin is None or s.fin>debut)]
             x['quantite']=sum((Decimal(max(0,(f-d).days)*len(ps)) for d,f,ps in x['_fragments']),Decimal('0'));x['unite']='personne-nuit de séjour (absences non déduites)';lignes.append(x)
     elif code=='affectations':
         suivi.exiger(acteur,'view_accompagnement','view_accordhebergement','view_sejour','view_affectation','view_lieuhebergement')
@@ -351,6 +357,7 @@ def calculer(acteur,d,*,contributions=False):
     choisies=[*colonnes,*axes,*[d['filtre'+str(i)] for i in range(1,(d.get('filtres') or 2)+1)]]
     if any(c.startswith('mission.') for c in choisies if c) and d['population'] not in ('prises','sejours','accords_hebergement','accords_repas','affectations','repas','aides','couts','imputations'):raise ValidationError('Les missions professionnelles se lisent dans une prise en charge ou ses prestations, pas depuis les appartenances de la personne.')
     if any(c and '.' not in c and c not in communs|propres[d['population']] for c in choisies):raise ValidationError('Un axe ou filtre ne correspond pas à cette population. Choisissez la population concernée, ou une dimension de situation personnelle.')
+    if d['mesure'] in (*mesures.DUREES,*mesures.NUITS_DISTINCTES,'participations') and d['population']!='sejours':raise ValidationError('Cette mesure concerne les épisodes de séjour, pas une autorisation ou une distribution.')
     n=d.get('filtres') or 2;cles=[*colonnes,*axes,*[d['filtre'+str(i)] for i in range(1,n+1)]];lignes=population(acteur,d);cles+=mesures.preparer(acteur,lignes,d)
     if d.get('reference_mode') in ('fait','saisie'):
         from datetime import date
@@ -412,6 +419,7 @@ def calculer(acteur,d,*,contributions=False):
         completer_repas(d,axes,ventilation)
     def mesure(xs):
         xs=list(xs)
+        if d['mesure'] in (*mesures.DUREES,*mesures.NUITS_DISTINCTES,'participations'):return mesures.mesure_complementaire(xs,d['mesure'])
         if not xs and d.get('lignes_vides') and d['mesure']=='quantite':return Decimal('0')
         if d['mesure'] in mesures.PERSONNES or d['mesure'] in mesures.FAMILLE or d['mesure'] in mesures.NUITEES:return mesures.mesurer(xs,d['mesure'])
         if d['mesure'] in ('adultes_declares','enfants_declares','grossesses_declarees'):
@@ -446,5 +454,9 @@ def calculer(acteur,d,*,contributions=False):
         resultats.sort(key=ordre_resultat)
     if len(resultats)>2000:raise ValidationError('Plus de 2 000 cellules : choisissez des axes ou filtres plus précis. Aucune cellule supprimée silencieusement.')
     totaux={u:mesure(x for x in lignes if x['unite']==u) for u in {x['unite'] for x in lignes}} if d['mesure'] in ('quantite','minimum','maximum','moyenne') else {d['mesure']:mesure(lignes)}
+    if d['mesure'] in (*mesures.DUREES,*mesures.NUITS_DISTINCTES,'participations'):
+        unite='jours' if d['mesure'] in mesures.DUREES else 'nuits distinctes par personne' if d['mesure'] in mesures.NUITS_DISTINCTES else 'participations'
+        for row in resultats:row['unite']=unite
+        totaux={unite:mesure(lignes)}
     if d.get('lignes_vides') and d['mesure']=='quantite':totaux.setdefault('repas',Decimal('0'))
     return resultats,totaux,lignes

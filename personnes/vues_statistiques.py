@@ -28,31 +28,7 @@ RAPPORTS = {
 }
 
 
-PERIODES = {
-    'mois': 'Mois en cours',
-    'mois_precedent': 'Mois précédent',
-    'annee': 'Année en cours',
-    'annee_precedente': 'Année précédente',
-    'douze_mois': 'Douze derniers mois glissants',
-}
-
-
-def bornes_periode(code, aujourd_hui):
-    """Bornes civiles [début, fin[, sans dépendance à la date du serveur SQL."""
-    premier_mois = aujourd_hui.replace(day=1)
-    if code == 'mois':
-        return premier_mois, aujourd_hui + timedelta(days=1)
-    if code == 'mois_precedent':
-        dernier = premier_mois - timedelta(days=1)
-        return dernier.replace(day=1), premier_mois
-    if code == 'annee':
-        return date(aujourd_hui.year, 1, 1), aujourd_hui + timedelta(days=1)
-    if code == 'douze_mois':
-        mois = aujourd_hui.year * 12 + aujourd_hui.month - 12
-        return date(mois // 12, mois % 12 + 1, 1), aujourd_hui + timedelta(days=1)
-    if code == 'annee_precedente':
-        return date(aujourd_hui.year - 1, 1, 1), date(aujourd_hui.year, 1, 1)
-    raise ValueError('Période prédéfinie inconnue')
+from .periodes_rapports import PERIODES,bornes_periode
 
 
 class PeriodeStatistiquesForm(FormulaireMetier):
@@ -68,7 +44,7 @@ class PeriodeStatistiquesForm(FormulaireMetier):
 
 # Seuls les paramètres publics et validés sont conservés ; ni données nominatives,
 # ni export CSV, ni identifiants d'autres utilisateurs.
-PARAMETRES_MODELE = ('rapport', 'debut', 'fin', 'periode', 'service', 'lieu', 'regroupement', 'comparer')
+PARAMETRES_MODELE = ('rapport', 'debut', 'fin', 'periode', 'service', 'lieu', 'regroupement', 'comparer', 'decalage_debut', 'decalage_fin')
 
 
 def parametres_modele(donnees):
@@ -76,7 +52,7 @@ def parametres_modele(donnees):
     if code_periode and code_periode not in PERIODES:
         raise ValueError('Période relative inconnue')
     if code_periode:
-        debut, fin = bornes_periode(code_periode, timezone.localdate())
+        debut, fin = bornes_periode(code_periode, timezone.localdate(),decalage_debut=donnees.get('decalage_debut',-6),decalage_fin=donnees.get('decalage_fin',1))
         periode = PeriodeStatistiquesForm({'debut': debut.isoformat(), 'fin': fin.isoformat()})
     else:
         periode = PeriodeStatistiquesForm(donnees)
@@ -105,6 +81,7 @@ def parametres_modele(donnees):
         'debut': periode.cleaned_data['debut'].isoformat(),
         'fin': periode.cleaned_data['fin'].isoformat(),
         'periode': code_periode,
+        'decalage_debut':str(donnees.get('decalage_debut',-6)), 'decalage_fin':str(donnees.get('decalage_fin',1)),
         'service': service if rapport == 'exploration_repas' else '',
         'lieu': lieu if rapport == 'exploration_hebergement' else '',
         'regroupement': regroupement,
@@ -167,8 +144,11 @@ def statistiques(request):
     selection.setdefault('debut',initial['debut'].isoformat());selection.setdefault('fin',initial['fin'].isoformat())
     periode_choisie = selection.get('periode', '')
     if periode_choisie in PERIODES:
-        debut, fin = bornes_periode(periode_choisie, aujourd_hui)
-        formulaire = PeriodeStatistiquesForm({'debut': debut.isoformat(), 'fin': fin.isoformat()})
+        try:
+            debut, fin = bornes_periode(periode_choisie, aujourd_hui,decalage_debut=selection.get('decalage_debut',-6),decalage_fin=selection.get('decalage_fin',1))
+            formulaire = PeriodeStatistiquesForm({'debut': debut.isoformat(), 'fin': fin.isoformat()})
+        except (ValueError,TypeError,OverflowError):
+            formulaire=PeriodeStatistiquesForm(selection);formulaire.is_valid();formulaire.add_error(None,'Bornes de période relative invalides.')
     else:
         formulaire = PeriodeStatistiquesForm(selection or None, initial=initial)
 

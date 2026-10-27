@@ -38,8 +38,10 @@ class ExplorationForm(FormulaireMetier):
     debut=date_champ('Période — début inclus');fin=date_champ('Période — fin exclue')
     reference_mode=forms.ChoiceField(label='Lire les situations personnelles',required=False,choices=[('commune','À la référence commune'),('fait','À la date du fait ou du début de chaque objet'),('saisie','À la date de saisie initiale de chaque objet')],help_text='Les âges et situations peuvent varier pour une même personne ; les ventilations ne sont alors pas additives. Les dernières corrections restent prises en compte, sans inventer un instantané ancien.')
     reference=date_champ('Situation personnelle et âge à la date de référence')
-    periode=forms.ChoiceField(label='Période relative facultative',choices=[('','Dates fixes'),('mois','Mois en cours'),('mois_precedent','Mois précédent'),('annee','Année en cours'),('annee_precedente','Année précédente'),('douze_mois','Douze derniers mois')],required=False,
-        help_text='Recalculée à chaque ouverture du modèle ; la référence devient le dernier jour inclus.')
+    from .periodes_rapports import PERIODES
+    periode=forms.ChoiceField(label='Période',choices=[('','Dates fixes'),*PERIODES.items()],required=False)
+    decalage_debut=forms.IntegerField(label='Début relatif, en jours par rapport à aujourd’hui',min_value=-36600,max_value=36600,required=False,initial=-6)
+    decalage_fin=forms.IntegerField(label='Fin exclue relative, en jours par rapport à aujourd’hui',min_value=-36600,max_value=36600,required=False,initial=1)
     mesure=forms.ChoiceField(choices=[('objets','Nombre d’objets de la population'),('personnes','Personnes connues distinctes'),('menages','Ménages explicitement connus distincts'),('quantite','Somme des quantités / montants, par unité'),('minimum','Minimum connu, par unité'),('maximum','Maximum connu, par unité'),('moyenne','Moyenne des valeurs connues, par unité'),('adultes_declares','Adultes déclarés par appel (non dédoublonnés)'),('enfants_declares','Enfants déclarés par appel (non dédoublonnés)'),('grossesses_declarees','Grossesses déclarées par appel (non dédoublonnées)')])
     axe=forms.ChoiceField(label='Classer par')
     croisement=forms.ChoiceField(label='Croiser avec',required=False)
@@ -54,6 +56,9 @@ class ExplorationForm(FormulaireMetier):
     classes_croisement=forms.CharField(label='Classes numériques du croisement (facultatives)',required=False,max_length=3000,widget=forms.Textarea(attrs={'rows':3}),help_text='Même convention : minimum inclus, maximum exclu ; inconnus et hors classes conservés.')
     def __init__(self,*args,acteur,**kw):
         super().__init__(*args,**kw);dims=list(e.disponibles(acteur).items())
+        if str((self.data or {}).get('periode','')) not in ('jours_relatifs','date_relative'):
+            self.fields['decalage_debut'].widget=forms.HiddenInput()
+            self.fields['decalage_fin'].widget=forms.HiddenInput()
         self.fields['mesure'].choices=[*self.fields['mesure'].choices,*e.mesures.CHOIX]
         self.fields['axe'].choices=dims
         for c in ('croisement','filtre1','filtre2'):self.fields[c].choices=[('','Aucun'),*dims]

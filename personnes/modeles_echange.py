@@ -24,8 +24,8 @@ def valider(acteur,params):
     data=params.copy()
     if data.get('periode'):
         from .vues_statistiques import bornes_periode
-        try:debut,fin=bornes_periode(data['periode'],timezone.localdate())
-        except ValueError:raise ValidationError('Période relative non reconnue.')
+        try:debut,fin=bornes_periode(data['periode'],timezone.localdate(),decalage_debut=data.get('decalage_debut',-6),decalage_fin=data.get('decalage_fin',1))
+        except (ValueError,TypeError,OverflowError):raise ValidationError('Période relative ou bornes non reconnues.')
         data.update(debut=debut.isoformat(),fin=fin.isoformat(),reference=(fin-timedelta(days=1)).isoformat())
     f=ExplorationForm(data,acteur=acteur)
     if not f.is_valid():raise ValidationError('Paramètres non valides : '+' ; '.join(str(c)+': '+', '.join(es) for c,es in f.errors.items()))
@@ -45,7 +45,9 @@ def importer(acteur,contenu):
     if not isinstance(nom,str) or not nom.strip() or len(nom)>100:raise ValidationError('Le modèle doit porter un nom de 100 caractères au plus.')
     params=valider(acteur,d['parametres'])
     if m.ModeleRapport.objects.filter(auteur=acteur).count()>=30:raise ValidationError('Limite de 30 modèles personnels atteinte.')
-    return m.ModeleRapport.objects.create(auteur=acteur,nom=nom.strip(),parametres=params)
+    description=d.get('description','');nature=d.get('nature','modele')
+    if not isinstance(description,str) or len(description)>6000 or nature not in ('modele','personnalisation'):raise ValidationError('Description ou nature invalide.')
+    return m.ModeleRapport.objects.create(auteur=acteur,nom=nom.strip(),parametres=params,description=description,nature=nature)
 
 
 def exporter(acteur,modele):
@@ -54,4 +56,4 @@ def exporter(acteur,modele):
         from django.core.exceptions import PermissionDenied
         raise PermissionDenied
     params=valider(acteur,modele.parametres)
-    return json.dumps(dict(schema=1,application='pas-a-pas-accompagnement',type='modele-exploration',nom=modele.nom,parametres=params),ensure_ascii=False,indent=2).encode()
+    return json.dumps(dict(schema=1,application='pas-a-pas-accompagnement',type='modele-exploration',nom=modele.nom,parametres=params,description=modele.description,nature=modele.nature),ensure_ascii=False,indent=2).encode()

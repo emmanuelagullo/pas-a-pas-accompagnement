@@ -27,7 +27,7 @@ def canonique(x):
 def empreinte(objets):
     return hashlib.sha256(canonique(sorted([
         (x['id'],sorted(map(str,x['personnes'])),sorted(map(str,x['menages'])),str(x['date']),
-         str(mesures.quantite_retenue(x)),x['valeurs'],x.get('_par_personne'),x.get('_fragments'),x.get('_quantites_personnelles'))
+         str(mesures.quantite_retenue(x)),x['valeurs'],x.get('_par_personne'),x.get('_fragments'),x.get('_quantites_personnelles'),x.get('_fragments_justifies'))
         for x in objets],key=lambda x:x[0])).encode()).hexdigest()
 
 
@@ -92,6 +92,15 @@ def contributions(acteur,d,code,cellule,token,page=1):
             # Une identité contribue une fois ; les autres faits restent accessibles à zéro.
             for i,x in enumerate(faits):
                 ajouter(x,(noms.get(pk,str(pk)))+(' — déjà compté dans cette partie' if i else ''),valeur if i==0 else 0)
+    elif code in mesures.NUITS_DISTINCTES:
+        for x,pk,jour,valeur,absent in mesures.contributions_nuits(xs,code):
+            ajouter(x,noms.get(pk,str(pk))+(' — absence déclarée' if absent else ' — déjà comptée' if not valeur else ''),valeur,str(jour))
+    elif code in mesures.DUREES:
+        for x in xs:
+            ajouter(x,'Durée civile de l’épisode clos',x['valeurs'].get('duree',[None])[0],str(x['date'])+' → '+str(x['valeurs'].get('date_fin',['non renseignée'])[0]))
+    elif code=='participations':
+        for x in xs:
+            for pk in sorted(x['personnes'],key=str):ajouter(x,noms.get(pk,str(pk)),1)
     elif code in mesures.NUITEES or code=='quantite' and any('_fragments' in x for x in xs):
         personnes={p.pk:p for p in e.m.Personne.objects.filter(pk__in={p for x in xs for p in x['personnes']})}
         for x in xs:
@@ -106,7 +115,7 @@ def contributions(acteur,d,code,cellule,token,page=1):
                 vs=x['valeurs'].get(code,[]);valeur=sum(vs) if vs else None
             else:valeur=mesures.quantite_retenue(x)
             ajouter(x,' · '.join(noms.get(p,str(p)) for p in sorted(x['personnes'],key=str)) or 'Bénéficiaire non identifié',valeur)
-    regle=('Une identité distincte compte une seule fois dans cette partie ; ses autres faits ne s’ajoutent pas.'
+    regle=('Les paires personne/nuit sont dédoublonnées dans chaque partie. Une absence exclut la contribution de son fragment ; une autre contribution admissible peut subsister.' if code in mesures.NUITS_DISTINCTES else 'Durées civiles des épisodes clos, sans multiplication par bénéficiaire. La moyenne est arrondie au dixième ; les durées inconnues sont exclues.' if code in mesures.DUREES else 'Un bénéficiaire compte une fois par épisode retenu ; plusieurs épisodes restent plusieurs participations.' if code=='participations' else 'Une identité distincte compte une seule fois dans cette partie ; ses autres faits ne s’ajoutent pas.'
            if code in ('personnes','menages',*mesures.PERSONNES) else
            'Une valeur par déclarant distinct ; les valeurs inconnues sont exclues, pas remplacées par zéro.' if code in mesures.FAMILLE else
            'Âge exact à chaque nuit civile ; les âges inconnus restent séparés. Les absences ne sont pas déduites.' if code in mesures.NUITEES else

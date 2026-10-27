@@ -47,11 +47,12 @@ def explorer(request):
     if modele and data.get('schema')!=1:return HttpResponse('Version du modèle non prise en charge ; aucun résultat calculé.',status=409)
     jour=timezone.localdate()
     for c,v in dict(population='personnes',debut=jour.replace(day=1).isoformat(),fin=(jour+timedelta(days=1)).isoformat(),reference=jour.isoformat(),mesure='objets',axe='total',croisement='',classes='',filtre1='',operation1='egal',valeur1='',filtre2='',operation2='egal',valeur2='').items():data.setdefault(c,v)
+    erreur_periode=''
     if data.get('periode'):
         from .vues_statistiques import bornes_periode
         try:
-            debut,fin=bornes_periode(data['periode'],jour);data.update(debut=debut.isoformat(),fin=fin.isoformat(),reference=(fin-timedelta(days=1)).isoformat())
-        except ValueError:pass
+            debut,fin=bornes_periode(data['periode'],jour,decalage_debut=data.get('decalage_debut',-6),decalage_fin=data.get('decalage_fin',1));data.update(debut=debut.isoformat(),fin=fin.isoformat(),reference=(fin-timedelta(days=1)).isoformat())
+        except (ValueError,TypeError,OverflowError):erreur_periode='La règle de période relative ou ses bornes sont invalides.'
     if request.GET.get('ajouter_filtre'):
         try:n=int(data.get('filtres') or 2)
         except ValueError:n=2
@@ -67,6 +68,7 @@ def explorer(request):
     if request.GET.get('deplacer_niveau'):data=composition.deplacer(data,request.GET['deplacer_niveau'])
     if request.GET.get('retirer_niveau'):data=composition.retirer(data,request.GET['retirer_niveau'])
     form=ExplorationForm(data,acteur=request.user);lignes=[];totaux={};nombre=0;selection=[];qualite_mesures=[]
+    if erreur_periode:form.is_valid();form.add_error(None,erreur_periode)
     if form.is_valid():
         try:
             mesures=list(dict.fromkeys([form.cleaned_data['mesure'],*[form.cleaned_data.get('mesure'+str(i)) for i in range(2,10) if form.cleaned_data.get('mesure'+str(i))]]))
@@ -217,7 +219,8 @@ def justificatifs(request,fait=False):
             ligne['url']=reverse('dossiers:explorer_fait')+'?'+urlencode({'preuve':token,'objet':ligne['objet'],'page':page.number})
         connus=[l['valeur'] for l in lignes if l['valeur'] is not None]
         calcul=''
-        if payload['mesure']=='moyenne':calcul=f'Somme des quantités connues : {sum(connus)} ; nombre d’objets avec une quantité connue : {len(connus)}. Moyenne arrondie au centième.'
+        if payload['mesure']=='durees_moyenne':calcul=f'Somme des durées civiles connues : {sum(connus)} jours ; épisodes clos : {len(connus)}. Moyenne arrondie au dixième.'
+        elif payload['mesure']=='moyenne':calcul=f'Somme des quantités connues : {sum(connus)} ; nombre d’objets avec une quantité connue : {len(connus)}. Moyenne arrondie au centième.'
         elif payload['mesure'] in ('minimum','maximum'):calcul=f'Quantités connues comparées : {len(connus)} ; objets sans valeur connue : {len(lignes)-len(connus)}.'
         contexte.update(page_obj=page,query_rapport=urlencode({'preuve':token}),regle=regle,calcul=calcul)
         return render(request,'exploration/justificatifs.html',contexte)
