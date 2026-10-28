@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render,redirect,get_object_or_404
 from django.utils import timezone
+from django.template.response import TemplateResponse
 from django.http import HttpResponse
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
@@ -143,7 +144,7 @@ def explorer(request):
             ligne['url_preuves']=preuves.lien(request.user,{**form.cleaned_data,**contexte_retour},ligne['_code_mesure'],ligne,page.number)
     parties,niveaux_composition=composition.presenter(form,request)
     from urllib.parse import urlencode
-    return render(request,'exploration/rapport.html',{'nouveau_rapport':not cible and contexte_retour.get('nouveau')=='1','calcul_effectue':calcul_effectue,'modele_cible':cible,'attendu_modele':attendu_modele,'nom_modele_saisi':request.POST.get('nom',cible.nom if cible else ''),'parties_analyse':parties,'niveaux_composition':niveaux_composition,'origine_rapport':contexte_retour.get('origine_rapport',''),'retour_rapport_source':retour_origine(request.user,contexte_retour.get('origine_rapport')), 'liens_totaux':liens_totaux,'form':form,'colonnes_detail':colonnes,'qualite_mesures':qualite_mesures,'champs_courants':[f for f in form if f.name in ('population','debut','fin','reference','periode','mesure','axe','croisement')],'champs_complementaires':[f for f in form if f.name not in ('population','debut','fin','reference','periode','mesure','axe','croisement')],'niveaux_actifs':[i for i in range(3,8) if form.data.get('axe'+str(i))],'page_obj':page,'query_rapport':urlencode(query),'totaux':totaux,'quantites_inconnues':sum(x['quantite'] is None for x in selection) if calcul_effectue else 0,'nombre':nombre,'modele':modele,
+    return TemplateResponse(request,'exploration/rapport.html',{'nouveau_rapport':not cible and contexte_retour.get('nouveau')=='1','calcul_effectue':calcul_effectue,'modele_cible':cible,'attendu_modele':attendu_modele,'nom_modele_saisi':request.POST.get('nom',cible.nom if cible else ''),'parties_analyse':parties,'niveaux_composition':niveaux_composition,'origine_rapport':contexte_retour.get('origine_rapport',''),'retour_rapport_source':retour_origine(request.user,contexte_retour.get('origine_rapport')), 'liens_totaux':liens_totaux,'form':form,'colonnes_detail':colonnes,'qualite_mesures':qualite_mesures,'champs_courants':[f for f in form if f.name in ('population','debut','fin','reference','periode','mesure','axe','croisement')],'champs_complementaires':[f for f in form if f.name not in ('population','debut','fin','reference','periode','mesure','axe','croisement')],'niveaux_actifs':[i for i in range(3,8) if form.data.get('axe'+str(i))],'page_obj':page,'query_rapport':urlencode(query),'totaux':totaux,'quantites_inconnues':sum(x['quantite'] is None for x in selection) if calcul_effectue else 0,'nombre':nombre,'modele':modele,
         'modeles':[x for x in m.ModeleRapport.objects.filter(auteur=request.user) if x.parametres.get('exploration')]},status=statut)
 
 

@@ -7,6 +7,9 @@ from django.conf import settings
 from django.core import signing
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse,QueryDict
+from django.shortcuts import render
+from django.urls import reverse
+from urllib.parse import urlencode
 from django.template.loader import render_to_string
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
@@ -35,7 +38,7 @@ def document(request,d,resume='',inclure_description=False):
     source=d['source']
     cible=m.ModeleRapport.objects.filter(pk=d.get('cible'),auteur=request.user).select_related('modele_source').first() if d.get('cible') else None
     r=requete_source(request,source,params);ctx=getattr(r,'context_data',None)
-    if ctx is None or r.status_code!=200:raise ValidationError('Le rapport ne peut pas être exporté avec ces critères.')
+    if ctx is None or r.status_code!=200:raise ValidationError('Le calcul du rapport n’a pas pu être repris. Revenez au rapport pour vérifier la sélection.')
     f=ctx.get('form') or ctx.get('formulaire')
     if f is None or not f.is_valid():raise ValidationError('Corrigez les critères avant d’exporter.')
     description=(cible.description or (cible.modele_source.description if cible.modele_source and cible.modele_source.auteur_id==request.user.pk else '')) if cible else ''
@@ -117,5 +120,11 @@ def exporter(request):
                 r.content=tampon.getvalue().encode()+r.content
         else:
             r=HttpResponse(produire_pdf(doc),content_type='application/pdf');r['Content-Disposition']='attachment; filename="rapport.pdf"'
-    except (ValidationError,ValueError,OverflowError) as e:return HttpResponse('Export impossible : '+str(e),status=422,content_type='text/plain; charset=utf-8')
+    except (ValidationError,ValueError,OverflowError) as e:
+        params={k:v for k,v in d['parametres'].items() if k not in ('format','modele','page')}
+        if d.get('cible'):params.update(modele_cible=d['cible'],attendu_modele=d.get('attendu',''))
+        params['page']=d.get('page','1')
+        route=reverse('dossiers:explorer') if d['source']=='exploration' else reverse('dossiers:rapport_composer',args=[d['source']]) if d.get('editeur') else reverse(c.SOURCES[d['source']][1])
+        messages=e.messages if isinstance(e,ValidationError) else [str(e)]
+        return render(request,'rapports/export_impossible.html',{'erreurs':messages,'retour':route+'?'+urlencode(params),'form':f},status=422)
     r['Cache-Control']='private, no-store';r['X-Content-Type-Options']='nosniff';return r
