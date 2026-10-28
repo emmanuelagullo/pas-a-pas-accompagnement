@@ -129,3 +129,15 @@ def export_prioritaire(context,source):
 @register.simple_tag(takes_context=True)
 def preference_export(context):
     return parametres_courants(context,context.get('composition_source','')).get('export_prioritaire','')
+
+
+@register.inclusion_tag('rapports/_entete.html',takes_context=True)
+def entete_rapport(context,titre):
+    from django.urls import reverse
+    from urllib.parse import urlencode
+    request=context['request']
+    params={}
+    if context.get('controle_acteurs') or request.GET.get('filtre'):
+        params['filtre']=context.get('filtre_acteurs') or request.GET.get('filtre','tous')
+    modele=context.get('modele_actif') or context.get('modele_gestion') or context.get('rapport_cible') or context.get('modele_cible')
+    return dict(titre=titre,nom=modele.nom if modele else '',retour=reverse('dossiers:rapports_accueil')+('?' + urlencode(params) if params else ''))

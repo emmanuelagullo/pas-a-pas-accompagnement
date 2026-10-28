@@ -1,8 +1,6 @@
-{% extends 'base.html' %}{% load saisie %}{% block contenu %}
+{% extends 'base.html' %}{% load saisie analyse %}{% block contenu %}
+{% if nouveau_rapport %}{% entete_rapport 'Nouveau modèle' %}{% elif modele_cible %}{% entete_rapport modele_cible.nom %}{% else %}{% entete_rapport 'Analyse composée' %}{% endif %}
 {% if retour_rapport_source %}<p><a href="{{ retour_rapport_source }}">← Revenir au rapport courant</a></p>{% endif %}
-{% if perms.personnes.view_accompagnement and perms.personnes.view_sejour and perms.personnes.view_repasdistribue %}<p><a href="{% url 'statistiques' %}">Rapports courants</a></p>{% endif %}
-<div class="rapport-entete"><h1>{% if nouveau_rapport %}Nouveau modèle{% else %}Explorer les populations et croiser les critères{% endif %}</h1>
-<a href="{% url 'dossiers:rapports_accueil' %}">← Modèles et personnalisations</a></div>
 {% if nouveau_rapport %}<p>Commencez par <strong>Retenir</strong> pour choisir la population et la période de votre rapport. Vous pourrez ensuite choisir les informations à afficher, les mesures à compter et leur classement, puis conserver les paramètres sous un nom.</p>{% endif %}
 <p>{% if modele_cible %}{{ modele_cible.get_nature_display }} : <strong>{{ modele_cible.nom }}</strong>. {% endif %}Choisissez la partie à modifier. Les autres critères et la sélection restent conservés ; aucun assistant n’est nécessaire.</p>
 <div class="analyse-synthese" aria-label="Résumé de l’analyse">

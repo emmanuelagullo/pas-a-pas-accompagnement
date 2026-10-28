@@ -1,9 +1,9 @@
-{% extends "base.html" %}{% load saisie static %}{% load parcours %}{% load aides %}{% block contenu %}<h1>Statistiques d’activité</h1>{% if controle_acteurs %}<script src="{% static 'portee-statistiques.js' %}" defer></script>{% endif %}
+{% extends "base.html" %}{% load saisie static analyse %}{% load parcours %}{% load aides %}{% block contenu %}{% entete_rapport titre_rapport %}{% if controle_acteurs %}<script src="{% static 'portee-statistiques.js' %}" defer></script>{% endif %}
 <p>Les indicateurs portent sur la période civile choisie, début inclus et fin exclue.</p>
 
 {% if portee_statistiques_acteurs != 'service' and portee_statistiques_acteurs != 'etablissement' %}{% include 'exploration/_personnaliser.html' with source='statistiques' %}{% endif %}
-{% if portee_statistiques_acteurs != 'service' and portee_statistiques_acteurs != 'etablissement' %}<p><a href="{% url 'dossiers:rapports_accueil' %}">← Tous les rapports proposés</a></p>{% endif %}
-<h2>Rapport affiché — {{ titre_rapport }}</h2>
+
+
 <form method="get" aria-label="Périodes prédéfinies">{% include 'rapports/_contexte.html' %}{% if portee_statistiques_acteurs == 'service' or portee_statistiques_acteurs == 'etablissement' %}<input type="hidden" name="portee_statistiques" value="{{ portee_statistiques_acteurs }}">{% endif %}
 {% if modele_gestion %}<input type="hidden" name="modele_cible" value="{{ modele_gestion.pk }}"><input type="hidden" name="attendu_modele" value="{{ attendu_modele }}">{% endif %}
 <input type="hidden" name="service" value="{{ service_choisi }}">
