@@ -4,7 +4,7 @@
 {% if portee_statistiques_acteurs != 'service' and portee_statistiques_acteurs != 'etablissement' %}{% include 'exploration/_personnaliser.html' with source='statistiques' %}{% endif %}
 {% if portee_statistiques_acteurs != 'service' and portee_statistiques_acteurs != 'etablissement' %}<p><a href="{% url 'dossiers:rapports_accueil' %}">← Tous les rapports proposés</a></p>{% endif %}
 <h2>Rapport affiché — {{ titre_rapport }}</h2>
-<form method="get" aria-label="Périodes prédéfinies">{% include 'rapports/_contexte.html' %}{% if controle_acteurs %}<input type="hidden" name="filtre" value="{{ filtre_acteurs }}">{% endif %}{% if portee_statistiques_acteurs == 'service' or portee_statistiques_acteurs == 'etablissement' %}<input type="hidden" name="portee_statistiques" value="{{ portee_statistiques_acteurs }}">{% endif %}
+<form method="get" aria-label="Périodes prédéfinies">{% include 'rapports/_contexte.html' %}{% if portee_statistiques_acteurs == 'service' or portee_statistiques_acteurs == 'etablissement' %}<input type="hidden" name="portee_statistiques" value="{{ portee_statistiques_acteurs }}">{% endif %}
 {% if modele_gestion %}<input type="hidden" name="modele_cible" value="{{ modele_gestion.pk }}"><input type="hidden" name="attendu_modele" value="{{ attendu_modele }}">{% endif %}
 <input type="hidden" name="service" value="{{ service_choisi }}">
 <input type="hidden" name="lieu" value="{{ lieu_choisi }}">
@@ -16,7 +16,7 @@
 {% for code, libelle in periodes.items %}<option value="{{ code }}" {% if periode_choisie == code %}selected{% endif %}>{{ libelle }}</option>{% endfor %}
 </select><input type="hidden" name="rapport" value="{{ rapport }}">
 <button type="submit">Appliquer</button></form>
-<form method="get" data-criteres-statistiques>{% include 'rapports/_contexte.html' %}{% include 'acteurs/perimetre_statistiques.html' %}{% if modele_gestion %}<input type="hidden" name="modele_cible" value="{{ modele_gestion.pk }}"><input type="hidden" name="attendu_modele" value="{{ attendu_modele }}">{% endif %}<label for="rapport">Rapport</label>
+<form method="get" data-criteres-statistiques>{% include 'rapports/_contexte.html' with criteres_acteurs_visibles=True %}{% include 'acteurs/perimetre_statistiques.html' %}{% if modele_gestion %}<input type="hidden" name="modele_cible" value="{{ modele_gestion.pk }}"><input type="hidden" name="attendu_modele" value="{{ attendu_modele }}">{% endif %}<label for="rapport">Rapport</label>
 <select id="rapport" name="rapport">
 {% for code, libelle in rapports.items %}<option value="{{ code }}" {% if code == rapport %}selected{% endif %}>{{ libelle }}</option>{% endfor %}
 </select>{% adapter_saisie formulaire request.user %}{{ formulaire.as_p }}

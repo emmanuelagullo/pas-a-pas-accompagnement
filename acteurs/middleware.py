@@ -30,11 +30,21 @@ class PerimetreMiddleware:
                     return HttpResponseRedirect(reverse('statistiques')+'?rapport=synthese&portee_statistiques='+portee)
             # Le mode regroupé ne s'applique qu'aux rapports, jamais aux faits,
             # justificatifs, téléchargements ou ouvertures depuis leurs résultats.
+            donnees_stat=request.GET
+            if request.GET.get('modele') and 'filtre' not in request.GET:
+                from personnes.models import ModeleRapport
+                from django.core.exceptions import ValidationError
+                try:modele=ModeleRapport._base_manager.filter(pk=request.GET['modele'],auteur=request.user).first()
+                except (ValidationError,ValueError):modele=None
+                if modele:donnees_stat={**modele.parametres,**request.GET.dict()}
             modules_rapports={'personnes.vues_statistiques','personnes.vues_exploration','personnes.vues_rapports'}
             if vue_courante.func.__module__ in modules_rapports:
-                stats='mes'
-            if vue_courante.view_name=='statistiques':
-                stats={'tous':'accessibles','mes':'mes','service':'service_accessible','attente':'attente'}.get(request.GET.get('filtre','mes'),'mes')
+                from .statistiques import FILTRES,filtre
+                stats=FILTRES[filtre(donnees_stat)]
+            from personnes.catalogue_rapports import SOURCES
+            if vue_courante.view_name in {x[1] for x in SOURCES.values()} and request.method=='GET':
+                from .statistiques import FILTRES,filtre
+                stats=FILTRES[filtre(donnees_stat)]
             if request.GET.get('portee_statistiques') in ('service','etablissement'):
                 vue=vue_courante
                 if vue.func.__module__=='personnes.vues_statistiques' and vue.func.__name__=='statistiques':

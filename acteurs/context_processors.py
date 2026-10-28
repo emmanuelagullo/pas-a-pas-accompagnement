@@ -13,8 +13,10 @@ def acteurs(request):
     if not actif:return result
     from .recherche import FILTRES
     statistiques=request.resolver_match and request.resolver_match.view_name in ('statistiques','dossiers:rapports_accueil')
-    filtre=request.GET.get('filtre','mes' if statistiques else 'tous')
-    result.update(filtres_dossiers_acteurs=FILTRES,filtre_acteurs=filtre if filtre in dict(FILTRES) else ('mes' if statistiques else 'tous'))
+    from .statistiques import FILTRES as MODES
+    defaut=next((k for k,v in MODES.items() if v==ctx.statistiques),'tous')
+    filtre=request.GET.get('filtre',defaut)
+    result.update(filtres_dossiers_acteurs=FILTRES,filtre_acteurs=filtre if filtre in dict(FILTRES) else 'tous')
     hs=p.habilitations(request.user)
     result['peut_ouvrir_dossiers_acteurs']=hs.exclude(tache='coordination').exists()
     services=Service.objects.filter(pk__in=hs.values('service_id')).select_related('etablissement')

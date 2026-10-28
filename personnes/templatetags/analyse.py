@@ -14,6 +14,11 @@ def parametres_courants(context,source):
     if source=='statistiques':
         params.update(rapport=context.get('rapport','synthese'),service=context.get('service_choisi',''),
                       lieu=context.get('lieu_choisi',''),regroupement=context.get('regroupement','mois_categorie'))
+    if context.get('controle_acteurs'):
+        params['filtre']=context.get('filtre_acteurs','tous')
+        if context.get('portee_statistiques_acteurs') in ('service','etablissement'):
+            params['portee_statistiques']=context['portee_statistiques_acteurs']
+        else:params.pop('portee_statistiques',None)
     return params
 
 

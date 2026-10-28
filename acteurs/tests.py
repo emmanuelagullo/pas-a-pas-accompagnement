@@ -190,7 +190,7 @@ class AccesTests(TestCase):
 
     def test_statistiques_mes_dossiers_et_totaux_de_service_distincts(self):
         c=Client();c.force_login(self.ua)
-        params={'rapport':'synthese','debut':'2026-01-01','fin':'2026-02-01'}
+        params={'rapport':'synthese','debut':'2026-01-01','fin':'2026-02-01','filtre':'mes'}
         r=c.get('/statistiques/',params);self.assertEqual(r.status_code,200)
         self.assertEqual(r.context_data['resultats']['accompagnements'],0)
         self.assertEqual(c.get('/statistiques/',{**params,'portee_statistiques':'service'}).status_code,403)
@@ -407,7 +407,7 @@ class AccesTests(TestCase):
 
     def test_filtres_statistiques_restreignent_sans_ouvrir_un_service(self):
         c=Client();c.force_login(self.ua)
-        params={'rapport':'synthese','debut':'2026-01-01','fin':'2026-02-01'}
+        params={'rapport':'synthese','debut':'2026-01-01','fin':'2026-02-01','filtre':'mes'}
         for filtre,nombre in [('tous',1),('service',1),('mes',0),('attente',0)]:
             with self.subTest(filtre=filtre):
                 r=c.get('/statistiques/',{**params,'filtre':filtre})
@@ -490,3 +490,48 @@ class AccesTests(TestCase):
         page=c.get(reverse('accueil'),{'q':'Nom absent de tous les dossiers'})
         self.assertTrue(page.context['creation_suggeree'])
         self.assertFalse(c.get(reverse('accueil')).context['creation_suggeree'])
+
+    def test_entrees_statistiques_transmettent_le_perimetre_au_rapport(self):
+        from django.urls import reverse
+        from urllib.parse import urlsplit,parse_qs
+        c=Client();c.force_login(self.ua)
+        page=c.get(reverse('accueil'))
+        self.assertContains(page,'Statistiques sur mes dossiers')
+        for choix,nombre in [('tous',1),('mes',0)]:
+            catalogue=c.get(reverse('dossiers:rapports_accueil'),{'filtre':choix})
+            rapports=catalogue.context['rapports']
+            self.assertTrue(rapports)
+            for rapport in rapports:self.assertEqual(parse_qs(urlsplit(rapport['url']).query)['filtre'],[choix])
+            params={'rapport':'synthese','debut':'2026-01-01','fin':'2026-02-01','filtre':choix}
+            r=c.get('/statistiques/',params)
+            self.assertEqual(r.context_data['resultats']['accompagnements'],nombre)
+        r=c.get('/statistiques/',{'rapport':'synthese','debut':'2026-01-01','fin':'2026-02-01'})
+        self.assertEqual(r.context_data['resultats']['accompagnements'],1)
+
+    def test_export_signe_rejoue_mes_dossiers_et_reverifie_les_droits(self):
+        from django.core import signing
+        from django.urls import reverse
+        import csv,io
+        Habilitation.objects.filter(compte=self.ua).update(exporter=True)
+        c=Client();c.force_login(self.ua)
+        token=signing.dumps({'acteur':str(self.ua.pk),'source':'statistiques','parametres':
+            {'rapport':'synthese','debut':'2026-01-01','fin':'2026-02-01','filtre':'mes'}},salt='reglages-rapport-v1')
+        r=c.post(reverse('dossiers:rapport_exporter'),{'definition':token,'format':'csv'})
+        self.assertEqual(r.status_code,200)
+        lignes=list(csv.DictReader(io.StringIO(r.content.decode('utf-8-sig'))))
+        self.assertEqual(next(x['valeur'] for x in lignes if x['indicateur']=='accompagnements'),'0')
+        Habilitation.objects.filter(compte=self.ua).update(exporter=False)
+        self.assertEqual(c.post(reverse('dossiers:rapport_exporter'),{'definition':token,'format':'csv'}).status_code,403)
+
+    def test_modele_personnel_conserve_le_choix_mes_dossiers(self):
+        from personnes.vues_statistiques import parametres_modele
+        from .contexte import perimetre
+        donnees={'rapport':'synthese','debut':'2026-01-01','fin':'2026-02-01','filtre':'mes'}
+        with perimetre(self.ua,self.sa):params=parametres_modele(donnees)
+        self.assertEqual(params['filtre'],'mes')
+        modele=m.ModeleRapport.objects.create(auteur=self.ua,nom='Mes dossiers',parametres=params)
+        c=Client();c.force_login(self.ua)
+        r=c.get('/statistiques/',{'modele':str(modele.pk)})
+        self.assertEqual(r.context_data['resultats']['accompagnements'],0)
+        r=c.get('/statistiques/',{'modele':str(modele.pk),'filtre':'tous'})
+        self.assertEqual(r.context_data['resultats']['accompagnements'],1)

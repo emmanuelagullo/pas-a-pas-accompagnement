@@ -40,6 +40,9 @@ def reponse_source(request,source,donnees):
     if source=='appels':
         for cle in ('personne','menage'):
             if donnees.get(cle) and not request.user.has_perm('personnes.view_'+cle):raise PermissionDenied
+    if 'filtre' in request.GET:
+        from acteurs.statistiques import filtre
+        donnees={**donnees,'filtre':filtre(request.GET)}
     from .periodes_rapports import resoudre
     try:donnees=resoudre(donnees)
     except (ValueError,TypeError,OverflowError):raise ValidationError('Règle de dates relatives invalide.')
@@ -50,7 +53,12 @@ def reponse_source(request,source,donnees):
     chemin=reverse(c.SOURCES[source][1]);prefixe=get_script_prefix().rstrip('/')
     if prefixe and chemin.startswith(prefixe+'/'):chemin=chemin[len(prefixe):]
     vue=resolve(chemin)
-    return vue.func(req,**vue.kwargs)
+    from acteurs.statistiques import selection
+    with selection(request.user,donnees,source) as portee:
+        req.acteurs_statistiques_regroupees=portee in ('service','etablissement')
+        reponse=vue.func(req,**vue.kwargs)
+        from acteurs.statistiques import reponse_bornee
+        return reponse_bornee(reponse,request.user,donnees,source)
 
 
 def parametres_response(reponse,source,donnees):
@@ -78,6 +86,8 @@ def parametres_response(reponse,source,donnees):
         if donnees.get(cle) is not None:p[cle]=str(donnees[cle])
     from .presentation_exports import valider
     p['export_prioritaire']=valider(donnees.get('export_prioritaire',''))
+    from acteurs.statistiques import parametres
+    p.update(parametres(donnees))
     p[c.CLE_SOURCE]=source
     return p
 
@@ -97,7 +107,15 @@ def accueil(request):
     rapports=c.catalogue(request.user)
     if not rapports and not request.user.has_perm('personnes.view_personne'):raise PermissionDenied
     personnels=list(m.ModeleRapport.objects.filter(auteur=request.user))
-    for x in personnels:x.url_rapport=c.ouvrir(x)
+    from acteurs.statistiques import filtre
+    from urllib.parse import urlsplit,urlunsplit,parse_qsl
+    def selectionner(url):
+        u=urlsplit(url);params=dict(parse_qsl(u.query));params['filtre']=filtre(request.GET)
+        return urlunsplit((u.scheme,u.netloc,u.path,urlencode(params),u.fragment))
+    from acteurs import politique
+    for x in personnels:x.url_rapport=selectionner(c.ouvrir(x)) if politique.active() else c.ouvrir(x)
+    if politique.active():
+        for x in rapports:x['url']=selectionner(x['url'])
     return render(request,'rapports/accueil.html',{'rapports':rapports,'personnels':personnels})
 
 

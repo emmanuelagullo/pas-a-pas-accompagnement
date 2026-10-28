@@ -48,6 +48,7 @@ PARAMETRES_MODELE = ('export_prioritaire', 'rapport', 'debut', 'fin', 'periode',
 
 
 def parametres_modele(donnees):
+    from acteurs.statistiques import parametres as parametres_acces
     from .presentation_exports import valider
     from django.core.exceptions import ValidationError
     try:preference=valider(donnees.get('export_prioritaire',''))
@@ -81,6 +82,7 @@ def parametres_modele(donnees):
         if mois > 24:
             raise ValueError('Période trop longue')
     return {
+        **parametres_acces(donnees),
         'export_prioritaire': preference,
         'rapport': rapport,
         'debut': periode.cleaned_data['debut'].isoformat(),

@@ -1,1 +1,2 @@
 {% load analyse %}{% preference_export as preference %}<input type="hidden" name="export_prioritaire" value="{{ preference }}">{% if composition_source and rapport_cible %}<input type="hidden" name="modele_cible" value="{{ rapport_cible.pk }}"><input type="hidden" name="attendu_modele" value="{{ attendu_rapport }}">{% endif %}
+{% if controle_acteurs and not criteres_acteurs_visibles %}<input type="hidden" name="filtre" value="{{ filtre_acteurs }}">{% endif %}

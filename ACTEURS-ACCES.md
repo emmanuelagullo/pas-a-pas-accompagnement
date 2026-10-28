@@ -192,3 +192,8 @@ Le début d’intervention est prérempli au jour local et affiché en ISO pour 
 champ date natif. Les paramètres de partage restent dans Établissement.
 Le catalogue statistique choisit un rapport ; la sélection des dossiers et la
 portée des totaux sont dans les critères du rapport, avec Calculer.
+
+L’entrée Statistiques ouvre le catalogue avec Tous les dossiers accessibles ;
+Compte → Statistiques sur mes dossiers ouvre ce même catalogue avec Mes dossiers.
+Ce choix reste dans les liens, les critères, les modèles et les exports ; il ne
+change ni les formules ni l’habilitation aux totaux d’un service/établissement.

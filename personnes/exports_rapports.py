@@ -25,7 +25,9 @@ def requete_source(request,source,params):
     from .vues_exploration import explorer
     r=copy(request);r.method='GET';r.GET=QueryDict('',mutable=True);r.POST=QueryDict('')
     for k,v in params.items():r.GET[k]=str(v)
-    return explorer(r)
+    from acteurs.statistiques import selection
+    with selection(request.user,params,'exploration'):
+        return explorer(r)
 
 def document(request,d,resume='',inclure_description=False):
     from .periodes_rapports import resoudre
