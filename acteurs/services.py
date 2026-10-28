@@ -135,7 +135,8 @@ def proposition_relais(compte,dossier,objet,descendants=True,sortant=None,date=N
 
 
 @transaction.atomic
-def relayer(compte,dossier,entrant,attendu,proposition):
+def relayer(compte,dossier,entrant,attendu,proposition,message=""):
+    message=message_attribution(message)
     reserver(dossier,attendu)
     try:d=signing.loads(proposition,salt='acteurs-relais-v1',max_age=3600);date=datetime.fromisoformat(d['date'])
     except (signing.BadSignature,KeyError,ValueError,TypeError):raise Conflit('Proposition de relais expirée ; recommencez.')
@@ -156,7 +157,7 @@ def relayer(compte,dossier,entrant,attendu,proposition):
         if Responsabilite.objects.filter(p.periode(date),annule_le__isnull=True,dossier=dossier,professionnel=entrant,**cible).exists():
             raise ValidationError('Le collègue intervient déjà à ce niveau ; terminez votre intervention séparément.')
         x.fin=date;x.full_clean();x.save(update_fields=['fin'])
-        y=Responsabilite(dossier=dossier,professionnel=entrant,debut=date,role=x.role,cree_par=compte,**cible);y.full_clean();y.save()
+        y=Responsabilite(dossier=dossier,professionnel=entrant,debut=date,role=x.role,cree_par=compte,message=message,**cible);y.full_clean();y.save()
         avant.append(x.pk);apres.append(y.pk)
     journal(compte,dossier.service,'relais',{'responsabilites':avant,'professionnel':d['sortant']},
         {'responsabilites':apres,'professionnel':str(entrant.pk)},dossier,date.date())
@@ -238,7 +239,8 @@ def peut_attribuer(compte,dossier,objet):
 
 
 @transaction.atomic
-def ajouter_responsabilite(compte,dossier,objet,professionnel,debut,role,attendu,fin=None):
+def ajouter_responsabilite(compte,dossier,objet,professionnel,debut,role,attendu,fin=None,message=""):
+    message=message_attribution(message)
     reserver(dossier,attendu)
     if not peut_attribuer(compte,dossier,objet):raise PermissionDenied
     champs=selection_cible(dossier,objet)
@@ -250,7 +252,7 @@ def ajouter_responsabilite(compte,dossier,objet,professionnel,debut,role,attendu
         raise ValidationError('Cette personne intervient déjà à ce niveau.')
     borne=timezone.make_aware(datetime.combine(fin,time.min)) if fin else None
     if borne and borne<=date:raise ValidationError('La fin exclue doit suivre le début de l’intervention.')
-    x=Responsabilite(dossier=dossier,professionnel=professionnel,debut=date,fin=borne,role=role,cree_par=compte,**champs)
+    x=Responsabilite(dossier=dossier,professionnel=professionnel,debut=date,fin=borne,role=role,cree_par=compte,message=message,**champs)
     x.full_clean();x.save()
     if isinstance(objet,DossierService):
         dossier.en_attente=False;dossier.save(update_fields=['en_attente'])
@@ -333,3 +335,9 @@ def oublier_initialisation_prise(prise):
     from .contexte import courant
     ctx=courant()
     if ctx:ctx.nouveaux.difference_update(PorteeObjet.objects.filter(prise=prise).values_list('modele','identifiant'))
+
+
+def message_attribution(valeur):
+    valeur=(valeur or '').strip()
+    if len(valeur)>1000:raise ValidationError('Le message est limité à 1 000 caractères.')
+    return valeur

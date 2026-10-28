@@ -111,6 +111,8 @@ class PorteeObjet(ModeleOrganisation):
 
 
 class Responsabilite(Periode):
+    message=models.CharField(max_length=1000,blank=True)
+    auteur_libelle=models.CharField(max_length=200,blank=True,editable=False)
     annule_le = models.DateTimeField(null=True, blank=True, editable=False)
     debut = models.DateTimeField(default=timezone.now)
     fin = models.DateTimeField(null=True, blank=True)
@@ -130,6 +132,13 @@ class Responsabilite(Periode):
             Q(prise__isnull=True, hebergement__isnull=False, repas__isnull=True, aide__isnull=True) |
             Q(prise__isnull=True, hebergement__isnull=True, repas__isnull=False, aide__isnull=True) |
             Q(prise__isnull=True, hebergement__isnull=True, repas__isnull=True, aide__isnull=False)), name='act_responsabilite_cible')]
+    def save(self,*args,**kwargs):
+        if self._state.adding and not self.auteur_libelle:
+            lien=LienCompteProfessionnel.objects.filter(compte_id=self.cree_par_id).select_related('professionnel').first()
+            self.auteur_libelle=(str(lien.professionnel) if lien else self.cree_par.get_username())[:200]
+        return super().save(*args,**kwargs)
+    @property
+    def auteur_affiche(self):return self.auteur_libelle or self.cree_par.get_username()
     @property
     def cible(self): return self.hebergement or self.repas or self.aide or self.prise or self.dossier
 

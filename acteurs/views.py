@@ -145,7 +145,7 @@ def relais(request,pk,niveau='dossier',objet_pk=None):
         concorde=all(ancienne.get(k)==nouvelle.get(k) for k in ('dossier','revision','ids','sortant')) and jour==d['date']
         prop=proposition_attendue
         if concorde:
-            try:s.relayer(request.user,ds,d['entrant'],d['attendu'],d['proposition'])
+            try:s.relayer(request.user,ds,d['entrant'],d['attendu'],d['proposition'],message=d['message'])
             except (ValidationError,OperationalError) as e:f.add_error(None,' '.join(e.messages) if isinstance(e,ValidationError) else 'Relais non confirmé ; rechargez avant de réessayer.')
             else:return redirect(retour_dossier(ds,request))
         else:f.add_error(None,'Vérifiez la portée actualisée puis confirmez le relais.')
@@ -170,6 +170,7 @@ def attribuer(request,pk,niveau='dossier',objet_pk=None):
     f.fields['role']=forms.ChoiceField(choices=Responsabilite._meta.get_field('role').choices,label='Participation')
     f.fields['debut']=forms.DateField(label='Début de l’intervention',initial=timezone.localdate(),widget=forms.DateInput(format='%Y-%m-%d',attrs={'type':'date'}))
     f.fields['fin']=forms.DateField(label='Fin prévue de l’intervention (facultatif, jour exclu)',required=False,widget=forms.DateInput(format='%Y-%m-%d',attrs={'type':'date'}),help_text='Utile pour un remplacement temporaire. À cette date, les accès restants suivent la politique du service.')
+    f.fields['message']=forms.CharField(label='Message accompagnant l’attribution — facultatif',required=False,max_length=1000,widget=forms.Textarea(attrs={'rows':3}),help_text='Partagé dans le cahier de '+{'dossier':'ce dossier','prise':'cette prise en charge'}.get(niveau,'cette prestation')+' et la notification du destinataire, avec les professionnels autorisés à consulter cet événement. Ce n’est pas un message privé.')
     f.fields['attendu']=forms.CharField(widget=forms.HiddenInput,initial=s.jeton(ds))
     return formulaire(request,f,'Ajouter un intervenant à ce suivi',lambda **d:s.ajouter_responsabilite(request.user,ds,objet,**d),retour_dossier(ds,request))
 

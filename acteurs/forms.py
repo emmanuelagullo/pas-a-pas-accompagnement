@@ -31,6 +31,7 @@ class HabilitationForm(FormulaireMetier):
 
 
 class RelaisForm(FormulaireMetier):
+    message=forms.CharField(label='Message accompagnant le relais — facultatif',required=False,max_length=1000,widget=forms.Textarea(attrs={'rows':3}),help_text='Partagé dans le cahier de chaque élément transféré et la notification du destinataire, selon leurs droits. Ce n’est pas un message privé.')
     entrant=forms.ModelChoiceField(Intervenant.objects.none(),label='À qui ?')
     sortant=forms.ModelChoiceField(Intervenant.objects.none(),label='Relayer qui ?')
     date=forms.DateField(label='À partir de quand ?',widget=forms.DateInput(attrs={'type':'date'}))
