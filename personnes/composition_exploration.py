@@ -110,4 +110,20 @@ def presenter(form,request):
     for nom_champ in ('portion','cohorte'):
         if form[nom_champ].value() not in ('',None,'selection','tous'):par_cle['compter']['resume']+=' · '+nom(nom_champ)
     if form['lignes_vides'].value():par_cle['afficher']['resume']+=' · Mois et services sans distribution inclus'
+    from .exploration_releve import cles_colonnes
+    donnees={k:form[k].value() for k in form.fields}
+    nombre_filtres=len(criteres)+(1 if form.data.get('filtre') not in (None,'','tous') else 0)
+    def compte(n,singulier,pluriel):return str(n)+' '+(singulier if n==1 else pluriel)
+    par_cle['retenir']['compteur']=compte(nombre_filtres,'filtre supplémentaire','filtres supplémentaires')
+    detail=form['affichage'].value()=='detail'
+    nombre_colonnes=2+len(cles_colonnes(donnees)) if detail else 5+sum(bool(form[c].value()) for c in CLES_AXES[2:] if c in form.fields)
+    par_cle['afficher']['compteur']=compte(nombre_colonnes,'colonne','colonnes')
+    par_cle['afficher']['resume']=nom('affichage')+' · '+('Dossier, date du fait et colonnes choisies' if detail else 'Groupes, mesure, unité et valeur')
+    conservees=sum(bool(form[c].value()) for c in form.fields if c.startswith('colonne'))
+    if not detail and conservees:par_cle['afficher']['resume']+=' · '+compte(conservees,'colonne du détail conservée','colonnes du détail conservées')
+    if form['lignes_vides'].value():par_cle['afficher']['resume']+=' · Mois et services sans distribution inclus'
+    par_cle['compter']['compteur']=compte(len(set(m for m in mesures if m)),'mesure','mesures')
+    par_cle['classer']['compteur']=compte(len(axes),'niveau','niveaux') if axes else 'Aucun regroupement'
+    if not axes:par_cle['classer']['resume']='Total général'+(' · Sous-totaux activés' if form['sous_totaux'].value() else '')
+    for partie in parties:partie['a_verifier']=bool(form.errors)
     return parties,niveaux

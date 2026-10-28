@@ -287,3 +287,4 @@ header > nav .menu-utilisateur { position: relative; }
 .case-libelle input[type=checkbox] { flex: 0 0 auto; width: auto; margin: 0; }
 .case-libelle label { display: inline; margin: 0; cursor: pointer; }
 .choix-case .helptext { margin: .3rem 0 .6rem 1.7rem; }
+.analyse-compteur { display: inline-block; vertical-align: middle; color: #3d544c; background: #edf3ef; border-radius: .8rem; padding: .15rem .5rem; font-size: .78rem; font-weight: 500; }

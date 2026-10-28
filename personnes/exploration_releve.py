@@ -4,6 +4,11 @@ from django.urls import reverse
 from . import exploration as e
 
 
+def cles_colonnes(d):
+    cles=[d.get('colonne'+str(i)) for i in range(1,12) if d.get('colonne'+str(i))]
+    return cles or [d['axe'],*([d['croisement']] if d['croisement'] else [])]
+
+
 @service_metier
 def relever(d,selection,acteur,*,liens=True):
     from urllib.parse import urlencode
@@ -19,8 +24,7 @@ def relever(d,selection,acteur,*,liens=True):
         if set(objets)!={x['id'] for x in selection}:
             from django.core.exceptions import ValidationError
             raise ValidationError('Les faits ont changé pendant le calcul ; recalculez le rapport.')
-    cles=[d.get('colonne'+str(i)) for i in range(1,12) if d.get('colonne'+str(i))]
-    if not cles:cles=[d['axe'],*([d['croisement']] if d['croisement'] else [])]
+    cles=cles_colonnes(d)
     colonnes=[e.DIMENSIONS[c] for c in cles];lignes=[]
     for x in selection:
         cellules=[]

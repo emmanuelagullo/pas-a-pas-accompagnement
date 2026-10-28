@@ -4,7 +4,7 @@
 {% if nouveau_rapport %}<p>Commencez par <strong>Retenir</strong> pour choisir la population et la période de votre rapport. Vous pourrez ensuite choisir les informations à afficher, les mesures à compter et leur classement, puis conserver les paramètres sous un nom.</p>{% endif %}
 <p>{% if modele_cible %}{{ modele_cible.get_nature_display }} : <strong>{{ modele_cible.nom }}</strong>. {% endif %}Choisissez la partie à modifier. Les autres critères et la sélection restent conservés ; aucun assistant n’est nécessaire.</p>
 <div class="analyse-synthese" aria-label="Résumé de l’analyse">
-{% for partie in parties_analyse %}<section class="carte"><h2>{{ partie.titre }}</h2><p>{{ partie.resume }}</p><a href="?{{ query_rapport }}&amp;panneau={{ partie.cle }}&amp;page={{ page_obj.number }}{% if origine_rapport %}&amp;origine_rapport={{ origine_rapport|urlencode }}{% endif %}#modifier-{{ partie.cle }}">Modifier {{ partie.titre|lower }}</a></section>{% endfor %}
+{% for partie in parties_analyse %}<section class="carte"><h2>{{ partie.titre }} <span class="analyse-compteur">{{ partie.compteur }}</span></h2><p>{{ partie.resume }}</p>{% if partie.a_verifier %}<p class="helptext">Choix à vérifier : corrigez les erreurs signalées avant d’utiliser les résultats.</p>{% endif %}<a href="?{{ query_rapport }}&amp;panneau={{ partie.cle }}&amp;page={{ page_obj.number }}{% if origine_rapport %}&amp;origine_rapport={{ origine_rapport|urlencode }}{% endif %}#modifier-{{ partie.cle }}">Modifier {{ partie.titre|lower }}</a></section>{% endfor %}
 </div>
 <form method="get" id="composition-analyse">
 {% if nouveau_rapport %}<input type="hidden" name="nouveau" value="1">{% endif %}
@@ -14,7 +14,7 @@
 <input type="hidden" name="page" value="{{ page_obj.number }}"><input type="hidden" name="panneau" value="{{ request.GET.panneau }}">
 {% if origine_rapport %}<input type="hidden" name="origine_rapport" value="{{ origine_rapport }}">{% endif %}
 {% for partie in parties_analyse %}
-<details{% if partie.ouvert %} open{% endif %}><summary id="modifier-{{ partie.cle }}">{{ partie.titre }} — {{ partie.resume|truncatechars:120 }}</summary>
+<details{% if partie.ouvert %} open{% endif %}><summary id="modifier-{{ partie.cle }}">{{ partie.titre }} · {{ partie.compteur }} — {{ partie.resume|truncatechars:120 }}</summary>
 {% if partie.cle == 'retenir' %}<p>Les critères personnels portent sur la même personne ; les champs d’une déclaration sur le même fait. Les critères « déclaration personnelle saisie » lisent SituationPersonnelle à la référence, sans substitution par la synthèse du dossier. Les déclarations détaillées restent distinctes.</p>{% endif %}
 {% if partie.note %}<p class="helptext">{{ partie.note }}</p>{% endif %}
 {% for f in partie.conserves %}{{ f.as_hidden }}{% endfor %}
