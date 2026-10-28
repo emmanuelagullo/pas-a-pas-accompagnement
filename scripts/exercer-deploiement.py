@@ -111,7 +111,17 @@ def exercer(mode, delai_demarrage=180, render=False):
                            'DJANGO_SETTINGS_MODULE': 'pas_a_pas_accompagnement.settings'}
             code = "from personnes.models import Personne; from django.contrib.auth import get_user_model; "
             if mode == 'ephemere':
-                code += "assert Personne.objects.count()==36; assert get_user_model().objects.count()==4; u=get_user_model().objects.get(username='essai'); assert not u.is_staff and not u.is_superuser"
+                code += (
+                    "from acteurs.models import ConfigurationAcces,Habilitation; "
+                    "assert Personne.objects.count()==36; "
+                    "assert set(get_user_model().objects.values_list('username',flat=True))=={'essai','nadia','remi','camille','coordination'}; "
+                    "assert not get_user_model().objects.filter(is_staff=True).exists(); "
+                    "assert not get_user_model().objects.filter(is_superuser=True).exists(); "
+                    "assert ConfigurationAcces.objects.get(pk=1).active; "
+                    "assert dict(Habilitation.objects.values_list('compte__username','tache'))=="
+                    "{'essai':'social','nadia':'social','remi':'accueil','camille':'gestion','coordination':'coordination'}; "
+                    "assert Habilitation.objects.get(compte__username='coordination').statistiques_service"
+                )
             elif tour == 0:
                 code += "assert not Personne.objects.exists(); assert not get_user_model().objects.exists(); u=get_user_model().objects.create_user('ci-fictif'); Personne.objects.create(designation='Persistance fictive',cree_par=u)"
             else:
