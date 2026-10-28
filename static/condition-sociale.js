@@ -152,7 +152,7 @@
       }
       form.requestSubmit(); return;
     }
-    if (['debut', 'fin', 'beneficiaire'].includes(mode)) { form.requestSubmit(); return; }
+    if (['debut', 'fin', 'beneficiaire', 'presentation_evolution'].includes(mode)) { form.requestSubmit(); return; }
     if (!['vue_debut', 'vue_fin'].includes(mode)) return;
     const borne = mode.slice(4);
     const date = form.querySelector('input[type="date"][name="' + borne + '"]');

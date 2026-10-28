@@ -1,0 +1,1 @@
+<form method="post" action="{% url 'dossiers:frises_preference' %}" class="frise-choix" data-frise-choix>{% csrf_token %}<input type="hidden" name="retour_frise" value="{{ frise_retour }}"><label><input type="checkbox" name="actif" value="1"{% if frises_actives %} checked{% endif %}> Frise</label><button class="secondaire">Appliquer</button></form>

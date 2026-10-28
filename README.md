@@ -1521,3 +1521,11 @@ Aucune définition statistique, source sociale ou autorisation n’est modifiée
 Le dossier et la prise proposent une lecture temporelle facultative, sans modifier
 leurs listes ni les formulaires de correction. Voir [l’audit, les règles temporelles
 et la recette](CHRONOLOGIE.md). Aucun changement de modèle ou de dépendance.
+
+
+### Frises sur place
+
+La checkbox **Frise** affiche des bandes compactes sous les noms des dossiers,
+sous les périodes des prises et dans les prestations. Son état est commun à la
+session. **Élargir** ouvre les détails sur place. Voir [la représentation,
+les échelles et la recette](FRISES-SUR-PLACE.md).

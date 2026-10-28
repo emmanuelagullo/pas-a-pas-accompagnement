@@ -1,5 +1,10 @@
 # Chronologie — audit et premier lot de consultation (#SOC)
 
+**État courant :** les frises sont maintenant intégrées sur place dans les trois
+formulaires BD. Voir [Frises compactes sur place](FRISES-SUR-PLACE.md). Les écrans
+et recettes ci-dessous décrivent le premier lot spécialisé, conservé pour
+compatibilité des URL.
+
 ## Bases examinées le 28 octobre 2026
 
 Patch réactualisé sur `main` Inria `1a09370e93f1b705d639f80c7e000744805baa8d`.

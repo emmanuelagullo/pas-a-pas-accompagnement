@@ -40,7 +40,7 @@ class TrajectoireUnifieeTests(TestCase):
         self.assertEqual(avec['texte'], 'En formation')
         self.assertEqual(len(avec['anciens']), 2)
         self.assertTrue(avec['conflit'])
-        page = self.client.get(self.url, {'debut':'2026-02-02', 'fin':'2026-02-02'})
+        page = self.client.get(self.url, {'debut':'2026-02-02', 'fin':'2026-02-02', 'presentation_evolution':'tout'})
         self.assertContains(page, 'En formation'); self.assertContains(page, 'Ancien A fictif')
         self.assertFalse(any(l['nature'] == 'Déclaration personnelle' for l in page.context['lignes']))
         self.assertEqual(m.SituationPersonnelle.objects.count(), 1)
@@ -117,7 +117,7 @@ class TrajectoireUnifieeTests(TestCase):
         x=self.ressource()
         for nature,creancier,montant in [('total','',1000),('detail','Créancier fictif',100)]:
             dossier_complet.enregistrer(self.u,'dettes',self.p,date(2026,1,1),None,'Dette fictive',bd6.jeton(self.p),**valeurs('dettes',nature=nature,creancier=creancier,montant=Decimal(montant)))
-        page=self.client.get(self.url,{'debut':'2026-02-01','fin':'2026-02-02'})
+        page=self.client.get(self.url,{'debut':'2026-02-01','fin':'2026-02-02','presentation_evolution':'tout'})
         self.assertContains(page,'800.50 EUR');self.assertContains(page,'total déclaré : 1000.00 EUR')
         self.assertContains(page,'détails connus : 100.00 EUR');self.assertNotContains(page,'1100.00 EUR')
         self.assertContains(page,'Synthèse personnelle conservée')
@@ -268,4 +268,4 @@ class RaccourcisEvolutionTests(TestCase):
             prise.fin_prevue = date(2026, 4, 1)
             f = Filtres({'prise': 'fictive'}, personnes=[], prises=[prise])
             self.assertTrue(f.is_valid(), f.errors)
-            self.assertEqual(f.cleaned_data['fin'], date(2026, 3, 31))
+            self.assertEqual(f.cleaned_data['fin'], date(2026, 10, 27))

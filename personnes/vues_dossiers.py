@@ -16,7 +16,7 @@ from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods, require_safe
 
-from . import dossier, suivi, bd6, chronologie
+from . import dossier, suivi, bd6, chronologie, frises
 from .forms import PersonneForm
 from .models import Personne, Menage, Appartenance, Accompagnement, Sejour, AccordRepas, AccordHebergement, Affectation, Absence, InformationsAccompagnement
 from .lecture_dossier import choisir
@@ -67,6 +67,9 @@ def recherche(request):
             objet.nombre_actuel = len({l.personne_id for l in liens if l.debut <= jour and (l.fin is None or l.fin > jour)})
             objet.correspondances = [l for l in liens if q and any(m.casefold() in str(l.personne).casefold() for m in q.split())]
         objet.url_dossier = reverse('dossiers:detail', args=[mode, objet.pk]) + '?' + urlencode({'q': q, 'mode': mode, 'page': page.number, 'filtre':filtre_acteurs, **({'en_cours':'1'} if en_cours else {})})
+    frises_actives = frises.preference(request)
+    if frises_actives:
+        frises.charger(request.user, list(page), mode, retour_recherche={'q':q,'mode':mode,'page':str(page.number),'filtre':filtre_acteurs,'en_cours':'1' if en_cours else ''})
     creation = peut_personnes and request.user.has_perm('personnes.add_personne')
     if mode == 'menage':
         creation = peut_menages and request.user.has_perms(['personnes.add_menage', 'personnes.add_appartenance'])
@@ -80,7 +83,14 @@ def recherche(request):
         for cle in ('action_dossiers','fragment'):params.pop(cle,None)
         return redirect(reverse('dossiers:creer',args=[mode])+'?'+params.urlencode())
     autres_correspondances=bool(q) and not creation_suggeree and page.paginator.count==0
-    contexte = {'autres_correspondances':autres_correspondances,'creation_suggeree':creation_suggeree,'creation_personne':creation_personne,'creation_menage':creation_menage,'mode': mode, 'recherche': q, 'page_obj': page, 'peut_menages': peut_menages,
+    from django.core import signing
+    frise_ouverte = ''
+    try:
+        valeurs_retour = signing.loads(request.GET.get('contexte_dossier'), salt=dossier.SEL, max_age=86400)
+        frise_ouverte = valeurs_retour.get('vue', {}).get('frise_ouverte', '')
+    except (signing.BadSignature,TypeError,ValueError,AttributeError):
+        pass
+    contexte = {'frise_ouverte':frise_ouverte, 'frise_axe': next((o.frise for o in page if getattr(o, 'frise', None)), None), 'frises_actives': frises_actives, 'frise_retour': frises.commande(request), 'autres_correspondances':autres_correspondances,'creation_suggeree':creation_suggeree,'creation_personne':creation_personne,'creation_menage':creation_menage,'mode': mode, 'recherche': q, 'page_obj': page, 'peut_menages': peut_menages,
                 'peut_personnes': peut_personnes, 'peut_creer': creation, 'controle_acteurs':controle_actif, 'filtre_acteurs':filtre_acteurs, 'en_cours':en_cours}
     template = 'dossiers/resultats.html' if request.GET.get('fragment') == '1' else 'accueil.html'
     return render(request, template, contexte)
@@ -327,7 +337,11 @@ def detail(request, nature, pk, prise_pk=None):
     from . import contacts_menage
     contact_designe = contacts_menage.a_date([objet], condition_jour).first() if nature == 'menage' and request.user.has_perms(contacts_menage.DROITS_LECTURE) else None
     commentaires = commentaire_cible.commentaires_dossier.select_related('auteur') if request.user.has_perm('personnes.view_commentairedossier') else []
+    frises_actives = frises.preference(request)
+    frises_objets = frises.charger(request.user, [objet], nature, prise=prise,
+        navigations={a.pk: a.navigation for a in periodes}) if frises_actives else {}
     return render(request, 'dossiers/prise.html' if prise else 'dossiers/detail.html', {
+        'frise_ouverte': params.get('frise_ouverte', ''), 'frise_axe': next(iter(frises_objets.values()), None), 'frises_actives': frises_actives, 'frise_retour': frises.commande(request), 'frises_objets': frises_objets,
         'condition_personnes': condition_personnes, 'condition_projets': condition_projets,
         'condition_lecture': bd6.etat(request.user, personnes_sociales, condition_jour),
         'condition_documents': condition_sociale.documents(request.user, prise or objet),

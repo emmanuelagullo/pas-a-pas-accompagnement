@@ -21,6 +21,7 @@ class Filtres(FormulaireMetier):
         help_text='Filtre les faits liés à cette prise ; l’histoire personnelle reste indépendante des prises en charge.')
     vue_debut = forms.ChoiceField(label='Situation de départ', required=False)
     vue_fin = forms.ChoiceField(label='Situation d’arrivée', required=False)
+    presentation_evolution = forms.ChoiceField(label='Présentation', required=False, choices=[('changements','Informations ayant évolué'),('tout','Toutes les informations')])
     debut = forms.DateField(label='Depuis (inclus)', required=False,
                             widget=forms.DateInput(attrs={'type': 'date'}))
     fin = forms.DateField(label='Jusqu’au (inclus)', required=False,
@@ -31,11 +32,20 @@ class Filtres(FormulaireMetier):
         selection = next((a for a in prises if data is not None and str(a.pk) == data.get('prise')), None)
         self.dates_vues = {'today': timezone.localdate()}
         choix = [('today', 'Aujourd’hui')]
-        self.sortie_future = None
+        if not selection and prises:
+            connues = [p for p in prises if p.debut <= timezone.localdate()]
+            if connues:
+                self.dates_vues['entree'] = min(p.debut for p in connues)
+                choix.insert(0, ('entree', 'Début des prises en charge connues'))
+                if all(p.fin and p.fin <= timezone.localdate() for p in connues):
+                    self.dates_vues['sortie'] = max(p.fin for p in connues) - timedelta(days=1)
+                    choix.insert(1, ('sortie', 'Dernier jour des prises en charge connues'))
+        self.sortie_future = selection.fin_prevue if selection and not selection.fin and selection.fin_prevue and selection.fin_prevue > timezone.localdate() else None
         if selection:
-            self.dates_vues['entree'] = selection.debut
-            choix.insert(0, ('entree', 'À l’entrée'))
-            sortie = selection.fin or selection.fin_prevue
+            if selection.debut <= timezone.localdate():
+                self.dates_vues['entree'] = selection.debut
+                choix.insert(0, ('entree', 'Début de la prise en charge'))
+            sortie = selection.fin
             if sortie:
                 dernier = sortie - timedelta(days=1)
                 if dernier <= timezone.localdate():
@@ -45,13 +55,16 @@ class Filtres(FormulaireMetier):
                     self.sortie_future = sortie
         choix.append(('date', 'À une date…'))
         if data is not None:
-            for borne, defaut in [('debut', 'entree' if selection else 'date'),
+            for borne, defaut in [('debut', 'entree' if 'entree' in self.dates_vues else 'date'),
                                   ('fin', 'sortie' if 'sortie' in self.dates_vues else 'today')]:
                 mode = 'vue_' + borne
                 if mode not in data:
                     data[mode] = 'date' if data.get(borne) else defaut
                 if data[mode] in self.dates_vues:
                     data[borne] = self.dates_vues[data[mode]].isoformat()
+            args = (data, *args[1:])
+        if data is not None and not data.get('presentation_evolution'):
+            data['presentation_evolution'] = 'changements'
             args = (data, *args[1:])
         super().__init__(*args, **kwargs)
         self.order_fields(['beneficiaire', 'prise', 'vue_debut', 'debut', 'vue_fin', 'fin'])
@@ -113,6 +126,8 @@ def afficher(request, nature, objet, ancienne_prise=None, contexte=None):
         params = {**params, **contexte.get('dossier_valeurs', {}).get('vue', {})}
     params.pop('nature', None); params.pop('pk', None)
     data = request.GET.copy()
+    if ancienne_prise and 'presentation_evolution' not in data:
+        data['presentation_evolution'] = 'tout'  # Compatibilité de l'ancienne URL spécialisée.
     if ancienne_prise and 'prise' not in data:
         data['prise'] = str(ancienne_prise.pk)
     if not data.get('prise') and 'fin' not in data and params.get('date_service'):
@@ -174,9 +189,27 @@ def afficher(request, nature, objet, ancienne_prise=None, contexte=None):
         'evolution_integree': request.headers.get('X-Condition-Evolution') == '1',
         'objet': objet, 'nature': nature, 'form': form, 'lignes': lignes,
         'anciennes_lignes': [l for l in lignes if l['ancien']],
-        'comparaison': comparaison, 'date_initiale': date_initiale, 'date_finale': date_finale,
+        'comparaison': comparaison, 'comparaison_affichee': [l for l in comparaison if form.cleaned_data.get('presentation_evolution') == 'tout' or valeur_comparee(l, 'initial') != valeur_comparee(l, 'final')] if form.is_valid() else [],
+        'libelle_debut': libelle_borne(form, 'debut', date_initiale), 'libelle_fin': libelle_borne(form, 'fin', date_finale), 'date_initiale': date_initiale, 'date_finale': date_finale,
         'retour_trajectoire': retour, 'parametres': {**{k: v for k, v in params.items() if k not in ('prise', 'beneficiaire', 'debut', 'fin', 'vue_debut', 'vue_fin')},
                        **({'contexte_dossier':contexte['contexte_dossier']} if contexte else {})},
         'selection_prise': selection, 'prise_retour':prise_retour, 'prise':prise_retour,
         'navigation_query':urlencode(params),
     })
+
+
+def valeur_comparee(ligne, borne):
+    lecture = ligne.get(borne + '_lecture')
+    if lecture is not None:
+        return (lecture.get('texte'), bool(lecture.get('conflit')),
+                tuple(sorted({f.valeur for f in lecture.get('anciens', [])})))
+    return ligne.get(borne)
+
+
+def libelle_borne(form, borne, jour):
+    if not form.is_valid() or not jour:
+        return ''
+    mode = form.cleaned_data.get('vue_' + borne)
+    if mode == 'date':
+        return jour.strftime('%d/%m/%Y')
+    return dict(form.fields['vue_' + borne].choices).get(mode, '') + ' · ' + jour.strftime('%d/%m/%Y')

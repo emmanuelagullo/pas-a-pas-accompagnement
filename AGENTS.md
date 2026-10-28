@@ -501,3 +501,10 @@ Une période ouverte ne démontre pas de présence future ; les prévisions ont 
 propre ligne. Préserver les retours signés, la fenêtre, les filtres et l'ancre.
 Tester personnes.tests_chronologie ; distinguer HTTP/HTML, navigateur Chromium
 et vrais programmes/Pyodide. Aucun nouveau droit ni migration pour cette lecture.
+
+
+Frises sur place : lire FRISES-SUR-PLACE.md. Conserver la hauteur fixe,
+l’échelle commune des lignes comparées, le bénéfice personnel explicite et les
+lectures groupées sous contrôle actif. Les marques de densité ne sont pas des
+anomalies ni des réalisations. Préserver le retour au dépliage et les anciens
+liens chronologiques. Tester personnes.tests_frises et la trajectoire.

@@ -8,7 +8,7 @@ def aides_directes(context,prise):
     if not context['request'].user.has_perms(service.LECTURE):return {}
     qs=m.AccordAide.objects.filter(accompagnement=prise).prefetch_related('beneficiaires')
     groupes=[(n,t,list(qs.filter(nature=n))) for n,t in m.TypeAide.NATURES]
-    return {'peut_ajouter':context['request'].user.has_perm('personnes.add_accordaide'),'groupes':groupes,'prise':prise,'request':context['request'],'query': 'contexte_dossier='+__import__('urllib.parse',fromlist=['quote']).quote(prise.navigation.get('contexte_dossier',''))}
+    return {'frises_actives': context.get('frises_actives'), 'frises_objets':context.get('frises_objets', {}), 'peut_ajouter':context['request'].user.has_perm('personnes.add_accordaide'),'groupes':groupes,'prise':prise,'request':context['request'],'query': 'contexte_dossier='+__import__('urllib.parse',fromlist=['quote']).quote(prise.navigation.get('contexte_dossier',''))}
 
 
 @register.inclusion_tag('aides/_jour.html',takes_context=True)

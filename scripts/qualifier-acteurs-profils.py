@@ -43,6 +43,15 @@ print(settings.SETTINGS_MODULE+' : dossier, '+str(len(requetes))+' requêtes SQL
 frise=client.get(chemin('dossiers:chronologie','menage',ds.menage_id),secure=True)
 assert frise.status_code==200 and 'Échelle commune' in frise.content.decode()
 assert 'Dossier réservé à un autre service' not in frise.content.decode()
+import re
+from html import unescape
+token=unescape(re.search(r'name="retour_frise" value="([^"]+)"',r.content.decode()).group(1))
+assert client.post(chemin('dossiers:frises_preference'),{'retour_frise':token,'actif':'1'},secure=True).status_code==302
+with CaptureQueriesContext(connection) as requetes_frise:
+    compact=client.get(chemin('dossiers:detail','menage',ds.menage_id),secure=True)
+assert compact.status_code==200 and 'frise-mini' in compact.content.decode()
+assert 'Dossier réservé à un autre service' not in compact.content.decode()
+print(settings.SETTINGS_MODULE+' : frise sur place, '+str(len(requetes_frise))+' requêtes SQL',flush=True)
 pdf=client.get(chemin('personnes:fiche_pdf',ds.menage.appartenances.first().personne_id),secure=True)
 assert pdf.status_code==200 and pdf.content.startswith(b'%PDF-'),pdf.status_code
 Habilitation.objects.filter(compte=u).update(exporter=False)

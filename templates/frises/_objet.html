@@ -1,0 +1,1 @@
+{% load frises %}{% frise_objet cible as bande_objet %}{% cle_frise cible as cle %}<span class="frise-slot" data-frise-slot="bande-{{ cle }}">{% include 'frises/_bande.html' with bande=bande_objet %}</span>

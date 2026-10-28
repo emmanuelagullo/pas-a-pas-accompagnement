@@ -13,6 +13,7 @@
 <div class="recherche-actions"><div><button type="submit">Rechercher</button> <a href="{% url 'accueil' %}?mode={{ mode }}">Effacer</a></div>{% if creation_personne or creation_menage %}<button{% if not creation_suggeree %} class="secondaire"{% endif %} type="submit" name="action_dossiers" value="nouveau" data-nouveau-dossier data-personne="{{ creation_personne|yesno:'oui,non' }}" data-menage="{{ creation_menage|yesno:'oui,non' }}"{% if not peut_creer %} disabled{% endif %}>Nouveau dossier</button>{% endif %}</div>
 </form><p id="recherche-etat" role="status"></p>
 
+{% include 'frises/_choix.html' %}
 <div id="resultats-dossiers">{% include "dossiers/resultats.html" %}</div>
 <script src="{% static 'recherche-dossiers.js' %}" defer></script>
 {% else %}<p>Votre compte n’a pas encore de droit de consultation dans cet espace d’essai.</p>{% endif %}

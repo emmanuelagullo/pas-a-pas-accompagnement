@@ -773,3 +773,10 @@ les fins/relais et les limites des recettes de qualification.
 Le dossier et la prise proposent une lecture temporelle facultative, sans modifier
 leurs listes ni les formulaires de correction. Voir [l’audit, les règles temporelles
 et la recette](CHRONOLOGIE.md). Aucun changement de modèle ou de dépendance.
+
+
+Les frises sur place réutilisent les modèles et les contrôles acteurs :
+`personnes.frises` groupe les lectures et projette des bandes communes,
+`templates/frises` et `static/frises.*` les présentent dans les trois formulaires.
+La préférence est en session et les retours restent signés ; aucune migration.
+Voir [FRISES-SUR-PLACE.md](FRISES-SUR-PLACE.md).
