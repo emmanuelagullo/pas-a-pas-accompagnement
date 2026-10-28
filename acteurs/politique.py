@@ -126,7 +126,7 @@ def filtre(modele, ecriture=False):
         from .cache import invalider
         invalider()
         return calculer_filtre(modele,True)
-    cle=('filtre',modele._meta.label_lower,ctx.service_id,ctx.statistiques,ctx.reperage)
+    cle=('filtre',modele._meta.label_lower,ctx.service_id,ctx.statistiques,ctx.reperage,ctx.export_demande)
     if cle not in ctx.memo:ctx.memo[cle]=calculer_filtre(modele)
     return ctx.memo[cle]
 

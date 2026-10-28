@@ -14,6 +14,7 @@
 <details class="menu-utilisateur"><summary>Compte : {{ user.get_username }}</summary><div class="menu-utilisateur-contenu">
 {% if not demonstration_publique and not espace_essai %}<a href="{% url 'securite_compte' %}">Mon compte</a>{% else %}<p>Compte public de démonstration</p>{% endif %}
 {% if controle_acteurs and peut_ouvrir_dossiers_acteurs %}<a href="{% url 'accueil' %}?filtre=mes&amp;en_cours=1">Mes dossiers en cours</a>{% if perms.personnes.view_accompagnement and perms.personnes.view_sejour and perms.personnes.view_repasdistribue %}<a href="{% url 'dossiers:rapports_accueil' %}?filtre=mes">Statistiques sur mes dossiers</a>{% endif %}{% endif %}
+{% if controle_acteurs %}<a href="{% url 'acteurs:notifications' %}">À suivre{% if notifications_non_lues %} ({{ notifications_non_lues }}){% endif %}</a>{% endif %}
 {% if services_acteurs|length > 1 %}<form method="post" action="{% url 'acteurs:choisir_service' %}">{% csrf_token %}<label for="service-acteurs">Service de travail</label><select name="service" id="service-acteurs">{% for s in services_acteurs %}<option value="{{ s.pk }}"{% if s.pk == service_acteurs %} selected{% endif %}>{{ s.libelle }} — {{ s.etablissement }}</option>{% endfor %}</select><p class="helptext">Pour les nouveaux dossiers et le filtre Mon service. Les dossiers existants restent dans leur service.</p><button>Choisir</button></form>{% endif %}
 <form method="post" action="{% url 'deconnexion' %}">{% csrf_token %}<button class="secondaire">Se déconnecter</button></form>
 </div></details>

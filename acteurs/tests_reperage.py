@@ -32,11 +32,14 @@ class ReperageTests(TestCase):
             self.assertTrue(m.Personne.objects.filter(pk=self.personne_b.pk).exists())
             self.assertFalse(m.Accompagnement.objects.filter(pk=self.b.pk).exists())
             self.assertEqual(m.Menage.objects.filter(pk=self.mb.pk).update(libelle='Interdit'),0)
+            self.assertTrue(m.Menage.objects.filter(pk=self.mb.pk).exists())
+            with perimetre(self.ua,export_demande=True):self.assertFalse(m.Menage.objects.filter(pk=self.mb.pk).exists())
         for option in ({'statistiques':'accessibles'},{'export_demande':True}):
             with perimetre(self.ua,reperage=True,**option):self.assertFalse(m.Menage.objects.filter(pk=self.mb.pk).exists())
     def test_creation_suggeree_ignore_les_filtres_pas_le_repertoire(self):
         self.activer();r=self.connecte().get('/',{'q':'Ménage fictif B','filtre':'mes','fragment':1})
         self.assertContains(r,'data-creation-suggeree="non"')
+        self.assertContains(r,'Voir les correspondances dans Tous')
     def test_demande_acceptation_et_double_confirmation(self):
         self.activer();Responsabilite.objects.create(dossier=self.da,professionnel=self.pc,cree_par=self.admin)
         d=reperage.demander(self.ua,self.da);self.assertEqual(reperage.demander(self.ua,self.da).pk,d.pk)
@@ -54,6 +57,8 @@ class ReperageTests(TestCase):
     def test_autre_service_reste_sans_habilitation(self):
         self.activer()
         with self.assertRaises(PermissionDenied):reperage.demander(self.ua,self.db)
+        d=DemandeRattachement.objects.create(dossier=self.db,demandeur=self.ub,professionnel=self.pb)
+        self.assertEqual(self.connecte().get(reverse('acteurs:decider_rattachement',args=[d.pk])).status_code,404)
         with perimetre(self.ua,self.sa,reperage='prestation'):self.assertFalse(m.Accompagnement.objects.filter(pk=self.b.pk).exists())
     def test_nouvelle_prise_ne_reprend_pas_les_anciennes(self):
         self.activer()

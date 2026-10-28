@@ -138,6 +138,9 @@ class ModeleControle(models.Model):
             enregistrer(self, origine)
             if creation and ctx and origine is not None:
                 ctx.nouveaux.add((self._meta.label_lower,str(self.pk)))
+            if ctx and active():
+                from .notifications import saisie
+                saisie(ctx.compte,self,creation)
             return resultat
 
     def delete(self, *args, **kwargs):

@@ -2,6 +2,8 @@ from django.urls import path
 from . import views as v
 app_name='acteurs'
 urlpatterns=[
+    path('a-suivre/',v.notifications,name='notifications'),
+    path('a-suivre/<int:pk>/lu/',v.notification_lue,name='notification_lue'),
     path('services/<int:service_pk>/reperage/',v.reperage_politique,name='reperage_politique'),
     path('dossiers/<uuid:pk>/demander/',v.demander_rattachement,name='demander_rattachement'),
     path('demandes/<int:pk>/decider/',v.decider_rattachement,name='decider_rattachement'),

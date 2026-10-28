@@ -94,13 +94,19 @@ def disponibles(compte,dossier):return p.habilitations(compte).filter(service=do
 
 def page(request,objet,nature):
     from django.shortcuts import render
+    from django.urls import reverse
+    from django.core import signing
+    from urllib.parse import urlencode
+    from personnes.vues_dossiers import parametres
     from personnes.models import TypeAide
     lignes=[]
     for ds in equipes(request.user,nature,objet.pk):
         lignes.append({'dossier':ds,'responsables':s.responsables(ds,ds).select_related('professionnel'),
-            'demande':ds.demandes_rattachement.filter(demandeur=request.user,etat='attente').first(),'demander':disponibles(request.user,ds)})
+            'demande':ds.demandes_rattachement.filter(demandeur=request.user,etat='attente').first(),'demander':disponibles(request.user,ds),
+            'demander_url':reverse('acteurs:demander_rattachement',args=[ds.pk])+'?'+urlencode({'retour_acteurs':signing.dumps({'compte':str(request.user.pk),'dossier':str(ds.pk),'url':request.get_full_path()},salt='retour-acteurs-v1')})})
     with perimetre(request.user,reperage='prestation'):periodes=list(objet.accompagnements.all().order_by('-debut'))
     return render(request,'acteurs/identite.html',{'objet':objet,'nature':nature,'equipes':lignes,'periodes':periodes,
+        'query':urlencode(parametres(request)),'retour':reverse('accueil')+'?'+urlencode(parametres(request)),
         'nouvelle_prise':p.habilitations(request.user).filter(service_id=courant().service_id,tache='social').exists(),
         'aides':TypeAide.NATURES if request.user.has_perm('personnes.add_accordaide') else [],
         'nouveau_hebergement':request.user.has_perm('personnes.add_accordhebergement'),'nouveau_repas':request.user.has_perm('personnes.add_accordrepas')})
@@ -111,7 +117,9 @@ def demander(compte,dossier):
     if not p.active() or not dossiers(compte).filter(pk=dossier.pk).exists() or not disponibles(compte,dossier):raise PermissionDenied
     DossierService.objects.filter(pk=dossier.pk).update(revision=F('revision')+1);dossier.refresh_from_db()
     if p.missions(compte).filter(dossier=dossier,prise__isnull=True,hebergement__isnull=True,repas__isnull=True,aide__isnull=True).exists():raise ValidationError('Vous faites déjà partie de ce suivi.')
-    demande,_=DemandeRattachement.objects.get_or_create(dossier=dossier,demandeur=compte,etat='attente',defaults={'professionnel_id':p.professionnel(compte)})
+    demande,creee=DemandeRattachement.objects.get_or_create(dossier=dossier,demandeur=compte,etat='attente',defaults={'professionnel_id':p.professionnel(compte)})
+    from .notifications import demande as signaler
+    if creee:signaler(compte,dossier,demande.pk)
     return demande
 
 

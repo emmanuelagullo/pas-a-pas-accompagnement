@@ -1,0 +1,4 @@
+{% extends 'base.html' %}{% block contenu %}<h1>À suivre</h1>
+<p>Les changements qui vous concernent. Vos propres saisies ne déclenchent pas de signal.</p>
+<ul class="fiches">{% for n in notifications %}<li>{% if not n.lu_le %}<strong>Nouveau · </strong>{% endif %}{{ n.get_nature_display }} · <a href="{{ n.url }}">{{ n.dossier }}</a><p>{{ n.modifie_le|date:'d/m/Y H:i' }}{% if n.occurrences > 1 %} · {{ n.occurrences }} changements regroupés{% endif %}{% if n.lu_le %} · Lu{% endif %}</p>
+{% if not n.lu_le %}<form method="post" action="{% url 'acteurs:notification_lue' n.pk %}">{% csrf_token %}<input type="hidden" name="attendu" value="{{ n.attendu }}"><button class="secondaire">Marquer comme lu</button></form>{% endif %}</li>{% empty %}<li>Aucun signal à suivre.</li>{% endfor %}</ul>{% endblock %}

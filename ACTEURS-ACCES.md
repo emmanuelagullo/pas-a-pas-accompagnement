@@ -224,3 +224,18 @@ notamment pour un remplacement. La mission reste dans l’histoire après sa fin
 les accès actuels suivent ensuite les habilitations et la politique du service.
 Le relais existant conserve sa proposition signée des éléments en cours et sa
 transaction atomique. Une confirmation périmée ne crée aucun doublon.
+
+## ACT11 — Signaux internes
+
+Compte → À suivre présente attributions/relais, nouvelles prestations, principales
+informations de suivi complétées ou modifiées par autrui, et demandes à l’équipe.
+Aucun courriel ni compte n’est créé. Les propres saisies ne produisent aucun
+signal ; les changements du même fait sont regroupés. Marquer comme lu est un
+POST avec preuve de version. Une écriture annulée n’émet aucun signal durable.
+
+Les signaux ne copient ni texte de dossier ni document. Leur liste, compteur et
+liens sont revalidés selon les droits actuels, même depuis une page de totaux.
+Un accès statistique ne révèle pas les signaux privés. Les signaux et leur état
+de lecture suivent les copies de base, avec contrôle des droits à la restauration.
+La fin d’une mission ne garde pas de droits implicites. Les nouvelles migrations
+n’accordent aucune habilitation et ne changent aucune définition statistique.

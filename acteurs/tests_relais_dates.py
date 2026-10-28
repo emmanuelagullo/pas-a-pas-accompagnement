@@ -1,5 +1,6 @@
 from datetime import timedelta
 from django.test import TestCase
+from django.urls import reverse
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from . import tests as anciens,services as s
@@ -17,6 +18,8 @@ class RemplacementsTests(TestCase):
         demain=timezone.localdate()+timedelta(days=1)
         r=s.ajouter_responsabilite(self.ua,self.da,self.da,self.pc,timezone.localdate(),'suppleance',s.jeton(self.da),fin=demain)
         self.assertEqual(timezone.localtime(r.fin).date(),demain)
+        self.client.force_login(self.ua)
+        self.assertContains(self.client.get(reverse('dossiers:detail',args=['menage',self.ma.pk])),f'jusqu’au {demain:%d/%m/%Y} exclu')
         with perimetre(self.uc):self.assertTrue(m.Accompagnement.objects.filter(pk=self.a.pk).exists())
         Responsabilite.objects.filter(pk=r.pk).update(debut=timezone.now()-timedelta(days=2),fin=timezone.now()-timedelta(seconds=1))
         with perimetre(self.uc):self.assertFalse(m.Accompagnement.objects.filter(pk=self.a.pk).exists())

@@ -79,7 +79,8 @@ def recherche(request):
         params=request.GET.copy()
         for cle in ('action_dossiers','fragment'):params.pop(cle,None)
         return redirect(reverse('dossiers:creer',args=[mode])+'?'+params.urlencode())
-    contexte = {'creation_suggeree':creation_suggeree,'creation_personne':creation_personne,'creation_menage':creation_menage,'mode': mode, 'recherche': q, 'page_obj': page, 'peut_menages': peut_menages,
+    autres_correspondances=bool(q) and not creation_suggeree and page.paginator.count==0
+    contexte = {'autres_correspondances':autres_correspondances,'creation_suggeree':creation_suggeree,'creation_personne':creation_personne,'creation_menage':creation_menage,'mode': mode, 'recherche': q, 'page_obj': page, 'peut_menages': peut_menages,
                 'peut_personnes': peut_personnes, 'peut_creer': creation, 'controle_acteurs':controle_actif, 'filtre_acteurs':filtre_acteurs, 'en_cours':en_cours}
     template = 'dossiers/resultats.html' if request.GET.get('fragment') == '1' else 'accueil.html'
     return render(request, template, contexte)

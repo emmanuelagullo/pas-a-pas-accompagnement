@@ -235,7 +235,11 @@ def demander_rattachement(request,pk):
 @require_http_methods(['GET','POST'])
 def decider_rattachement(request,pk):
     from . import reperage
-    demande=get_object_or_404(DemandeRattachement.objects.select_related('dossier','professionnel','demandeur'),pk=pk)
+    # Ne pas révéler l'existence d'une demande située hors des dossiers gérables.
+    from django.db.models import Q
+    suivis=p.missions(request.user).filter(prise__isnull=True,hebergement__isnull=True,repas__isnull=True,aide__isnull=True)
+    gerables=DossierService.objects.filter(service_id__in=p.habilitations(request.user).filter(tache='social').values('service_id')).filter(Q(service_id__in=p.pleines(request.user,True))|Q(pk__in=suivis.values('dossier_id')))
+    demande=get_object_or_404(DemandeRattachement.objects.filter(dossier_id__in=gerables.values('pk')).select_related('dossier','professionnel','demandeur'),pk=pk)
     ds=dossier_autorise(request,demande.dossier_id)
     if not s.peut_attribuer(request.user,ds,ds):raise PermissionDenied
     f=FormulaireMetier(request.POST if request.method=='POST' else None)
@@ -243,3 +247,24 @@ def decider_rattachement(request,pk):
     f.fields['attendu']=forms.CharField(widget=forms.HiddenInput,initial=s.jeton(demande))
     f.fields['attendu_dossier']=forms.CharField(widget=forms.HiddenInput,initial=s.jeton(ds))
     return formulaire(request,f,'Demande de '+str(demande.professionnel),lambda **d:reperage.decider(request.user,demande,**d),retour_dossier(ds,request))
+
+
+@never_cache
+@login_required
+@require_http_methods(['GET'])
+def notifications(request):
+    from .notifications import visibles
+    if not p.active():raise PermissionDenied
+    return render(request,'acteurs/notifications.html',{'notifications':visibles(request.user)})
+
+
+@never_cache
+@login_required
+@require_POST
+def notification_lue(request,pk):
+    from .notifications import lire
+    try:lire(request.user,pk,request.POST.get('attendu',''))
+    except (ValidationError,OperationalError):
+        from django.contrib import messages
+        messages.info(request,'Ce signal a changé. Consultez sa dernière version avant de le marquer comme lu.')
+    return redirect('acteurs:notifications')
