@@ -216,3 +216,11 @@ service de travail et ne déplace pas les anciennes prises. Les réservations
 techniques de version de `acteurs.reperage` ne modifient aucun contenu social.
 Les autres services peuvent être identifiés, mais ils ne deviennent pas des
 services autorisés par une demande. Les contacts restent possibles hors logiciel.
+
+## ACT10 — Remplacements et relais
+
+L’ajout d’un intervenant propose aujourd’hui et une fin prévue facultative,
+notamment pour un remplacement. La mission reste dans l’histoire après sa fin ;
+les accès actuels suivent ensuite les habilitations et la politique du service.
+Le relais existant conserve sa proposition signée des éléments en cours et sa
+transaction atomique. Une confirmation périmée ne crée aucun doublon.

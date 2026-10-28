@@ -238,7 +238,7 @@ def peut_attribuer(compte,dossier,objet):
 
 
 @transaction.atomic
-def ajouter_responsabilite(compte,dossier,objet,professionnel,debut,role,attendu):
+def ajouter_responsabilite(compte,dossier,objet,professionnel,debut,role,attendu,fin=None):
     reserver(dossier,attendu)
     if not peut_attribuer(compte,dossier,objet):raise PermissionDenied
     champs=selection_cible(dossier,objet)
@@ -248,11 +248,13 @@ def ajouter_responsabilite(compte,dossier,objet,professionnel,debut,role,attendu
         raise ValidationError('Cet élément est terminé ; son historique reste conservé.')
     if Responsabilite.objects.filter(p.periode(date),annule_le__isnull=True,dossier=dossier,professionnel=professionnel,**champs).exists():
         raise ValidationError('Cette personne intervient déjà à ce niveau.')
-    x=Responsabilite(dossier=dossier,professionnel=professionnel,debut=date,role=role,cree_par=compte,**champs)
+    borne=timezone.make_aware(datetime.combine(fin,time.min)) if fin else None
+    if borne and borne<=date:raise ValidationError('La fin exclue doit suivre le début de l’intervention.')
+    x=Responsabilite(dossier=dossier,professionnel=professionnel,debut=date,fin=borne,role=role,cree_par=compte,**champs)
     x.full_clean();x.save()
     if isinstance(objet,DossierService):
         dossier.en_attente=False;dossier.save(update_fields=['en_attente'])
-    journal(compte,dossier.service,'ajout_responsabilite',{}, {'id':x.pk,'professionnel':str(professionnel.pk),'role':role,'debut':date.isoformat()},dossier,date.date())
+    journal(compte,dossier.service,'ajout_responsabilite',{}, {'id':x.pk,'professionnel':str(professionnel.pk),'role':role,'debut':date.isoformat(),'fin':borne.isoformat() if borne else None},dossier,date.date())
     return x
 
 
