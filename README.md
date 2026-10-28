@@ -1515,3 +1515,9 @@ ouverture d’un modèle composable. Une erreur d’export conserve le retour, l
 sélection et les options saisies. Les critères ACT08 sont transportés dans les
 modèles, liens et justificatifs ; leurs habilitations restent revalidées.
 Aucune définition statistique, source sociale ou autorisation n’est modifiée.
+
+## Chronologie facultative du dossier et des prestations
+
+Le dossier et la prise proposent une lecture temporelle facultative, sans modifier
+leurs listes ni les formulaires de correction. Voir [l’audit, les règles temporelles
+et la recette](CHRONOLOGIE.md). Aucun changement de modèle ou de dépendance.

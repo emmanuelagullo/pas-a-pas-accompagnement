@@ -2,6 +2,7 @@
 <div class="bd-dossier condition-page">{% include 'dossiers/_condition_sommaire.html' %}<p class="bd-chemin"><a href="{{ retour }}">← Rechercher un dossier</a> <span>1 · Recherche / <strong>2 · Dossier</strong></span></p>
 <header class="bd-titre"><p class="surtitre">{% if nature == 'menage' %}Ménage{% else %}Personne{% endif %}</p><div class="titre-equipe"><h1>Dossier — {{ objet }}</h1>{% responsabilites objet %}</div>{% if origine %}<a href="{{ origine_url }}">← Revenir au ménage {{ origine }}</a>{% endif %}</header>
 
+{% if lecture_chronologie %}<p>{% if retour_chronologie %}<a href="{{ retour_chronologie }}">← Revenir à la chronologie</a> · {% endif %}<a href="{{ url_chronologie }}">Chronologie{% if prise %} des prestations{% else %} des prises en charge{% endif %}</a></p>{% endif %}
 <div id="note-dossier">{% include 'dossiers/_commentaire.html' %}</div>
 {% include 'dossiers/_condition_documents.html' %}
 {% include 'dossiers/_condition_sociale.html' %}

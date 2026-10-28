@@ -16,7 +16,7 @@ from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods, require_safe
 
-from . import dossier, suivi, bd6
+from . import dossier, suivi, bd6, chronologie
 from .forms import PersonneForm
 from .models import Personne, Menage, Appartenance, Accompagnement, Sejour, AccordRepas, AccordHebergement, Affectation, Absence, InformationsAccompagnement
 from .lecture_dossier import choisir
@@ -125,7 +125,7 @@ class NouveauMenageForm(FormulaireMetier):
 
 def parametres(request):
     return {'q': request.GET.get('q', '')[:160], 'mode': 'personne' if request.GET.get('mode') == 'personne' else 'menage',
-            'page': request.GET.get('page', '1')[:8], 'filtre':request.GET.get('filtre','tous')[:12], 'en_cours':request.GET.get('en_cours','')[:1], 'retour_exploration':request.GET.get('retour_exploration','')[:20000]}
+            'page': request.GET.get('page', '1')[:8], 'filtre':request.GET.get('filtre','tous')[:12], 'en_cours':request.GET.get('en_cours','')[:1], 'retour_exploration':request.GET.get('retour_exploration','')[:20000], **{k: request.GET.get(k, '')[:80] for k in dossier.CLES_CHRONO}}
 
 
 @never_cache
@@ -186,9 +186,9 @@ def detail(request, nature, pk, prise_pk=None):
     jour = timezone.localdate()
     anciens = dossier.valeurs_vue(request, nature, pk)
     params = {**parametres(request), **anciens}
-    for cle in ('sejour', 'repas', 'origine_menage', 'origine_sejour', 'origine_repas', 'prise', 'date_service', 'prevision', *dossier.CLES_SOCIALES):
+    for cle in ('sejour', 'repas', 'origine_menage', 'origine_sejour', 'origine_repas', 'prise', 'date_service', 'prevision', *dossier.CLES_SOCIALES, *dossier.CLES_CHRONO):
         if cle in request.GET:
-            params[cle] = request.GET[cle][:40]
+            params[cle] = request.GET[cle][:80 if cle in dossier.CLES_CHRONO else 40]
     from . import condition_sociale
     condition_vue, condition_jour = condition_sociale.selection(request, prise, params)
     if 'vue_sociale' in request.GET:
@@ -332,6 +332,9 @@ def detail(request, nature, pk, prise_pk=None):
         'condition_integrale': params.get('presentation_sociale') != 'synthese',
         'condition_origines': params.get('origines_sociales') == '1',
         'condition_composition': [l for l in liens if l.debut <= condition_jour and (l.fin is None or l.fin > condition_jour)],
+        'lecture_chronologie': droits_suivi,
+        'url_chronologie': chronologie.lien(nature, pk, {**params, 'chrono_prise': str(prise.pk) if prise else '', 'chrono_type': params.get('chrono_type') or ('' if prise else 'prise')}),
+        'retour_chronologie': chronologie.lien(nature, pk, params) + '#chrono-' + params.get('chrono_ancre', '') if params.get('chrono_origine') else '',
         'prise': prise, 'demande_origine':demande_origine, 'lecture_interventions': lecture_interventions, 'interventions_courantes': interventions_courantes,
         'parametres_navigation': {k: v for k, v in params.items() if k not in ('prise', 'ecran', 'accompagnement', *dossier.CLES_SOCIALES)}, 'selection_prise': selection_prise, 'commentaires': commentaires, 'commentaire': commentaires[0] if commentaires else None,
         'url_trajectoire': reverse('dossiers:trajectoire', args=[nature, pk]) + '?' + urlencode({**{k:v for k,v in params.items() if k not in ('prise', 'ecran')}, **({'prise':str(prise.pk), 'retour_prise':str(prise.pk)} if prise else {})}),

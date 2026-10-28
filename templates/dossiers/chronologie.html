@@ -1,0 +1,25 @@
+{% extends 'base.html' %}{% load static %}{% block contenu %}
+<link rel="stylesheet" href="{% static 'chronologie.css' %}">
+<div class="bd-dossier">
+<p><a href="{{ retour }}">← {% if prise %}Prise en charge{% else %}Dossier{% endif %} {{ objet }}</a></p>
+<h1>Chronologie — {{ objet }}</h1>
+{% if prise %}<p>Prestations de la prise en charge du {{ prise.debut|date:'d/m/Y' }}.</p>{% else %}<p>Prises en charge et prestations consultables. Chaque ligne ouvre son objet.</p>{% endif %}
+<form method="get" class="carte chrono-filtres">
+{% for nom, valeur in parametres.items %}<input type="hidden" name="{{ nom }}" value="{{ valeur }}">{% endfor %}
+{{ form.as_p }}<button>Afficher la période</button>
+</form>
+<p>Dates de fin exclues. Barres pleines : périodes enregistrées. Hachures : autorisations ou prévisions. Une borne ouverte signifie qu’aucune fin n’est enregistrée, sans preuve de présence. Les périodes ouvertes enregistrées sont dessinées au plus jusqu’à aujourd’hui ; leur prolongement futur n’est pas supposé.</p>
+<p>Les repas accordés ne sont pas des distributions. Une absence ne clôt pas l’hébergement. Les corrections passent par les formulaires de l’objet ; leur journal reste distinct.</p>
+{% if form.is_valid %}
+<div class="chrono-echelle" aria-hidden="true"><span>{{ debut|date:'d/m/Y' }}</span><span>Échelle commune</span><span>{{ fin|date:'d/m/Y' }}</span></div>
+<ol class="chrono-lignes">
+{% for ligne in page_obj %}<li id="chrono-{{ ligne.id }}" class="chrono-ligne{% if ligne.annule %} chrono-annule{% endif %}" tabindex="-1"{% if ligne.id == selection %} aria-current="true"{% endif %}>
+<a href="{{ ligne.url }}"><strong>{{ ligne.libelle }}</strong> · {{ ligne.debut|date:'d/m/Y' }} → {% if ligne.fin %}{{ ligne.fin|date:'d/m/Y' }}{% else %}fin non enregistrée{% endif %}
+<p>Bénéficiaires : {{ ligne.portee|default:'non consultables' }}{% if nature == 'personne' %} · Portée collective détaillée sur la fiche{% endif %}<br>Prise du {{ ligne.parent_debut|date:'d/m/Y' }} · {{ ligne.etat }}{% if ligne.annule %} · Annulé, conservé pour l’histoire{% endif %}{% if ligne.avant %} · Commence avant la fenêtre{% endif %}{% if ligne.apres %} · Se poursuit au-delà de la fenêtre{% endif %}{% if ligne.synthese %}<br>{{ ligne.synthese }}{% endif %}</p>
+<div class="chrono-piste" aria-hidden="true"><span class="chrono-barre {% if ligne.prevu %}chrono-prevu{% endif %}" style="margin-left:{{ ligne.gauche }}%;width:{{ ligne.largeur }}%"></span></div></a>
+</li>{% empty %}<li>Aucune période consultable dans cette fenêtre. Vous pouvez changer les dates ou le filtre.</li>{% endfor %}
+</ol>
+<nav aria-label="Pages de la chronologie">{% if precedent %}<a href="{{ precedent }}">← Précédente</a>{% endif %} Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }} {% if suivant %}<a href="{{ suivant }}">Suivante →</a>{% endif %}</nav>
+{% endif %}
+<details class="carte"><summary>Ce que cette vue permet de comprendre</summary><p>Les lignes partagent la même échelle pour comparer successions, interruptions et chevauchements. Des lignes distinctes ne prouvent pas une continuité. Les périodes collectives ne sont pas multipliées par bénéficiaire. Dans un dossier personnel, seuls les accords et séjours dont la personne est bénéficiaire sont représentés.</p><p>Situation restitue les informations sociales à une date ; Évolution compare les informations et leur provenance. Cette chronologie représente les périodes des prises en charge et prestations, sans importer le journal des saisies ni donner de dates précises aux récits.</p></details>
+</div>{% endblock %}

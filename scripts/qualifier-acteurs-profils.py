@@ -40,6 +40,9 @@ with CaptureQueriesContext(connection) as requetes:
     r=client.get(chemin('dossiers:detail','menage',ds.menage_id),secure=True)
 assert r.status_code==200 and 'Équipe de suivi' in r.content.decode()
 print(settings.SETTINGS_MODULE+' : dossier, '+str(len(requetes))+' requêtes SQL',flush=True)
+frise=client.get(chemin('dossiers:chronologie','menage',ds.menage_id),secure=True)
+assert frise.status_code==200 and 'Échelle commune' in frise.content.decode()
+assert 'Dossier réservé à un autre service' not in frise.content.decode()
 pdf=client.get(chemin('personnes:fiche_pdf',ds.menage.appartenances.first().personne_id),secure=True)
 assert pdf.status_code==200 and pdf.content.startswith(b'%PDF-'),pdf.status_code
 Habilitation.objects.filter(compte=u).update(exporter=False)

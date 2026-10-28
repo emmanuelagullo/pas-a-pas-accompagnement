@@ -766,3 +766,10 @@ Les droits de statistiques regroupées et d’export sont distincts de l’ouver
 d’un dossier ou d’un justificatif. Les répertoires sont communs à la base et ne
 constituent pas des espaces isolés. Voir ACTEURS-ACCES.md pour les commandes,
 les fins/relais et les limites des recettes de qualification.
+
+
+## Chronologie facultative du dossier et des prestations
+
+Le dossier et la prise proposent une lecture temporelle facultative, sans modifier
+leurs listes ni les formulaires de correction. Voir [l’audit, les règles temporelles
+et la recette](CHRONOLOGIE.md). Aucun changement de modèle ou de dépendance.

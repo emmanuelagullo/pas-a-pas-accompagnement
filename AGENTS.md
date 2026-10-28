@@ -493,3 +493,11 @@ options d’export restent bornées à leur service. Tester acteurs,
 acteurs.qualification_navigateur et scripts/qualifier-acteurs-profils.py ;
 distinguer les vues Django PWA des vrais essais Pyodide/OPFS et les recettes
 SQLite de PostgreSQL. Ne pas introduire de nouvelle définition statistique.
+
+
+Chronologie : lire CHRONOLOGIE.md. Garder les lectures contrôlées avant agrégation,
+les bénéficiaires explicites et les autorisations distinctes des réalisations.
+Une période ouverte ne démontre pas de présence future ; les prévisions ont leur
+propre ligne. Préserver les retours signés, la fenêtre, les filtres et l'ancre.
+Tester personnes.tests_chronologie ; distinguer HTTP/HTML, navigateur Chromium
+et vrais programmes/Pyodide. Aucun nouveau droit ni migration pour cette lecture.
