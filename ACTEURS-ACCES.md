@@ -182,3 +182,13 @@ correspondance de personnes déduite de leur nom. Les chiffres regroupés ne
 sont pas présentés comme anonymes. L'organisme exploitant et le lieu physique
 restent distincts ; « interne/externe » est qualifié relativement à
 l'établissement de référence et à la date, à partir de l'exploitation déclarée.
+
+## Présentation compacte de l’équipe
+
+Le dossier et la prise en charge montrent le rôle personnel sous leur titre.
+Le badge d’attente et Commencer le suivi restent visibles ; Équipe de suivi
+replie les intervenants, le relais et l’histoire, sans changer les contrôles.
+Le début d’intervention est prérempli au jour local et affiché en ISO pour le
+champ date natif. Les paramètres de partage restent dans Établissement.
+Le catalogue statistique choisit un rapport ; la sélection des dossiers et la
+portée des totaux sont dans les critères du rapport, avec Calculer.

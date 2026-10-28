@@ -437,3 +437,56 @@ class AccesTests(TestCase):
             r=c.post(url,{'entrant':str(self.pc.pk),'sortant':str(self.pa.pk),'date':'2026-01-02',
                 'descendants':'on','attendu':f.initial['attendu'],'proposition':f.initial['proposition']})
             self.assertEqual(r.status_code,302)
+
+    def test_creation_depuis_recherche_conserve_les_criteres_sans_creer(self):
+        from urllib.parse import urlsplit,parse_qs
+        from django.urls import reverse
+        c=Client();c.force_login(self.ua)
+        avant=m.Personne._base_manager.count()
+        r=c.get(reverse('accueil'),{'action_dossiers':'nouveau','mode':'personne','q':'Nouveau nom','filtre':'mes','en_cours':'1'})
+        self.assertEqual(r.status_code,302)
+        self.assertEqual(urlsplit(r.url).path,reverse('dossiers:creer',args=['personne']))
+        params=parse_qs(urlsplit(r.url).query)
+        self.assertEqual(params['q'],['Nouveau nom'])
+        self.assertEqual(params['filtre'],['mes'])
+        self.assertEqual(params['en_cours'],['1'])
+        self.assertNotIn('action_dossiers',params)
+        self.assertEqual(m.Personne._base_manager.count(),avant)
+
+    def test_equipe_repliee_et_date_du_jour_affichee_en_iso(self):
+        from django.urls import reverse
+        Responsabilite.objects.create(dossier=self.da,professionnel=self.pa,cree_par=self.admin)
+        c=Client();c.force_login(self.ua)
+        page=c.get(reverse('dossiers:detail',args=['menage',self.ma.pk]))
+        self.assertContains(page,'Vous suivez ce dossier')
+        self.assertContains(page,'<summary>Équipe de suivi</summary>')
+        self.assertNotContains(page,'Qui s’en occupe ?')
+        self.assertNotContains(page,'Lecture et écriture collectives')
+        page=c.get(reverse('acteurs:attribuer_dossier',args=[self.da.pk]))
+        self.assertEqual(page.status_code,200)
+        self.assertContains(page,'value="'+timezone.localdate().isoformat()+'"')
+        self.assertEqual(page.context['form']['debut'].value(),timezone.localdate())
+
+    def test_catalogue_sans_criteres_et_selection_dans_le_rapport(self):
+        from django.urls import reverse
+        c=Client();c.force_login(self.ua)
+        page=c.get(reverse('dossiers:rapports_accueil'))
+        self.assertNotContains(page,'name="filtre"')
+        self.assertNotContains(page,'Statistiques regroupées')
+        self.assertNotContains(page,'<button>Afficher</button>')
+        page=c.get('/statistiques/',{'rapport':'synthese'})
+        self.assertContains(page,'data-criteres-statistiques')
+        self.assertContains(page,'name="filtre"',count=5)
+        self.assertNotContains(page,'Retour au travail du jour')
+        self.assertNotContains(page,'Ménages et accompagnements')
+        self.assertNotContains(page,'<button>Afficher</button>')
+
+    def test_suggestion_creation_ne_confond_pas_absence_et_filtre(self):
+        from django.urls import reverse
+        c=Client();c.force_login(self.ua)
+        page=c.get(reverse('accueil'),{'q':'Ménage fictif A','filtre':'mes'})
+        self.assertEqual(page.context['page_obj'].paginator.count,0)
+        self.assertFalse(page.context['creation_suggeree'])
+        page=c.get(reverse('accueil'),{'q':'Nom absent de tous les dossiers'})
+        self.assertTrue(page.context['creation_suggeree'])
+        self.assertFalse(c.get(reverse('accueil')).context['creation_suggeree'])

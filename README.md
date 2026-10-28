@@ -880,7 +880,10 @@ personne rattachée, y compris une ancienne appartenance. Les résultats sont
 paginés par 25. La recherche se met à jour à la saisie ; sans JavaScript ou en
 cas d’échec, le bouton Rechercher exécute le même GET. Aucun nom n’est unique.
 
-Nouveau dossier reprend la saisie sans découper automatiquement nom et prénom.
+Nouveau dossier, à droite de Rechercher dans la même boîte, reprend la saisie
+sans découper automatiquement nom et prénom. Il est mis en avant seulement si
+le nom saisi n’a aucune correspondance parmi tous les dossiers accessibles,
+avant les filtres de suivi ou de prise en charge en cours.
 Une personne peut être créée sans ménage. Un ménage commence avec une personne
 choisie ou créée explicitement selon les droits ; les autres appartenances se
 complètent depuis sa composition. Aucune période de suivi ni prestation n’est

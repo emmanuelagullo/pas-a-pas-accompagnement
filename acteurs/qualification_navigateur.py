@@ -55,10 +55,12 @@ class ParcoursActeurs(StaticLiveServerTestCase):
             from pathlib import Path
             sortie=Path(os.environ['ACTEURS_CAPTURE_DIR']);sortie.mkdir(parents=True,exist_ok=True)
             page.screenshot(path=str(sortie/'dossier-acteurs.png'),full_page=True)
+        page.get_by_text('Équipe de suivi',exact=True).click()
         page.get_by_role('link',name='Passer le relais',exact=True).click()
         page.get_by_label('À qui ?',exact=True).select_option(label='Joël Bernard')
         page.get_by_role('button',name='Confirmer le relais',exact=True).click()
         expect(page.locator('[aria-label="Responsabilités"]')).to_contain_text('Joël Bernard')
+        page.get_by_text('Équipe de suivi',exact=True).click()
         page.get_by_text('Interventions précédentes',exact=True).click()
         expect(page.locator('[aria-label="Responsabilités"]')).to_contain_text('Nadia Martin')
         cible=reverse('dossiers:detail',args=['menage',self.protege.menage_id])

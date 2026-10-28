@@ -60,7 +60,7 @@ const server=(tls?require('node:https'):http).createServer(options,(req,res)=>{
   await frame.locator('[name=password2]').fill('Phrase fictive navigateur-854!');
   await cliquerLienPwa(frame.getByRole('button',{name:'Créer mon compte et commencer'}));
   await rechercherPersonnes(frame);
-  await cliquerLienPwa(frame.getByRole('link',{name:'Nouveau dossier',exact:true}));
+  await cliquerLienPwa(frame.getByRole('button',{name:'Nouveau dossier',exact:true}));
   await frame.locator('[name=designation]').fill('Personne fictive conservée');
   await cliquerLienPwa(frame.getByRole('button',{name:'Créer et ouvrir le dossier',exact:true}));
   await frame.getByRole('heading',{name:'Dossier — Personne fictive conservée',exact:true}).waitFor();
@@ -99,7 +99,8 @@ const server=(tls?require('node:https'):http).createServer(options,(req,res)=>{
   await df.locator('[name=username]').fill('nadia');
   await df.locator('[name=password]').fill('Demonstration-fictive-2026!');
   await cliquerLienPwa(df.getByRole('button',{name:'Se connecter'}));
-  await cliquerLienPwa(df.getByRole('link',{name:'Découvrir le scénario fictif Établissement Les Passerelles',exact:true}));
+  await df.locator('.menu-chantiers > summary').click();
+  await cliquerLienPwa(df.getByRole('link',{name:'Découvrir Les Passerelles',exact:true}));
   await df.getByRole('heading',{name:'Établissement Les Passerelles : découverte en cinq minutes',exact:true}).waitFor();
   await cliquerLienPwa(df.getByRole('link',{name:'la recherche des dossiers',exact:true}));
   await df.getByLabel('Nom, prénom ou libellé du dossier',{exact:true}).fill('Alex');
@@ -114,7 +115,7 @@ const server=(tls?require('node:https'):http).createServer(options,(req,res)=>{
   await df.getByRole('heading',{name:'Réalisation effective : 2 repas distribués'}).waitFor();
   await require('./verifier-parcours-metier.cjs')(df);
   await rechercherPersonnes(df);
-  await cliquerLienPwa(df.getByRole('link',{name:'Nouveau dossier',exact:true}));
+  await cliquerLienPwa(df.getByRole('button',{name:'Nouveau dossier',exact:true}));
   await df.locator('[name=designation]').fill('Essai séparé conservé');
   await cliquerLienPwa(df.getByRole('button',{name:'Créer et ouvrir le dossier',exact:true}));
   await df.getByRole('heading',{name:'Dossier — Essai séparé conservé',exact:true}).waitFor();
@@ -240,7 +241,7 @@ for mode in ['etranger','altere','future']:
  with zipfile.ZipFile(root/(mode+'.zip'),'w') as z:
   for n,b in v.items():z.writestr(n,b)
 `,copie,tmp]);
-   await page.frameLocator('#app').getByRole('link',{name:'Nouveau dossier',exact:true}).click();
+   await page.frameLocator('#app').getByRole('button',{name:'Nouveau dossier',exact:true}).click();
    await page.frameLocator('#app').locator('[name=designation]').fill('Personne fictive après copie');
    await page.frameLocator('#app').getByRole('button',{name:'Créer et ouvrir le dossier',exact:true}).click();
    await page.frameLocator('#app').getByRole('heading',{name:'Dossier — Personne fictive après copie',exact:true}).waitFor();

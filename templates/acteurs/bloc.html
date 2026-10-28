@@ -1,7 +1,10 @@
-{% if lignes %}<section class="carte" aria-label="Responsabilités"><h2>Qui s’en occupe ?</h2>{% for ligne in lignes %}<p>{{ ligne.dossier.service }} · {{ ligne.dossier.service.get_politique_display }}</p>
-<ul>{% for r in ligne.responsables %}<li>{{ r.professionnel }} · {{ r.get_role_display }} · depuis le {{ r.debut|date:'d/m/Y' }}{% if r.fin_url %} · <a href="{{ r.fin_url }}">Terminer l’intervention</a>{% endif %}</li>{% empty %}<li>{% if ligne.dossier.en_attente %}En attente de suivi social{% else %}Aucun professionnel désigné à ce niveau{% endif %}</li>{% endfor %}</ul>
-{% if ligne.peut_reprendre %}<form method="post" action="{% url 'acteurs:reprendre' ligne.dossier.pk %}?retour_acteurs={{ ligne.retour_acteurs|urlencode }}">{% csrf_token %}<input type="hidden" name="attendu" value="{{ ligne.attendu }}"><button>Commencer le suivi</button></form>{% endif %}
+{% if lignes %}<div class="equipe-entete">
+<div class="equipe-personnelle">{% for ligne in lignes %}{% if ligne.dossier.en_attente %}<span class="badge-attente">Dossier en attente de suivi social</span>{% endif %}<p>{{ ligne.vous }}</p>{% if ligne.peut_reprendre %}<form method="post" action="{% url 'acteurs:reprendre' ligne.dossier.pk %}?retour_acteurs={{ ligne.retour_acteurs|urlencode }}">{% csrf_token %}<input type="hidden" name="attendu" value="{{ ligne.attendu }}"><button>Commencer le suivi</button></form>{% endif %}{% endfor %}</div>
+<details class="equipe-suivi"><summary>Équipe de suivi</summary><div class="equipe-contenu" aria-label="Responsabilités">
+{% for ligne in lignes %}<p><strong>{{ ligne.dossier.service.libelle }}</strong> · {{ ligne.portee|capfirst }}</p>
+<ul>{% for r in ligne.responsables %}<li>{{ r.professionnel }} — {% if r.role == 'suivi' %}Suit {{ ligne.portee }}{% else %}{{ r.get_role_display }}{% endif %}, depuis le {{ r.debut|date:'d/m/Y' }}{% if r.fin_url %} · <a href="{{ r.fin_url }}">Terminer l’intervention</a>{% endif %}</li>{% empty %}<li>{% if ligne.dossier.en_attente %}En attente de suivi social{% else %}Aucun professionnel désigné sur {{ ligne.portee }}{% endif %}</li>{% endfor %}</ul>
+
 {% if ligne.attribution_url %}<p><a href="{{ ligne.attribution_url }}">Ajouter un intervenant</a></p>{% endif %}
 {% if ligne.responsables and ligne.peut_relayer %}<p><a href="{{ ligne.relais_url }}">Passer le relais</a>{% if ligne.peut_prendre %} · <a href="{{ ligne.relais_url }}&amp;prendre=1">Prendre le relais</a>{% endif %}</p>{% endif %}
 {% if ligne.historique %}<details><summary>Interventions précédentes</summary><ul>{% for r in ligne.historique %}<li>{{ r.professionnel }} · {{ r.get_role_display }} · {{ r.debut|date:'d/m/Y' }}{% if r.annule_le %} · annulée avant son début{% else %} → {{ r.fin|date:'d/m/Y' }}{% endif %}</li>{% endfor %}</ul></details>{% endif %}
-{% endfor %}</section>{% endif %}
+{% endfor %}</div></details></div>{% endif %}

@@ -36,7 +36,7 @@ def preparer():
     debut=timezone.localdate()-timedelta(days=3650)
     pros={}
     for nom,libelle,tache,options in (
-        ('essai','Professionnel connecté','social',dict(statistiques_service=True,exporter=True,corriger_autrui=True)),
+        ('essai','Alexis','social',dict(statistiques_service=True,exporter=True,corriger_autrui=True)),
         ('nadia','Nadia','social',dict(statistiques_service=True)),
         ('remi','Rémi','accueil',{}),('camille','Camille','gestion',{}),
         ('coordination','Coordination','coordination',dict(statistiques_service=True,statistiques_etablissement=True))):

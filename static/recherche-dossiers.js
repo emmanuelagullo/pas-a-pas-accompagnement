@@ -5,9 +5,15 @@
   const results = document.getElementById('resultats-dossiers');
   const status = document.getElementById('recherche-etat');
   let timer, controller, sequence = 0;
+  const nouveau = form.querySelector?.('[data-nouveau-dossier]');
+  function adapterCreation() {
+    if (nouveau) nouveau.disabled = nouveau.dataset[form.elements.mode.value] !== 'oui';
+  }
+  adapterCreation();
   function invalidate() {
     sequence++;
     results.inert = true;
+    nouveau?.classList.add('secondaire');
     status.textContent = 'Recherche en cours…';
     clearTimeout(timer);
     if (controller) controller.abort();
@@ -27,6 +33,7 @@
       const html = await response.text();
       if (version !== sequence) return;
       results.innerHTML = html;
+      if (nouveau) nouveau.classList.toggle('secondaire', results.querySelector('[data-creation-suggeree]')?.dataset.creationSuggeree !== 'oui');
       results.inert = false;
       history.replaceState(null, '', visible);
       status.textContent = 'Résultats actualisés.';
@@ -39,6 +46,7 @@
     }
   }
   form.addEventListener('input', () => {
+    adapterCreation();
     invalidate();
     const version = sequence;
     timer = setTimeout(() => update(version), 250);

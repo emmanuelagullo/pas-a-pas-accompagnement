@@ -260,3 +260,21 @@ header > nav .menu-utilisateur { position: relative; }
 .resultats-dossiers .badge-attente { display: inline-block; width: fit-content; padding: .05rem .5rem; border: 1px solid #9a6700; border-radius: 1rem; color: #694500; background: #fff0bd; font-weight: 650; }
 
 .resultats-dossiers .badge-attente { margin-inline-start: .5rem; }
+
+.recherche-actions { display: flex; justify-content: space-between; align-items: center; gap: .8rem; flex-wrap: wrap; margin-top: 1rem; }
+.equipe-entete { position: relative; margin: .5rem 0; font-size: 1rem; letter-spacing: normal; }
+.equipe-personnelle { padding-inline-end: 11rem; }
+.equipe-personnelle p { margin: .3rem 0; font-size: .95rem; }
+.equipe-suivi > summary { position: absolute; right: 0; top: .2rem; cursor: pointer; color: #175c50; border: 1px solid #cadbd3; border-radius: .35rem; padding: .25rem .6rem; background: white; }
+.equipe-contenu { margin-top: .8rem; padding: 1rem; border: 1px solid #cadbd3; border-radius: .4rem; background: white; }
+.equipe-contenu p { margin-top: .2rem; }
+.equipe-personnelle .badge-attente { display: inline-block; color: #694500; background: #fff0bd; border: 1px solid #9a6700; border-inline-start-width: .3rem; border-radius: .35rem; padding: .15rem .6rem; font-weight: 650; }
+.retour-haut { font-size: .85rem; font-weight: 450; }
+.condition-sommaire .retour-haut { display: block; }
+.titre-equipe { position: relative; }
+.titre-equipe:has(.equipe-entete) h1 { padding-inline-end: 11rem; }
+.titre-equipe .equipe-entete { position: static; }
+.titre-equipe .equipe-personnelle { padding-inline-end: 0; }
+.titre-equipe .equipe-suivi > summary { top: .5rem; }
+@media (max-width: 40rem) { .equipe-personnelle { padding-inline-end: 0; } .equipe-suivi > summary, .titre-equipe .equipe-suivi > summary { position: static; width: fit-content; } .titre-equipe:has(.equipe-entete) h1 { padding-inline-end: 0; } }
+@media print { .equipe-suivi { display: none; } }

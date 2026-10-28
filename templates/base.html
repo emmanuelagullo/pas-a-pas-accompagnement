@@ -4,7 +4,7 @@
 <title>{% block titre %}Pas à Pas — Accompagnement{% endblock %}</title>
 <link rel="stylesheet" href="{% static 'application.css' %}"><link rel="stylesheet" href="{% static 'textes-riches.css' %}">
 <script src="{% static 'textes-riches.js' %}" data-editeur-source="{% static 'editeur/texte-riche.js' %}" defer></script></head>
-<body>
+<body id="haut-de-page">
 <a class="evitement" href="#contenu">Aller au contenu</a>
 <header><a class="marque" href="{% url 'accueil' %}">Pas à Pas <span>Accompagnement</span></a>
 {% if user.is_authenticated %}<nav aria-label="Navigation principale">
@@ -23,6 +23,8 @@
 {% if perms.personnes.view_transmission %}<a href="{% url 'suivi:cahier' %}">Cahier de liaison</a>{% endif %}
 {% if perms.personnes.view_appel115 %}<a href="{% url 'dossiers:appels115' %}">Appels 115</a>{% endif %}
 {% if perms.personnes.view_personne %}<a href="{% url 'dossiers:explorer' %}">Explorer les rapports</a>{% endif %}
+{% if perms.personnes.view_personne and perms.personnes.view_menage and perms.personnes.view_accompagnement %}<a href="{% url 'decouverte' %}">Découvrir Les Passerelles</a>{% endif %}
+<a href="{% url 'dossiers:transferts' %}">Sauvegardes et transferts</a>
 </div></details>{% endif %}
 </nav>{% endif %}</header>
 {% if espace_essai %}<aside aria-label="Espace d’essai"><p><strong>Espace d’essai Établissement Les Passerelles</strong> — distinct de votre espace habituel. Données fictives uniquement. Vos essais sont conservés.</p>

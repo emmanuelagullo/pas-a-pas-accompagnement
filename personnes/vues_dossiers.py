@@ -46,6 +46,7 @@ def recherche(request):
     controle_actif = politique_acces.active()
     filtre_acteurs = request.GET.get('filtre', 'tous')
     if filtre_acteurs not in ('tous','mes','service','attente'):filtre_acteurs='tous'
+    creation_suggeree=bool(q) and not objets.exists()
     if controle_actif:
         from acteurs.recherche import classer
         objets=classer(request.user,objets,mode,filtre_acteurs,courant().service_id if courant() else None)
@@ -66,7 +67,16 @@ def recherche(request):
     creation = peut_personnes and request.user.has_perm('personnes.add_personne')
     if mode == 'menage':
         creation = peut_menages and request.user.has_perms(['personnes.add_menage', 'personnes.add_appartenance'])
-    contexte = {'mode': mode, 'recherche': q, 'page_obj': page, 'peut_menages': peut_menages,
+    creation_personne=peut_personnes and request.user.has_perm('personnes.add_personne')
+    creation_menage=peut_menages and request.user.has_perms(['personnes.add_menage','personnes.add_appartenance'])
+    if request.GET.get('action_dossiers')=='nouveau':
+        if not creation:
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied
+        params=request.GET.copy()
+        for cle in ('action_dossiers','fragment'):params.pop(cle,None)
+        return redirect(reverse('dossiers:creer',args=[mode])+'?'+params.urlencode())
+    contexte = {'creation_suggeree':creation_suggeree,'creation_personne':creation_personne,'creation_menage':creation_menage,'mode': mode, 'recherche': q, 'page_obj': page, 'peut_menages': peut_menages,
                 'peut_personnes': peut_personnes, 'peut_creer': creation, 'controle_acteurs':controle_actif, 'filtre_acteurs':filtre_acteurs, 'en_cours':en_cours}
     template = 'dossiers/resultats.html' if request.GET.get('fragment') == '1' else 'accueil.html'
     return render(request, template, contexte)

@@ -1,9 +1,8 @@
-{% if controle_acteurs %}<section aria-label="Dossiers des statistiques">
-{% if peut_ouvrir_dossiers_acteurs %}<form method="get" action="{% url 'statistiques' %}">
-{% for nom,valeur in request.GET.items %}{% if nom != 'filtre' and nom != 'portee_statistiques' and nom != 'format' and nom != 'modele' and nom != 'page' %}<input type="hidden" name="{{ nom }}" value="{{ valeur }}">{% endif %}{% endfor %}
-{% if not request.GET.rapport %}<input type="hidden" name="rapport" value="synthese">{% endif %}
-{% include 'acteurs/filtre_dossiers.html' %}<button>Afficher</button>
-<p class="helptext">Ces choix restent limités aux dossiers que vous pouvez consulter.</p></form>{% endif %}
-{% if rapport_service_acteurs or rapport_etablissement_acteurs %}<details><summary>Statistiques regroupées</summary><p>Ces rapports peuvent couvrir des dossiers que vous ne pouvez pas ouvrir. Leurs résultats ne garantissent pas l’anonymat.</p>
-{% if rapport_service_acteurs %}<a href="{{ rapport_service_acteurs }}">Service</a>{% endif %}{% if rapport_etablissement_acteurs %} · <a href="{{ rapport_etablissement_acteurs }}">Établissement</a>{% endif %}</details>{% endif %}
-</section>{% endif %}
+{% if controle_acteurs %}
+{% if rapport_service_acteurs or rapport_etablissement_acteurs %}<div data-portee-statistiques><label for="portee-statistiques">Portée des statistiques</label><select id="portee-statistiques" name="portee_statistiques">
+{% if peut_ouvrir_dossiers_acteurs %}<option value="">Dossiers sélectionnés</option>{% endif %}
+{% if rapport_service_acteurs %}<option value="service"{% if portee_statistiques_acteurs == 'service' %} selected{% endif %}>Tout le service — totaux uniquement</option>{% endif %}
+{% if rapport_etablissement_acteurs %}<option value="etablissement"{% if portee_statistiques_acteurs == 'etablissement' %} selected{% endif %}>Tout l’établissement — totaux uniquement</option>{% endif %}
+</select><p class="helptext">Les totaux du service ou de l’établissement n’ouvrent pas les dossiers correspondants.</p></div>{% endif %}
+{% if peut_ouvrir_dossiers_acteurs %}<div data-dossiers-statistiques>{% include 'acteurs/filtre_dossiers.html' %}</div>{% endif %}
+{% endif %}

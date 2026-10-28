@@ -168,7 +168,7 @@ def attribuer(request,pk,niveau='dossier',objet_pk=None):
     qs=m.Intervenant.objects.filter(pk__in=AppartenanceProfessionnelle.objects.filter(p.periode(),service=ds.service).values('professionnel_id'))
     f.fields['professionnel']=forms.ModelChoiceField(qs,label='Professionnel du service')
     f.fields['role']=forms.ChoiceField(choices=Responsabilite._meta.get_field('role').choices,label='Participation')
-    f.fields['debut']=forms.DateField(label='À partir du',initial=timezone.localdate(),widget=forms.DateInput(attrs={'type':'date'}))
+    f.fields['debut']=forms.DateField(label='Début de l’intervention',initial=timezone.localdate(),widget=forms.DateInput(format='%Y-%m-%d',attrs={'type':'date'}))
     f.fields['attendu']=forms.CharField(widget=forms.HiddenInput,initial=s.jeton(ds))
     return formulaire(request,f,'Ajouter un intervenant à ce suivi',lambda **d:s.ajouter_responsabilite(request.user,ds,objet,**d),retour_dossier(ds,request))
 

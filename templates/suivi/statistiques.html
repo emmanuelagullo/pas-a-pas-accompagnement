@@ -1,6 +1,4 @@
-{% extends "base.html" %}{% load saisie %}{% load parcours %}{% load aides %}{% block contenu %}<h1>Statistiques d’activité</h1>{% if portee_statistiques_acteurs == 'service' or portee_statistiques_acteurs == 'etablissement' %}<p><strong>{% if portee_statistiques_acteurs == 'service' %}Statistiques regroupées du service{% elif portee_statistiques_acteurs == 'etablissement' %}Statistiques regroupées de l’établissement{% else %}Dossiers accessibles sélectionnés{% endif %}</strong>. Les résultats regroupés ne constituent pas une garantie d’anonymat.</p>{% endif %}
-{% include 'acteurs/perimetre_statistiques.html' %}
-{% if not controle_acteurs or peut_ouvrir_dossiers_acteurs %}{% if perms.personnes.view_personne and perms.personnes.view_menage and perms.personnes.view_accompagnement %}<p><a href="{% url 'suivi:jour' %}">Retour au travail du jour</a> · <a href="{% url 'suivi:liste' %}">Ménages et accompagnements</a></p>{% endif %}{% endif %}
+{% extends "base.html" %}{% load saisie static %}{% load parcours %}{% load aides %}{% block contenu %}<h1>Statistiques d’activité</h1>{% if controle_acteurs %}<script src="{% static 'portee-statistiques.js' %}" defer></script>{% endif %}
 <p>Les indicateurs portent sur la période civile choisie, début inclus et fin exclue.</p>
 
 {% if portee_statistiques_acteurs != 'service' and portee_statistiques_acteurs != 'etablissement' %}{% include 'exploration/_personnaliser.html' with source='statistiques' %}{% endif %}
@@ -18,7 +16,7 @@
 {% for code, libelle in periodes.items %}<option value="{{ code }}" {% if periode_choisie == code %}selected{% endif %}>{{ libelle }}</option>{% endfor %}
 </select><input type="hidden" name="rapport" value="{{ rapport }}">
 <button type="submit">Appliquer</button></form>
-<form method="get">{% include 'rapports/_contexte.html' %}{% if controle_acteurs %}<input type="hidden" name="filtre" value="{{ filtre_acteurs }}">{% endif %}{% if portee_statistiques_acteurs == 'service' or portee_statistiques_acteurs == 'etablissement' %}<input type="hidden" name="portee_statistiques" value="{{ portee_statistiques_acteurs }}">{% endif %}{% if modele_gestion %}<input type="hidden" name="modele_cible" value="{{ modele_gestion.pk }}"><input type="hidden" name="attendu_modele" value="{{ attendu_modele }}">{% endif %}<label for="rapport">Rapport</label>
+<form method="get" data-criteres-statistiques>{% include 'rapports/_contexte.html' %}{% include 'acteurs/perimetre_statistiques.html' %}{% if modele_gestion %}<input type="hidden" name="modele_cible" value="{{ modele_gestion.pk }}"><input type="hidden" name="attendu_modele" value="{{ attendu_modele }}">{% endif %}<label for="rapport">Rapport</label>
 <select id="rapport" name="rapport">
 {% for code, libelle in rapports.items %}<option value="{{ code }}" {% if code == rapport %}selected{% endif %}>{{ libelle }}</option>{% endfor %}
 </select>{% adapter_saisie formulaire request.user %}{{ formulaire.as_p }}

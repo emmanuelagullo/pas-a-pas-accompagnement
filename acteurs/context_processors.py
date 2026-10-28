@@ -52,7 +52,24 @@ def bloc(compte,objet,niveau='dossier'):
         for r in rs:
             r.fin_url=reverse('acteurs:terminer',args=[r.pk]) if r.professionnel_id==moi or corriger else ''
         historique=Responsabilite.objects.filter(dossier=d,**s.selection_cible(d,cible)).filter(Q(fin__lte=timezone.now())|Q(annule_le__isnull=False)).select_related('professionnel').order_by('-debut')[:20]
-        lignes.append({'dossier':d,'responsables':rs,'historique':historique,'attendu':s.jeton(d),
+        personnels=[r for r in rs if r.professionnel_id==moi]
+        portee={'dossier':'ce dossier','prise':'cette prise en charge'}.get(niveau,'cette prestation')
+        if personnels:
+            role=personnels[0].role
+            vous=('Vous suivez '+portee if role=='suivi' else
+                  'Vous assurez un remplacement sur '+portee if role=='suppleance' else
+                  'Vous intervenez ponctuellement sur '+portee)
+        elif niveau!='dossier' and p.missions(compte).filter(dossier=d,prise__isnull=True,hebergement__isnull=True,repas__isnull=True,aide__isnull=True).exists():
+            vous='Vous suivez le dossier ; aucune mission distincte sur '+portee
+        elif p.missions(compte).filter(dossier=d).exists():
+            vous='Vous intervenez sur une prise en charge ou une prestation de ce dossier'
+        elif hs.filter(service=d.service,tache='accueil').exists():
+            vous='Vous assurez l’accueil · '+d.service.libelle
+        elif hs.filter(service=d.service,tache='gestion').exists():
+            vous='Vous assurez la gestion des prestations · '+d.service.libelle
+        else:
+            vous='Vous ne faites pas partie de l’équipe de suivi · '+d.service.libelle
+        lignes.append({'vous':vous,'portee':portee,'dossier':d,'responsables':rs,'historique':historique,'attendu':s.jeton(d),
             'peut_relayer':any(r.professionnel_id==moi for r in rs) or corriger,
             'peut_prendre':corriger and any(r.professionnel_id!=moi for r in rs),
             'relais_url':reverse('acteurs:relais_dossier',args=[d.pk]) if niveau=='dossier' else reverse('acteurs:relais_objet',args=[d.pk,niveau,objet.pk]),

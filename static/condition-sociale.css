@@ -35,8 +35,8 @@
 [data-condition-formulaire] form { max-width: 100%; }
 [data-condition-formulaire] input, [data-condition-formulaire] select, [data-condition-formulaire] textarea { max-width: 100%; box-sizing: border-box; }
 .condition-sommaire a[aria-current="location"] { font-weight: bold; text-decoration: underline; }
-@media(min-width: 1480px) { .condition-sommaire { position: sticky; top: 1rem; float: left; width: 12rem; margin-left: -13rem; max-height: calc(100vh - 2rem); overflow-y: auto; } }
-@media(max-width: 1479px) { .condition-sommaire { display: none; } .condition-menu-mobile { display: block; position: sticky; top: 0; z-index: 5; background: #f0f7f3; border: 1px solid #c8d9ce; border-radius: .4rem; padding: .5rem; } .condition-menu-mobile[open] { max-height: 70vh; overflow-y: auto; } .condition-menu-mobile nav { display: block; } .condition-personne, .condition-groupe, #condition-composition, #projet, #note-dossier, #documents-dossier, #prises, #titre-prestations { scroll-margin-top: 4rem; } }
+@media(min-width: 1680px) { .condition-sommaire { position: sticky; top: 1rem; float: left; width: 12rem; margin-left: -13rem; max-height: calc(100vh - 2rem); overflow-y: auto; } }
+@media(max-width: 1679px) { .condition-sommaire { display: none; } .condition-menu-mobile { display: block; position: sticky; top: 0; z-index: 5; background: #f0f7f3; border: 1px solid #c8d9ce; border-radius: .4rem; padding: .5rem; } .condition-menu-mobile[open] { max-height: 70vh; overflow-y: auto; } .condition-menu-mobile nav { display: block; } .condition-personne, .condition-groupe, #condition-composition, #projet, #note-dossier, #documents-dossier, #prises, #titre-prestations { scroll-margin-top: 4rem; } }
 @media(max-width: 650px) { .condition-groupe dl > div { grid-template-columns: 1fr; gap: .15rem; } .condition-selection { align-items: stretch; flex-direction: column; } }
 @media print { .condition-sommaire, .condition-menu-mobile, .condition-selection, .condition-actions, .condition-ancres, .condition-contexte { display: none; } .condition-heritee { color: inherit; } }
 
