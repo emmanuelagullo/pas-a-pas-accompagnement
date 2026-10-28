@@ -278,3 +278,12 @@ header > nav .menu-utilisateur { position: relative; }
 .titre-equipe .equipe-suivi > summary { top: .5rem; }
 @media (max-width: 40rem) { .equipe-personnelle { padding-inline-end: 0; } .equipe-suivi > summary, .titre-equipe .equipe-suivi > summary { position: static; width: fit-content; } .titre-equipe:has(.equipe-entete) h1 { padding-inline-end: 0; } }
 @media print { .equipe-suivi { display: none; } }
+
+/* Composition : choix directs, règles à la demande, cases avant leur libellé. */
+.analyse-choix { border: 1px solid #c8d9ce; border-radius: .5rem; margin: 1rem 0; padding: .8rem; min-width: 0; }
+.analyse-choix legend { font-weight: 650; padding: 0 .3rem; }
+.analyse-regles { margin: .8rem 0; }
+.case-libelle { display: flex; gap: .5rem; align-items: baseline; }
+.case-libelle input[type=checkbox] { flex: 0 0 auto; width: auto; margin: 0; }
+.case-libelle label { display: inline; margin: 0; cursor: pointer; }
+.choix-case .helptext { margin: .3rem 0 .6rem 1.7rem; }

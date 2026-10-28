@@ -51,7 +51,7 @@ def presenter(form,request):
             descendre=i<len(CLES_AXES) and CLES_AXES[i] in form.fields and bool(form[CLES_AXES[i]].value())))
     for f in form.visible_fields():
         if f.name in CLES_AXES or f.name in CLES_CLASSES:continue
-        cle='compter' if f.name=='mesure' or f.name.startswith('mesure') else 'afficher' if f.name in ('affichage','lignes_vides') or f.name.startswith('colonne') else 'classer' if f.name=='sous_totaux' else 'retenir'
+        cle='compter' if f.name in ('portion','cohorte') or f.name=='mesure' or f.name.startswith('mesure') else 'afficher' if f.name in ('affichage','lignes_vides') or f.name.startswith('colonne') else 'classer' if f.name=='sous_totaux' else 'retenir'
         par_cle[cle]['champs'].append(f)
         if f.errors:par_cle[cle]['ouvert']=True
     priorite={nom:i for i,nom in enumerate(('population','periode','debut','fin','reference_mode','reference','mouvement','portion','cohorte'))}
@@ -71,4 +71,43 @@ def presenter(form,request):
     par_cle['afficher']['resume']=nom('affichage')+' · '+str(sum(bool(form[c].value()) for c in form.fields if c.startswith('colonne')))+' colonnes choisies'
     par_cle['compter']['resume']=' · '.join(nom(c) for c in form.fields if c=='mesure' or c.startswith('mesure') and c[6:].isdigit() if form[c].value())
     par_cle['classer']['resume']=' → '.join(nom(c) for c in CLES_AXES if c in form.fields and form[c].value())+(' · Sous-totaux recalculés' if form['sous_totaux'].value() not in (None,'',False,'False','false','0') else '')
+    # Applicability only controls presentation; values and validation are preserved.
+    population=form['population'].value()
+    groupes={
+        'retenir':[('depart','Recherche',False),('filtres','Filtres',False),('regles','Règles de sélection',True)],
+        'afficher':[('elements','Informations affichées',False),('regles','Présentation du résultat',True)],
+        'compter':[('elements','Mesures',False),('regles','Règles de calcul',True)],
+        'classer':[('regles','Présentation des groupes',True)],
+    }
+    from .cohortes_exploration import POPULATIONS,MESURES
+    mesures=[form[c].value() for c in form.fields if c=='mesure' or c.startswith('mesure') and c[6:].isdigit()]
+    axes=[form[c].value() for c in CLES_AXES if c in form.fields and form[c].value() not in ('','total',None)]
+    repas_vides=population=='repas' and bool(axes) and set(axes)<= {'mois','type'}
+    def pertinent(f):
+        if f.name=='mouvement':return population in ('prises','sejours','accords_hebergement','accords_repas') or f.value() not in ('','chevauche',None) or bool(f.errors)
+        if f.name=='portion':return population=='sejours' or f.value() not in ('','selection',None) or bool(f.errors)
+        if f.name=='cohorte':return population in POPULATIONS and all(m in MESURES for m in mesures if m) or f.value() not in ('','tous',None) or bool(f.errors)
+        if f.name=='lignes_vides':return repas_vides or bool(f.value()) or bool(f.errors)
+        return True
+    for partie in parties:
+        partie['groupes']=[dict(cle=k,titre=t,repliable=r,champs=[],ouverts=False) for k,t,r in groupes[partie['cle']]]
+        par_groupe={g['cle']:g for g in partie['groupes']}
+        partie['conserves']=[]
+        for f in partie['champs']:
+            if not pertinent(f):partie['conserves'].append(f);continue
+            if partie['cle']=='retenir':
+                k='depart' if f.name=='population' else 'regles' if f.name in ('reference_mode','reference','mouvement') else 'filtres'
+            else:k='regles' if f.name in ('affichage','lignes_vides','portion','cohorte','sous_totaux') else 'elements'
+            par_groupe[k]['champs'].append(f)
+            if f.errors:par_groupe[k]['ouverts']=True
+        partie['groupes']=[g for g in partie['groupes'] if g['champs']]
+    # Explicit reminders keep consequential rules visible while their editor is closed.
+    if population in ('personnes','menages','ressources','dettes'):
+        par_cle['retenir']['resume']=nom('population')+' · état au '+str(form['reference'].value())+(' · '+' ; '.join(criteres[:3]) if criteres else ' · Sans filtre supplémentaire')
+        par_cle['retenir']['note']='Cette recherche lit un état à la date de référence. La période ne limite pas cet état à des présences ou à des admissions.'
+    par_cle['retenir']['resume']+=' · '+nom('reference_mode')
+    if form['mouvement'].value() not in ('','chevauche',None):par_cle['retenir']['resume']+=' · '+nom('mouvement')
+    for nom_champ in ('portion','cohorte'):
+        if form[nom_champ].value() not in ('',None,'selection','tous'):par_cle['compter']['resume']+=' · '+nom(nom_champ)
+    if form['lignes_vides'].value():par_cle['afficher']['resume']+=' · Mois et services sans distribution inclus'
     return parties,niveaux

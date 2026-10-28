@@ -61,7 +61,9 @@ def lire(acteur,token):
     if not f.is_valid():raise ValidationError('Les paramètres ne sont plus utilisables avec vos droits actuels.')
     code=p.get('mesure')
     if code not in dict(f.fields['mesure'].choices):raise Http404
-    rows,totaux,xs=e.calculer(acteur,{**f.cleaned_data,'mesure':code},contributions=True)
+    from acteurs.statistiques import selection
+    with selection(acteur,data,'exploration'):
+        rows,totaux,xs=e.calculer(acteur,{**f.cleaned_data,'mesure':code},contributions=True)
     toutes=[*rows,*totaux_cellules(totaux,xs,code)]
     cellule=next((r for r in toutes if canonique(r['_cellule'])==canonique(p.get('cellule'))),None)
     if cellule is None or empreinte(cellule['_objets'])!=p.get('empreinte'):

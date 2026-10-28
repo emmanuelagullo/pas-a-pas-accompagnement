@@ -31,16 +31,33 @@ def nouveau(request):
 @require_http_methods(['GET','POST'])
 @login_required
 def explorer(request):
+    from acteurs.statistiques import selection,reponse_bornee,parametres
+    source=request.GET if request.method=='GET' else request.POST
+    donnees=dict(source.items())
+    if request.GET.get('modele'):
+        modele=get_object_or_404(m.ModeleRapport,pk=request.GET['modele'],auteur=request.user)
+        donnees=modele.parametres.copy()
+        if 'filtre' in source or 'portee_statistiques' in source:donnees.update(parametres(source))
+    with selection(request.user,donnees,'exploration'):
+        reponse=_explorer(request)
+        return reponse_bornee(reponse,request.user,donnees,'exploration')
+
+
+def _explorer(request):
     e.disponibles(request.user)
     from . import modeles_personnels as gestion
     statut=200;calcul_effectue=False
     modele=get_object_or_404(m.ModeleRapport,pk=request.GET['modele'],auteur=request.user) if request.GET.get('modele') else None
     data=(modele.parametres.copy() if modele else (request.POST.copy() if request.method=='POST' else request.GET.copy()))
+    from acteurs.statistiques import parametres
+    source=request.POST if request.method=='POST' else request.GET
+    if 'filtre' in source or 'portee_statistiques' in source:data.update(parametres(source))
     cible=modele
     if not cible and (request.POST.get('modele_cible') or request.GET.get('modele_cible')):
         cible=get_object_or_404(m.ModeleRapport,pk=request.POST.get('modele_cible') or request.GET.get('modele_cible'),auteur=request.user)
     attendu_modele=(request.POST.get('attendu_modele','') if request.method=='POST' else request.GET.get('attendu_modele',gestion.jeton(request.user,cible) if cible and request.user.has_perms(['personnes.view_modelerapport','personnes.add_modelerapport']) else ''))
     contexte_retour={k:(request.POST if request.method=='POST' else request.GET).get(k,'') for k in ('origine_rapport','panneau','page','nouveau')}
+    contexte_retour.update(parametres(data))
     if cible:contexte_retour.update(modele_cible=str(cible.pk),attendu_modele=attendu_modele)
     if modele and not data.get('exploration'):
         from .catalogue_rapports import ouvrir
@@ -100,7 +117,7 @@ def explorer(request):
                 nom=request.POST.get('nom','').strip()
                 if not nom or len(nom)>100:form.add_error(None,'Nommez ce modèle (100 caractères au plus).')
                 else:
-                    params={k:str(v) if v is not None else '' for k,v in form.cleaned_data.items()};params.update(schema=1,exploration=True)
+                    params={k:str(v) if v is not None else '' for k,v in form.cleaned_data.items()};params.update(schema=1,exploration=True);params.update(parametres(data))
                     try:
                         if request.POST.get('action_modele')=='remplacer':
                             if cible is None:raise ValidationError('Choisissez le modèle personnel à remplacer.')
@@ -137,6 +154,7 @@ def explorer(request):
     query={c:str(form.data.get(c,'')) for c in form.fields}
     for cle in ('origine_rapport','panneau','nouveau'):
         if contexte_retour.get(cle):query[cle]=contexte_retour[cle]
+    query.update(parametres(data))
     if cible:query.update(modele_cible=str(cible.pk),attendu_modele=attendu_modele)
     page=Paginator(details if form.cleaned_data.get('affichage')=='detail' else lignes,50).get_page(contexte_retour.get('page'))
     if calcul_effectue and form.cleaned_data.get('affichage')!='detail':
@@ -203,12 +221,14 @@ def justificatifs(request,fait=False):
             mesure=dict(form.fields['mesure'].choices)[payload['mesure']],
             unite_affichee=cellule['unite'] if payload['mesure'] in ('quantite','minimum','maximum','moyenne') else 'personnes-nuitées' if payload['mesure'] in e.mesures.NUITEES else 'personnes distinctes' if payload['mesure'] in ('personnes',*e.mesures.PERSONNES) else 'ménages distincts' if payload['mesure']=='menages' else 'objets' if payload['mesure']=='objets' else 'unités déclarées',
             preuve=token)
+        from acteurs.statistiques import parametres
+        criteres={**form.cleaned_data,**parametres(payload['params'])}
         if fait:
-            x,champs,native=p.fiche_objet(request.user,form.cleaned_data,cellule,request.GET.get('objet',''),token,request.GET.get('page','1'))
+            x,champs,native=p.fiche_objet(request.user,criteres,cellule,request.GET.get('objet',''),token,request.GET.get('page','1'))
             contexte.update(objet=x,champs=champs,native=native,
                 retour_faits=reverse('dossiers:explorer_justificatifs')+'?'+urlencode({'preuve':token,'page':request.GET.get('page','1')}))
             return render(request,'exploration/fait.html',contexte)
-        lignes,regle=p.contributions(request.user,form.cleaned_data,payload['mesure'],cellule,token,request.GET.get('page','1'))
+        lignes,regle=p.contributions(request.user,criteres,payload['mesure'],cellule,token,request.GET.get('page','1'))
         if request.GET.get('format')=='csv':
             r=HttpResponse(content_type='text/csv; charset=utf-8');r['Content-Disposition']='attachment; filename="justificatifs-exploration.csv"'
             w=csv.writer(r,delimiter=';');w.writerow(['Mesure','Unité','Total de la partie','Contribution','Période','Valeur','Objet'])

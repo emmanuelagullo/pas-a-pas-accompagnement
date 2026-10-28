@@ -24,7 +24,7 @@ class CompositionTests(TestCase):
             self.assertEqual(r.context['form']['valeur1'].value(),'18')
             self.assertEqual(r.context['form']['colonne1'].value(),'personne')
             for titre in ('Retenir','Afficher','Compter','Classer'):self.assertContains(r,titre)
-            self.assertContains(r,'Rapports courants')
+            self.assertContains(r,'← Statistiques et rapports')
 
     def test_deplacer_axes_et_classes_ensemble_sans_changer_population(self):
         d=self.params(mesure='personnes',axe='age',classes='Jeune|0|20\nAdulte|20|',croisement='famille.grossesse',niveaux=3,axe3='mois',sous_totaux=True)

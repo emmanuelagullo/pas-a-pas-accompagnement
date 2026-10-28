@@ -5,12 +5,12 @@ from unittest.mock import patch
 from django.test import TestCase
 from django.urls import reverse
 from django.core.exceptions import ValidationError
-from .tests_meta_f import ConsolidationStatistiques
+from . import tests_meta_f
 
 class ExportsCompositionTests(TestCase):
-    setUpTestData=classmethod(ConsolidationStatistiques.setUpTestData.__func__)
+    setUpTestData=classmethod(tests_meta_f.ConsolidationStatistiques.setUpTestData.__func__)
     def setUp(self):self.client.force_login(self.u)
-    def config(self,**kw):return ConsolidationStatistiques.config(self,**kw)
+    def config(self,**kw):return tests_meta_f.ConsolidationStatistiques.config(self,**kw)
     def token(self,r):
         href=unescape(re.search(r'href="([^"]+)">Conserver ces réglages',r.content.decode())[1])
         return parse_qs(urlsplit(href).query)['definition'][0]

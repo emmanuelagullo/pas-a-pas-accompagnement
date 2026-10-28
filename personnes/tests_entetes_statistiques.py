@@ -1,10 +1,10 @@
 from django.test import TestCase
 from django.urls import reverse
-from .tests_meta_f import ConsolidationStatistiques
+from . import tests_meta_f
 from .catalogue_rapports import SOURCES
 
 class EntetesStatistiquesTests(TestCase):
-    setUpTestData=classmethod(ConsolidationStatistiques.setUpTestData.__func__)
+    setUpTestData=classmethod(tests_meta_f.ConsolidationStatistiques.setUpTestData.__func__)
     def setUp(self):self.client.force_login(self.u)
     def test_entetes_et_retours_des_sources_et_composition(self):
         for source in [*SOURCES,'exploration']:
