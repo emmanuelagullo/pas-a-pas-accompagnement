@@ -96,7 +96,7 @@ def capturer(args):
         page.get_by_role('link', name='Consulter les statistiques d’activité').wait_for()
         page.screenshot(path=str(args.output / 'travail-du-jour.png'), full_page=True)
         for slug, url, titre in (
-            ('statistiques', '/statistiques/?rapport=synthese', "Statistiques d’activité"),
+            ('statistiques', '/statistiques/?rapport=synthese', "Synthèse de l’activité"),
             ('liaison', '/menages/liaison/', 'Cahier de liaison'),
         ):
             page.goto(args.base_url + url)

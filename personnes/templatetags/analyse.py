@@ -141,3 +141,9 @@ def entete_rapport(context,titre):
         params['filtre']=context.get('filtre_acteurs') or request.GET.get('filtre','tous')
     modele=context.get('modele_actif') or context.get('modele_gestion') or context.get('rapport_cible') or context.get('modele_cible')
     return dict(titre=titre,nom=modele.nom if modele else '',retour=reverse('dossiers:rapports_accueil')+('?' + urlencode(params) if params else ''))
+
+
+@register.simple_tag(takes_context=True)
+def export_possible(context):
+    f=context.get('form') or context.get('formulaire')
+    return f is not None and f.is_valid() and context.get('calcul_effectue') is not False

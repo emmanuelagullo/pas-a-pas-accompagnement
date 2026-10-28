@@ -18,9 +18,9 @@ from . import catalogue_rapports as c,models as m
 
 class ExportForm(forms.Form):
     definition=forms.CharField(widget=forms.HiddenInput)
-    resume=forms.CharField(required=False,max_length=6000)
-    inclure_description=forms.BooleanField(required=False)
-    format=forms.ChoiceField(choices=[('pdf','PDF'),('csv','CSV')])
+    resume=forms.CharField(label='Résumé optionnel',required=False,max_length=6000)
+    inclure_description=forms.BooleanField(label='Inclure la description du modèle',required=False)
+    format=forms.ChoiceField(label='Format du fichier',choices=[('pdf','PDF'),('csv','CSV')])
 
 def requete_source(request,source,params):
     from .vues_rapports import reponse_source
@@ -46,7 +46,7 @@ def document(request,d,resume='',inclure_description=False):
     from .periodes_rapports import PERIODES
     criteres=[('Règle de la sélection affichée',PERIODES.get(regle,regle))] if regle else []
     for nom,champ in f.fields.items():
-        if nom not in f.cleaned_data or (f.cleaned_data[nom] is None or f.cleaned_data[nom] is False or f.cleaned_data[nom]=='') or champ.widget.is_hidden:continue
+        if nom=='export_prioritaire' or nom not in f.cleaned_data or (f.cleaned_data[nom] is None or f.cleaned_data[nom] is False or f.cleaned_data[nom]=='') or champ.widget.is_hidden:continue
         v=f.cleaned_data[nom]
         if source=='exploration' and (nom.startswith('operation') or nom.startswith('valeur')):continue
         if source=='exploration' and nom.startswith('filtre') and nom[6:].isdigit():

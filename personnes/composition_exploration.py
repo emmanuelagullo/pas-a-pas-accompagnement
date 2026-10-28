@@ -35,7 +35,8 @@ def retirer(data,position):
 def presenter(form,request):
     def nom(c):
         valeur=form[c].value()
-        if valeur in (None,'') and c=='affichage':valeur='synthese'
+        if valeur in (None,''):
+            valeur={'affichage':'synthese','reference_mode':'commune','mouvement':'chevauche','portion':'selection','cohorte':'tous'}.get(c,valeur)
         return str(dict(form.fields[c].choices).get(valeur,valeur or 'Aucun'))
     ouverts=request.GET.get('panneau','')
     if request.GET.get('ajouter_niveau') or request.GET.get('deplacer_niveau') or request.GET.get('retirer_niveau'):ouverts='classer'
@@ -51,7 +52,7 @@ def presenter(form,request):
             descendre=i<len(CLES_AXES) and CLES_AXES[i] in form.fields and bool(form[CLES_AXES[i]].value())))
     for f in form.visible_fields():
         if f.name in CLES_AXES or f.name in CLES_CLASSES:continue
-        cle='compter' if f.name in ('portion','cohorte') or f.name=='mesure' or f.name.startswith('mesure') else 'afficher' if f.name in ('affichage','lignes_vides') or f.name.startswith('colonne') else 'classer' if f.name=='sous_totaux' else 'retenir'
+        cle='compter' if f.name in ('portion','cohorte') or f.name=='mesure' or f.name.startswith('mesure') else 'afficher' if f.name in ('affichage','lignes_vides','export_prioritaire') or f.name.startswith('colonne') else 'classer' if f.name=='sous_totaux' else 'retenir'
         par_cle[cle]['champs'].append(f)
         if f.errors:par_cle[cle]['ouvert']=True
     priorite={nom:i for i,nom in enumerate(('population','periode','debut','fin','reference_mode','reference','mouvement','portion','cohorte'))}
@@ -97,19 +98,21 @@ def presenter(form,request):
             if not pertinent(f):partie['conserves'].append(f);continue
             if partie['cle']=='retenir':
                 k='depart' if f.name=='population' else 'regles' if f.name in ('reference_mode','reference','mouvement') else 'filtres'
-            else:k='regles' if f.name in ('affichage','lignes_vides','portion','cohorte','sous_totaux') else 'elements'
+            else:k='regles' if f.name in ('affichage','lignes_vides','portion','cohorte','sous_totaux','export_prioritaire') else 'elements'
             par_groupe[k]['champs'].append(f)
             if f.errors:par_groupe[k]['ouverts']=True
         partie['groupes']=[g for g in partie['groupes'] if g['champs']]
+    par_cle['afficher']['ajouter_colonne']=not any(f.name.startswith('colonne') for f in par_cle['afficher']['champs'])
     # Explicit reminders keep consequential rules visible while their editor is closed.
     if population in ('personnes','menages','ressources','dettes'):
         par_cle['retenir']['resume']=nom('population')+' · état au '+str(form['reference'].value())+(' · '+' ; '.join(criteres[:3]) if criteres else ' · Sans filtre supplémentaire')
         par_cle['retenir']['note']='Cette recherche lit un état à la date de référence. La période ne limite pas cet état à des présences ou à des admissions.'
     par_cle['retenir']['resume']+=' · '+nom('reference_mode')
+    if form['reference_mode'].value() in ('',None,'commune'):par_cle['retenir']['resume']+=' : '+str(form['reference'].value())
     if form['mouvement'].value() not in ('','chevauche',None):par_cle['retenir']['resume']+=' · '+nom('mouvement')
     for nom_champ in ('portion','cohorte'):
         if form[nom_champ].value() not in ('',None,'selection','tous'):par_cle['compter']['resume']+=' · '+nom(nom_champ)
-    if form['lignes_vides'].value():par_cle['afficher']['resume']+=' · Mois et services sans distribution inclus'
+    if form['lignes_vides'].value():par_cle['afficher']['resume']+=' · Mois et services sans distribution en synthèse'
     from .exploration_releve import cles_colonnes
     donnees={k:form[k].value() for k in form.fields}
     nombre_filtres=len(criteres)+(1 if form.data.get('filtre') not in (None,'','tous') else 0)
@@ -121,9 +124,12 @@ def presenter(form,request):
     par_cle['afficher']['resume']=nom('affichage')+' · '+('Dossier, date du fait et colonnes choisies' if detail else 'Groupes, mesure, unité et valeur')
     conservees=sum(bool(form[c].value()) for c in form.fields if c.startswith('colonne'))
     if not detail and conservees:par_cle['afficher']['resume']+=' · '+compte(conservees,'colonne du détail conservée','colonnes du détail conservées')
-    if form['lignes_vides'].value():par_cle['afficher']['resume']+=' · Mois et services sans distribution inclus'
+    if form['lignes_vides'].value():par_cle['afficher']['resume']+=' · Mois et services sans distribution en synthèse'
+    if form['export_prioritaire'].value():par_cle['afficher']['resume']+=' · Export '+str(form['export_prioritaire'].value()).upper()+' mis en avant'
     par_cle['compter']['compteur']=compte(len(set(m for m in mesures if m)),'mesure','mesures')
     par_cle['classer']['compteur']=compte(len(axes),'niveau','niveaux') if axes else 'Aucun regroupement'
     if not axes:par_cle['classer']['resume']='Total général'+(' · Sous-totaux activés' if form['sous_totaux'].value() else '')
+    classes_actives=[nom(a) for a,c in zip(CLES_AXES,CLES_CLASSES) if c in form.fields and a in form.fields and form[c].value()]
+    if classes_actives:par_cle['classer']['resume']+=' · Classes définies : '+', '.join(classes_actives)
     for partie in parties:partie['a_verifier']=bool(form.errors)
     return parties,niveaux

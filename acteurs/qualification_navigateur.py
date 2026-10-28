@@ -78,6 +78,6 @@ class ParcoursActeurs(StaticLiveServerTestCase):
         expect(page.get_by_role('button',name='Commencer le suivi',exact=True)).to_have_count(0)
         # Nouvelle session pour la coordination : statistiques regroupées seulement.
         page=self.navigateur(self.coord)
-        expect(page.get_by_role('heading',name='Statistiques d’activité',exact=True)).to_be_visible()
+        expect(page.get_by_role('heading',name='Synthèse de l’activité',exact=True)).to_be_visible()
         cible=reverse('dossiers:detail',args=['menage',self.attente.menage_id])
         self.assertEqual(page.goto(self.live_server_url+cible).status,403)

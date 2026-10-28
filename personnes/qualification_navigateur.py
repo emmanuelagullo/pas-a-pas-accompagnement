@@ -663,7 +663,7 @@ class ConditionSocialeNavigateur(StaticLiveServerTestCase):
     def test_menu_champs_repris_enregistrement_et_retrait(self):
         from . import models as m
         page = self.navigateur()
-        page.set_viewport_size({'width': 1600, 'height': 1000})
+        page.set_viewport_size({'width': 1800, 'height': 1000})
         page.goto(self.live_server_url + reverse('dossiers:prise', args=['menage', self.m.pk, self.a.pk]))
         menu = page.locator('nav.condition-sommaire')
         social = menu.locator('.condition-menu > li').filter(has=page.locator('a[href="#condition-sociale"]'))
@@ -760,8 +760,8 @@ class ConditionSocialeNavigateur(StaticLiveServerTestCase):
         expect(form).to_have_count(0)
         expect(groupe.locator('[data-condition-lecture]')).to_be_visible()
         self.assertEqual(verifier_hors_boucle_playwright(lambda: m.RevisionCoordonneesPersonnelles.objects.count()), 0)
-        page.set_viewport_size({'width': 1600, 'height': 1000})
-        menu = page.locator('.condition-menu').first
+        page.set_viewport_size({'width': 1800, 'height': 1000})
+        menu = page.locator('.condition-sommaire .condition-menu')
         depliants = menu.locator('.condition-nav-details')
         expect(depliants).to_have_count(2)
         depliants.nth(0).locator('summary').click(position={'x': 5, 'y': 5})
@@ -887,6 +887,39 @@ class RapportsNavigateur(StaticLiveServerTestCase):
         page.get_by_role('button',name='Enregistrer les modifications',exact=True).click()
         expect(page.get_by_role('heading',name='Exporter ce rapport',exact=True)).to_be_visible()
         verifier('pdf')
+
+
+    def test_composition_exportable_compteurs_et_preference_decouvrable(self):
+        from playwright.sync_api import expect
+        from datetime import date
+        from . import repas
+        repas.distribuer(self.u,self.ar,self.adulte,date(2026,1,2),2)
+        page=self.navigateur()
+        page.goto(self.live_server_url+reverse('statistiques')+'?rapport=repas&debut=2026-01-01&fin=2026-02-01')
+        expect(page.locator('main h1')).to_have_text('Repas distribués')
+        expect(page.locator('main .retour-rapport a')).to_have_text('← Statistiques et rapports')
+        page.get_by_text('Adapter ce rapport',exact=True).click()
+        expect(page.get_by_role('link',name='Choisir et conserver l’export mis en avant',exact=True)).to_be_visible()
+        page.get_by_role('link',name='Composer à partir de ce rapport',exact=True).click()
+        expect(page.locator('main h1')).to_have_text('Analyse composée')
+        expect(page.get_by_role('link',name='2',exact=True)).to_be_visible()
+        for format in ('CSV','PDF'):
+            with page.expect_download() as ex:page.get_by_role('button',name='Exporter le '+format,exact=True).click()
+            self.assertTrue(ex.value.suggested_filename.lower().endswith('.'+format.lower()))
+        page.get_by_role('link',name='Modifier afficher',exact=True).click()
+        page.get_by_text('Présentation du résultat',exact=True).click()
+        page.get_by_label('Export à mettre en avant',exact=False).select_option('csv')
+        page.get_by_label('Présentation',exact=False).select_option('detail')
+        page.get_by_role('button',name='Recalculer l’analyse',exact=True).click()
+        expect(page.locator('.rapport-export button[value=csv]')).not_to_have_class('secondaire')
+        self.assertEqual(page.locator('.analyse-compteur').count(),4)
+        self.assertLessEqual(page.evaluate('document.documentElement.scrollWidth'),391)
+        page.get_by_role('link',name='Modifier retenir',exact=True).click()
+        expect(page.get_by_label('Sur quoi porte la recherche ?',exact=True)).to_have_value('repas')
+        expect(page.get_by_role('group',name='Filtres',exact=True)).to_be_visible()
+        self.conserver(page,'CSV repas composé','modele')
+        page.get_by_role('button',name='Enregistrer',exact=True).click()
+        expect(page.locator('.rapport-export button[value=csv]')).not_to_have_class('secondaire')
 
 
 @skipIf(sync_playwright is None, 'Module Python Playwright non installé.')

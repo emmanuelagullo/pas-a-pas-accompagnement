@@ -23,7 +23,7 @@ class AccesRapportsTests(TestCase):
         params=dict(rapport='exploration_repas',debut='2026-01-01',fin='2026-02-01',regroupement='mois_categorie',service='dejeuner')
         r=self.client.get(reverse('statistiques'),params);self.assertEqual(r.status_code,200)
         html=r.content.decode();debut=html.index('<details class="rapport-composer"');fin=html.index('</details>',debut)
-        self.assertLess(html.index('<h1>Statistiques'),debut)
+        self.assertLess(html.index('<h1>Explorer les repas par mois et service</h1>'),debut)
         self.assertNotIn('class="rapports-navigation"',html)
         cible=self.client.get(reverse('dossiers:rapport_composer',args=['statistiques']),params)
         self.assertEqual(cible.status_code,200)

@@ -38,7 +38,7 @@ assert 'Dossier réservé à un autre service' not in r.content.decode()
 ds=DossierService.objects.get(menage__libelle='Alex Martin')
 with CaptureQueriesContext(connection) as requetes:
     r=client.get(chemin('dossiers:detail','menage',ds.menage_id),secure=True)
-assert r.status_code==200 and 'Qui s’en occupe' in r.content.decode()
+assert r.status_code==200 and 'Équipe de suivi' in r.content.decode()
 print(settings.SETTINGS_MODULE+' : dossier, '+str(len(requetes))+' requêtes SQL',flush=True)
 pdf=client.get(chemin('personnes:fiche_pdf',ds.menage.appartenances.first().personne_id),secure=True)
 assert pdf.status_code==200 and pdf.content.startswith(b'%PDF-'),pdf.status_code

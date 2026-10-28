@@ -71,3 +71,12 @@ class PresentationExportsTests(TestCase):
         self.assertEqual(csv(parent),avant)
         enfant.refresh_from_db();self.assertEqual(enfant.parametres['export_prioritaire'],'pdf')
         self.boutons(self.client.get(ouvrir(enfant)),'pdf')
+    def test_reglage_decouvrable_depuis_adaptation_et_composition(self):
+        r=self.client.get(reverse('statistiques'),dict(rapport='repas',debut='2026-01-01',fin='2026-02-01'))
+        self.assertContains(r,'Choisir et conserver l’export mis en avant');self.assertContains(r,'#id_export_prioritaire')
+        d={**tests_meta_f.ConsolidationStatistiques.config(self),'export_prioritaire':'csv','panneau':'afficher'}
+        r=self.client.get(reverse('dossiers:explorer'),d);self.boutons(r,'csv')
+        p={x['cle']:x for x in r.context['parties_analyse']}
+        regles=next(g for g in p['afficher']['groupes'] if g['cle']=='regles')
+        self.assertIn('export_prioritaire',[f.name for f in regles['champs']])
+        self.assertIn('Export CSV',p['afficher']['resume'])

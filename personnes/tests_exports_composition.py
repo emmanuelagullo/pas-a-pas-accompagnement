@@ -33,3 +33,7 @@ class ExportsCompositionTests(TestCase):
         self.assertEqual(ex.status_code,422);self.assertContains(ex,'Vérifiez la période.',status_code=422)
         self.assertNotIn("['",ex.content.decode());self.assertContains(ex,'Résumé conservé',status_code=422)
         self.assertIn('population=',ex.context['retour']);self.assertIn('page=',ex.context['retour'])
+    def test_pas_de_boutons_export_sur_criteres_invalides(self):
+        r=self.client.get(reverse('dossiers:explorer'),self.config(debut='invalide'))
+        self.assertContains(r,'Corrigez les critères signalés')
+        self.assertNotContains(r,'class="carte rapport-export"')

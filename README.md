@@ -1501,3 +1501,17 @@ privilégient le CSV, adapté au retraitement de leurs lignes. Une nouvelle
 composition privilégie le PDF en synthèse et le CSV en détail. Le passage fidèle
 d’un rapport à une composition reprend sa préférence. Les modèles existants sans
 préférence utilisent ces défauts sans modification de leur enregistrement.
+
+### Composition statistique — présentation et continuité ACT08
+
+Les rapports partagent le retour « ← Statistiques et rapports » avant leur titre.
+Le compositeur sépare le point de départ, les filtres et leurs règles, puis les
+informations, mesures et niveaux de classement. Les quatre compteurs décrivent
+les choix actifs ; les colonnes fixes sont incluses et les mesures identiques
+ne sont pas comptées deux fois. Une erreur de saisie signale les choix à vérifier.
+
+PDF et CSV reprennent le même calcul, aussi après adaptation d’un rapport ou
+ouverture d’un modèle composable. Une erreur d’export conserve le retour, la
+sélection et les options saisies. Les critères ACT08 sont transportés dans les
+modèles, liens et justificatifs ; leurs habilitations restent revalidées.
+Aucune définition statistique, source sociale ou autorisation n’est modifiée.

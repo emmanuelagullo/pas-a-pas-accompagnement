@@ -22,8 +22,26 @@ réglages…** mémorise ses critères, sans ouvrir une composition libre.
 1. Choisir la population réellement étudiée : personnes, demandes, séjours, accords, distributions, appels ou autre population proposée.
 2. Renseigner la période et la référence des données personnelles. La référence peut être commune ou suivre la date de chaque fait ou de sa saisie initiale.
 3. Modifier directement **Retenir**, **Afficher**, **Compter** ou **Classer** selon le besoin : jusqu'à 7 niveaux de classement et 9 mesures. Chaque partie conserve les paramètres des autres ; aucun assistant n'est imposé.
-4. Pour examiner les lignes, choisir un relevé détaillé avec jusqu'à 11 colonnes. Depuis un dossier ouvert par ce relevé, le retour retrouve les critères du rapport ; ce retour privé expire après une journée.
+4. Pour examiner les lignes, choisir un relevé détaillé avec jusqu’à 11 colonnes choisies, en plus de l’objet et de la date. Depuis un dossier ouvert par ce relevé, le retour retrouve les critères du rapport ; ce retour privé expire après une journée.
 5. Exporter le CSV ou le PDF de la même sélection.
+
+Les quatre parties affichent leurs repères : nombre de filtres supplémentaires,
+de colonnes réellement présentées, de mesures différentes et de niveaux de
+regroupement. Population et période restent explicites, sans gonfler le compteur
+des filtres supplémentaires. « Aucun regroupement » signifie un total général.
+Les colonnes du détail restent conservées quand on revient en synthèse.
+
+**Retenir** sépare le point de départ (« Sur quoi porte la recherche ? »), les
+filtres et les règles de sélection. **Afficher** sépare les informations de leur
+présentation. **Compter** sépare les mesures de leurs règles de calcul.
+**Classer** conserve l’ordre des niveaux et les sous-totaux. Les règles sont
+repliables ; leurs choix particuliers restent rappelés dans les synthèses.
+
+Dans **Afficher → Présentation du résultat**, choisir l’export à mettre en avant.
+PDF puis CSV restent disponibles dans cet ordre. Pour un rapport spécialisé,
+**Adapter ce rapport → Choisir et conserver l’export mis en avant** ouvre ce
+réglage. **Conserver ces réglages…** permet de le retrouver avec le modèle ou
+sa personnalisation, sans enregistrer les résultats.
 
 **À vérifier :** plusieurs critères personnels doivent être vérifiés par la même personne. Une mission concerne la prise en charge exacte. Les totaux distincts sont recalculés : les lignes recouvrantes ne s'additionnent pas forcément. Les limites produisent un refus explicite.
 
@@ -31,7 +49,7 @@ Pour les définitions des indicateurs, lire les [statistiques d'activité]({{< r
 
 ## Retenir une personne à un moment du parcours
 
-Dans **Retenir**, le premier ou dernier objet chronologique s'applique **après
+Dans **Compter → Règles de calcul**, le premier ou dernier objet chronologique s'applique **après
 les filtres**, pour les mesures de personnes distinctes des prises en charge,
 demandes et prestations. Le premier objet de cette sélection n'est pas une
 première admission absolue. Avec la référence à la date du fait, l'âge et les
@@ -50,7 +68,7 @@ identifiés dans le tableau, le CSV et le PDF ; ne pas les ajouter aux détails.
 
 ## Choisir quels objets la période retient
 
-**Retenir** distingue les objets chevauchant la période de ceux dont le début, la fin, ou les deux tombent dans cette période. La fin d’un accord est une fin d’autorisation ; elle ne prouve pas une sortie. Pour les nuitées des épisodes retenus, **Intégralité des épisodes clos** peut dépasser les bornes du rapport. Conserver **Seulement dans la période** pour comparer l’activité d’une même fenêtre.
+**Retenir** distingue les objets chevauchant la période de ceux dont le début, la fin, ou les deux tombent dans cette période. La fin d’un accord est une fin d’autorisation ; elle ne prouve pas une sortie. Dans **Compter → Règles de calcul**, pour les nuitées des épisodes retenus, **Intégralité des épisodes clos** peut dépasser les bornes du rapport. Conserver **Seulement dans la période** pour comparer l’activité d’une même fenêtre.
 
 Les paramètres, les relevés détaillés, CSV et PDF peuvent contenir des données personnelles selon les critères et colonnes choisis. Les conserver et transmettre selon leur contenu ; un export de rapport n’est ni une sauvegarde restaurable ni un document financier émis.
 

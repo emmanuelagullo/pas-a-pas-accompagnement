@@ -26,7 +26,7 @@ class AppelsRechercheForm(FormulaireMetier):
 
 class ExplorationForm(FormulaireMetier):
     from .presentation_exports import CHOIX as CHOIX_EXPORT
-    export_prioritaire=forms.ChoiceField(choices=CHOIX_EXPORT,required=False,widget=forms.HiddenInput)
+    export_prioritaire=forms.ChoiceField(label='Export à mettre en avant',choices=CHOIX_EXPORT,required=False,help_text='PDF puis CSV restent disponibles dans cet ordre. Ce choix change seulement le bouton principal ; conservez les réglages pour le retrouver.')
     lignes_vides=forms.BooleanField(label='Afficher aussi les mois et services de repas sans distribution',required=False,help_text='Population repas, axes Mois et/ou Service : les cellules vides valent zéro. Les autres populations ne sont pas complétées.')
     sous_totaux=forms.BooleanField(label='Afficher les sous-totaux des niveaux de classement',required=False,help_text='Chaque sous-total utilise les faits de son groupe. Pour les personnes distinctes, une personne compte une fois par groupe et une fois dans le total général, même si elle figure dans plusieurs groupes.')
     cohorte=forms.ChoiceField(label='Faits utilisés pour chaque personne',required=False,choices=[('tous','Tous les objets filtrés'),('premier','Premier objet chronologique dans la sélection filtrée'),('dernier','Dernier objet chronologique dans la sélection filtrée')],help_text='Pour les mesures de personnes distinctes des prises en charge, demandes et prestations. La date du fait/début prime, puis la saisie et l’identifiant départagent les égalités. Ce n’est pas une première admission absolue ; les filtres s’appliquent avant ce choix.')
