@@ -16,7 +16,8 @@ def responsabilites(context,objet,niveau='dossier'):
             if r.fin_url:r.fin_url+=query
         if ligne['attribution_url']:ligne['attribution_url']+=query
         ligne['retour_acteurs']=token
-    return {'lignes':lignes,'niveau':niveau}
+    from personnes.liaisons import widget
+    return {'lignes':lignes,'niveau':niveau,'liaison':widget(request,objet,racine=context.get('objet'))}
 
 
 @register.simple_tag(takes_context=True)

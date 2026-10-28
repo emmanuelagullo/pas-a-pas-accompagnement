@@ -8,7 +8,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
-from .models import Transmission, NotePartagee, Personne, Accompagnement, Sejour, AccordHebergement, AccordRepas, AccordAide
+from .models import Transmission, NotePartagee, Personne, Accompagnement, Sejour, AccordHebergement, AccordRepas, AccordAide, Menage
 from . import transmissions, dossier, releve
 from .retour_service import date_service, url_jour, contexte_jour, suffixe_jour
 
@@ -49,7 +49,7 @@ def cahier(request):
         "date_service": date_service(request.POST.get("date_service") or request.GET.get("date_service"))})
 
 
-CIBLES = {"personne": (Personne, "view_personne"), "accompagnement": (Accompagnement, "view_accompagnement"), "sejour": (Sejour, "view_sejour"),"accord_hebergement":(AccordHebergement,"view_accordhebergement"),"accord_repas":(AccordRepas,"view_accordrepas"),"accord_aide":(AccordAide,"view_accordaide")}
+CIBLES = {"menage": (Menage,"view_menage"), "personne": (Personne, "view_personne"), "accompagnement": (Accompagnement, "view_accompagnement"), "sejour": (Sejour, "view_sejour"),"accord_hebergement":(AccordHebergement,"view_accordhebergement"),"accord_repas":(AccordRepas,"view_accordrepas"),"accord_aide":(AccordAide,"view_accordaide")}
 
 
 @never_cache
@@ -57,6 +57,11 @@ CIBLES = {"personne": (Personne, "view_personne"), "accompagnement": (Accompagne
 @permission_required("personnes.view_notepartagee", raise_exception=True)
 @require_http_methods(["GET", "POST"])
 def notes(request, nature, pk):
+    if request.method=='GET':
+        from .vues_liaisons import cahier
+        aliases={'accompagnement':'prise','accord_hebergement':'hebergement','accord_repas':'repas','accord_aide':'aide'}
+        request.GET=request.GET.copy();request.GET['lia_cible']=aliases.get(nature,nature);request.GET['lia_id']=str(pk)
+        return cahier(request)
     if nature not in CIBLES:
         from django.http import Http404
         raise Http404
@@ -122,6 +127,8 @@ def corriger(request, nature, pk):
     navigation = dossier.lire_personne(request, contexte.pk) if cible_nature == 'personne' else dossier.lire(request, a)
     if navigation:
         retour = navigation['retour_dossier']
+    from .liaisons import lire_retour
+    retour=lire_retour(request.user,request.GET.get('lia_retour','')) or retour
     donnees = {**navigation, **contexte_jour(request), "contribution": contribution, "cible": contexte,
                "cible_nature": cible_nature, "retour": retour}
     form = CorrectionForm(request.POST or None, initial={"contenu": tr.lire_objet(contribution, "contenu"), "texte_attendu": contribution.contenu, "etat_attendu": transmissions.jeton(contribution),"date_fait":contribution.date_fait})

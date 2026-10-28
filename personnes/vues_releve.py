@@ -62,7 +62,9 @@ def annuler(request,nature,pk):
     f=FormulaireMetier(request.POST if request.method=='POST' else None)
     f.fields['motif']=forms.CharField(max_length=240,label='Motif de l’annulation')
     f.fields['attendu']=forms.CharField(widget=forms.HiddenInput,initial=transmissions.jeton(x))
-    return traiter(request,f,'Annuler une contribution erronée',lambda **d:transmissions.annuler(request.user,x,**d),reverse('dossiers:releve_recherche'),str(x.pk),explication='Le contenu et ses corrections restent conservés ; l’annulation est un statut séparé.')
+    from .liaisons import lire_retour
+    retour=lire_retour(request.user,request.GET.get('lia_retour','')) or reverse('dossiers:releve_recherche')
+    return traiter(request,f,'Annuler une contribution erronée',lambda **d:transmissions.annuler(request.user,x,**d),retour,str(x.pk),explication='Le contenu et ses corrections restent conservés ; l’annulation est un statut séparé.')
 
 
 @never_cache

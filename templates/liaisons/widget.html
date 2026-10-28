@@ -1,0 +1,1 @@
+{% if liaison %}<details id="liaisons" class="liaisons-widget" data-liaisons-url="{{ liaison.url }}"{% if liaison.ouvrir %} open{% endif %}><summary>Liaisons</summary><div class="liaisons-contenu" aria-label="Cahier de liaison"><p><a href="{{ liaison.url }}">Ouvrir le cahier de liaison — {{ liaison.label }}</a></p></div></details>{% endif %}

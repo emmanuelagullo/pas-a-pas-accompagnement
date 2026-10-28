@@ -80,6 +80,10 @@ def visibles(compte):
             if x.responsabilite_id and x.responsabilite_id not in courantes and x.dossier.service_id not in pleins:continue
             ds=x.dossier;nature='personne' if ds.personne_id else 'menage';pk=ds.personne_id or ds.menage_id
             x.url=reverse('dossiers:prise',args=[nature,pk,o.prise_id]) if o and o.prise_id else reverse('dossiers:detail',args=[nature,pk])
+            if x.responsabilite_id:
+                from personnes.liaisons import lire_responsabilite,url_attribution
+                if not lire_responsabilite(compte,x.responsabilite):continue
+                x.url=url_attribution(compte,x.responsabilite)
             x.attendu=s.jeton(x);resultat.append(x)
         return resultat
 

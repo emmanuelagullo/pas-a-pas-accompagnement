@@ -8,7 +8,7 @@ from . import vues_repas
 from . import vues_hebergement as h
 from . import vues_social as social
 from . import vues_jour
-from . import vues_transmissions
+from . import vues_transmissions, vues_liaisons
 from . import vues_trajectoire
 from . import vues_corrections
 from . import vues_accords
@@ -22,7 +22,7 @@ urlpatterns = [
     path("accompagnements/<uuid:pk>/resume/", vues_resume.resume, name="resume"),
     path("hebergement/<uuid:pk>/selection/", vues_hebergement_collectif.selection, name="selection_sejours"),
     path("accompagnements/<uuid:pk>/informations/", vues_informations.modifier, name="informations"),
-    path("liaison/", vues_transmissions.cahier, name="cahier"),
+    path("liaison/", vues_liaisons.cahier, name="cahier"),
     path("notes/<str:nature>/<uuid:pk>/", vues_transmissions.notes, name="notes"),
     path("contributions/<str:nature>/<int:pk>/corriger/", vues_transmissions.corriger, name="corriger_contribution"),
     path("corrections/<str:nature>/<str:pk>/", vues_corrections.corriger, name="corriger_saisie"),

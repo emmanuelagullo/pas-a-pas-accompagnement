@@ -4,7 +4,7 @@
 <title>{% block titre %}Pas à Pas — Accompagnement{% endblock %}</title>
 <link rel="stylesheet" href="{% static 'application.css' %}"><link rel="stylesheet" href="{% static 'textes-riches.css' %}">
 <link rel="stylesheet" href="{% static 'frises.css' %}"><script src="{% static 'frises.js' %}" defer></script>
-<script src="{% static 'textes-riches.js' %}" data-editeur-source="{% static 'editeur/texte-riche.js' %}" defer></script></head>
+<script src="{% static 'liaisons.js' %}" defer></script><script src="{% static 'textes-riches.js' %}" data-editeur-source="{% static 'editeur/texte-riche.js' %}" defer></script></head>
 <body id="haut-de-page">
 <a class="evitement" href="#contenu">Aller au contenu</a>
 <header><a class="marque" href="{% url 'accueil' %}">Pas à Pas <span>Accompagnement</span></a>
@@ -12,6 +12,7 @@
 {% if not controle_acteurs or peut_ouvrir_dossiers_acteurs %}<a href="{% url 'accueil' %}">Dossiers</a>{% endif %}
 {% if perms.personnes.view_accompagnement and perms.personnes.view_sejour and perms.personnes.view_repasdistribue and not request.inscription_2fa_requise %}<a href="{% if controle_acteurs and not peut_ouvrir_dossiers_acteurs %}{{ rapport_service_acteurs|default:rapport_etablissement_acteurs }}{% elif controle_acteurs %}{% url 'dossiers:rapports_accueil' %}?filtre=tous{% else %}{% url 'statistiques' %}{% endif %}">Statistiques</a>{% endif %}
 {% if perms.acteurs.gerer_organisation and not request.inscription_2fa_requise %}<a href="{% url 'acteurs:organisation' %}">Établissement</a>{% endif %}
+{% if perms.personnes.view_transmission or perms.personnes.view_notepartagee or perms.personnes.view_actionrelais %}<a href="{% url 'suivi:cahier' %}">Cahier de liaison</a>{% endif %}
 <details class="menu-utilisateur"><summary>Compte : {{ user.get_username }}</summary><div class="menu-utilisateur-contenu">
 {% if not demonstration_publique and not espace_essai %}<a href="{% url 'securite_compte' %}">Mon compte</a>{% else %}<p>Compte public de démonstration</p>{% endif %}
 {% if controle_acteurs and peut_ouvrir_dossiers_acteurs %}<a href="{% url 'accueil' %}?filtre=mes&amp;en_cours=1">Mes dossiers en cours</a>{% if perms.personnes.view_accompagnement and perms.personnes.view_sejour and perms.personnes.view_repasdistribue %}<a href="{% url 'dossiers:rapports_accueil' %}?filtre=mes">Statistiques sur mes dossiers</a>{% endif %}{% endif %}
@@ -22,7 +23,7 @@
 {% if not request.inscription_2fa_requise %}<details class="menu-utilisateur menu-chantiers"><summary>En chantier</summary><div class="menu-utilisateur-contenu">
 {% if perms.personnes.view_partenaire and perms.personnes.view_fichepartenaire and perms.personnes.view_revisionfichepartenaire %}<a href="{% url 'dossiers:partenaires' %}">Partenaires</a>{% endif %}
 {% if not controle_acteurs or peut_ouvrir_dossiers_acteurs %}{% if perms.personnes.view_personne and perms.personnes.view_menage and perms.personnes.view_accompagnement %}<a href="{% url 'suivi:jour' %}">Travail du jour</a>{% endif %}{% endif %}
-{% if perms.personnes.view_transmission %}<a href="{% url 'suivi:cahier' %}">Cahier de liaison</a>{% endif %}
+
 {% if perms.personnes.view_appel115 %}<a href="{% url 'dossiers:appels115' %}">Appels 115</a>{% endif %}
 {% if perms.personnes.view_personne %}<a href="{% url 'dossiers:explorer' %}">Explorer les rapports</a>{% endif %}
 {% if perms.personnes.view_personne and perms.personnes.view_menage and perms.personnes.view_accompagnement %}<a href="{% url 'decouverte' %}">Découvrir Les Passerelles</a>{% endif %}

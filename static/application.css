@@ -288,3 +288,23 @@ header > nav .menu-utilisateur { position: relative; }
 .case-libelle label { display: inline; margin: 0; cursor: pointer; }
 .choix-case .helptext { margin: .3rem 0 .6rem 1.7rem; }
 .analyse-compteur { display: inline-block; vertical-align: middle; color: #3d544c; background: #edf3ef; border-radius: .8rem; padding: .15rem .5rem; font-size: .78rem; font-weight: 500; }
+
+/* Même cahier, déplié sous les commandes de suivi. */
+.liaisons-widget > summary { position: absolute; right: 11rem; top: .2rem; cursor: pointer; color: #175c50; border: 1px solid #cadbd3; border-radius: .35rem; padding: .25rem .6rem; background: white; }
+.titre-equipe .liaisons-widget > summary { top: .5rem; }
+.titre-equipe:has(.liaisons-widget) h1 { padding-inline-end: 19rem; }
+.liaisons-contenu { padding: 1rem 0; font-size: 1rem; font-weight: normal; }
+.liaisons-contenu h2 { font-size: 1.2rem; }
+.liaisons-fil { padding-inline-start: 1.5rem; }
+.liaisons-fil > li { padding: .6rem; margin-bottom: .7rem; border-block-end: 1px solid #cadbd3; overflow-wrap: anywhere; }
+.liaisons-fil > li:target { background: #f8f1d8; }
+.liaisons-contenu form[data-liaisons-filtres] { padding: .6rem; background: #f4f7f5; }
+.liaisons-contenu [data-liaisons-filtres] > p { display: inline-block; vertical-align: top; margin-inline-end: 1rem; }
+.liaison-rediger { margin: 1rem 0; }
+@media (max-width: 40rem) { .liaisons-widget > summary, .titre-equipe .liaisons-widget > summary { position: static; width: fit-content; } .titre-equipe:has(.liaisons-widget) h1 { padding-inline-end: 0; } .liaisons-widget:not([open]), .equipe-suivi:not([open]) { display: inline-block; vertical-align: top; margin-inline-end: .4rem; } }
+@media print { .liaisons-widget { display: none; } }
+.sans-equipe .liaisons-widget > summary { right: 0; }
+.titre-equipe:has(.sans-equipe) h1 { padding-inline-end: 8rem; }
+@media (max-width: 40rem) { .titre-equipe:has(.sans-equipe) h1 { padding-inline-end: 0; } }
+.liaison-type { display: inline-block; border: 1px solid #cadbd3; border-radius: .3rem; padding: .1rem .35rem; font-size: .9rem; }
+.liaisons-contenu #id_lia_types { display: flex; flex-wrap: wrap; gap: .4rem 1rem; }

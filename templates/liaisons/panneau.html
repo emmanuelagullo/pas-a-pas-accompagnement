@@ -1,0 +1,21 @@
+{% load textes saisie %}<section data-liaison-focus="{{ focus }}"><h2>{{ point.label }}</h2>
+{% if retour_origine %}<p><a href="{{ retour_origine }}">← Revenir au point de départ</a></p>{% endif %}
+{% if services_cahier|length > 1 %}<nav aria-label="Services du cahier">{% for s in services_cahier %}<a href="{{ s.url }}">{{ s.label }}</a>{% if not forloop.last %} · {% endif %}{% endfor %}</nav>{% endif %}
+{% if parents %}<nav aria-label="Cahiers des niveaux supérieurs">{% for p in parents %}<a href="{{ p.url }}">← {{ p.label }}</a>{% if not forloop.last %} · {% endif %}{% endfor %}</nav>{% endif %}
+<p><a href="{{ url_cahier }}">Ouvrir ce cahier en pleine page</a></p>
+<form method="get" action="{% url 'suivi:cahier' %}" data-liaisons-filtres>
+{% for cle,valeur in point.params.items %}<input type="hidden" name="{{ cle }}" value="{{ valeur }}">{% endfor %}
+{% if request.GET.lia_origine %}<input type="hidden" name="lia_origine" value="{{ request.GET.lia_origine }}">{% endif %}{% if request.GET.lia_enplace %}<input type="hidden" name="lia_enplace" value="1">{% endif %}{% if request.GET.lia_racine %}<input type="hidden" name="lia_racine" value="{{ request.GET.lia_racine }}">{% endif %}{% if retour_jour %}<input type="hidden" name="retour" value="jour"><input type="hidden" name="date_service" value="{{ date_service }}">{% endif %}<input type="hidden" name="lia_filtres" value="1"><input type="hidden" name="lia_sous" value="false">
+{{ filtres.as_p }}<button class="secondaire">Appliquer les filtres</button></form>
+{% if publie %}<p role="status">Message publié dans ce cahier.{% if voir_message %} <a href="{{ voir_message }}">Voir le message publié</a>{% endif %}</p>{% endif %}
+{% if form %}<details class="liaison-rediger"{% if form.errors %} open{% endif %}><summary>Écrire un message</summary>
+<p>Partagé dans le cahier de {{ point.label }}, avec les professionnels autorisés à lire ce message. Ce n’est pas un message privé.</p>
+<form method="post" action="{{ url_formulaire }}" data-liaisons-message>{% csrf_token %}{% if retour_jour %}<input type="hidden" name="retour" value="jour"><input type="hidden" name="date_service" value="{{ date_service }}">{% endif %}{% adapter_saisie form request.user %}{{ form.as_p }}<button>Publier le message</button></form></details>{% else %}<p>Lecture seule sur cette portée.</p>{% endif %}
+<p>{{ page_obj.paginator.count }} élément{{ page_obj.paginator.count|pluralize }} autorisé{{ page_obj.paginator.count|pluralize }} dans cette sélection.</p>
+<ol class="liaisons-fil">{% for x in page_obj %}<li id="liaison-{{ x.cle }}"><p><span class="liaison-type">{{ x.categorie }}</span>{% if x.nature != 'messages' %} <strong>{{ x.titre }}</strong> ·{% endif %} <span>{{ x.cible }}</span></p><p>{{ x.date|date:'d/m/Y' }} · par {{ x.auteur }} · enregistré le {{ x.saisi_le|date:'d/m/Y H:i' }}</p>
+{% if x.detail %}<p>{{ x.detail }}</p>{% endif %}{% if x.message %}<blockquote>{{ x.message|linebreaksbr }}</blockquote>{% endif %}
+{% if x.contribution %}{% if x.contribution.annulation %}<p>Message annulé.</p>{% endif %}{{ x.contribution|texte_riche:'contenu' }}{% if not x.contribution.date_fait %}<small>Date du fait inconnue ; classement à la date de saisie.</small>{% endif %}
+{% if not x.contribution.annulation %}<p>{% if x.corriger_url %}<a href="{{ x.corriger_url }}">Corriger</a>{% endif %}{% if x.annuler_url %} · <a href="{{ x.annuler_url }}">Annuler le message</a>{% endif %}</p>{% endif %}
+{% if x.contribution.revisions.all %}<details><summary>Corrections du message</summary><ol>{% for r in x.contribution.revisions.all %}<li><p>{{ r.date|date:'d/m/Y H:i' }} · {{ r.auteur }} · {{ r.motif }}</p><p>Avant :</p>{{ r|texte_riche:'ancien_texte' }}<p>Après :</p>{{ r|texte_riche:'nouveau_texte' }}</li>{% endfor %}</ol></details>{% endif %}{% endif %}
+{% if x.action_url %}<p><a href="{{ x.action_url }}">Ouvrir les actions de relève</a></p>{% endif %}</li>{% empty %}<li>Aucun élément dans cette sélection.</li>{% endfor %}</ol>
+{% if url_precedente or url_suivante %}<nav aria-label="Pages du cahier">{% if url_precedente %}<a data-liaisons-page href="{{ url_precedente }}">Précédente</a>{% endif %} · Page {{ page_obj.number }}{% if url_suivante %} · <a data-liaisons-page href="{{ url_suivante }}">Suivante</a>{% endif %}</nav>{% endif %}</section>

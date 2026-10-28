@@ -21,24 +21,23 @@ def _texte(valeur):
 
 @service_metier
 @transaction.atomic
-def transmettre(auteur, contenu, date_fait=None):
+def transmettre(auteur, contenu, date_fait=None, *, cle_envoi=None):
     _droit(auteur, "add", "transmission")
     date_valide(date_fait)
-    return Transmission.objects.create(auteur=auteur, date_fait=date_fait, **tr.colonnes('contenu', contenu, required=True))
+    return enregistrer_envoi(Transmission,cle_envoi,dict(auteur=auteur,date_fait=date_fait,**tr.colonnes('contenu',contenu,required=True)))
 
 
 @service_metier
 @transaction.atomic
-def noter(auteur, contenu, *, personne=None, accompagnement=None, sejour=None, accord_hebergement=None, accord_repas=None, accord_aide=None, date_fait=None):
+def noter(auteur, contenu, *, personne=None, menage=None, accompagnement=None, sejour=None, accord_hebergement=None, accord_repas=None, accord_aide=None, date_fait=None, cle_envoi=None):
     _droit(auteur, "add", "notepartagee")
-    cibles = [c for c in (personne, accompagnement, sejour, accord_hebergement, accord_repas, accord_aide) if c is not None]
+    cibles = [c for c in (personne, menage, accompagnement, sejour, accord_hebergement, accord_repas, accord_aide) if c is not None]
     if len(cibles) != 1:
         raise ValidationError("Une note doit avoir exactement un rattachement.")
     cible = cibles[0]
-    _droit(auteur, "view", {"Personne": "personne", "Accompagnement": "accompagnement", "Sejour": "sejour", "AccordHebergement":"accordhebergement", "AccordRepas":"accordrepas", "AccordAide":"accordaide"}[type(cible).__name__])
+    _droit(auteur, "view", {"Menage":"menage", "Personne": "personne", "Accompagnement": "accompagnement", "Sejour": "sejour", "AccordHebergement":"accordhebergement", "AccordRepas":"accordrepas", "AccordAide":"accordaide"}[type(cible).__name__])
     date_valide(date_fait)
-    return NotePartagee.objects.create(auteur=auteur, date_fait=date_fait, accord_hebergement=accord_hebergement,accord_repas=accord_repas,accord_aide=accord_aide, **tr.colonnes('contenu', contenu, required=True), personne=personne,
-                                      accompagnement=accompagnement, sejour=sejour)
+    return enregistrer_envoi(NotePartagee,cle_envoi,dict(auteur=auteur,date_fait=date_fait,accord_hebergement=accord_hebergement,accord_repas=accord_repas,accord_aide=accord_aide,**tr.colonnes('contenu',contenu,required=True),personne=personne,menage=menage,accompagnement=accompagnement,sejour=sejour))
 
 
 @service_metier
@@ -97,7 +96,7 @@ def verifier_etat(objet, attendu):
         raise ValidationError('Cette contribution a été modifiée entre-temps. Votre saisie est conservée ; consultez la version actuelle avant de réessayer.')
 
 
-CIBLES_NOTE=('personne','accompagnement','sejour','accord_hebergement','accord_repas','accord_aide')
+CIBLES_NOTE=('menage','personne','accompagnement','sejour','accord_hebergement','accord_repas','accord_aide')
 
 def cible_note(note):return next(getattr(note,c) for c in CIBLES_NOTE if getattr(note,c+'_id'))
 
@@ -121,3 +120,16 @@ def annuler(auteur,contribution,attendu,motif):
     condition={'contenu_document__isnull':True} if objet.contenu_document is None else {'contenu_document':objet.contenu_document}
     if type(objet).objects.filter(pk=objet.pk,contenu=objet.contenu,date_fait=objet.date_fait,**condition).update(contenu=objet.contenu)!=1:raise ValidationError('Contribution modifiée ; rechargez.')
     x=AnnulationContribution(auteur=auteur,motif=motif.strip(),**{'transmission' if modele=='transmission' else 'note':objet});x.full_clean();x.save();return x
+
+
+def enregistrer_envoi(modele,cle,valeurs):
+    if cle is None:return modele.objects.create(**valeurs)
+    x,cree=modele.objects.get_or_create(cle_envoi=cle,defaults=valeurs)
+    if not cree:
+        if hasattr(x,'annulation'):
+            raise ValidationError("Cet envoi a déjà été annulé ; consultez le cahier avant de publier un nouveau message.")
+        for champ,valeur in valeurs.items():
+            attendu=valeur.pk if hasattr(valeur,'_meta') else valeur
+            actuel=getattr(x,champ+'_id') if x._meta.get_field(champ).is_relation else getattr(x,champ)
+            if actuel!=attendu:raise ValidationError('Cet envoi existe déjà avec un autre contenu. Consultez le cahier avant de publier un nouveau message.')
+    return x

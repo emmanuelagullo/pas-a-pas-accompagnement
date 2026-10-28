@@ -521,6 +521,7 @@ class RevisionTexteSocial(ModeleControle):
 
 
 class Transmission(ModeleControle):
+    cle_envoi=models.UUIDField(null=True,blank=True,unique=True,editable=False)
     date_fait=models.DateField("Date de la contribution (si connue)",null=True,blank=True)
     """Message transversal d'équipe, distinct des dossiers individuels."""
     id = models.BigAutoField(primary_key=True)
@@ -534,9 +535,11 @@ class Transmission(ModeleControle):
 
 
 class NotePartagee(ModeleControle):
+    cle_envoi=models.UUIDField(null=True,blank=True,unique=True,editable=False)
     accord_hebergement=models.ForeignKey('AccordHebergement',on_delete=models.PROTECT,null=True,blank=True,related_name='notes')
     accord_repas=models.ForeignKey('AccordRepas',on_delete=models.PROTECT,null=True,blank=True,related_name='notes')
     accord_aide=models.ForeignKey('AccordAide',on_delete=models.PROTECT,null=True,blank=True,related_name='notes')
+    menage=models.ForeignKey(Menage,on_delete=models.PROTECT,null=True,blank=True,related_name='notes')
     date_fait=models.DateField("Date de la contribution (si connue)",null=True,blank=True)
     """Contribution libre liée à un seul objet métier."""
     id = models.BigAutoField(primary_key=True)
@@ -551,12 +554,13 @@ class NotePartagee(ModeleControle):
     class Meta:
         ordering = ["-cree_le", "-pk"]
         constraints = [models.CheckConstraint(condition=(
-            models.Q(personne__isnull=False,accompagnement__isnull=True,sejour__isnull=True,accord_hebergement__isnull=True,accord_repas__isnull=True,accord_aide__isnull=True) |
-            models.Q(personne__isnull=True,accompagnement__isnull=False,sejour__isnull=True,accord_hebergement__isnull=True,accord_repas__isnull=True,accord_aide__isnull=True) |
-            models.Q(personne__isnull=True,accompagnement__isnull=True,sejour__isnull=False,accord_hebergement__isnull=True,accord_repas__isnull=True,accord_aide__isnull=True) |
-            models.Q(personne__isnull=True,accompagnement__isnull=True,sejour__isnull=True,accord_hebergement__isnull=False,accord_repas__isnull=True,accord_aide__isnull=True) |
-            models.Q(personne__isnull=True,accompagnement__isnull=True,sejour__isnull=True,accord_hebergement__isnull=True,accord_repas__isnull=False,accord_aide__isnull=True) |
-            models.Q(personne__isnull=True,accompagnement__isnull=True,sejour__isnull=True,accord_hebergement__isnull=True,accord_repas__isnull=True,accord_aide__isnull=False)), name="note_exactement_une_cible")]
+            models.Q(menage__isnull=True,personne__isnull=False,accompagnement__isnull=True,sejour__isnull=True,accord_hebergement__isnull=True,accord_repas__isnull=True,accord_aide__isnull=True) |
+            models.Q(menage__isnull=True,personne__isnull=True,accompagnement__isnull=False,sejour__isnull=True,accord_hebergement__isnull=True,accord_repas__isnull=True,accord_aide__isnull=True) |
+            models.Q(menage__isnull=True,personne__isnull=True,accompagnement__isnull=True,sejour__isnull=False,accord_hebergement__isnull=True,accord_repas__isnull=True,accord_aide__isnull=True) |
+            models.Q(menage__isnull=True,personne__isnull=True,accompagnement__isnull=True,sejour__isnull=True,accord_hebergement__isnull=False,accord_repas__isnull=True,accord_aide__isnull=True) |
+            models.Q(menage__isnull=True,personne__isnull=True,accompagnement__isnull=True,sejour__isnull=True,accord_hebergement__isnull=True,accord_repas__isnull=False,accord_aide__isnull=True) |
+            models.Q(menage__isnull=True,personne__isnull=True,accompagnement__isnull=True,sejour__isnull=True,accord_hebergement__isnull=True,accord_repas__isnull=True,accord_aide__isnull=False) |
+            models.Q(menage__isnull=False,personne__isnull=True,accompagnement__isnull=True,sejour__isnull=True,accord_hebergement__isnull=True,accord_repas__isnull=True,accord_aide__isnull=True)), name="note_exactement_une_cible")]
 
 
 class RevisionContribution(ModeleControle):
