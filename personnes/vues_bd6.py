@@ -163,6 +163,8 @@ def nouvelle(request, nature, pk):
         form = AccompagnementForm(request.POST if request.method == 'POST' else None, initial=initial)
         form.fields['attendu'] = forms.CharField(widget=forms.HiddenInput, initial=initial['attendu'])
         form.fields['beneficiaires'].queryset = Personne.objects.filter(appartenances__menage=objet).distinct()
+    from acteurs import reperage
+    if nature=='menage' and reperage.limite(request.user,objet) and not form.is_bound:form.initial['beneficiaires']=list(reperage.membres(request.user,objet,jour))
     demande = None
     if request.GET.get('demande'):
         from . import parcours

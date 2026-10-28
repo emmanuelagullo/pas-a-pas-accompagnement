@@ -29,6 +29,8 @@ class OrganismeGestionnaire(ModeleOrganisation):
 
 
 class Etablissement(ModeleOrganisation):
+    reperage_identites=models.BooleanField(default=False)
+    revision=models.PositiveIntegerField(default=0,editable=False)
     organisme = models.ForeignKey(OrganismeGestionnaire, on_delete=models.PROTECT)
     fiche = models.OneToOneField('personnes.Partenaire', on_delete=models.PROTECT)
     def __str__(self): return str(self.fiche)
@@ -162,3 +164,16 @@ class ConfigurationAcces(ModeleOrganisation):
     active = models.BooleanField(default=False)
     class Meta:
         constraints = [models.CheckConstraint(condition=Q(pk=1), name='act_configuration_unique')]
+
+
+class DemandeRattachement(ModeleOrganisation):
+    dossier=models.ForeignKey(DossierService,on_delete=models.PROTECT,related_name='demandes_rattachement')
+    demandeur=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT,related_name='+')
+    professionnel=models.ForeignKey('personnes.Intervenant',on_delete=models.PROTECT)
+    cree_le=models.DateTimeField(auto_now_add=True)
+    etat=models.CharField(max_length=12,choices=[('attente','En attente'),('acceptee','Acceptée'),('refusee','Refusée')],default='attente')
+    decide_par=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT,null=True,related_name='+')
+    decide_le=models.DateTimeField(null=True)
+    revision=models.PositiveIntegerField(default=0,editable=False)
+    class Meta:
+        constraints=[models.UniqueConstraint(fields=['dossier','demandeur'],condition=Q(etat='attente'),name='act_demande_rattachement_attente')]

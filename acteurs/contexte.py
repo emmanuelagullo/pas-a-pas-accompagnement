@@ -18,6 +18,7 @@ class Contexte:
     services_export: set = field(default_factory=set)
     nature_creation: str = ""
     memo: dict = field(default_factory=dict)
+    reperage: object = False
 
 
 _courant = ContextVar('acteurs_perimetre', default=None)
@@ -27,7 +28,7 @@ def courant(): return _courant.get()
 
 
 @contextmanager
-def perimetre(compte, service=None, statistiques=False, responsable=None, creation=None, export_demande=None, nature_creation=None):
+def perimetre(compte, service=None, statistiques=False, responsable=None, creation=None, export_demande=None, nature_creation=None, reperage=None):
     ancien = courant()
     if ancien and ancien.compte.pk != compte.pk:
         from django.core.exceptions import PermissionDenied
@@ -42,7 +43,8 @@ def perimetre(compte, service=None, statistiques=False, responsable=None, creati
         bool(export_demande) if export_demande is not None else bool(ancien and ancien.export_demande),
         ancien.services_export if ancien else set(),
         nature_creation if nature_creation is not None else (ancien.nature_creation if ancien else ""),
-        ancien.memo if ancien else {})
+        ancien.memo if ancien else {},
+        reperage if reperage is not None else (ancien.reperage if ancien else False))
     jeton = _courant.set(ctx)
     try: yield ctx
     finally: _courant.reset(jeton)

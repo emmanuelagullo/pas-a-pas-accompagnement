@@ -63,8 +63,17 @@ class PerimetreMiddleware:
         nom=vue_courante.view_name
         creations={'dossiers:creer':'dossier','personnes:creer':'dossier','suivi:creer':'dossier',
             'dossiers:nouvelle_prise':'prise','suivi:ouvrir':'prise','dossiers:nouveau':'prestation',
-            'suivi:accorder_hebergement':'prestation','suivi:accorder_repas':'prestation'}
+            'suivi:accorder_hebergement':'prestation','suivi:accorder_repas':'prestation','suivi:accorder_services_repas':'prestation','dossiers:aide_accorder':'prestation'}
         creation=creations.get(nom,'')
+        if creation=='prestation' and p.active():
+            from .models import PorteeObjet
+            parent=request.POST.get('accompagnement') or request.GET.get('accompagnement')
+            if not parent and vue_courante.kwargs.get('pk') and nom!='dossiers:nouveau':parent=vue_courante.kwargs['pk']
+            if parent:
+                origine=PorteeObjet.objects.filter(modele='personnes.accompagnement',identifiant=str(parent)).first()
+                if origine:
+                    if not p.habilitations(request.user).filter(service_id=origine.service_id,tache__in=['social','accueil','gestion']).exists():return self.refus()
+                    service=origine.service_id
         responsable=request.POST.get('responsable_acteurs') if creation else None
         if responsable and p.active():
             from .models import AppartenanceProfessionnelle
@@ -73,7 +82,10 @@ class PerimetreMiddleware:
                 if not AppartenanceProfessionnelle.objects.filter(p.periode(),service_id=service,professionnel_id=responsable).exists():return self.refus()
             except (ValidationError,ValueError):return self.refus()
         export_demande=request.GET.get('format') in ('csv','pdf') or any(mot in request.path_info for mot in ('export','/fichier/','/pdf/','.pdf'))
-        with perimetre(request.user,service,stats,responsable,creation,export_demande,vue_courante.kwargs.get('nature','')) as ctx:
+        identites={'accueil','dossiers:detail','dossiers:creer','dossiers:nouvelle_prise','dossiers:choisir','acteurs:demander_rattachement'}
+        prestations={'dossiers:nouveau','suivi:accorder_hebergement','suivi:accorder_repas','suivi:accorder_services_repas','dossiers:aide_accorder'}
+        reperage='prestation' if nom in prestations else nom in identites
+        with perimetre(request.user,service,stats,responsable,creation,export_demande,vue_courante.kwargs.get('nature',''),reperage=reperage) as ctx:
             response=self.get_response(request)
             if creation and request.method=='POST' and response.status_code in (301,302,303) and p.active():
                 response=self.retour_creation(request,response,ctx)

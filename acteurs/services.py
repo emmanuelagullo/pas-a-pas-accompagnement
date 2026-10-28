@@ -169,6 +169,7 @@ def proposer_responsabilites(compte,objet,dossier):
     from personnes.models import Accompagnement
     from .contexte import courant
     choisi=courant().responsable_id if courant() else None
+    if isinstance(objet,Accompagnement) and not choisi and dossier.service_id not in set(p.pleines(compte,True)) and not p.missions(compte).filter(dossier=dossier,prise__isnull=True,hebergement__isnull=True,repas__isnull=True,aide__isnull=True).exists():choisi=p.professionnel(compte)
     if isinstance(objet,Accompagnement) and not choisi:
         source=responsables(dossier,dossier)
         for x in source:

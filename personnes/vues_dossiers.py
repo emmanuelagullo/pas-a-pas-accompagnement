@@ -35,7 +35,8 @@ def recherche(request):
             if mode == 'menage':
                 # Une sous-requête par terme : plusieurs personnes peuvent satisfaire les termes.
                 liens = Appartenance.objects.filter(Q(personne__designation__icontains=mot) | Q(personne__prenom__icontains=mot))
-                objets = objets.filter(Q(libelle__icontains=mot) | Q(pk__in=liens.values('menage_id')))
+                from acteurs.reperage import menages_correspondants
+                objets = objets.filter(Q(libelle__icontains=mot) | Q(pk__in=liens.values('menage_id')) | Q(pk__in=menages_correspondants(request.user,mot)))
             else:
                 objets = objets.filter(Q(designation__icontains=mot) | Q(prenom__icontains=mot))
         if mode == 'menage':
@@ -59,6 +60,8 @@ def recherche(request):
     page = Paginator(objets, 25).get_page(request.GET.get('page'))
     jour = timezone.localdate()
     for objet in page:
+        from acteurs.reperage import limite
+        objet.identite_seule=controle_actif and limite(request.user,objet)
         if mode == 'menage':
             liens = list(objet.appartenances.all())
             objet.nombre_actuel = len({l.personne_id for l in liens if l.debut <= jour and (l.fin is None or l.fin > jour)})
@@ -177,6 +180,8 @@ def detail(request, nature, pk, prise_pk=None):
     else:
         from django.http import Http404
         raise Http404
+    from acteurs import reperage
+    if not prise_pk and reperage.limite(request.user,objet):return reperage.page(request,objet,nature)
     prise = get_object_or_404(periodes, pk=prise_pk) if prise_pk and request.user.has_perms(dossier.DROITS) else None
     if prise_pk and prise is None:
         from django.core.exceptions import PermissionDenied

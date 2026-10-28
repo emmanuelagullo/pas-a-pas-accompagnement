@@ -31,7 +31,7 @@ def preparer():
     organisme=m.Partenaire.objects.create(libelle='Association Les Passerelles',cree_par=auteur)
     fiche=m.Partenaire.objects.get(libelle='Établissement Les Passerelles (fictive)')
     org=OrganismeGestionnaire.objects.create(organisme=organisme)
-    etab=Etablissement.objects.create(organisme=org,fiche=fiche)
+    etab=Etablissement.objects.create(organisme=org,fiche=fiche,reperage_identites=True)
     service=Service.objects.create(etablissement=etab,libelle='Accompagnement')
     debut=timezone.localdate()-timedelta(days=3650)
     pros={}

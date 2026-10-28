@@ -126,7 +126,7 @@ def filtre(modele, ecriture=False):
         from .cache import invalider
         invalider()
         return calculer_filtre(modele,True)
-    cle=('filtre',modele._meta.label_lower,ctx.service_id,ctx.statistiques)
+    cle=('filtre',modele._meta.label_lower,ctx.service_id,ctx.statistiques,ctx.reperage)
     if cle not in ctx.memo:ctx.memo[cle]=calculer_filtre(modele)
     return ctx.memo[cle]
 
@@ -170,6 +170,10 @@ def calculer_filtre(modele, ecriture=False):
     if ecriture and nom in ('transmission','notepartagee'):
         q &= Q(auteur=compte) | Q(pk__in=list(ps.filter(modele=modele._meta.label_lower,
             service_id__in=hs.filter(corriger_autrui=True).values('service_id')).values_list('identifiant',flat=True)))
+    if ctx.reperage and not ecriture and not ctx.export_demande and not ctx.statistiques:
+        from . import reperage
+        if nom in ('personne','menage'):q |= Q(pk__in=reperage.identites(compte,nom))
+        elif nom=='accompagnement' and ctx.reperage=='prestation':q |= Q(pk__in=list(reperage.prises(compte)))
     q |= Q(pk__in=[identifiant for label,identifiant in ctx.nouveaux if label==modele._meta.label_lower])
     return q
 

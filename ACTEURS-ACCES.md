@@ -197,3 +197,22 @@ L’entrée Statistiques ouvre le catalogue avec Tous les dossiers accessibles ;
 Compte → Statistiques sur mes dossiers ouvre ce même catalogue avec Mes dossiers.
 Ce choix reste dans les liens, les critères, les modèles et les exports ; il ne
 change ni les formules ni l’habilitation aux totaux d’un service/établissement.
+
+## ACT09 — Repérage et rattachement
+
+L’option explicite de l’établissement permet de repérer les identités et leur
+équipe, sans ouvrir les faits sociaux ni les documents. Elle est désactivée par
+la migration ; seule la démonstration neuve l’active volontairement. Les routes
+interactives autorisées portent ce contexte temporaire. Rapports, exports et
+PDF conservent les règles ordinaires. Le bouton Nouveau dossier tient compte
+aussi des identités repérables, avant les filtres Mes dossiers/Mon service.
+
+Un professionnel peut demander à rejoindre un suivi de son service autorisé.
+L’équipe décide ; l’acceptation revalide compte, appartenance, habilitation et
+politique, sans en créer. Les versions protègent les confirmations concurrentes.
+Une prestation dans un service autorisé peut être créée depuis l’identité ; sa
+responsabilité reste distincte du suivi social. Une nouvelle prise porte le
+service de travail et ne déplace pas les anciennes prises. Les réservations
+techniques de version de `acteurs.reperage` ne modifient aucun contenu social.
+Les autres services peuvent être identifiés, mais ils ne deviennent pas des
+services autorisés par une demande. Les contacts restent possibles hors logiciel.

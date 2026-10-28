@@ -12,7 +12,9 @@ LIBELLES={0:'En attente',1:'Mes dossiers',2:'Service',3:'Établissement',4:'Autr
 def classer(compte,objets,nature,filtre='tous',service=None):
     population=list(objets)
     ids=[x.pk for x in population]
-    ds=list(DossierService.objects.filter(service_id__in=p.habilitations(compte).values('service_id'),
+    from django.db.models import Q
+    from . import reperage
+    ds=list(DossierService.objects.filter(Q(service_id__in=p.habilitations(compte).values('service_id'))|Q(pk__in=reperage.dossiers(compte).values('pk')),
         **{nature+'_id__in':ids}).select_related('service'))
     propres=set(p.missions(compte).values_list('dossier_id',flat=True))
     par_objet=defaultdict(list)

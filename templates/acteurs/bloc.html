@@ -6,5 +6,6 @@
 
 {% if ligne.attribution_url %}<p><a href="{{ ligne.attribution_url }}">Ajouter un intervenant</a></p>{% endif %}
 {% if ligne.responsables and ligne.peut_relayer %}<p><a href="{{ ligne.relais_url }}">Passer le relais</a>{% if ligne.peut_prendre %} · <a href="{{ ligne.relais_url }}&amp;prendre=1">Prendre le relais</a>{% endif %}</p>{% endif %}
+{% if ligne.demander_url %}<p><a href="{{ ligne.demander_url }}">Demander à rejoindre le suivi</a></p>{% endif %}{% for demande in ligne.demandes %}<p>{{ demande.professionnel }} souhaite rejoindre ce suivi · <a href="{% url 'acteurs:decider_rattachement' demande.pk %}">Examiner la demande</a></p>{% endfor %}
 {% if ligne.historique %}<details><summary>Interventions précédentes</summary><ul>{% for r in ligne.historique %}<li>{{ r.professionnel }} · {{ r.get_role_display }} · {{ r.debut|date:'d/m/Y' }}{% if r.annule_le %} · annulée avant son début{% else %} → {{ r.fin|date:'d/m/Y' }}{% endif %}</li>{% endfor %}</ul></details>{% endif %}
 {% endfor %}</div></details></div>{% endif %}

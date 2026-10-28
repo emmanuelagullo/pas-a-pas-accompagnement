@@ -60,14 +60,16 @@ def ouvrir(acteur, objet, beneficiaires, debut, fin_prevue, attendu, menage=None
                 menage = suivi.creer_menage(acteur, libelle_menage, personnes, debut, identifiant=nouveau)
             else:
                 precedente = revisions.get(str(menage.pk))
-                if precedente is None or Menage.objects.filter(pk=menage.pk, revision=precedente).update(revision=F('revision') + 1) != 1:
+                from acteurs import reperage
+                reserve=reperage.reserver_menage(acteur,objet,menage,precedente)
+                if precedente is None or (not reserve and Menage.objects.filter(pk=menage.pk, revision=precedente).update(revision=F('revision') + 1) != 1):
                     raise ValidationError('Le ménage a changé. Rechargez avant de confirmer.')
                 menage = Menage.objects.get(pk=menage.pk)
                 if isinstance(objet, Menage) and menage.pk != objet.pk:
                     raise ValidationError('Le ménage ne correspond pas au dossier.')
                 # Même périmètre explicite que le formulaire BD existant. Une
                 # appartenance passée n'est pas prolongée par cette ouverture.
-                ids = set(Appartenance.objects.filter(menage=menage).values_list('personne_id', flat=True))
+                ids = reperage.membres(acteur,menage) if reserve else set(Appartenance.objects.filter(menage=menage).values_list('personne_id', flat=True))
                 if not personnes or not {p.pk for p in personnes}.issubset(ids):
                     raise ValidationError({'beneficiaires': 'Le rattachement des bénéficiaires a changé. Rechargez le dossier.'})
             a = suivi.ouvrir(acteur, menage, personnes, debut, fin_prevue, identifiant=identifiant)

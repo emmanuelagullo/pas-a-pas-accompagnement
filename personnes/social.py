@@ -17,6 +17,9 @@ def droit(acteur, action):
 
 
 def verrouiller(accompagnement):
+    from acteurs import reperage
+    reserve=reperage.reserver_prise(accompagnement)
+    if reserve is not None:return reserve
     Accompagnement.objects.filter(pk=accompagnement.pk).update(revision_sociale=F("revision_sociale")+1)
     return Accompagnement.objects.get(pk=accompagnement.pk)
 

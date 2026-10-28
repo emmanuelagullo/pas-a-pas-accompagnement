@@ -32,7 +32,9 @@ def reserver(objet, attendu):
     if not isinstance(etat, list) or len(etat) != 3 or etat[:2] != [objet._meta.model_name, str(objet.pk)]:
         raise ValidationError('Ce formulaire ne concerne pas cette cible.')
     champ = 'revision' if isinstance(objet, (Menage, Partenaire, Intervenant)) else 'revision_sociale'
-    if type(objet).objects.filter(pk=objet.pk, **{champ: etat[2]}).update(**{champ: F(champ) + 1}) != 1:
+    from acteurs import reperage
+    reserve=reperage.reserver_prise(objet,etat[2]) if isinstance(objet,Accompagnement) else None
+    if reserve is None and type(objet).objects.filter(pk=objet.pk, **{champ: etat[2]}).update(**{champ: F(champ) + 1}) != 1:
         raise ValidationError('La situation a changé. Rechargez avant de réessayer.')
     objet.refresh_from_db()
 

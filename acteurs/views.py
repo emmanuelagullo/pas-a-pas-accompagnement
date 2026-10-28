@@ -200,3 +200,45 @@ def terminer(request,pk):
     f.fields['date']=forms.DateField(label='Fin de l’intervention',initial=timezone.localdate(),widget=forms.DateInput(attrs={'type':'date'}))
     f.fields['attendu']=forms.CharField(widget=forms.HiddenInput,initial=s.jeton(ds))
     return formulaire(request,f,'Terminer cette intervention',lambda **d:s.terminer_responsabilite(request.user,x,**d),lambda:retour_dossier(ds,request))
+
+
+@never_cache
+@login_required
+@require_http_methods(['GET','POST'])
+def reperage_politique(request,service_pk):
+    s.exiger_gestion(request.user)
+    service=get_object_or_404(Service.objects.select_related('etablissement'),pk=service_pk)
+    f=FormulaireMetier(request.POST if request.method=='POST' else None)
+    f.fields['activer']=forms.BooleanField(required=False,initial=service.etablissement.reperage_identites,label='Permettre de repérer les identités dans cet établissement',help_text='Les professionnels habilités voient les noms et les équipes des dossiers de cet établissement. Le contenu social, les documents et les statistiques gardent leurs propres accès. Les prestations restent limitées aux services autorisés.')
+    f.fields['attendu']=forms.CharField(widget=forms.HiddenInput,initial=s.jeton(service.etablissement))
+    def faire(activer,attendu):
+        s.exiger_gestion(request.user);e=service.etablissement;s.reserver(e,attendu)
+        avant=e.reperage_identites;e.reperage_identites=activer;e.save(update_fields=['reperage_identites'])
+        s.journal(request.user,service,'reperage_identites',{'actif':avant},{'etablissement':e.pk,'actif':activer})
+    return formulaire(request,f,'Repérage des identités · '+str(service.etablissement),faire,reverse('acteurs:service',args=[service.pk]))
+
+
+@never_cache
+@login_required
+@require_http_methods(['GET','POST'])
+def demander_rattachement(request,pk):
+    from . import reperage
+    ds=get_object_or_404(reperage.dossiers(request.user),pk=pk)
+    if not reperage.disponibles(request.user,ds):raise PermissionDenied
+    f=FormulaireMetier(request.POST if request.method=='POST' else None)
+    return formulaire(request,f,'Demander à rejoindre le suivi de '+str(ds),lambda:reperage.demander(request.user,ds),retour_dossier(ds,request))
+
+
+@never_cache
+@login_required
+@require_http_methods(['GET','POST'])
+def decider_rattachement(request,pk):
+    from . import reperage
+    demande=get_object_or_404(DemandeRattachement.objects.select_related('dossier','professionnel','demandeur'),pk=pk)
+    ds=dossier_autorise(request,demande.dossier_id)
+    if not s.peut_attribuer(request.user,ds,ds):raise PermissionDenied
+    f=FormulaireMetier(request.POST if request.method=='POST' else None)
+    f.fields['accepter']=forms.TypedChoiceField(choices=[('oui','Ajouter au suivi'),('non','Refuser la demande')],coerce=lambda x:x=='oui',label='Réponse')
+    f.fields['attendu']=forms.CharField(widget=forms.HiddenInput,initial=s.jeton(demande))
+    f.fields['attendu_dossier']=forms.CharField(widget=forms.HiddenInput,initial=s.jeton(ds))
+    return formulaire(request,f,'Demande de '+str(demande.professionnel),lambda **d:reperage.decider(request.user,demande,**d),retour_dossier(ds,request))

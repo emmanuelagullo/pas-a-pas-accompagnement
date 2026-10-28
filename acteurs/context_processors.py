@@ -76,5 +76,7 @@ def bloc(compte,objet,niveau='dossier'):
             'peut_prendre':corriger and any(r.professionnel_id!=moi for r in rs),
             'relais_url':reverse('acteurs:relais_dossier',args=[d.pk]) if niveau=='dossier' else reverse('acteurs:relais_objet',args=[d.pk,niveau,objet.pk]),
             'attribution_url':(reverse('acteurs:attribuer_dossier',args=[d.pk]) if niveau=='dossier' else reverse('acteurs:attribuer_objet',args=[d.pk,niveau,objet.pk])) if s.peut_attribuer(compte,d,cible) else '',
+            'demandes':d.demandes_rattachement.filter(etat='attente').select_related('professionnel') if niveau=='dossier' and s.peut_attribuer(compte,d,d) else [],
+            'demander_url':reverse('acteurs:demander_rattachement',args=[d.pk]) if niveau=='dossier' and d.service.etablissement.reperage_identites and hs.filter(service=d.service,tache='social').exists() and not p.missions(compte).filter(dossier=d,prise__isnull=True,hebergement__isnull=True,repas__isnull=True,aide__isnull=True).exists() and not d.demandes_rattachement.filter(demandeur=compte,etat='attente').exists() else '',
             'peut_reprendre':d.en_attente and hs.filter(service=d.service,tache='social').exists()})
     return lignes
