@@ -113,7 +113,7 @@ class ProfilsNavigateur(StaticLiveServerTestCase):
         page.get_by_role('heading', name='Situation à la date choisie — 03/01/2026').wait_for()
         page.get_by_role('link', name='Écrire une transmission').click()
         page.get_by_role('heading', name='Cahier de liaison').wait_for()
-        self.assertEqual(page.locator('input[name="date_service"]').input_value(), '2026-01-03')
+        self.assertEqual(page.locator('form[data-liaisons-filtres] input[name="date_service"]').input_value(), '2026-01-03')
         page.get_by_role('link', name='Retour au travail du jour').click()
         self.assertEqual(page.url, cible)
         page.get_by_role('link', name='Créer une action de relève').click()
@@ -345,7 +345,7 @@ class NouveauxParcoursNavigateur(StaticLiveServerTestCase):
         page.goto(cible)
         page.get_by_role('link', name='Compléter ou mettre à jour', exact=True).click()
         page.locator('input[name="referent"]').fill('Référente extérieure fictive')
-        page.locator('textarea[name="objectifs_courts"]').fill('Projet fictif à court terme')
+        page.locator('p').filter(has=page.locator('textarea[name="objectifs_courts"]')).locator('.ProseMirror').fill('Projet fictif à court terme')
         page.locator('[name="motif"]').fill('Projet préparé')
         page.get_by_role('button', name='Enregistrer', exact=True).click()
         page.get_by_role('link', name='Situation et parcours sociaux', exact=True).click()
@@ -671,6 +671,8 @@ class ConditionSocialeNavigateur(StaticLiveServerTestCase):
         self.assertEqual(social.locator('a[href="#social-' + str(self.p.pk) + '"]').count(), 1)
         self.assertEqual(social.locator('a[href="#projet"]').count(), 1)
         groupe = page.locator('#social-' + str(self.p.pk) + '-coordonnees')
+        options = page.get_by_role('button', name='Options', exact=True)
+        if options.get_attribute('aria-expanded') != 'true': options.click()
         page.locator('[data-condition-contexte]').fill('Entretien fictif de qualification')
         # Un rafraîchissement depuis les prestations ne doit pas désactiver
         # l'édition sociale ni perdre le contexte de l'entretien.
@@ -734,17 +736,25 @@ class ConditionSocialeNavigateur(StaticLiveServerTestCase):
         date_vue = page.locator('[data-condition-selection] input[type=date]')
         expect(date_vue).to_be_disabled()
         expect(date_vue).to_have_value(self.entree.isoformat())
+        options = page.get_by_role('button', name='Options', exact=True)
+        if options.get_attribute('aria-expanded') != 'true': options.click()
         with page.expect_navigation():
             page.locator('[name=vue_sociale]').select_option('today')
         expect(date_vue).to_have_value(timezone.localdate().isoformat())
         expect(date_vue).to_be_disabled()
+        options = page.get_by_role('button', name='Options', exact=True)
+        if options.get_attribute('aria-expanded') != 'true': options.click()
         page.locator('[name=vue_sociale]').select_option('date')
         expect(date_vue).to_be_enabled()
         with page.expect_navigation():
             date_vue.fill(self.entree.isoformat())
+        options = page.get_by_role('button', name='Options', exact=True)
+        if options.get_attribute('aria-expanded') != 'true': options.click()
         with page.expect_navigation():
             page.locator('[name=presentation_sociale]').select_option('synthese')
         expect(page.locator('.condition-renseignee').first).to_be_visible()
+        options = page.get_by_role('button', name='Options', exact=True)
+        if options.get_attribute('aria-expanded') != 'true': options.click()
         with page.expect_navigation():
             page.locator('[name=origines_sociales]').check()
         expect(page.locator('.condition-origine').first).to_be_visible()
@@ -768,6 +778,10 @@ class ConditionSocialeNavigateur(StaticLiveServerTestCase):
         expect(depliants.nth(0)).to_have_attribute('open', '')
         expect(depliants.nth(1)).not_to_have_attribute('open', '')
         page.locator('[data-condition-evolution]').click()
+        options = page.get_by_role('button', name='Options', exact=True)
+        from playwright.sync_api import expect
+        expect(options).to_have_attribute('aria-controls', 'options-evolution')
+        if options.get_attribute('aria-expanded') != 'true': options.click()
         evolution = page.locator('[data-evolution-selection]')
         expect(evolution).to_be_visible()
         expect(evolution.locator('[name=vue_debut]')).to_have_value('entree')
