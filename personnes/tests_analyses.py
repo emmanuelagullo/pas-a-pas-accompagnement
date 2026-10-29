@@ -86,3 +86,16 @@ class AnalysesTests(TestCase):
         self.assertEqual(r.status_code,302,r.content[:300])
         personnalisation=m.ModeleRapport.objects.get(nom='Habitude');modele=m.ModeleRapport.objects.get(nom='Définition')
         self.assertEqual(personnalisation.modele_source,modele)
+
+
+    def test_preference_export_depuis_gestion_et_export_invalide(self):
+        from . import modeles_personnels as gestion
+        from django.urls import reverse
+        self.client.force_login(self.u)
+        d=self.definition();x=m.ModeleRapport.objects.create(auteur=self.u,nom='Préférence',parametres=a.parametres(d))
+        gestion.changer(self.u,x,gestion.jeton(self.u,x),x.nom,export_prioritaire='csv')
+        r=self.client.get(reverse('dossiers:analyse'),dict(modele=x.pk))
+        self.assertEqual(r.context['prioritaire'],'csv')
+        d['mesures'][0]['mesure']='nuits_distinctes'
+        r=self.client.post(reverse('dossiers:analyse'),dict(definition=a.encoder(d),format='pdf'))
+        self.assertEqual(r.status_code,422)

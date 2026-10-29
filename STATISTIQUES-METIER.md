@@ -640,3 +640,53 @@ des participations par épisode et des nuits distinctes, éventuellement hors
 absences déclarées. Les justificatifs explicitent doublons et absences.
 Ces extensions ne rendent pas automatiquement composables les synthèses
 réunissant plusieurs populations ; leur assemblage reste un chantier distinct.
+
+## ST13 — Mesures indépendantes et assemblages personnels
+
+Créer un modèle → Partir de zéro ouvre la nouvelle composition. Elle conserve
+Retenir, Afficher, Compter et Classer sans population globale. Chaque critère
+choisit ses faits, ses conditions et sa relation : même personne bénéficiaire,
+même ménage explicite ou même prise en charge. Les conditions d'un bloc portent
+sur le même fait ; deux blocs peuvent porter sur des faits différents. ET ou OU
+s'applique à ces blocs. Sans identité connue, un critère « sans fait » ne démontre
+pas une absence. Les regroupements booléens imbriqués ne sont pas encore proposés.
+
+Chaque mesure garde ses faits, ses filtres, son lien temporel et sa règle de
+calcul. Une ligne détaillée représente l'objet choisi dans Afficher ; des mesures
+de repas et de nuitées peuvent ainsi figurer sur la même ligne de personne,
+y compris sans repas. Les effectifs distincts et les sous-totaux sont recalculés,
+sans jointure multiplicative. Les montants déclarés absents restent inconnus.
+Les informations narratives supplémentaires sont des colonnes détaillées, pas
+des axes ; les numéros administratifs ne sont pas ajoutés à ce registre.
+
+Les modèles historiques restent en schéma 1. Une variante explicite peut les
+traduire en schéma 2, sans les remplacer. Les rapports de mouvements, synthèse,
+hébergement et âges ont des traductions vérifiées, en plus des adaptateurs
+repas/financements/appels compatibles. Les comparaisons de périodes, ventilations
+mensuelles et autres critères non représentables restent dans leurs calculs
+spécialisés : leur présence dans un assemblage ne signifie pas une conversion libre.
+Les sources sociales restent SituationPersonnelle à la référence, distinctes des
+déclarations détaillées et de la synthèse du dossier.
+
+Un assemblage réutilise au plus douze définitions, préproposées ou personnelles,
+avec leurs paramètres et descriptions photographiés. Le changement ou la suppression
+du modèle d'origine ne modifie pas la partie ; reprendre la version actuelle est
+une action explicite. Les parties ne sont pas imbriquées. Une période commune et
+une sélection de dossiers communes sont facultatives ; les paramètres propres
+restent le défaut. Une date de référence seule n'est pas remplacée par une période.
+Les droits sont revalidés pour chaque partie. Aucun partage entre comptes n'est ajouté.
+
+Les chiffres de la nouvelle analyse ont des preuves signées, des contributions,
+l'objet exact et des retours conservés ; les corrections rendent les preuves
+périmées. Un assemblage ouvre ses analyses séparées pour approfondir. PDF utilise
+le moteur existant de pas-communs ; CSV contient des tables successives identifiées,
+sans inventer d'en-tête commun ni total entre parties. Modèle, personnalisation,
+conservation des deux et remplacement conditionnel restent distincts.
+
+Bornes : vingt critères relationnels, vingt conditions par bloc, douze mesures,
+sept niveaux et onze informations détaillées ; les limites de faits/contributions
+de l'explorateur restent explicites, sans troncature. Qualification complémentaire :
+`personnes.tests_analyses`, `personnes.tests_assemblages`,
+`personnes.tests_analyses_acteurs`, `personnes.qualification_analyses` et
+`scripts/qualifier-analyses-profils.py`. Les profils Django PWA ne qualifient pas
+à eux seuls l'exécution réelle Pyodide/OPFS.

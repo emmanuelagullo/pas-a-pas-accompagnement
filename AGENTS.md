@@ -520,3 +520,13 @@ inventer de motif automatique ni convertir les anciens journaux. Tester
 personnes.tests_precisions_correction, les services touchés et les recettes
 personnes.qualification_evolution. Cette règle actualise, pour la rectification
 ordinaire, les anciennes mentions générales de « corrections motivées ».
+
+ST13 — Analyses : préserver les schémas historiques et les sources sociales.
+La composition de mesures réutilise la sélection et l'agrégation d'exploration ;
+les critères relationnels précèdent le premier/dernier fait. Ne pas remplacer
+une absence de déclaration par zéro, ni une remise collective par autant de
+remises que de bénéficiaires. Les assemblages photographient des paramètres,
+jamais des résultats ou des droits ; aucune mise à jour d'origine silencieuse.
+Les rapports spécialisés non traduits restent utilisables et leurs limites
+explicites. Tester les analyses, assemblages, acteurs et les trois profils ;
+distinguer HTML, Chromium et vrai Pyodide/OPFS. Aucun nouveau droit implicite.

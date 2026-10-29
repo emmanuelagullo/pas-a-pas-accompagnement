@@ -125,3 +125,15 @@ def documents(acteur,request,d):
             doc['origine_modifiee']=original is not None and gestion.etat(original)!=partie.get('empreinte')
         docs.append(doc)
     return docs
+
+
+def structure(d):
+    """La résolution quotidienne d'une période ne change pas le modèle composé."""
+    resultat=[]
+    from .traduction_analyses import structure as structure_analyse
+    for partie in d['parties']:
+        p=partie['parametres']
+        if partie['source']=='analyse':definition=structure_analyse(analyses.lire(p))
+        else:definition={k:v for k,v in p.items() if k not in ('debut','fin','date','reference','periode','decalage_debut','decalage_fin','filtre','export_prioritaire')}
+        resultat.append(dict(source=partie['source'],definition=definition,titre=partie['titre']))
+    return resultat

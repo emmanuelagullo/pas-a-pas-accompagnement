@@ -187,8 +187,9 @@ def analyse(request):
                     x['projection']=projection
             if source.get('format') in ('pdf','csv'):
                 resume=source.get('resume','')
-                if len(resume)>6000:raise ValidationError('Résumé trop long.')
+                if len(resume)>6000:return render(request,'analyses/erreur.html',{'erreurs':['Le résumé dépasse 6 000 caractères. Revenez au rapport pour le raccourcir.']},status=422)
                 return exporter_document(document(resultat,cible.nom if cible else 'Analyse composée',description_modele(cible,request.user) if source.get('inclure_description')=='1' else '',resume),source['format'])
+        if source.get('format') and not resultat:statut=422
         peut_conserver=request.user.has_perms(['personnes.view_modelerapport','personnes.add_modelerapport'])
         initial=dict(nom=cible.nom if cible else '',description=cible.description if cible else '',nature=cible.nature if cible else 'modele',attendu=source.get('attendu',gestion.jeton(request.user,cible)) if cible and peut_conserver else '')
         sauvegarde=ConservationForm(request.POST if request.method=='POST' and source.get('action') else None,initial=initial)

@@ -147,9 +147,8 @@ def conserver_composition(acteur,cible,donnees,action,params):
             from .traduction_analyses import structure
             identique=structure(lire(params))==structure(lire(parent.parametres))
         else:
-            from .assemblages import lire
-            avant=lire(parent.parametres);apres=lire(params)
-            identique=avant['parties']==apres['parties']
+            from .assemblages import lire,structure
+            identique=structure(lire(parent.parametres))==structure(lire(params))
         if not identique:raise ValidationError('La définition du calcul a changé. Conservez un nouveau modèle, seul ou avec sa personnalisation.')
     with transaction.atomic():
         nombre=m.ModeleRapport.objects.filter(auteur=acteur).count()

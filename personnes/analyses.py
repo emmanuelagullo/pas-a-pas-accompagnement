@@ -31,6 +31,7 @@ def lire(params):
         raise ValidationError('Définition de composition invalide.')
     if not isinstance(d, dict):
         raise ValidationError('Une définition structurée est nécessaire.')
+    if 'export_prioritaire' in params:d['export_prioritaire']=params['export_prioritaire']
     return d
 
 
