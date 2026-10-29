@@ -36,10 +36,10 @@ class AccesRapportsTests(TestCase):
         creation=self.client.get(reverse('dossiers:rapport_nouveau'),follow=True)
         nouvelle=self.client.get(self.lien(creation,'Commencer un modèle vide'),follow=True)
         self.assertEqual(nouvelle.status_code,200);self.assertContains(nouvelle,'<h1>Nouveau modèle</h1>',html=True)
-        self.assertEqual([p['cle'] for p in nouvelle.context['parties_analyse'] if p['ouvert']],['retenir'])
-        self.assertEqual(nouvelle.context['form']['population'].value(),'personnes')
-        retenir=next(p for p in nouvelle.context['parties_analyse'] if p['cle']=='retenir')
-        self.assertEqual([f.name for f in retenir['champs'][:4]],['population','periode','debut','fin'])
+        self.assertEqual([p['nom'] for p in nouvelle.context['parties'] if p['ouvert']],['retenir'])
+        self.assertNotIn('population',nouvelle.context['form'].fields)
+        retenir=next(p for p in nouvelle.context['parties'] if p['nom']=='retenir')
+        self.assertEqual([f.name for f in retenir['champs'][:3]],['periode','debut','fin'])
     def test_nouveau_ignore_anciens_filtres_et_cible_de_modele_sans_creer(self):
         params={k:str(v) for k,v in self.config(mesure='quantite',filtre1='age',operation1='egal',valeur1='18').items()}
         modele=m.ModeleRapport.objects.create(auteur=self.u,nom='Ne pas remplacer',parametres={**params,'schema':1,'exploration':True})
@@ -106,30 +106,30 @@ class AccesRapportsTests(TestCase):
         self.assertContains(r,'conserver vos réglages après les résultats')
         self.assertIn(reverse('dossiers:rapports_gerer'),self.lien(r,'Gérer les modèles et leurs personnalisations'))
 
-    def test_menu_composable_exclut_synthese_et_ouvre_reellement_explorateur(self):
+    def test_menu_composable_inclut_les_traductions_verifiees(self):
         r=self.client.get(reverse('dossiers:rapport_nouveau'))
-        self.assertEqual({x['cle'] for x in r.context['composables']},{'statistiques:repas','statistiques:exploration_repas','financements','appels'})
+        self.assertEqual({x['cle'] for x in r.context['composables']},{'statistiques:repas','statistiques:exploration_repas','statistiques:synthese','statistiques:hebergement','statistiques:ages','statistiques:mouvements','financements','appels'})
         for depart in ('statistiques:repas','statistiques:exploration_repas','financements','appels'):
             r=self.client.get(reverse('dossiers:rapport_nouveau'),{'depart':depart,'composer_librement':'1'},follow=True)
-            self.assertEqual(r.status_code,200,r.content[:300]);self.assertIn('parties_analyse',r.context)
+            self.assertEqual(r.status_code,200,r.content[:300]);self.assertIn('parties',r.context)
             self.assertFalse(r.context['form'].errors,r.context['form'].errors)
         r=self.client.get(reverse('dossiers:rapport_nouveau'),{'depart':'statistiques:synthese','composer_librement':'1'},follow=True)
-        self.assertEqual(r.status_code,422);self.assertEqual(m.ModeleRapport.objects.count(),0)
+        self.assertEqual(r.status_code,200);self.assertEqual(m.ModeleRapport.objects.count(),0)
 
     def test_action_composable_repas_reprend_chiffre_et_permet_changement(self):
         repas.distribuer(self.u,self.ar,self.adulte,date(2026,1,2),2)
         d=dict(rapport='exploration_repas',debut='2026-01-01',fin='2026-03-01',service='dejeuner',regroupement='mois_categorie')
         r=self.client.get(reverse('statistiques'),d)
         compose=self.client.get(self.lien(r,'Composer à partir de ce rapport'),follow=True)
-        self.assertEqual([x['valeur'] for x in compose.context['page_obj']],[2,0])
-        params={k:str(v) if v is not None else '' for k,v in compose.context['form'].cleaned_data.items()}
-        params.update(mesure='personnes',axe='total',croisement='',lignes_vides='')
-        change=self.client.get(reverse('dossiers:explorer'),params)
-        self.assertEqual(change.context['totaux'],{'personnes':1})
+        self.assertEqual([x['valeur'] for x in compose.context['resultat']['mesures'][0]['lignes']],[2,0])
+        from . import analyses
+        d=compose.context['resultat']['definition'];d['axes']=['total'];d['mesures'][0].update(mesure='personnes',lignes_vides=False)
+        change=self.client.get(reverse('dossiers:analyse'),dict(definition=analyses.encoder(d)))
+        self.assertEqual(change.context['resultat']['mesures'][0]['totaux'],{'personnes':1})
         self.assertEqual(m.ModeleRapport.objects.count(),0)
 
     def test_pas_de_promesse_composable_pour_criteres_non_traduits(self):
-        for route,d in [('statistiques',dict(rapport='synthese')),('statistiques',dict(rapport='repas',comparer='1')),('dossiers:appels115',dict(q='texte'))]:
+        for route,d in [('statistiques',dict(rapport='mensuel')),('statistiques',dict(rapport='repas',comparer='1')),('dossiers:appels115',dict(q='texte'))]:
             r=self.client.get(reverse(route),d)
             self.assertContains(r,'Conserver ces réglages…')
             self.assertNotContains(r,'Composer à partir de ce rapport')
@@ -139,10 +139,11 @@ class AccesRapportsTests(TestCase):
         x=m.ModeleRapport.objects.create(auteur=self.u,nom='Repas spécialisé',parametres=dict(rapport='repas',debut='2026-01-01',fin='2026-02-01'))
         r=self.client.get(reverse('statistiques'),{'modele':x.pk})
         compose=self.client.get(self.lien(r,'Composer à partir de ce rapport'),follow=True)
-        self.assertIsNone(compose.context['modele_cible'])
-        params={k:str(v) if v is not None else '' for k,v in compose.context['form'].cleaned_data.items()}
-        r=self.client.post(reverse('dossiers:explorer'),{**params,'nom':'Repas composable','action_modele':'variante'})
+        self.assertIsNone(compose.context['cible'])
+        from . import analyses
+        params=dict(definition=analyses.encoder(compose.context['resultat']['definition']),nom='Repas composable',nature='modele',action='creer')
+        r=self.client.post(reverse('dossiers:analyse'),params)
         self.assertEqual(r.status_code,302)
-        x.refresh_from_db();self.assertNotIn('exploration',x.parametres)
-        self.assertTrue(m.ModeleRapport.objects.get(nom='Repas composable').parametres['exploration'])
+        x.refresh_from_db();self.assertNotIn('analyse',x.parametres)
+        self.assertTrue(m.ModeleRapport.objects.get(nom='Repas composable').parametres['analyse'])
         self.assertEqual(m.ModeleRapport.objects.count(),2)

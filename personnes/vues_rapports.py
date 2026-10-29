@@ -14,12 +14,18 @@ from . import models as m,catalogue_rapports as c,modeles_personnels as s
 UI={'csrfmiddlewaretoken','nom','action_modele','modele','modele_cible','attendu_modele','derive','page','format','composer_librement'}
 
 
-def source_modele(x):return x.parametres.get(c.CLE_SOURCE) or ('exploration' if x.parametres.get('exploration') else 'statistiques')
+def source_modele(x):return 'assemblage' if x.parametres.get('assemblage') else 'analyse' if x.parametres.get('analyse') else x.parametres.get(c.CLE_SOURCE) or ('exploration' if x.parametres.get('exploration') else 'statistiques')
 
 
 def lecture(acteur,x):
     source=source_modele(x)
-    if source=='exploration':
+    if source=='assemblage':
+        from . import assemblages
+        assemblages.valider(acteur,assemblages.lire(x.parametres))
+    elif source=='analyse':
+        from . import analyses
+        analyses.calculer(acteur,analyses.lire(x.parametres))
+    elif source=='exploration':
         from .modeles_echange import valider
         valider(acteur,x.parametres)
     elif not c.accessible(acteur,source,x.parametres.get('rapport')):raise PermissionDenied
@@ -134,7 +140,7 @@ def nouveau(request):
         if request.GET.get('composer_librement')=='1':params['composer_librement']='1'
         return redirect(reverse('dossiers:rapport_composer',args=[r['source']])+'?'+urlencode(params))
     if not choix and not request.user.has_perm('personnes.view_personne'):raise PermissionDenied
-    composables=[x for x in choix if x['source'] in ('financements','appels') or x.get('rapport') in ('repas','exploration_repas')] if request.user.has_perm('personnes.view_personne') else []
+    composables=[x for x in choix if x['source'] in ('financements','appels') or x.get('rapport') in ('repas','exploration_repas','mouvements','ages','hebergement','synthese')] if request.user.has_perm('personnes.view_personne') else []
     personnels=m.ModeleRapport.objects.filter(auteur=request.user)
     return render(request,'rapports/nouveau.html',{'rapports':choix,'composables':composables,'personnels':personnels})
 
@@ -169,10 +175,12 @@ def composer(request,source):
         try:
             p=parametres_response(reponse,source,donnees)
             p.pop(c.CLE_SOURCE,None)
-            adapter(request.user,source,p)
+            from .traduction_analyses import depuis_rapport
+            d=depuis_rapport(request.user,source,p)
         except (ValidationError,ValueError) as erreur:
             return render(request,'exploration/personnalisation_refusee.html',{'erreur':erreur,'retour':reverse(c.SOURCES[source][1])+'?'+urlencode({k:v for k,v in donnees.items() if k not in ('format','page')})},status=422)
-        return redirect(lien(source,p))
+        from .vues_analyses import url_analyse
+        return redirect(url_analyse(d))
     ticket=valeurs.get('attendu_modele','')
     stockable=peut_stockage(request.user,source)
     if cible and stockable and request.method=='GET' and 'attendu_modele' not in valeurs:ticket=s.jeton(request.user,cible)

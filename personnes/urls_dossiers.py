@@ -1,3 +1,4 @@
+from . import vues_analyses, vues_assemblages
 from . import vues_frises
 from . import vues_chronologie
 from . import vues_rapports
@@ -36,6 +37,9 @@ app_name = 'dossiers'
 from . import vues_pieces_dossier as pieces
 
 urlpatterns = [
+    path('analyses/assembler/',vues_assemblages.assemblage,name='assemblage'),
+    path('analyses/',vues_analyses.analyse,name='analyse'),
+    path('analyses/justificatifs/',vues_analyses.justificatifs,name='analyse_preuves'),
     path('frises/preference/', vues_frises.preference, name='frises_preference'),
     path('<str:nature>/<uuid:pk>/chronologie/', vues_chronologie.detail, name='chronologie'),
     path('rapports/exporter/',exports_rapports.exporter,name='rapport_exporter'),

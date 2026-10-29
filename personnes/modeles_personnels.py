@@ -17,7 +17,9 @@ class ConflitModele(ValidationError):
 @service_metier
 def exiger(acteur,modele):
     if modele.auteur_id!=acteur.pk:raise PermissionDenied
-    if modele.parametres.get('_rapport_source'):
+    if modele.parametres.get('analyse') or modele.parametres.get('assemblage'):
+        suivi.exiger(acteur,'view_modelerapport','add_modelerapport')
+    elif modele.parametres.get('_rapport_source'):
         from .catalogue_rapports import accessible
         suivi.exiger(acteur,'view_modelerapport','add_modelerapport')
         if not accessible(acteur,modele.parametres['_rapport_source']):raise PermissionDenied
@@ -53,6 +55,16 @@ def nom_valide(nom):
 
 @service_metier
 def valider(acteur,params):
+    if params.get('assemblage'):
+        suivi.exiger(acteur,'view_modelerapport','add_modelerapport')
+        from . import assemblages
+        return assemblages.parametres(assemblages.valider(acteur,assemblages.lire(params)))
+    if params.get('analyse'):
+        suivi.exiger(acteur,'view_modelerapport','add_modelerapport')
+        from . import analyses
+        d=analyses.valider(acteur,analyses.lire(params))
+        analyses.calculer(acteur,d)
+        return analyses.parametres(d)
     if params.get('_rapport_source'):
         suivi.exiger(acteur,'view_modelerapport','add_modelerapport')
         from .vues_rapports import valider_source
@@ -71,6 +83,10 @@ def valider(acteur,params):
 def changer(acteur,modele,attendu,nom,params=None,*,description=None,export_prioritaire=None):
     verifier(acteur,modele,attendu)
     nouveau_nom=nom_valide(nom)
+    if params is not None and bool(params.get('assemblage'))!=bool(modele.parametres.get('assemblage')):
+        raise ValidationError('Conservez le type de modèle ; créez une nouvelle entrée pour un assemblage.')
+    if params is not None and bool(params.get('analyse'))!=bool(modele.parametres.get('analyse')):
+        raise ValidationError('Conservez le type de composition ; créez une variante séparée.')
     # Une simple modification du nom ne réinterprète pas un ancien modèle.
     if params is not None and bool(params.get('exploration'))!=bool(modele.parametres.get('exploration')):
         raise ValidationError('Conservez le type du modèle ; enregistrez une variante séparée pour une autre définition.')
@@ -110,3 +126,35 @@ def supprimer(acteur,modele,attendu):
         if m.ModeleRapport.objects.filter(pk=modele.pk,auteur=acteur,nom=modele.nom,parametres=modele.parametres,description=modele.description,nature=modele.nature,modele_source_id=modele.modele_source_id,source_catalogue=modele.source_catalogue,empreinte_source=modele.empreinte_source).update(parametres=nouveaux)!=1:
             raise ConflitModele('Le rapport a changé ; rechargez avant de supprimer.')
         m.ModeleRapport.objects.filter(pk=modele.pk,auteur=acteur).delete()
+
+
+@service_metier
+def conserver_composition(acteur,cible,donnees,action,params):
+    """Même contrat de conservation pour une analyse et un assemblage personnel."""
+    from django.db import transaction
+    suivi.exiger(acteur,'view_modelerapport','add_modelerapport')
+    params=valider(acteur,params);nature=donnees['nature']
+    if action=='remplacer':
+        if cible is None or nature!=cible.nature:raise ValidationError('Conservez une nouvelle entrée pour changer de nature.')
+        return changer(acteur,cible,donnees.get('attendu'),donnees['nom'],params,description=donnees.get('description',''))
+    if action!='creer':raise ValidationError('Choisissez explicitement créer ou remplacer.')
+    if cible:exiger(acteur,cible)
+    parent=cible.modele_source if cible and cible.nature=='personnalisation' else cible
+    if nature=='personnalisation':
+        if parent is None:raise ValidationError('Ouvrez un modèle, ou conservez le modèle et sa personnalisation ensemble.')
+        if params.get('analyse'):
+            from .analyses import lire
+            from .traduction_analyses import structure
+            identique=structure(lire(params))==structure(lire(parent.parametres))
+        else:
+            from .assemblages import lire
+            avant=lire(parent.parametres);apres=lire(params)
+            identique=avant['parties']==apres['parties']
+        if not identique:raise ValidationError('La définition du calcul a changé. Conservez un nouveau modèle, seul ou avec sa personnalisation.')
+    with transaction.atomic():
+        nombre=m.ModeleRapport.objects.filter(auteur=acteur).count()
+        if nombre+(2 if nature=='ensemble' else 1)>30:raise ValidationError('Limite de 30 définitions personnelles atteinte.')
+        if nature=='ensemble':
+            parent=m.ModeleRapport.objects.create(auteur=acteur,nom=nom_valide(donnees.get('nom_modele')),description=donnees.get('description',''),parametres=params,nature='modele')
+            nature='personnalisation'
+        return m.ModeleRapport.objects.create(auteur=acteur,nom=nom_valide(donnees['nom']),description=donnees.get('description','') if nature=='modele' else '',nature=nature,parametres=params,modele_source=parent if nature=='personnalisation' else None,empreinte_source=etat(parent) if nature=='personnalisation' else '')

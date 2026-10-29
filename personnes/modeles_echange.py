@@ -14,7 +14,8 @@ def lire(contenu):
     if len(contenu)>MAX_MODELE:raise ValidationError('Le fichier de modèle dépasse 64 Kio.')
     try:d=json.loads(contenu)
     except (ValueError,UnicodeError):raise ValidationError('Choisissez un fichier JSON de paramètres de rapport.')
-    if not isinstance(d,dict) or d.get('schema')!=1 or d.get('application')!='pas-a-pas-accompagnement' or d.get('type')!='modele-exploration':raise ValidationError('Format, application ou version de modèle non pris en charge.')
+    if not isinstance(d,dict) or d.get('schema') not in (1,2) or d.get('application')!='pas-a-pas-accompagnement' or d.get('type') not in ('modele-exploration','modele-analyse','modele-assemblage'):raise ValidationError('Format, application ou version de modèle non pris en charge.')
+    if (d['schema']==1)!=(d['type']=='modele-exploration'):raise ValidationError('Type et version de fichier incompatibles.')
     p=d.get('parametres')
     if not isinstance(p,dict) or any(not isinstance(k,str) or not isinstance(v,(str,int,bool)) for k,v in p.items()):raise ValidationError('Paramètres de modèle invalides.')
     return d
@@ -22,6 +23,16 @@ def lire(contenu):
 
 @service_metier
 def valider(acteur,params):
+    if params.get('schema')==2:
+        from . import analyses,assemblages
+        if params.get('analyse') is True:
+            d=analyses.valider(acteur,analyses.lire(params));analyses.calculer(acteur,d)
+            return analyses.parametres(d)
+        if params.get('assemblage') is True:
+            d=assemblages.valider(acteur,assemblages.lire(params))
+            for partie in d['parties']:
+                partie['modele']=None;partie['empreinte']=''
+            return assemblages.parametres(d)
     if params.get('schema')!=1 or params.get('exploration') is not True:raise ValidationError('Version de paramètres non prise en charge.')
     data=params.copy()
     if data.get('periode'):
@@ -60,4 +71,4 @@ def exporter(acteur,modele):
         from django.core.exceptions import PermissionDenied
         raise PermissionDenied
     params=valider(acteur,modele.parametres)
-    return json.dumps(dict(schema=1,application='pas-a-pas-accompagnement',type='modele-exploration',nom=modele.nom,parametres=params,description=modele.description,nature=modele.nature),ensure_ascii=False,indent=2).encode()
+    return json.dumps(dict(schema=params['schema'],application='pas-a-pas-accompagnement',type='modele-analyse' if params.get('analyse') else 'modele-assemblage' if params.get('assemblage') else 'modele-exploration',nom=modele.nom,parametres=params,description=modele.description,nature=modele.nature),ensure_ascii=False,indent=2).encode()

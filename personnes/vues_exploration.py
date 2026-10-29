@@ -201,7 +201,9 @@ def echanger_modele(request,pk=None):
         try:
             x=echange.importer(request.user,form.cleaned_data['fichier'].read(echange.MAX_MODELE+1))
         except ValidationError as erreur:form.add_error('fichier',erreur)
-        else:return redirect(reverse('dossiers:explorer')+'?modele='+str(x.pk))
+        else:
+            from .catalogue_rapports import ouvrir
+            return redirect(ouvrir(x))
     return render(request,'exploration/importer.html',{'form':form})
 
 

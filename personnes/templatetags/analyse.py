@@ -140,10 +140,43 @@ def entete_rapport(context,titre):
     if context.get('controle_acteurs') or request.GET.get('filtre'):
         params['filtre']=context.get('filtre_acteurs') or request.GET.get('filtre','tous')
     modele=context.get('modele_actif') or context.get('modele_gestion') or context.get('rapport_cible') or context.get('modele_cible')
-    return dict(titre=titre,nom=modele.nom if modele else '',retour=reverse('dossiers:rapports_accueil')+('?' + urlencode(params) if params else ''))
+    origine=retour_assemblage(context)
+    return dict(titre=titre,nom=modele.nom if modele else '',libelle_retour='Rapport composé' if origine else 'Statistiques et rapports',retour=origine or reverse('dossiers:rapports_accueil')+('?' + urlencode(params) if params else ''))
 
 
 @register.simple_tag(takes_context=True)
 def export_possible(context):
     f=context.get('form') or context.get('formulaire')
     return f is not None and f.is_valid() and context.get('calcul_effectue') is not False
+
+
+@register.simple_tag(takes_context=True)
+def composition_independante(context,source):
+    from django.core.exceptions import ValidationError,PermissionDenied
+    from django.http import Http404
+    from ..traduction_analyses import depuis_rapport
+    from ..vues_analyses import url_analyse
+    params=parametres_courants(context,source)
+    if params.get('portee_statistiques'):return ''
+    try:d=depuis_rapport(context['request'].user,source,params)
+    except (ValidationError,PermissionDenied,Http404,ValueError,TypeError):return ''
+    return url_analyse(d)
+
+
+@register.simple_tag(takes_context=True)
+def retour_assemblage(context):
+    from django.core import signing
+    from django.urls import reverse
+    from urllib.parse import urlencode
+    from ..analyses import encoder
+    request=context['request']
+    token=request.GET.get('retour_assemblage') or request.POST.get('retour_assemblage')
+    if not token or len(token)>100000:return ''
+    try:p=signing.loads(token,salt='retour-assemblage-v2',max_age=86400)
+    except (signing.BadSignature,ValueError,TypeError):return ''
+    if not isinstance(p,dict) or p.get('acteur')!=str(request.user.pk) or not isinstance(p.get('definition'),dict):return ''
+    q={'definition':encoder(p['definition'])}
+    if p.get('cible'):q['cible']=p['cible']
+    try:partie=int(p.get('partie',1))
+    except (ValueError,TypeError):return ''
+    return reverse('dossiers:assemblage')+'?'+urlencode(q)+'#partie-'+str(partie)

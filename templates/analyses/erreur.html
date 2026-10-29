@@ -1,0 +1,1 @@
+{% extends 'base.html' %}{% block contenu %}<p><a href="{% url 'dossiers:rapports_accueil' %}">← Statistiques et rapports</a></p><h1>Composition non représentable</h1>{% for erreur in erreurs %}<p>{{ erreur }}</p>{% endfor %}<p>Aucun calcul approché ni remplacement de modèle n’a été effectué.</p>{% endblock %}

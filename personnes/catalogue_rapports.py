@@ -71,6 +71,8 @@ def catalogue(acteur):
 
 def ouvrir(modele):
     from urllib.parse import urlencode
+    if modele.parametres.get('assemblage'):return reverse('dossiers:assemblage')+'?'+urlencode({'modele':modele.pk})
+    if modele.parametres.get('analyse'):return reverse('dossiers:analyse')+'?'+urlencode({'modele':modele.pk})
     source=modele.parametres.get(CLE_SOURCE)
     if source in SOURCES:return reverse('dossiers:rapport_composer',args=[source])+'?'+urlencode({'modele':modele.pk})
     return reverse('dossiers:explorer' if modele.parametres.get('exploration') else 'statistiques')+'?'+urlencode({'modele':modele.pk})

@@ -346,3 +346,13 @@ header > nav .menu-utilisateur { position: relative; }
 .liaison-discussion li:target { background: #f8f1d8; }
 
 .pas-liaisons-js .liaison-rediger:not(.liaison-reponse) > summary { display:none; }
+
+/* ST13 : composition locale, sans écran de configuration obligatoire. */
+.analyse-parties { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,18rem),1fr)); gap: .75rem; margin-block: 1rem; }
+.analyse-parties > details { border: 1px solid #cadbd3; border-radius: .4rem; padding: .65rem; min-width: 0; }
+.analyse-parties summary { cursor: pointer; }
+.analyse-parties fieldset { min-width: 0; margin-block: .75rem; padding: .6rem; border: 1px solid #cadbd3; }
+.analyse-parties input,.analyse-parties select,.analyse-parties textarea { max-width: 100%; box-sizing: border-box; }
+.analyse-filtre { border-inline-start: 2px solid #cadbd3; padding-inline-start: .5rem; margin-block: .5rem; }
+.analyse-resultats table { min-width: 32rem; }
+.analyse-apercu { display: block; color: #3d544c; font-size: .85rem; margin-block-start: .3rem; }

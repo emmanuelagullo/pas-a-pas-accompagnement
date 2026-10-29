@@ -1,4 +1,4 @@
-{% extends 'base.html' %}{% load saisie analyse %}{% block contenu %}
+{% extends 'base.html' %}{% load saisie analyse %}{% block contenu %}{% if modele %}<p><a href="{% url 'dossiers:analyse' %}?ancien={{ modele.pk }}">Créer une variante à mesures indépendantes de ce modèle</a></p>{% endif %}
 {% if nouveau_rapport %}{% entete_rapport 'Nouveau modèle' %}{% elif modele_cible %}{% entete_rapport modele_cible.nom %}{% else %}{% entete_rapport 'Analyse composée' %}{% endif %}
 {% if retour_rapport_source %}<p><a href="{{ retour_rapport_source }}">← Revenir au rapport courant</a></p>{% endif %}
 {% if nouveau_rapport %}<p>Commencez par <strong>Retenir</strong> pour choisir la population et la période de votre rapport. Vous pourrez ensuite choisir les informations à afficher, les mesures à compter et leur classement, puis conserver les paramètres sous un nom.</p>{% endif %}

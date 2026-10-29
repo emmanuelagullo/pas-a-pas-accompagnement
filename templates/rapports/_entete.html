@@ -1,1 +1,1 @@
-<p class="retour-rapport"><a href="{{ retour }}">← Statistiques et rapports</a></p><h1>{{ titre }}</h1>{% if nom and nom != titre %}<p class="rapport-modele">Modèle ou personnalisation : <strong>{{ nom }}</strong></p>{% endif %}
+<p class="retour-rapport"><a href="{{ retour }}">← {{ libelle_retour|default:"Statistiques et rapports" }}</a></p><h1>{{ titre }}</h1>{% if nom and nom != titre %}<p class="rapport-modele">Modèle ou personnalisation : <strong>{{ nom }}</strong></p>{% endif %}
