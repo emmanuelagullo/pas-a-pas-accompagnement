@@ -36,6 +36,7 @@
       if (nouveau) nouveau.classList.toggle('secondaire', results.querySelector('[data-creation-suggeree]')?.dataset.creationSuggeree !== 'oui');
       results.inert = false;
       history.replaceState(null, '', visible);
+      document.dispatchEvent(new Event('dossier:actualise'));
       status.textContent = 'Résultats actualisés.';
     } catch (error) {
       if (version === sequence && error.name !== 'AbortError') {

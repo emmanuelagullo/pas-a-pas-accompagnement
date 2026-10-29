@@ -5,16 +5,16 @@ const fs = require('node:fs');
 const path = require('node:path');
 (async () => {
   const listeners = {}, timers = [], pending = [], states = [];
-  const accents=[];let suggestion='non';
+  const accents=[], actualisations=[];let suggestion='non';
   const nouveau={classList:{add:()=>accents.push(false),toggle:(_classe,secondaire)=>accents.push(!secondaire)},disabled:false,dataset:{personne:'oui',menage:'non'}};
   const form = {elements:{mode:{value:'menage'}},querySelector:()=>nouveau,action: 'https://exemple.invalid/chrs/app/', addEventListener: (name, callback) => listeners[name] = callback};
   const results = {querySelector:()=>({dataset:{creationSuggeree:suggestion}}),innerHTML: '', inert: false, setAttribute() {}, removeAttribute() {}};
   const status = {textContent: ''};
   let query = 'Alex';
   const context = {
-    document: {getElementById: id => ({'recherche-dossiers': form, 'resultats-dossiers': results, 'recherche-etat': status})[id]},
+    document: {dispatchEvent: event => actualisations.push(event.type), getElementById: id => ({'recherche-dossiers': form, 'resultats-dossiers': results, 'recherche-etat': status})[id]},
     FormData: class { *[Symbol.iterator]() { yield ['q', query]; yield ['mode', 'menage']; } },
-    URLSearchParams, URL, AbortController,
+    URLSearchParams, URL, AbortController, Event,
     history: {replaceState: (_a, _b, url) => states.push(String(url))},
     setTimeout: callback => { timers.push(callback); return timers.length; }, clearTimeout() {},
     fetch: (url, options) => new Promise(resolve => pending.push({url, options, resolve})),
@@ -29,11 +29,13 @@ const path = require('node:path');
   pending[0].resolve({ok: true, redirected: false, text: async () => 'Alex ancien'});
   await old;
   assert.equal(results.innerHTML, '');
+  assert.deepEqual(actualisations, []);
   assert.equal(results.inert, true);
   suggestion='oui';
   pending[1].resolve({ok: true, redirected: false, text: async () => 'Camille courant'});
   await current;
   assert.equal(results.innerHTML, 'Camille courant');
+  assert.deepEqual(actualisations, ['dossier:actualise']);
   assert.equal(accents.at(-1),true);
   assert.equal(results.inert, false);
   assert.match(states[0], /q=Camille/);

@@ -22,6 +22,7 @@ class Filtres(FormulaireMetier):
     vue_debut = forms.ChoiceField(label='Situation de départ', required=False)
     vue_fin = forms.ChoiceField(label='Situation d’arrivée', required=False)
     presentation_evolution = forms.ChoiceField(label='Présentation', required=False, choices=[('changements','Informations ayant évolué'),('tout','Toutes les informations')])
+    format_elements = forms.ChoiceField(label='Éléments datés', required=False, choices=[('liste', 'Liste complète'), ('personnelle', 'Frise personnelle')])
     debut = forms.DateField(label='Depuis (inclus)', required=False,
                             widget=forms.DateInput(attrs={'type': 'date'}))
     fin = forms.DateField(label='Jusqu’au (inclus)', required=False,
@@ -189,6 +190,7 @@ def afficher(request, nature, objet, ancienne_prise=None, contexte=None):
         'evolution_integree': request.headers.get('X-Condition-Evolution') == '1',
         'objet': objet, 'nature': nature, 'form': form, 'lignes': lignes,
         'anciennes_lignes': [l for l in lignes if l['ancien']],
+        'frise_personnelle': personnelle(lignes, date_initiale, date_finale),
         'comparaison': comparaison, 'comparaison_affichee': [l for l in comparaison if form.cleaned_data.get('presentation_evolution') == 'tout' or valeur_comparee(l, 'initial') != valeur_comparee(l, 'final')] if form.is_valid() else [],
         'libelle_debut': libelle_borne(form, 'debut', date_initiale), 'libelle_fin': libelle_borne(form, 'fin', date_finale), 'date_initiale': date_initiale, 'date_finale': date_finale,
         'retour_trajectoire': retour, 'parametres': {**{k: v for k, v in params.items() if k not in ('prise', 'beneficiaire', 'debut', 'fin', 'vue_debut', 'vue_fin')},
@@ -213,3 +215,18 @@ def libelle_borne(form, borne, jour):
     if mode == 'date':
         return jour.strftime('%d/%m/%Y')
     return dict(form.fields['vue_' + borne].choices).get(mode, '') + ' · ' + jour.strftime('%d/%m/%Y')
+
+
+def personnelle(lignes, debut, fin):
+    """Points à date d'effet, après le filtrage métier ; aucune continuité ajoutée.
+
+    Premier périmètre : déclarations personnelles et séries économiques déjà
+    chargées par la trajectoire. Les récits, prestations et témoins collectifs
+    restent dans la liste complète ; les corrections sont dans la source.
+    """
+    if debut is None or fin is None:
+        return []
+    duree = max(1, (fin - debut).days)
+    return [{**l, 'position': f'{100 * (l["date"] - debut).days / duree:.4f}'}
+            for l in lignes if not l['ancien'] and l['beneficiaire'] is not None
+            and l['nature'] in ('Déclaration personnelle', 'Ressources', 'Dettes')]

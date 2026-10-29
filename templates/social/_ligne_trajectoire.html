@@ -1,3 +1,3 @@
-{% load textes %}<li><strong>{{ ligne.date|date:'d/m/Y' }} — {{ ligne.nature }}</strong>{% if ligne.beneficiaire %} — {{ ligne.beneficiaire }}{% endif %} : {{ ligne|texte_riche }}
+{% load textes %}<li>{% if ligne.position %}<span class="frise-personnelle-trait" aria-hidden="true"><i class="frise-personnelle-point" style="--position:{{ ligne.position }}%"></i></span>{% endif %}<strong>{{ ligne.date|date:'d/m/Y' }} — {{ ligne.nature }}</strong>{% if ligne.beneficiaire %} — {{ ligne.beneficiaire }}{% endif %} : {{ ligne|texte_riche }}
 <small>(enregistré le {{ ligne.enregistre|date:'d/m/Y H:i' }}{% if ligne.terme %} ; fin d’effet {{ ligne.terme|date:'d/m/Y' }} exclue{% endif %})</small>
 {% if ligne.url %}<a href="{{ ligne.url }}">Source et historique</a>{% endif %}</li>

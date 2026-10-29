@@ -76,9 +76,8 @@ pas de comparer des longueurs anciennes comme des durées linéaires.
 
 Form3 : échelle linéaire du début de la prise (ou d'un fait lié plus ancien)
 à sa clôture effective, sinon aujourd'hui. Aucune fin prévue ne ferme cette vue.
-Les mini-frises ne demandent aucune saisie de dates. Une fenêtre manuelle et
-les réglages avancés de leurs bornes ne sont pas ajoutés dans ce lot ; les
-choix symboliques et « À une date » ci-dessous concernent Évolution.
+Les mini-frises ne demandent aucune saisie de dates. Les réglages manuels restent absents des miniatures. Ils sont disponibles
+uniquement après élargissement, dans la commande discrète Période (voir ci-dessous).
 
 ## Évolution sur place
 
@@ -146,3 +145,111 @@ Ce sont des mesures locales sur son jeu fictif, pas une garantie de latence.
 Les retouches finales de fragments HTML/JS sont vérifiées par les tests ciblés
 et par Chromium : la bascule conserve notamment le panneau Évolution déjà
 ouvert, sans remplacement de son DOM. Le banc JS de recherche BD4 réussit aussi.
+
+
+## Affinage : commandes, périodes et première frise personnelle
+
+Base du patch complémentaire : `fdc0b52880728ebdd638748b4c92f06ca71ce761`,
+`main` Inria examiné le 29 octobre 2026 ; son arbre contient le lot précédent
+et ACT12–13 (messages d’attribution et cahier unifié), conservés intégralement.
+Aucun changement de source sociale, modèle, migration, dépendance, droit ou socle.
+
+La commande **Frise** suit le compteur de résultats en Form1 et le titre
+Prises en charge / Prestations en Form2 / Form3. Elle n'occupe plus une ligne
+propre. Nouvelle garde sa place à droite. Une recherche dynamique réinitialise
+les commandes de son fragment, avec les mêmes jetons et la même préférence.
+Sur écran très étroit, la ligne peut se replier plutôt que déborder.
+
+**+ Élargir / − Réduire** reste ancré à droite dans les deux états. Le texte
+accessible suit l'état et identifie la frise. Les repères temporels ont une
+apparence stable au survol et au focus ; seul leur détail apparaît. La légende
+réutilise les couleurs et les motifs effectivement dessinés, accompagnés de mots.
+
+Dans le dépliage seulement, **Période** ouvre :
+
+- Cadrage initial ou Dernière année ;
+- À des dates : bornes symboliques initiales, Il y a un an, Aujourd'hui lorsque
+  c'est effectivement la borne droite, ou À une date qui active son champ ;
+- un curseur Zoom et un curseur Position, ce dernier actif après zoom ;
+- Réinitialiser pour restaurer exactement le cadrage et l'échelle initiaux.
+
+Le zoom et les fenêtres choisies utilisent une échelle linéaire, explicitement
+nommée. Le cadrage initial conserve son échelle comprimée ou linéaire d'origine.
+Les limites sont celles de la période initiale, sans futur supplémentaire. Les
+lignes textuelles restent complètes, y compris hors fenêtre. Les barres de la
+miniature ne changent pas et restent alignées avec les autres objets. Les débuts
+aujourd'hui gardent une marque ponctuelle ; le zoom n'en fait pas une durée.
+La reprojection se fait uniquement sur les données déjà filtrées et présentes,
+sans nouvelle requête ni réponse JSON métier. Les réglages sont mémorisés dans
+l'onglet (sessionStorage, repli en mémoire si indisponible), par compte, page, objet et
+bornes initiales ; ils se restaurent à la réouverture après un retour. Les
+réglages ne modifient ni recherche ni dates sociales. Sans JavaScript, les
+réglages graphiques sont cachés ; la vue élargie initiale et ses textes restent
+consultables, ainsi que la préférence serveur via Appliquer.
+
+Dans **Évolution**, Éléments datés propose **Liste complète / Frise personnelle**,
+sur place par le même formulaire GET et le même contrat de fragment. La table
+comparative entre les deux dates reste indépendante. La première frise retient
+les déclarations personnelles de situation, les ressources et les dettes déjà
+chargées par la trajectoire. Des points sur une échelle commune à la sélection
+montrent leurs dates d'effet ; les textes, bénéficiaires, fins explicites,
+sources et liens d'historique restent lisibles sans survol. Aucun segment ne
+suppose une continuité personnelle ou une appartenance au ménage entre deux
+faits. Aucun fait ancien en cours n'est redaté à l'ouverture de la fenêtre.
+Les versions corrigées sont celles lues aujourd'hui ; les corrections et retraits
+ne deviennent pas des événements métier supplémentaires. Les données de naissance
+imprécises, les autres séries sociales non encore projetées, les récits et les
+journaux ne sont pas injectés dans cette première vue. Les membres, bénéficiaires
+et droits sont ceux du constructeur de trajectoire, avant cette projection, qui
+n'ajoute aucune requête.
+
+### Projet : examen et limite volontaire
+
+ObjectifParcours dispose de VersionObjectif, avec début/fin d'effet, état,
+thème, titre et échéance visée. Les états sont En cours, Atteint, Suspendu et
+Abandonné. L'échéance est une prévision ; elle n'est pas la date d'atteinte.
+Les anciennes InformationsAccompagnement n'ont pas de date d'effet et ne doivent
+pas être transformées en histoire métier. Une future représentation peut être
+utile pour les versions datées, dans le bloc Projet et parcours existant, mais
+n'est pas ajoutée par ce patch : il reste à préciser le dessin des états et des
+échéances, ainsi que la portée collective. Ce point ne change aucune définition
+métier existante et n'empêche pas la livraison des améliorations indépendantes.
+
+### Recette complémentaire
+
+1. Form1 : rechercher, vérifier compteur et Frise sur la même ligne ; changer
+   la saisie et vérifier que le repli Appliquer reste caché avec JavaScript.
+2. Élargir puis réduire : commande à droite, libellé et nom accessible adaptés.
+3. Survoler / atteindre au clavier un repère : trait stable, bulle consultable,
+   masquable par Échap. Comparer les cinq échantillons aux marques de la frise.
+4. Ouvrir Période, zoomer, se déplacer, choisir des bornes symboliques puis une
+   date ; une paire invalide affiche une explication et conserve le dessin.
+5. Réinitialiser : dessin et échelle initiaux ; vérifier que la miniature n'a
+   jamais changé. Naviguer vers une source et revenir : cadrage restauré.
+6. Form2 et Form3 : mêmes contrôles ; Nouvelle reste à droite en Form2.
+7. Évolution : choisir Frise personnelle, puis revenir à Liste complète ; ne
+   pas remplacer la table comparative. Vérifier des changements corrigés,
+   les droits partiels et la composition datée du ménage.
+8. Refaire sur 390 px, au clavier et sans JavaScript. Les contrôles de zoom ne
+   sont pas disponibles sans JavaScript, les dates et liens le restent.
+
+Les tests automatisés vérifient notamment la projection ponctuelle d'aujourd'hui,
+les corrections personnelles, les autres bénéficiaires et les droits partiels.
+Les observations Chromium sont distinctes des tests HTTP/HTML. Les programmes
+natifs, PostgreSQL et le vrai runtime Pyodide/OPFS restent hors qualification locale.
+
+Qualification complémentaire observée : 24 tests ciblés réussis ; contrôles
+Django et absence de migration confirmés ; banc JavaScript de recherche réussi.
+Chromium a exercé Form1/2/3, le retour au cadrage mémorisé, la stabilité du repère
+au survol, les bornes symboliques et champs grisés, la restitution personnelle
+avec deux points fictifs, sa conservation pendant la bascule Frise, 390 px sans
+débordement horizontal et le vrai repli sans JavaScript. Aucune erreur JavaScript
+observée. Les captures ont été inspectées. Les trois profils Django réussissent,
+avec ACT13, le coût du dossier de qualification est de 110 requêtes sans frise,
+118 avec (soit toujours huit requêtes supplémentaires pour les frises). Ces observations ne qualifient pas Pyodide/OPFS ni les programmes natifs.
+
+La suite générale sur la base 5c40ae0 a réussi : 920 tests, 3 ignorés. Après
+intégration d’ACT12–13 sur fdc0b52, les 43 tests ciblés des frises, de la
+trajectoire, des liaisons et des messages d’attribution réussissent. La suite
+générale entière n’a pas été relancée sur cette seconde base ; les validations
+complémentaires ciblent les zones modifiées et leurs interactions.

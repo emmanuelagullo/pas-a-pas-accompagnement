@@ -37,6 +37,18 @@ class EchelleTests(TestCase):
         self.assertAlmostEqual(float(marque['w']),float(attendu['w']),places=3)
         self.assertFalse(b['approximative'])
 
+    def test_debut_aujourdhui_reste_un_point_pour_le_zoom(self):
+        from types import SimpleNamespace
+        fin = timezone.localdate()
+        e = frises.Echelle(fin-timedelta(days=365), fin)
+        prise = SimpleNamespace(debut=fin, fin=None, fin_prevue=None)
+        fait = dict(id='fictif', type='sejour', lane=0, debut=fin, fin=None,
+                    label='Arrivée fictive', annule=False, url='/fictif')
+        b = frises.bande(e, [prise], [fait])
+        self.assertEqual(len(b['segments']), 2)
+        self.assertTrue(all(s['point'] for s in b['segments']))
+        self.assertIsNone(b['details'][0]['geo'])
+
 
 class FrisesTests(Donnees,TestCase):
     def setUp(self):

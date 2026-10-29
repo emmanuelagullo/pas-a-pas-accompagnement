@@ -7,7 +7,7 @@
 <div id="note-dossier">{% include 'dossiers/_commentaire.html' %}</div>
 {% include 'dossiers/_condition_documents.html' %}
 {% include 'dossiers/_condition_sociale.html' %}
-<p id="etat-dossier" role="status"></p><section aria-labelledby="titre-prestations"><h2 id="titre-prestations" class="bd-rubrique-titre">Prestations</h2>{% include "frises/_choix.html" %}{% include "frises/_axe.html" %}<div class="dossier-form2 bd-prestations" data-dossier-form2>
+<p id="etat-dossier" role="status"></p><section aria-labelledby="titre-prestations"><div class="frise-entete"><h2 id="titre-prestations" class="bd-rubrique-titre">Prestations</h2>{% include "frises/_choix.html" %}</div>{% include "frises/_axe.html" %}<div class="dossier-form2 bd-prestations" data-dossier-form2>
 {% if lecture_hebergement %}{% include 'dossiers/_hebergement_direct.html' with contexte_dossier=navigation_h.contexte_dossier|default:prise.navigation.contexte_dossier %}{% endif %}
 {% if lecture_repas %}{% include 'dossiers/_repas_direct.html' with contexte_dossier=navigation_r.contexte_dossier|default:prise.navigation.contexte_dossier %}{% endif %}{% aides_directes prise %}</div></section>
 

@@ -75,17 +75,21 @@ def bande(echelle, prises, faits):
     for p in prises:
         geo = echelle.intervalle(p.debut, p.fin)
         if p.debut == echelle.fin == aujourd and (not p.fin or p.fin > aujourd):
-            geo = {'x':'99.4', 'w':'0.6'}
+            geo = {'x':'99.4', 'w':'0.6', 'point':True}
         if geo:
             segments.append({**geo, 'type': 'prise', 'lane': 0})
     evenements = defaultdict(lambda: defaultdict(int))
+    points = defaultdict(int)
     for f in faits:
         if f['annule'] or f['type'] in ('lieu', 'absence'):
             continue
         geo = echelle.intervalle(f['debut'], f['fin'])
         if f['debut'] == echelle.fin == aujourd and (not f['fin'] or f['fin'] > aujourd):
-            geo = {'x':'99.4', 'w':'0.6'}
+            geo = {'x':'99.4', 'w':'0.6', 'point':True}
         if not geo:
+            continue
+        if geo.get('point'):
+            points[(f['lane'], f['type'])] += 1
             continue
         x = float(geo['x']); y = min(100, x + float(geo['w']))
         evenements[(f['lane'], f['type'])][x] += 1
@@ -100,6 +104,9 @@ def bande(echelle, prises, faits):
                                 'lane':lane, 'type':type_, 'dense':nombre>1})
                 dense |= nombre>1
             nombre += delta; precedent = point
+    for (lane, type_), nombre in sorted(points.items()):
+        marques.append({'x':'99.4', 'w':'0.6', 'lane':lane, 'type':type_, 'dense':nombre>1, 'point':True})
+        dense |= nombre>1
     approximative = len(marques) > 128
     if approximative:
         # En forte densité seulement, représenter l'occupation de cellules,
@@ -129,7 +136,7 @@ def bande(echelle, prises, faits):
             'approximative': approximative, 'futur': futurs, 'details': details[:80], 'suite': len(details) > 80,
             'description': ' ; '.join(f'{p.debut:%d/%m/%Y} → ' + (f'{p.fin:%d/%m/%Y}' if p.fin else 'clôture non enregistrée') + (f' ; fin prévue {p.fin_prevue:%d/%m/%Y}' if p.fin_prevue else '') for p in tri),
             'echelle': 'Dernière année linéaire ; passé plus ancien comprimé progressivement' if echelle.comprimee else 'Échelle linéaire de la prise',
-            'debut': echelle.debut, 'fin': echelle.fin}
+            'debut': echelle.debut, 'fin': echelle.fin, 'comprimee': echelle.comprimee, 'fin_aujourdhui': echelle.fin == aujourd}
 
 
 def charger(acteur, objets, nature, *, prise=None, navigations=None, retour_recherche=None):

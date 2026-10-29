@@ -137,12 +137,31 @@ class TrajectoireUnifieeTests(TestCase):
         self.client.force_login(lecteur)
         page=self.client.get(self.url)
         self.assertNotContains(page,'En formation');self.assertNotContains(page,'800.50');self.assertNotContains(page,'Témoin réservé fictif')
+        page = self.client.get(self.url, {'format_elements':'personnelle'})
+        self.assertEqual(page.context['frise_personnelle'], [])
         self.assertEqual(self.client.get(reverse('dossiers:social',args=[self.p.pk])).status_code,403)
         self.assertEqual(self.client.get(reverse('dossiers:rapport_a'),{'rubrique':'ressources','format':'csv'}).status_code,403)
         lecteur.user_permissions.add(Permission.objects.get(content_type__app_label='personnes',codename='view_revisionsituationpersonnelle'))
         self.assertContains(self.client.get(self.url),'En formation')
         self.assertEqual(self.client.get(self.murl).status_code,403)
         self.assertEqual(self.client.get(reverse('suivi:trajectoire',args=[self.a.pk])).status_code,403)
+
+    def test_frise_personnelle_corrigee_et_filtree(self):
+        ancien = self.fait('sans_emploi', date(2026, 1, 1))
+        self.fait('formation', date(2026, 2, 1))
+        self.fait('emploi', ancien.debut, correction=ancien.pk, motif='Erreur fictive corrigée')
+        social.evenement(self.u, self.a, self.p, date(2026, 2, 2), 'Récit fictif hors frise', 'Fictif')
+        bd6.renseigner(self.u, self.q, 'emploi', 'sans_emploi', date(2026, 2, 1), 'Source privée fictive', bd6.jeton(self.q))
+        page = self.client.get(self.url, {'format_elements':'personnelle', 'debut':'2026-01-01', 'fin':'2026-03-01'})
+        self.assertContains(page, 'frise-personnelle-point', count=2)
+        self.assertNotContains(page, 'Récit fictif hors frise')
+        self.assertNotContains(page, 'Source privée fictive')
+        self.assertEqual([l['date'] for l in page.context['frise_personnelle']], [date(2026,1,1), date(2026,2,1)])
+        self.assertIn('En emploi', page.context['frise_personnelle'][0]['texte'])
+        self.assertTrue(all(l['url'] for l in page.context['frise_personnelle']))
+        # Le ménage ne reçoit pas les faits personnels d'avant son contexte daté.
+        page = self.client.get(self.murl, {'format_elements':'personnelle', 'debut':'2025-01-01', 'fin':'2025-12-31'})
+        self.assertEqual(page.context['frise_personnelle'], [])
 
     def test_retours_bd_source_date_et_ancienne_url(self):
         self.fait()
