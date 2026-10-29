@@ -164,6 +164,7 @@ main:has(.bd-dossier) { max-width: 76rem; }
 .bd-liste-prises .bd-vide { padding: 1.2rem; }
 .bd-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .7rem; margin: 1rem 0 0; }
 .bd-actions .secondaire { background: transparent; }
+.bd-actions .secondaire:hover, .bd-actions .secondaire:focus-visible { background: #10483f; border-color: #10483f; color: white; }
 .bd-prestations { grid-template-columns: repeat(2, minmax(0, 1fr)); margin: .5rem 0 1.2rem; }
 .bd-formulaire { max-width: 48rem; margin: auto; }
 .bd-formulaire .carte { max-width: none; }
