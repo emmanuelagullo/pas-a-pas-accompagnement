@@ -337,3 +337,11 @@ header > nav .menu-utilisateur { position: relative; }
 .liaisons-mentions > span { display: flex; align-items: baseline; gap: .5rem; flex-wrap: wrap; margin-block: .3rem; }
 [data-mentions-propositions]:not([hidden]) { position: fixed; z-index: 100; max-height: 15rem; max-width: min(30rem, calc(100vw - 1rem)); overflow-y: auto; box-shadow: 0 .3rem .8rem #0002; }
 @media(max-width:40rem) { .liaisons-commandes { flex-wrap: wrap; } }
+
+.liaison-discussion { border-inline-start: 3px solid #cadbd3; padding-inline-start: .8rem; margin-block: .5rem; }
+.liaison-discussion > summary { cursor: pointer; color: #175c50; }
+.liaison-discussion > ol { list-style: none; padding-inline-start: 0; }
+.liaison-discussion > ol > li { padding-block: .7rem; border-block-end: 1px solid #dce5df; }
+.liaison-discussion li:target { background: #f8f1d8; }
+
+.pas-liaisons-js .liaison-rediger:not(.liaison-reponse) > summary { display:none; }

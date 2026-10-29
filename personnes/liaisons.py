@@ -18,7 +18,7 @@ MODELES={'personne':m.Personne,'menage':m.Menage,'prise':m.Accompagnement,
 NATURES={v:k for k,v in MODELES.items()}
 NOTES={'prise':'accompagnement','hebergement':'accord_hebergement','repas':'accord_repas','aide':'accord_aide',
     'personne':'personne','menage':'menage','sejour':'sejour'}
-TYPES=[('messages','Messages'),('equipe','Attributions et relais'),('prestations','Arrivées, départs et autres opérations'),('actions','Actions à faire')]
+TYPES=[('messages','Messages'),('equipe','Attributions et relais'),('prestations','Arrivées, départs et autres opérations'),('actions','Actions de suivi')]
 CLES=('lia_periode','lia_debut','lia_fin','lia_types','lia_sous','lia_q','lia_annules')
 
 
@@ -157,11 +157,11 @@ class Point:
         src=self.origine
         if self.nature in ('personne','menage') and self.ds:src=PorteeObjet(service_id=self.service_id,dossier=self.ds)
         return src is not None and p.peut_renseigner(self.compte,src,modele)
-    def publier(self,contenu,date_fait,cle_envoi=None):
+    def publier(self,contenu,date_fait,cle_envoi=None,fil_cle=''):
         with perimetre(self.compte,service=self.service_id,statistiques='accessibles',reperage=False):
             if not self.ecriture():raise PermissionDenied
-            if self.nature=='service':return transmissions.transmettre(self.compte,contenu,date_fait,cle_envoi=cle_envoi)
-            return transmissions.noter(self.compte,contenu,date_fait=date_fait,cle_envoi=cle_envoi,**{NOTES[self.nature]:self.objet})
+            if self.nature=='service':return transmissions.transmettre(self.compte,contenu,date_fait,cle_envoi=cle_envoi,fil_cle=fil_cle)
+            return transmissions.noter(self.compte,contenu,date_fait=date_fait,cle_envoi=cle_envoi,fil_cle=fil_cle,**{NOTES[self.nature]:self.objet})
     def dossier_parent(self,params):
         a=next((x for x in ancetres(self.objet) if isinstance(x,m.Accompagnement)),None) if self.objet else None
         if not a:return None
@@ -224,7 +224,9 @@ def lire_retour(compte,token):
 def selection(point,data):
     with perimetre(point.compte,service=point.service_id,statistiques='accessibles',reperage=False):
         Point(point.compte,point.nature,point.objet.pk if point.objet else point.service_id)
-        return _selection(point,data)
+        from . import fils_liaisons
+        brut={**data,'lia_debut':None,'lia_fin':None,'lia_q':''}
+        return fils_liaisons.assembler(point,_selection(point,brut),data)
 
 
 def _selection(point,data):
@@ -239,11 +241,11 @@ def _selection(point,data):
         label=Point.nom(cible) if cible is not None else ('Service '+str(point.service) if point.service else 'Transmission générale')
         texte=contribution.contenu if contribution else message
         if any(mot.casefold() not in (' '.join((titre,label,str(auteur),texte))).casefold() for mot in data['lia_q'].split()):return
-        xs.append({'cle':cle,'nature':nature,'categorie':dict(TYPES)[nature],'titre':titre,'cible':label,'date':date,'saisi_le':saisi,'auteur':auteur,'message':message,'contribution':contribution,'action_url':action_url})
+        xs.append({'cle':cle,'nature':nature,'categorie':dict(TYPES)[nature],'titre':titre,'cible':label,'date':date,'saisi_le':saisi,'auteur':auteur,'message':message,'contribution':contribution,'action_url':action_url,'_cible':cible,'_source':source})
     if 'messages' in data['lia_types']:
         for model in (m.Transmission,m.NotePartagee):
             if not point.compte.has_perm('personnes.view_'+model._meta.model_name):continue
-            qs=model.objects.select_related('auteur','annulation').prefetch_related('revisions__auteur')
+            qs=model.objects.filter(fil_cle='').select_related('auteur','annulation').prefetch_related('revisions__auteur')
             dates=Q(date_fait__isnull=False);saisies=Q(date_fait__isnull=True)
             if debut:dates &= Q(date_fait__gte=debut);saisies &= Q(cree_le__date__gte=debut)
             if fin:dates &= Q(date_fait__lt=fin);saisies &= Q(cree_le__date__lt=fin)
@@ -290,7 +292,7 @@ def _selection(point,data):
                 titre=x.get_action_display() if model!=m.OperationHebergement else {'accorde':'Hébergement accordé','admis':'Arrivée enregistrée','sorti':'Sortie enregistrée','affecte':'Lieu affecté','absence':'Absence enregistrée'}.get(x.action,{'Hébergement accordé':'Hébergement accordé','Admission effective':'Arrivée enregistrée','Sortie effective':'Sortie enregistrée','Absence enregistrée':'Absence enregistrée','Affectation enregistrée':'Affectation enregistrée','Absence close':'Fin d’absence enregistrée','Affectation close':'Fin d’affectation enregistrée','Absence close à la sortie':'Fin d’absence à la sortie','Affectation close à la sortie':'Fin d’affectation à la sortie'}.get(x.action,'Événement d’hébergement'))
                 ajouter('prestation-'+model._meta.model_name+'-'+str(x.pk),'prestations',titre,cible,origine(x),getattr(x,'date_effet',timezone.localdate(x.enregistre_le)),x.enregistre_le,x.auteur)
     if 'actions' in data['lia_types'] and point.compte.has_perm('personnes.view_actionrelais'):
-        for x in m.ActionRelais.objects.filter(annule_le__isnull=True,terminee_le__isnull=True).select_related('auteur','note','transmission','appel'):
+        for x in m.ActionRelais.objects.filter(annule_le__isnull=True).select_related('auteur','note','transmission','appel'):
             try:
                 if x.note_id:releve.lecture(point.compte,x.note)
                 if x.transmission_id:releve.lecture(point.compte,x.transmission)
@@ -302,7 +304,7 @@ def _selection(point,data):
             cible=transmissions.cible_note(x.note) if x.note_id else None
             if cible is None and source and source.dossier_id:cible=source.prise or source.dossier.personne or source.dossier.menage
             date=x.echeance or timezone.localdate(x.cree_le)
-            ajouter('action-'+str(x.pk),'actions','À faire : '+x.libelle,cible,origine(x),date,x.cree_le,x.auteur,action_url=reverse('suivi:actions_relais'))
+            ajouter('action-'+str(x.pk),'actions',('Action terminée : ' if x.terminee_le else 'À faire : ')+x.libelle,cible,origine(x),date,x.cree_le,x.auteur,action_url=reverse('suivi:actions_relais'))
     return sorted(xs,key=lambda x:(x['date'],x['saisi_le'],x['cle']),reverse=True)
 
 
@@ -311,6 +313,8 @@ def parametres(donnees):
     if 'lia_types' in donnees:d['lia_types']=donnees.getlist('lia_types')
     if 'lia_filtres' in donnees:d['lia_filtres']='1'
     if donnees.get('lia_enplace')=='1':d['lia_enplace']='1'
+    for cle in ('lia_recherche','lia_fil','lia_repondre'):
+        if donnees.get(cle):d[cle]=donnees[cle][:160]
     if donnees.get('lia_focus'):d['lia_focus']=donnees['lia_focus'][:100]
     if donnees.get('lia_racine'):d['lia_racine']=donnees['lia_racine'][:100]
     if donnees.get('retour')=='jour':

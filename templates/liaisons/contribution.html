@@ -1,0 +1,3 @@
+{% load textes %}{% if c.annulation %}<p>Message annulé.</p>{% endif %}{{ c|texte_riche:'contenu' }}{% if not c.date_fait %}<small>Date du fait inconnue ; classement à la date de saisie.</small>{% endif %}
+{% if not c.annulation %}<p>{% if ligne.corriger_url %}<a href="{{ ligne.corriger_url }}">Corriger</a>{% endif %}{% if ligne.annuler_url %} · <a href="{{ ligne.annuler_url }}">Annuler le message</a>{% endif %}</p>{% endif %}
+{% if c.revisions.all %}<details><summary>Corrections du message</summary><ol>{% for r in c.revisions.all %}<li><p>{{ r.date|date:'d/m/Y H:i' }} · {{ r.auteur }} · {{ r.motif }}</p><p>Avant :</p>{{ r|texte_riche:'ancien_texte' }}<p>Après :</p>{{ r|texte_riche:'nouveau_texte' }}</li>{% endfor %}</ol></details>{% endif %}

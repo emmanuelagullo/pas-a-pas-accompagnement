@@ -521,6 +521,7 @@ class RevisionTexteSocial(ModeleControle):
 
 
 class Transmission(ModeleControle):
+    fil_cle=models.CharField(max_length=160,blank=True,default='',db_index=True,editable=False)
     cle_envoi=models.UUIDField(null=True,blank=True,unique=True,editable=False)
     date_fait=models.DateField("Date de la contribution (si connue)",null=True,blank=True)
     """Message transversal d'équipe, distinct des dossiers individuels."""
@@ -535,6 +536,7 @@ class Transmission(ModeleControle):
 
 
 class NotePartagee(ModeleControle):
+    fil_cle=models.CharField(max_length=160,blank=True,default='',db_index=True,editable=False)
     cle_envoi=models.UUIDField(null=True,blank=True,unique=True,editable=False)
     accord_hebergement=models.ForeignKey('AccordHebergement',on_delete=models.PROTECT,null=True,blank=True,related_name='notes')
     accord_repas=models.ForeignKey('AccordRepas',on_delete=models.PROTECT,null=True,blank=True,related_name='notes')

@@ -2,9 +2,9 @@
 (() => {
   if (window.pasLiaisons) return;
   window.pasLiaisons = true;
-  const states = new WeakMap(), initialized = new WeakSet();
+  const vivants = new Set(), states = new WeakMap(), initialized = new WeakSet();
   const state = root => {
-    if (!states.has(root)) states.set(root, {seq: 0, controller: null, drafts: new Map()});
+    if (!states.has(root)) {const s={seq:0,controller:null,drafts:new Map()};states.set(root,s);vivants.add(s);}
     return states.get(root);
   };
   const focus = root => {
@@ -24,7 +24,7 @@
       const mentions = [...f.querySelectorAll('[name=lia_mentions]')].map(x => ({token:x.value,label:x.closest('[data-mention-label]').dataset.mentionLabel}));
       s.drafts.set(f.dataset.liaisonParent || '', {valeurs,mentions});
     };
-    if (!form) garder();
+    garder();
     const options = {credentials: 'same-origin', signal: s.controller.signal};
     if (form) {options.method = 'POST'; options.body = new FormData(form); form.inert = true; s.posting = true; root.inert = true;}
     root.setAttribute('aria-busy', 'true');
@@ -46,8 +46,9 @@
       const caret = active?.name === 'lia_q' && root.contains(active) ? [active.selectionStart,active.selectionEnd] : null;
       root.innerHTML = html;
       const nouveau = root.querySelector('[data-liaisons-message]');
+      if(form && !response.ok && nouveau)nouveau.dataset.dirty='1';
       const sauvegarde = nouveau && s.drafts.get(nouveau.dataset.liaisonParent || '');
-      if (sauvegarde && !form) {
+      if (sauvegarde && (!form || form.dataset.liaisonParent !== nouveau.dataset.liaisonParent)) {
         for (const [name,value] of sauvegarde.valeurs) {const champ=nouveau.elements.namedItem(name);if(champ && value !== undefined) champ.value=value;}
         if (nouveau.elements.namedItem('contenu')?.value) {nouveau.dataset.dirty='1';nouveau.closest('details')?.setAttribute('open','');}
         for (const m of sauvegarde.mentions) ajouterMention(nouveau.querySelector('[data-mentions-selection]'),m.token,m.label);
@@ -75,8 +76,10 @@
   function nettoyerMentions(form) {
     const texte=form.elements.namedItem('contenu')?.value || '';
     form.querySelectorAll('[data-mention-label]').forEach(x => {
-      const nom=x.dataset.mentionLabel.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-      if (!(new RegExp(nom+'(?![\\wÀ-ÿ])','u')).test(texte)) x.remove();
+      const nom=x.dataset.mentionLabel;
+      let depuis=0, present=false, i;
+      while ((i=texte.indexOf(nom,depuis))>=0) {if(!/[A-Za-z0-9_À-ÿ]/.test(texte[i+nom.length] || '')){present=true;break;}depuis=i+nom.length;}
+      if(!present)x.remove();
     });
   }
 
@@ -154,7 +157,7 @@
     });
   }
   document.addEventListener('input', e => { const f = e.target.closest('[data-liaisons-message]'); if (f) f.dataset.dirty = '1'; });
-  window.addEventListener('beforeunload', e => { if (document.querySelector('[data-liaisons-message][data-dirty="1"]')) {e.preventDefault(); e.returnValue = ''; } });
+  window.addEventListener('beforeunload', e => { if (document.querySelector('[data-liaisons-message][data-dirty="1"]') || [...vivants].some(s => [...s.drafts.values()].some(d => d.valeurs.some(([n,v]) => n==='contenu' && v)))) {e.preventDefault(); e.returnValue = ''; } });
   document.addEventListener('submit', e => {
     const form = e.target;
     if (!form.matches('[data-liaisons-filtres],[data-liaisons-message]')) return;
@@ -183,10 +186,10 @@
   document.addEventListener('click', e => {
     const retirer=e.target.closest('[data-mention-retirer]');if(retirer){retirer.closest('[data-mention-label]').remove();return;}
     const ecrire=e.target.closest('[data-liaison-ecrire]');
-    if(ecrire){const root=ecrire.closest('.liaisons-contenu'),details=root.querySelector('.liaison-rediger');if(details){details.open=true;details.querySelector('.ProseMirror,textarea')?.focus();details.scrollIntoView({block:'nearest'});}return;}
+    if(ecrire){const root=ecrire.closest('.liaisons-contenu');if(root.querySelector('[data-liaison-parent]:not([data-liaison-parent=""])')){load(root,ecrire.dataset.nouveauUrl).then(() => {const d=root.querySelector('.liaison-rediger');if(d)d.open=true;});return;}const details=root.querySelector('.liaison-rediger');if(details){details.open=true;details.querySelector('.ProseMirror,textarea')?.focus();details.scrollIntoView({block:'nearest'});}return;}
     const link = e.target.closest('[data-liaisons-page]');
     if (link && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {e.preventDefault(); load(link.closest('.liaisons-contenu'), link.href);}
   });
-  const start = () => {init(); document.querySelectorAll('.liaisons-contenu').forEach(focus); new MutationObserver(init).observe(document.body, {childList: true, subtree: true});};
+  const start = () => {document.documentElement.classList.add('pas-liaisons-js');init(); document.querySelectorAll('.liaisons-contenu').forEach(focus); new MutationObserver(init).observe(document.body, {childList: true, subtree: true});};
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();

@@ -44,3 +44,21 @@ notification. Les mentions concernent les nouveaux messages, pas les corrections
 Les notifications de mention conduisent au message exact ; leur visibilité et
 la pastille du compte suivent les accès actuels, y compris après révocation,
 annulation ou changement de politique. Aucun compteur ni courriel n'est ajouté.
+
+La recherche est regroupée et repliée par défaut avec son résumé. Rechercher et
+Effacer ont le même GET avec ou sans JavaScript ; la frappe est temporisée
+comme dans Dossiers. Écrire un message reste accessible sans ouvrir les filtres.
+Les destinataires de mentions retirées du texte sont retirés de la sélection.
+
+Une réponse est une contribution attachée par fil_cle à une entrée autorisée,
+avec exactement la même portée. Aucun sous-fil ni destinataire implicite.
+Les droits de la racine et de chaque réponse précèdent recherche et comptage.
+Le fil remonte selon les réponses visibles récentes, sans changer la date de
+la racine. Les réponses restent chronologiques et repliées, sauf ouverture
+explicite, recherche dans une réponse ou notification. Les corrections et
+annulations réutilisent l'histoire des contributions. Les clés d'envoi évitent
+les doublons ; une réponse ne peut être déplacée par le service de publication.
+Les brouillons de message et de réponse restent distincts en mémoire dans le
+panneau ; ils ne sont pas enregistrés sur le serveur avant publication.
+Les actions terminées restent consultables dans Actions de suivi pour conserver
+leurs discussions ; les actions annulées ne permettent pas de nouvelle réponse.

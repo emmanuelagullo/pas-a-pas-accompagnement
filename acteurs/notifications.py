@@ -40,6 +40,7 @@ def equipe(dossier,origine=None):
 
 def saisie(auteur,objet,creation):
     nom=objet._meta.model_name
+    if getattr(objet,'fil_cle',''):return  # Une réponse ne notifie que ses mentions explicites.
     if not p.active() or nom not in PRESTATIONS|SUIVI or (nom in PRESTATIONS and not creation):return
     origine=PorteeObjet.objects.filter(modele=objet._meta.label_lower,identifiant=str(objet.pk)).select_related('dossier').first()
     if not origine or not origine.dossier_id:return

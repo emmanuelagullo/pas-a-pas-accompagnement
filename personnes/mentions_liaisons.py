@@ -103,6 +103,10 @@ def contribution(compte,notification):
 def destination(compte,message):
     cible=s.transmissions.cible_note(message) if isinstance(message,m.NotePartagee) else None
     point=s.Point(compte,s.NATURES[type(cible)],cible.pk) if cible else s.Point(compte,'service',s.origine(message).service_id)
+    if message.fil_cle:
+        from . import fils_liaisons as fils
+        ligne=fils.racine(point,message.fil_cle)
+        return point,point.page({'lia_periode':'toutes','lia_fil':message.fil_cle,'lia_types':[ligne['nature']],'lia_focus':'reponse-'+message._meta.model_name+'-'+str(message.pk)})
     jour=releve.date_de(message)
     return point,point.page({'lia_periode':'dates','lia_debut':jour.isoformat(),'lia_fin':(jour+s.timedelta(days=1)).isoformat(),'lia_types':['messages'],'lia_focus':'message-'+message._meta.model_name+'-'+str(message.pk)})
 

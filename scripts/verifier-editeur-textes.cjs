@@ -57,6 +57,22 @@ const serveur = http.createServer((req,res) => {
   assert((await zone.innerText()).includes('Collage Word'));
   assert.equal(await page.locator('.edition-texte').count(),1);
   await zone.fill('*pas de Markdown*');assert.equal(await zone.locator('em').count(),0);
+  // Une liste ne doit pas englober les paragraphes voisins du curseur.
+  await zone.fill('Premier');await zone.press('Enter');await page.keyboard.insertText('Deuxième');await zone.press('Enter');await page.keyboard.insertText('Troisième');
+  await zone.press('ArrowUp');await zone.press('Home');
+  await page.getByRole('button',{name:'Liste à puces',exact:true}).click();
+  assert.equal(await zone.locator(':scope > ul > li').count(),1);
+  assert.equal(await zone.locator(':scope > ul').innerText(),'Deuxième');
+  assert.equal(await zone.locator(':scope > p').count(),2);
+  await page.getByRole('button',{name:'Liste numérotée',exact:true}).click();
+  assert.equal(await zone.locator(':scope > ol > li').count(),1);
+  assert.equal(await zone.locator(':scope > p').count(),2);
+  await page.getByRole('button',{name:'Liste numérotée',exact:true}).click();
+  await zone.evaluate(e => {const ps=e.querySelectorAll(':scope > p'), r=document.createRange();r.setStart(ps[1],0);r.setEnd(ps[2],ps[2].childNodes.length);const selection=getSelection();selection.removeAllRanges();selection.addRange(r);});
+  await page.getByRole('button',{name:'Liste à puces',exact:true}).click();
+  assert.equal(await zone.locator(':scope > ul > li').count(),2);
+  assert.equal(await zone.locator(':scope > p').count(),1);
+
   // La validation cliente n’envoie pas un texte obligatoire vide.
   await page.evaluate(()=>{window.envoye=false;document.querySelector('form').addEventListener('submit',e=>{e.preventDefault();window.envoye=true;});});
   await zone.press('ControlOrMeta+a');await zone.press('Backspace');

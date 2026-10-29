@@ -21,15 +21,18 @@ def _texte(valeur):
 
 @service_metier
 @transaction.atomic
-def transmettre(auteur, contenu, date_fait=None, *, cle_envoi=None):
+def transmettre(auteur, contenu, date_fait=None, *, cle_envoi=None, fil_cle=""):
     _droit(auteur, "add", "transmission")
     date_valide(date_fait)
-    return enregistrer_envoi(Transmission,cle_envoi,dict(auteur=auteur,date_fait=date_fait,**tr.colonnes('contenu',contenu,required=True)))
+    if fil_cle:
+        from .fils_liaisons import verifier_rattachement
+        verifier_rattachement(auteur,fil_cle,None)
+    return enregistrer_envoi(Transmission,cle_envoi,dict(auteur=auteur,date_fait=date_fait,fil_cle=fil_cle,**tr.colonnes('contenu',contenu,required=True)))
 
 
 @service_metier
 @transaction.atomic
-def noter(auteur, contenu, *, personne=None, menage=None, accompagnement=None, sejour=None, accord_hebergement=None, accord_repas=None, accord_aide=None, date_fait=None, cle_envoi=None):
+def noter(auteur, contenu, *, personne=None, menage=None, accompagnement=None, sejour=None, accord_hebergement=None, accord_repas=None, accord_aide=None, date_fait=None, cle_envoi=None, fil_cle=""):
     _droit(auteur, "add", "notepartagee")
     cibles = [c for c in (personne, menage, accompagnement, sejour, accord_hebergement, accord_repas, accord_aide) if c is not None]
     if len(cibles) != 1:
@@ -37,7 +40,10 @@ def noter(auteur, contenu, *, personne=None, menage=None, accompagnement=None, s
     cible = cibles[0]
     _droit(auteur, "view", {"Menage":"menage", "Personne": "personne", "Accompagnement": "accompagnement", "Sejour": "sejour", "AccordHebergement":"accordhebergement", "AccordRepas":"accordrepas", "AccordAide":"accordaide"}[type(cible).__name__])
     date_valide(date_fait)
-    return enregistrer_envoi(NotePartagee,cle_envoi,dict(auteur=auteur,date_fait=date_fait,accord_hebergement=accord_hebergement,accord_repas=accord_repas,accord_aide=accord_aide,**tr.colonnes('contenu',contenu,required=True),personne=personne,menage=menage,accompagnement=accompagnement,sejour=sejour))
+    if fil_cle:
+        from .fils_liaisons import verifier_rattachement
+        verifier_rattachement(auteur,fil_cle,cible)
+    return enregistrer_envoi(NotePartagee,cle_envoi,dict(auteur=auteur,date_fait=date_fait,fil_cle=fil_cle,accord_hebergement=accord_hebergement,accord_repas=accord_repas,accord_aide=accord_aide,**tr.colonnes('contenu',contenu,required=True),personne=personne,menage=menage,accompagnement=accompagnement,sejour=sejour))
 
 
 @service_metier
