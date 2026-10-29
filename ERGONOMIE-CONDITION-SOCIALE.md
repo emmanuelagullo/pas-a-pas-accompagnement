@@ -721,3 +721,57 @@ Le troisième exigeait l'ancien titre « Vue et saisie » : cette assertion est
 adaptée à Options, puis les neuf tests de saisie sociale sont tous réussis.
 La suite générale n'a pas été répétée après cette adaptation du seul test ;
 les derniers ajustements de disposition sont vérifiés par la recette Chromium.
+
+## Dépliants et catégories de repas
+
+Base publique examinée : `73ee74317818cfd7d16ad3fa3e20195db498234d` (ACT18).
+Options conserve sa position et sa mémoire, avec l'indicateur de dépliage et le
+cadre discret des commandes Liaisons / Équipe de suivi. L'état reste annoncé par
+aria-expanded ; le triangle est décoratif. Le repli sans JS reste natif.
+
+La catégorie de repas reste visible lors d'une distribution et de sa correction.
+Le champ propose les catégories enregistrées sur des distributions non annulées,
+accessibles au compte et rattachées au même service que l'accord visé. Le service
+courant de l'interface ne remplace pas le service de l'accord. Sans rattachement
+de service, la recherche reste limitée à cet accord. Au plus 50 propositions
+alphabétiques sont présentées ; une autre valeur reste saisissable librement.
+Aucun dossier inaccessible n'est lu pour compléter cette liste.
+
+Une nouvelle distribution n'a pas de catégorie présumée : la valeur vide porte
+le repère « Non renseignée ». En correction, la catégorie enregistrée est
+préremplie et une modification de quantité ne la remplace pas. L'aide facultative
+existante de proposition selon l'âge reste explicite, avec vérification avant
+l'enregistrement. Aucun tarif n'est déduit automatiquement.
+
+Le motif de correction ordinaire d'une distribution devient « Précision sur la
+correction (facultative) ». Il est regroupé dans Précisions facultatives, fermé
+initialement, ouvert si ce champ contient une erreur, sur place comme en pleine
+page. Le champ catégorie n'est pas replié. Le regroupement réutilise le composant
+commun avec les noms de champs explicitement déclarés par le formulaire.
+Les corrections gardent auteur, horodatage, avant/après, preuve d'état et refus
+d'une distribution annulée. Les motifs d'annulation et des autres opérations
+conservent leurs règles. Le modèle du journal accepte déjà un motif vide :
+aucune migration, nouvelle permission ou dépendance.
+
+Recette automatisée : `personnes.tests_categories_repas`, `personnes.tests_repas`,
+`personnes.tests_meta_c`, `personnes.tests_saisie_sociale` et
+`personnes.tests_trajectoire_unifiee`. La recette Chromium
+`personnes.qualification_evolution` comprend une correction de repas sur place
+sans motif, la conservation de sa catégorie, le formulaire en pleine page et la
+création avec suggestions sans catégorie imposée.
+
+Contrôle indépendant signalé sur cette base :
+`node scripts/verifier-recherche-dossiers.cjs` échoue avec
+`ReferenceError: window is not defined` depuis l'utilisation de
+`window.PasRecherche` par la recherche. Le banc et les scripts de recherche
+sont identiques au main public ; ce lot ne les modifie pas. La recette réelle
+Chromium charge les ressources de la page normalement. Ce diagnostic concerne
+l'adaptation du banc Node au module partagé, pas les catégories de repas.
+
+Validation ciblée de ce lot : 62 tests réussis (59 tests repas, méta-C, saisie
+sociale et trajectoire ; trois tests spécifiques aux catégories et aux accès).
+Trois recettes Chromium réelles réussies, dont clavier, 390 px, sans JavaScript,
+correction de repas sur place et en pleine page. Captures inspectées ; aucune
+erreur JavaScript observée. Contrôles Django, absence de migration, syntaxe du
+script de condition sociale et diff sans erreur. Les programmes natifs,
+Firefox, PostgreSQL et Pyodide/OPFS n'ont pas été exécutés pour ce lot.

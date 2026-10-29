@@ -1,0 +1,2 @@
+{% load saisie %}{% separer_precisions form as saisie %}{{ saisie.principal.as_p }}
+{% if saisie.present %}<details class="condition-precisions"{% if saisie.erreurs %} open{% endif %}><summary>Précisions facultatives</summary>{{ saisie.precisions.as_p }}</details>{% endif %}

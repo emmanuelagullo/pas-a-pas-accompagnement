@@ -47,8 +47,9 @@ def courriel_lien(valeur):
 def separer_precisions(form):
     from copy import copy
     principal, precisions = copy(form), copy(form)
-    principaux = {n: f for n, f in form.fields.items() if n not in ('source', 'motif') or f.required}
-    secondaires = {n: f for n, f in form.fields.items() if n in ('source', 'motif') and not f.required}
+    noms = getattr(form, 'precisions_facultatives', ('source', 'motif'))
+    principaux = {n: f for n, f in form.fields.items() if n not in noms or f.required}
+    secondaires = {n: f for n, f in form.fields.items() if n in noms and not f.required}
     principal.fields, precisions.fields = principaux, secondaires
     # BoundField cache belongs to the form instance used for rendering.
     principal._bound_fields_cache, precisions._bound_fields_cache = {}, {}

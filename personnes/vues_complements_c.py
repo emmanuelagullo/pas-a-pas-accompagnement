@@ -38,11 +38,8 @@ def repas(request,pk):
     from .repas import droit
     droit(request.user,'change_repasdistribue');h.exiger(request.user,'view_revisionrepas')
     x=get_object_or_404(m.RepasDistribue,pk=pk)
-    f=FormulaireMetier(request.POST if request.method=='POST' else None,initial={'quantite':x.quantite,'categorie_declaree':x.categorie_declaree})
-    f.fields['quantite']=forms.IntegerField(label='Nombre de repas réellement distribués',min_value=1,max_value=32767)
-    f.fields['categorie_declaree']=forms.CharField(label='Catégorie déclarée (facultative)',max_length=80,required=False)
-    f.fields['motif']=forms.CharField(label='Pourquoi la saisie précédente était-elle erronée ?',max_length=240)
-    f.fields['attendu']=forms.CharField(widget=forms.HiddenInput,initial=r.jeton(x))
+    from .forms_repas import CorrectionDistributionForm
+    f=CorrectionDistributionForm(request.POST if request.method=='POST' else None, repas=x)
     ctx=dossier.lire(request,x.accord.accompagnement)
     return traiter(request,f,'Corriger une distribution',lambda **d:r.corriger(request.user,x,**d),ctx.get('retour_dossier') or reverse('suivi:accord_repas',args=[x.accord_id]),x.accord.accompagnement.menage)
 

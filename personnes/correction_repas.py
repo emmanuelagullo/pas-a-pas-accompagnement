@@ -17,7 +17,7 @@ def corriger(acteur,repas,quantite,categorie_declaree,motif,attendu):
     try:ancien=signing.loads(attendu,salt='correction-repas-c',max_age=86400)
     except (signing.BadSignature,TypeError):raise ValidationError('Formulaire périmé ; rechargez la distribution.')
     if ancien!=etat(r) or r.annule_le:raise ValidationError('Cette distribution a changé ou est annulée.')
-    if not motif.strip() or len(motif)>240:raise ValidationError({'motif':'Expliquez la correction (240 caractères au plus).'})
+    if len(motif)>240:raise ValidationError({'motif':'Limitez la précision à 240 caractères.'})
     avant=[{'date':str(r.date),'beneficiaire':{'id':str(r.beneficiaire_id),'libelle':str(r.beneficiaire)},'quantite':r.quantite,'categorie_declaree':r.categorie_declaree}]
     r.quantite=quantite;r.categorie_declaree=categorie_declaree;r.full_clean()
     apres=[{**avant[0],'quantite':r.quantite,'categorie_declaree':r.categorie_declaree}]

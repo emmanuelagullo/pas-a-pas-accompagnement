@@ -92,3 +92,8 @@
   .condition-options-bouton { font-size:.85rem; padding:.4rem .55rem; }
 }
 @media(max-width:350px) { .condition-commandes .condition-modes { flex-wrap:wrap; } }
+
+/* Même indice de dépliage que Liaisons et Équipe de suivi. */
+.condition-options-bouton { color:#175c50; border:1px solid #cadbd3; border-radius:.35rem; padding:.25rem .6rem; background:white; }
+.condition-options-indicateur::before { content:'▸'; margin-inline-end:.3rem; }
+.condition-options-bouton[aria-expanded=true] .condition-options-indicateur::before { content:'▾'; }

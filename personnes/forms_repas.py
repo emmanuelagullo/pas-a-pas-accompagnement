@@ -5,6 +5,43 @@ from .models import AccordRepas, Personne
 DATE = {"type": "date"}
 
 
+def proposer_categories(form, accord):
+    """Propositions de lecture autorisées ; aucune catégorie choisie implicitement."""
+    from django.db.models import Exists, OuterRef, CharField
+    from django.db.models.functions import Cast
+    from acteurs.portees import existante
+    from acteurs.models import PorteeObjet
+    from .models import RepasDistribue
+    from .champs_saisie import PropositionInput
+    faits = RepasDistribue.objects.filter(annule_le__isnull=True).exclude(categorie_declaree='')
+    origine = existante(accord)
+    if origine:
+        portees = PorteeObjet.objects.filter(modele=RepasDistribue._meta.label_lower,
+            identifiant=Cast(OuterRef('pk'), CharField()), service_id=origine.service_id)
+        faits = faits.filter(Exists(portees))
+    else:
+        faits = faits.filter(accord=accord)
+    categories = list(faits.order_by('categorie_declaree').values_list('categorie_declaree', flat=True).distinct()[:50])
+    champ = form.fields['categorie_declaree']
+    champ.label = 'Catégorie de repas (facultative)'
+    champ.help_text = 'Choisissez une catégorie proposée ou saisissez-en une autre. Une valeur vide signifie « Non renseignée ». Aucun tarif n’est déduit.'
+    champ.widget = PropositionInput(attrs={'placeholder':'Non renseignée', 'autocomplete':'off'}, propositions=categories)
+
+
+class CorrectionDistributionForm(FormulaireMetier):
+    precisions_facultatives = ('motif',)
+    quantite = forms.IntegerField(label='Nombre de repas réellement distribués', min_value=1, max_value=32767)
+    categorie_declaree = forms.CharField(max_length=80, required=False)
+    motif = forms.CharField(label='Précision sur la correction (facultative)', max_length=240, required=False)
+    attendu = forms.CharField(widget=forms.HiddenInput)
+
+    def __init__(self, *args, repas, **kwargs):
+        from .correction_repas import jeton
+        super().__init__(*args, initial={'quantite':repas.quantite,
+            'categorie_declaree':repas.categorie_declaree, 'attendu':jeton(repas)}, **kwargs)
+        proposer_categories(self, repas.accord)
+
+
 class AccordForm(FormulaireModeleMetier):
     jours_semaine=forms.TypedMultipleChoiceField(label='Jours autorisés (aucun choix : tous les jours)',choices=list(enumerate(['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'])),coerce=int,required=False,widget=forms.CheckboxSelectMultiple)
     saisie_periode = ('debut', 'fin')
@@ -38,6 +75,7 @@ class DistributionForm(FormulaireMetier):
     def __init__(self, *args, accord, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["beneficiaire"].queryset = accord.beneficiaires.all()
+        proposer_categories(self, accord)
 
 
 class AnnulationForm(FormulaireMetier):
