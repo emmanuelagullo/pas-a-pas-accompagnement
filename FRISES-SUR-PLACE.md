@@ -436,7 +436,7 @@ L'enrichissement du scénario neuf est vérifié séparément : 23 tests de
 
 ### Aide du libellé Frise
 
-Le libellé visible reste Frise. L'aide « Afficher la frise chronologique » apparaît
+Le libellé visible reste Frise. L'aide « Frise chronologique : voir les périodes et les événements dans le temps, d’un coup d’œil. » apparaît
 au survol et au focus, hors du flux : aucune ligne ni icône supplémentaire.
 Elle peut être survolée et fermée avec Échap ; la checkbox dispose aussi d'une
 description accessible. Les écrans tactiles conservent l'action directe sans
