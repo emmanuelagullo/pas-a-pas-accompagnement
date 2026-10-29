@@ -28,7 +28,7 @@ def acteurs(request):
         if h.filter(statistiques_etablissement=True).exists():
             result['rapport_etablissement_acteurs']=reverse('statistiques')+'?rapport=synthese&portee_statistiques=etablissement'
     from .notifications import visibles
-    result['notifications_non_lues']=sum(x.lu_le is None for x in visibles(request.user))
+    result['notifications_non_lues']=any(x.lu_le is None for x in visibles(request.user))
     return result
 
 

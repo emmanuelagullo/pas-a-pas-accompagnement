@@ -11,6 +11,8 @@ from django.views.decorators.http import require_http_methods
 from acteurs.contexte import perimetre
 from . import liaisons as s
 from .vues_transmissions import TexteForm
+from . import mentions_liaisons as mentions
+from urllib.parse import urlsplit
 
 
 @never_cache
@@ -33,7 +35,9 @@ def cahier(request):
                     try:
                         with transaction.atomic():
                             cle=s.verifier_envoi(point,form.cleaned_data['lia_envoi']) if form.cleaned_data.get('lia_envoi') else None
+                            destinataires=mentions.verifier(point,request.POST.getlist('lia_mentions'),form.cleaned_data['contenu'])
                             message=point.publier(form.cleaned_data['contenu'],form.cleaned_data['date_fait'],cle_envoi=cle)
+                            if destinataires:mentions.notifier(point,message,destinataires)
                     except (ValidationError,OperationalError) as e:
                         form.add_error(None,e if isinstance(e,ValidationError) else 'Écriture non confirmée ; votre message est conservé.');statut=409
                     else:
@@ -72,10 +76,23 @@ def cahier(request):
                 services=[{'label':str(x),'url':s.Point(request.user,'service',x.pk).url(params)} for x in Service.objects.filter(pk__in=s.services(request.user))]
                 if len(services)>1:services.append({'label':'Tous mes services accessibles','url':s.Point(request.user,'ensemble').url(params)})
             query={**point.params(),**params,'lia_filtres':'1'}
+            retour_origine=s.lire_retour(request.user,params.get('lia_origine',''))
+            if retour_origine and urlsplit(retour_origine).path==urlsplit(point.page(params)).path:retour_origine=''
             donnees={**contexte_jour(request),'point':point,'filtres':f,'form':form if point.ecriture() else None,'page_obj':page,
-                'services_cahier':services,'parents':point.parents(params),'retour_origine':s.lire_retour(request.user,params.get('lia_origine','')),
-                'retour_origine_nom':params.get('lia_origine_nom','Retour aux liaisons précédentes'),'url_cahier':point.url({k:v for k,v in params.items() if k!='lia_enplace'}),'url_formulaire':point.url({**params,**({'lia_fragment':'1'} if request.GET.get('lia_fragment')=='1' else {})}),
+                'services_cahier':services,'parents':point.parents(params),'retour_origine':retour_origine,
+                'mentions_selectionnees':mentions.selection(point,request.POST.getlist('lia_mentions')),'url_mentions':s.reverse('suivi:mentions')+'?'+s.urlencode(point.params()),'retour_origine_nom':params.get('lia_origine_nom','Retour aux liaisons précédentes'),'url_cahier':point.url({k:v for k,v in params.items() if k!='lia_enplace'}),'url_formulaire':point.url({**params,**({'lia_fragment':'1'} if request.GET.get('lia_fragment')=='1' else {})}),
                 'url_precedente':point.url({**query,'lia_page':page.previous_page_number()}) if page.has_previous() else '',
                 'url_suivante':point.url({**query,'lia_page':page.next_page_number()}) if page.has_next() else '',
                 'voir_message':s.lire_retour(request.user,request.GET.get('lia_voir','')),'focus':focus,'publie':request.GET.get('lia_publie')=='1'}
             return render(request,'liaisons/panneau.html' if request.GET.get('lia_fragment')=='1' else 'liaisons/page.html',donnees,status=statut)
+
+
+@never_cache
+@login_required
+@require_http_methods(['GET'])
+def propositions_mentions(request):
+    from django.http import JsonResponse
+    with perimetre(request.user,statistiques='accessibles',reperage=False):
+        try:point=s.Point(request.user,request.GET.get('lia_cible','service'),request.GET.get('lia_id'))
+        except (ObjectDoesNotExist,ValidationError,ValueError,TypeError):raise Http404
+        return JsonResponse({'collegues':mentions.candidats(point,request.GET.get('q',''))})

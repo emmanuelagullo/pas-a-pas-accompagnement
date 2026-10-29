@@ -191,16 +191,16 @@ class DemandeRattachement(ModeleOrganisation):
 class Notification(ModeleOrganisation):
     """Signal interne sans copie de texte ; autorisations revalidées à la lecture."""
     compte=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT,related_name='+')
-    dossier=models.ForeignKey(DossierService,on_delete=models.PROTECT)
+    dossier=models.ForeignKey(DossierService,on_delete=models.PROTECT,null=True)
     origine=models.ForeignKey(PorteeObjet,on_delete=models.PROTECT,null=True)
     responsabilite=models.ForeignKey(Responsabilite,on_delete=models.PROTECT,null=True)
     cle=models.CharField(max_length=190)
-    nature=models.CharField(max_length=20,choices=[('attribution','Un suivi vous a été attribué'),('prestation','Une prestation a été ajoutée'),('modification','Le dossier a été complété ou modifié'),('demande','Une demande de rattachement attend une réponse')])
+    nature=models.CharField(max_length=20,choices=[('mention','Vous avez été mentionné dans une liaison'),('attribution','Un suivi vous a été attribué'),('prestation','Une prestation a été ajoutée'),('modification','Le dossier a été complété ou modifié'),('demande','Une demande de rattachement attend une réponse')])
     modifie_le=models.DateTimeField(default=timezone.now)
     lu_le=models.DateTimeField(null=True)
     occurrences=models.PositiveIntegerField(default=1)
     revision=models.PositiveIntegerField(default=0,editable=False)
     class Meta:
         default_permissions=()
-        constraints=[models.UniqueConstraint(fields=['compte','dossier','cle'],name='act_notification_groupe')]
+        constraints=[models.UniqueConstraint(fields=['compte','dossier','cle'],name='act_notification_groupe'),models.UniqueConstraint(fields=['compte','cle'],condition=Q(nature='mention'),name='act_mention_unique'),models.CheckConstraint(condition=Q(dossier__isnull=False)|Q(nature='mention',origine__isnull=False),name='act_notification_portee')]
         indexes=[models.Index(fields=['compte','lu_le'],name='act_notification_compte_lu')]

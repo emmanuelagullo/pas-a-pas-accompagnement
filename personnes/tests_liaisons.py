@@ -143,3 +143,9 @@ class CahierTests(TestCase):
         self.assertNotContains(r,'Inclure les niveaux inférieurs')
         self.assertContains(r,'Attributions et relais')
         self.assertContains(r,'Cahier de liaison du service')
+
+    def test_dates_personnalisees_saffichent_avec_propositions(self):
+        c=Client();c.force_login(self.ua)
+        r=c.get(reverse('suivi:cahier'),{'lia_cible':'prise','lia_id':str(self.a.pk),'lia_periode':'dates','lia_fragment':'1'})
+        self.assertContains(r,'data-liaison-borne="lia_debut"')
+        self.assertContains(r,'Début de la prise en charge')

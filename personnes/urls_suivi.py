@@ -22,6 +22,7 @@ urlpatterns = [
     path("accompagnements/<uuid:pk>/resume/", vues_resume.resume, name="resume"),
     path("hebergement/<uuid:pk>/selection/", vues_hebergement_collectif.selection, name="selection_sejours"),
     path("accompagnements/<uuid:pk>/informations/", vues_informations.modifier, name="informations"),
+    path("liaison/mentions/", vues_liaisons.propositions_mentions, name="mentions"),
     path("liaison/", vues_liaisons.cahier, name="cahier"),
     path("notes/<str:nature>/<uuid:pk>/", vues_transmissions.notes, name="notes"),
     path("contributions/<str:nature>/<int:pk>/corriger/", vues_transmissions.corriger, name="corriger_contribution"),

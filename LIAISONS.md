@@ -33,3 +33,14 @@ calcul statistique ni mécanisme de frise n’est ajouté.
 
 Recettes : `personnes.tests_liaisons`, `acteurs.tests_messages_attribution`,
 `personnes.tests_transmissions`, `personnes.qualification_liaisons` (Chromium).
+
+Les périodes symboliques réutilisent les calculs civils existants, sans modifier
+les statistiques. Toutes les dates reste le défaut des dossiers et prestations.
+Les mentions @ sont proposées uniquement parmi les collègues actuellement
+habilités à lire le message dans sa portée exacte. La publication revalide
+chaque destinataire ; une mention n'accorde aucun droit et ne rend pas le texte
+privé. Retirer la mention du texte ou décocher le destinataire évite sa
+notification. Les mentions concernent les nouveaux messages, pas les corrections.
+Les notifications de mention conduisent au message exact ; leur visibilité et
+la pastille du compte suivent les accès actuels, y compris après révocation,
+annulation ou changement de politique. Aucun compteur ni courriel n'est ajouté.

@@ -318,3 +318,11 @@ header > nav .menu-utilisateur { position: relative; }
 .liaisons-contenu label.liaisons-case { display: inline-flex; align-items: baseline; gap: .45rem; margin: .3rem 1rem .3rem 0; font-weight: normal; }
 .liaisons-case input[type=checkbox] { width: auto; flex: 0 0 auto; margin: 0; }
 .liaisons-options { display: flex; flex-wrap: wrap; gap: .3rem 1rem; margin-block-end: .6rem; }
+
+.notification-signal { display: inline-flex; align-items: center; gap: .15rem; margin-inline-start: .35rem; color: #175c50; vertical-align: middle; }
+.notification-point { width: .45rem; height: .45rem; background: #b54813; border-radius: 50%; }
+[data-mentions-propositions] { border: 1px solid #cadbd3; background: white; padding: .4rem; max-width: 30rem; }
+[data-mentions-propositions] button { display: block; width: 100%; text-align: start; margin: .15rem 0; }
+[data-mentions-propositions] button[aria-selected=true] { outline: 2px solid #175c50; }
+.liaisons-mentions label { display: flex; gap: .5rem; align-items: baseline; }
+.liaisons-mentions input { width: auto; }

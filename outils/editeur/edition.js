@@ -144,6 +144,19 @@ function initialiser(ta) {
   }
 }
 window.PasTextes = {
+  mention(ta) {
+    const editeur = instances.get(ta)?.editeur;
+    if (!editeur || !editeur.state.selection.empty) return null;
+    const {from, $from} = editeur.state.selection;
+    const prefixe = $from.parent.textBetween(0, $from.parentOffset, '\n');
+    const trouve = prefixe.match(/(?:^|\s)@([^@\n]{0,60})$/);
+    return trouve ? {from: from - trouve[1].length - 1, to: from, query: trouve[1]} : null;
+  },
+  insererMention(ta, position, label) {
+    const editeur = instances.get(ta)?.editeur;
+    if (!editeur || editeur.state.doc.textBetween(position.from, position.to) !== '@' + position.query) return false;
+    return editeur.chain().focus().setTextSelection({from: position.from, to: position.to}).insertContent({type: 'text', text: '@' + label + ' '}).run();
+  },
   initialiser(root = document) {root.querySelectorAll('textarea[data-texte-riche]').forEach(initialiser);},
   nettoyer() { for (const [ta, instance] of instances) if (!ta.isConnected) {instance.detruire(); instances.delete(ta);} },
 };

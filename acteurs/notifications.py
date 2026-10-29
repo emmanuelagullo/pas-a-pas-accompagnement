@@ -56,7 +56,7 @@ def visibles(compte):
     # Un contexte de totaux statistiques ne doit jamais élargir les signaux.
     with perimetre(compte,statistiques='accessibles',reperage=False,export_demande=False):
         hs=p.habilitations(compte)
-        xs=Notification.objects.filter(compte=compte,dossier__service_id__in=hs.values('service_id')).select_related('dossier__personne','dossier__menage','origine','responsabilite').order_by('-modifie_le','-pk')
+        xs=Notification.objects.filter(compte=compte).filter(Q(dossier__service_id__in=hs.values('service_id'))|Q(nature='mention',origine__service_id__in=hs.values('service_id'))).select_related('dossier__personne','dossier__menage','origine','responsabilite').order_by('-modifie_le','-pk')
         pleins=set(hs.filter(tache='social',service__politique__in=['collectif','lecture']).values_list('service_id',flat=True))
         missions=p.missions(compte)
         suivis=set(missions.filter(prise__isnull=True,hebergement__isnull=True,repas__isnull=True,aide__isnull=True).values_list('dossier_id',flat=True))
@@ -64,6 +64,14 @@ def visibles(compte):
         demandes={'demande:'+str(pk) for pk in DemandeRattachement.objects.filter(etat='attente',dossier__service_id__in=hs.values('service_id')).values_list('pk',flat=True)}
         lectures={};resultat=[]
         for x in xs:
+            if x.nature=='mention':
+                from personnes.mentions_liaisons import contribution,destination
+                from django.core.exceptions import ObjectDoesNotExist
+                try:
+                    message=contribution(compte,x);point,x.url=destination(compte,message)
+                except (PermissionDenied,ObjectDoesNotExist,ValueError):continue
+                x.libelle=point.label;x.auteur_mention=message.auteur;x.attendu=s.jeton(x);resultat.append(x)
+                continue
             if x.nature=='demande' and x.cle not in demandes:continue
             o=x.origine
             if o:

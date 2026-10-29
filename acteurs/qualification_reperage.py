@@ -37,7 +37,7 @@ class ReperageNavigateur(StaticLiveServerTestCase):
         page.goto(cible)
         ancien.expect(page.get_by_text('Vous suivez ce dossier',exact=True)).to_be_visible()
         page.get_by_text('Compte : social-fictif',exact=True).click()
-        page.get_by_role('link',name='À suivre',exact=False).click()
+        page.get_by_role('link',name='Notifications',exact=False).click()
         ancien.expect(page.get_by_text('Un suivi vous a été attribué',exact=False)).to_be_visible()
         page.get_by_role('button',name='Marquer comme lu',exact=True).first.click()
         ancien.expect(page.get_by_text('Lu',exact=False).first).to_be_visible()

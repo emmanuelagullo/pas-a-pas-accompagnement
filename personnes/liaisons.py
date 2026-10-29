@@ -67,7 +67,7 @@ def filtres(donnees,point=None):
     f.bornes_symboliques=[]
     if periode_objet:
         f.bornes_symboliques=[('Début de la prise en charge' if point.nature=='prise' else 'Début de la prestation',objet.debut.isoformat())]
-        if objet.fin:f.bornes_symboliques.append(('Fin effective',objet.fin.isoformat()))
+        if objet.fin:f.bornes_symboliques.append(('Fin effective' if point.nature=='prise' else 'Fin de la prestation',objet.fin.isoformat()))
         if getattr(objet,'fin_prevue',None):f.bornes_symboliques.append(('Fin prévue',objet.fin_prevue.isoformat()))
     f.bornes_symboliques.append(('Aujourd’hui',jour.isoformat()))
     for nom in ('lia_debut','lia_fin'):
@@ -128,6 +128,12 @@ class Point:
         if isinstance(objet,m.AccordAide):return objet.get_nature_display()+' — '+objet.libelle
         if isinstance(objet,m.Sejour):return 'Séjour du '+objet.debut.strftime('%d/%m/%Y')
         return 'Dossier — '+str(objet)
+    @property
+    def cahier_label(self):
+        if self.nature in ('personne','menage'):return 'Cahier de liaison du dossier '+str(self.objet)
+        if self.nature=='prise':return 'Cahier de liaison de la '+self.label[0].lower()+self.label[1:]
+        if self.nature=='hebergement':return 'Cahier de liaison de l’'+self.label[0].lower()+self.label[1:]
+        return 'Cahier de liaison — '+self.label
     def params(self):
         return {'lia_cible':self.nature,**({'lia_id':str(self.objet.pk if self.objet else self.service_id)} if self.objet or self.service_id else {})}
     def url(self,params=None):return reverse('suivi:cahier')+'?'+urlencode({**self.params(),**(params or {})},doseq=True)
@@ -185,7 +191,7 @@ class Point:
                 if type(obj) not in NATURES:continue
                 try:point=self.dossier_parent(params) if isinstance(obj,m.Menage) else Point(self.compte,NATURES[type(obj)],obj.pk)
                 except (PermissionDenied,ValidationError,ObjectDoesNotExist,Service.DoesNotExist,*[x.DoesNotExist for x in MODELES.values()]):continue
-                xs.append({'label':'Cahier de liaison — '+point.label,'url':point.page(params)})
+                xs.append({'label':point.cahier_label,'url':point.page(params)})
         if self.service and self.objet:xs.append({'label':'Cahier de liaison du service '+str(self.service),'url':Point(self.compte,'service',self.service.pk).page(params)})
         return xs
 
@@ -327,7 +333,7 @@ def widget(request,objet,racine=None):
     except (KeyError,PermissionDenied,ValidationError,ObjectDoesNotExist,m.Personne.DoesNotExist,m.Menage.DoesNotExist):return None
     params=parametres(request.GET);params['lia_enplace']='1'
     if isinstance(racine,(m.Personne,m.Menage)):params['lia_racine']=racine._meta.model_name+':'+str(racine.pk)
-    if not lire_retour(request.user,params.get('lia_origine','')):params['lia_origine']=retour_signe(request.user,ouvrir_url(request.get_full_path()));params['lia_origine_nom']='Retour aux liaisons du '+point.label[0].lower()+point.label[1:]
+    if not lire_retour(request.user,params.get('lia_origine','')):params['lia_origine']=retour_signe(request.user,ouvrir_url(request.get_full_path()));params['lia_origine_nom']=point.cahier_label.replace('Cahier de liaison','Retour aux liaisons',1)
     return {'url':point.url(params),'ouvrir':request.GET.get('lia_ouvrir')=='1','label':point.label}
 
 
