@@ -433,3 +433,14 @@ L'enrichissement du scénario neuf est vérifié séparément : 23 tests de
  démonstration, acteurs de démonstration et frises d'objectifs réussis. Le
  scénario de Maïa conserve ses quatre états attendus. Les assertions existantes
  sur les espaces déjà présents continuent de réussir.
+
+### Aide du libellé Frise
+
+Le libellé visible reste Frise. L'aide « Afficher la frise chronologique » apparaît
+au survol et au focus, hors du flux : aucune ligne ni icône supplémentaire.
+Elle peut être survolée et fermée avec Échap ; la checkbox dispose aussi d'une
+description accessible. Les écrans tactiles conservent l'action directe sans
+bulle persistante. Ce lot ne change ni les faits, ni la préférence de session.
+La recette Chromium vérifie l'absence de déplacement, le survol de l'aide,
+Échap, le focus clavier, la recherche à 390 px et le tap sur écran tactile.
+Douze tests réussis pour ce lot (onze tests de frises et cette recette réelle).

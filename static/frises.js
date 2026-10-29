@@ -49,10 +49,19 @@
   document.addEventListener('toggle', e => {
     if(e.target.matches('.frise-details,.frise-objectif-details') && !e.target.open) ouverts.delete(e.target.id);
   }, true);
-  document.addEventListener('focusin', e => { if(e.target.matches('[data-frise-repere]')) e.target.removeAttribute('data-ferme'); });
-  document.addEventListener('pointerover', e => { e.target.closest?.('[data-frise-repere]')?.removeAttribute('data-ferme'); });
+  function expliquer(zone) {
+    if (!zone) return;
+    zone.removeAttribute('data-ferme');
+    const bulle=zone.querySelector('.frise-explication');
+    if (bulle) {
+      const gauche=zone.getBoundingClientRect().left, largeur=bulle.getBoundingClientRect().width;
+      zone.style.setProperty('--aide-decalage', `${Math.max(8,Math.min(gauche,innerWidth-largeur-8))-gauche}px`);
+    }
+  }
+  document.addEventListener('focusin', e => { expliquer(e.target.closest?.('[data-frise-repere],[data-frise-explication]')); });
+  document.addEventListener('pointerover', e => { const zone=e.target.closest?.('[data-frise-repere],[data-frise-explication]'); if(zone && !zone.contains(e.relatedTarget)) expliquer(zone); });
   document.addEventListener('keydown', e => {
-    if(e.key === 'Escape' && e.target.matches('[data-frise-repere]')) e.target.setAttribute('data-ferme','1');
+    if(e.key === 'Escape') document.querySelectorAll('[data-frise-explication]:hover,[data-frise-explication]:focus-within,[data-frise-repere]:focus').forEach(zone => zone.setAttribute('data-ferme','1'));
   });
 })();
 /* Cadrage local : seules les marques déjà autorisées sont reprojetées. */

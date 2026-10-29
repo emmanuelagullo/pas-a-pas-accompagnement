@@ -97,3 +97,10 @@
 .objectif-affichage>.frise-objectif-details>summary{position:absolute;right:0;top:0;white-space:nowrap}
 .objectif-marque.objectif-encours.objectif-point{top:6px;width:5px!important;height:5px;border:0;border-radius:0;background:#346575}
 .objectif-marque.objectif-suspendu.objectif-point{top:6px;width:5px!important;height:5px;border:1px dashed #346575;border-radius:0;background:transparent}
+
+/* Aide sans largeur ni hauteur supplémentaires dans les commandes. */
+.frise-libelle-aide { position:relative; }
+.frise-explication { display:none; position:absolute; left:var(--aide-decalage,0px); top:100%; z-index:10; width:max-content; max-width:min(17rem,80vw); padding:.25rem .45rem; background:white; color:#233b40; box-shadow:0 1px 4px #687d78; border-radius:.2rem; white-space:normal; font-weight:normal; }
+.frise-libelle-aide:focus-within:not([data-ferme]) .frise-explication { display:block; }
+@media(hover:hover) { .frise-libelle-aide:hover:not([data-ferme]) .frise-explication { display:block; } }
+@media(hover:none) { .frise-libelle-aide .frise-explication { display:none!important; } }
