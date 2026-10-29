@@ -16,7 +16,7 @@ SEL = 'frises-retour-v1'
 
 
 def preference(request):
-    return bool(request.session.get(SESSION, False))
+    return bool(getattr(request,'session',{}).get(SESSION, False))
 
 
 def commande(request):

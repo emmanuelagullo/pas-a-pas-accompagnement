@@ -124,7 +124,8 @@
       tell('Terminez ou annulez l’action de prestation avant de modifier la situation sociale.'); return;
     }
     if (dirty && !confirm('Abandonner les modifications non enregistrées avant de changer de rubrique ?')) return;
-    const target = link.closest('[data-condition-groupe]').querySelector('[data-condition-formulaire]');
+    const groupe = link.closest('[data-condition-groupe]');
+    const target = groupe.querySelector(':scope > [data-condition-formulaire]');
     close(); busy = true;
     tell('Chargement du formulaire…');
     try {
@@ -133,8 +134,10 @@
       if (!response.ok) throw new Error('Accès au formulaire refusé ou indisponible.');
       install(html, target);
       declencheur = link;
-      const groupe = link.closest('[data-condition-groupe]');
-      const lecture = link.closest('[data-condition-lecture]');
+      const lectureCandidate = link.closest('[data-condition-lecture]');
+      // Une étape d'historique a son propre groupe dans la lecture de l'objectif.
+      // Garder son formulaire dans ce groupe, notamment après Annuler.
+      const lecture = lectureCandidate && groupe.contains(lectureCandidate) ? lectureCandidate : null;
       const ajout = link.closest('[data-condition-ajout]');
       masques = lecture ? [lecture] : ajout ? [ajout, ...groupe.querySelectorAll(':scope > [data-condition-vide]')] : [];
       if (lecture) lecture.after(target);
@@ -224,10 +227,12 @@
         const fresh = doc.querySelector('[data-condition-sociale]');
         if (!fresh) throw new Error('Enregistré. Rechargez la page pour consulter la nouvelle situation.');
         const anchor = active?.closest('[data-condition-groupe]')?.id;
+        const objectifsOuverts=[...root.querySelectorAll('.frise-objectif-details[open]')].map(d=>d.id);
         const evolutionUrl=active?.closest('[data-condition-evolution-panel]')?.dataset.url;
         // Recharger les valeurs et jetons après chaque écriture, sans perdre le
         // contexte d'entretien ni réutiliser un ancien formulaire périmé.
         root.innerHTML = fresh.innerHTML;
+        objectifsOuverts.forEach(id=>{const d=document.getElementById(id);if(d)d.open=true;});
         // Les en-têtes restent non éditables, mais reflètent aussitôt une
         // correction d'identité enregistrée dans la condition sociale.
         for (const selector of ['.bd-dossier > .bd-titre', '.bd-dossier > .bd-chemin', '.condition-sommaire', '.condition-menu-mobile']) {

@@ -228,7 +228,12 @@ def presentation(request, personnes, jour, objet, nature, prise, params):
                 'corriger': url('dossiers:parcours_corriger', code, x.element_id, x.pk)
                     if acteur.has_perm('personnes.change_' + r.racine._meta.model_name) else '',
                 'herite': x.debut < jour})
-        projets.append({'ancre': 'projet-' + code, 'titre': r.titre, 'items': items,
+        axe_objectifs = None
+        if code == 'objectifs':
+            from . import frises, frises_objectifs
+            if frises.preference(request):
+                axe_objectifs = frises_objectifs.charger(acteur, items, nature, objet, jour, url, frises.commande(request))
+        projets.append({'ancre': 'projet-' + code, 'titre': r.titre, 'items': items, 'axe_objectifs':axe_objectifs,
             'nouveau': url('dossiers:parcours_nouveau', nature, objet.pk, code)
                 if acteur.has_perm('personnes.add_' + r.racine._meta.model_name) else '',
             'url': url('dossiers:parcours', nature, objet.pk) + '&rubrique=' + code})

@@ -57,6 +57,12 @@ def completer(acteur, personnes, suivis, jour, organismes, professionnels):
         p=personnes[nom];a=suivis[nom]
         o=creer('objectifs',p,[p],a.debut,accompagnement=a,titre='Démarche de logement fictive — '+nom,echeance=j(30),texte='Étape inventée lors de l’accueil fictif.')
         if etat!='encours':changer('objectifs',o,j(-2),etat=etat,texte='Bilan fictif de la démarche : '+etat)
+    # Frise des objectifs : scénario ajouté aux espaces neufs uniquement.
+    p=personnes['Maïa']
+    o=creer('objectifs',p,[p],j(-180),titre='Trouver un logement autonome — Maïa (fictif)',echeance=j(45),texte='Démarche fictive engagée avec la personne.')
+    changer('objectifs',o,j(-130),etat='suspendu',texte='Démarche fictive mise en attente.')
+    changer('objectifs',o,j(-100),etat='encours',echeance=j(75),texte='Reprise fictive ; échéance visée révisée.')
+    changer('objectifs',o,j(-10),etat='atteint',texte='Objectif déclaré atteint dans le scénario fictif, indépendamment de l’échéance.')
     p=personnes['Thomas'];a=suivis['Thomas'].menage.accompagnements.order_by('debut').first()
     creer('objectifs',p,[p],a.debut,accompagnement=a,horizon='long',titre='Projet fictif poursuivi entre plusieurs prises en charge',texte='Cet objectif reste en cours après la clôture de sa prise en charge d’origine.',echeance=j(45))
     ancienne=a.informations.first();d={c:getattr(ancienne,c) if ancienne else '' for c in informations_suivi.CHAMPS}

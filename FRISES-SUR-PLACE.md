@@ -345,3 +345,91 @@ syntaxe JS et banc de recherche réussis. Chromium réel confirme un alignement 
 moins d'un pixel et une hauteur inchangée entre les états, Zoom sans bordure,
 Form1/2/3, 390 px et repli sans JavaScript. Captures inspectées ; aucune erreur JS.
 Les deux échecs du cahier ACT13 signalés au lot 4 restent des limites de la base.
+
+## Lot 6 : histoire des états des objectifs
+
+Ce lot suit le lot 5 sur main `a53012d650d37b38d122550722fb0521c44d473b`.
+Il reste dans le bloc Objectifs et progression de Situation sociale et projet,
+en dossier et en prise en charge. La case Frise commune y est aussi proposée.
+Sous le titre de chaque objectif, une bande de 18 px complète les valeurs déjà
+présentes. Élargir / Réduire reste dans la ligne du titre. Désactivée, la vue
+conserve exactement le titre et les informations existants.
+
+Toutes les bandes des objectifs affichés partagent une échelle linéaire, du
+premier état consultable au jour choisi dans Situation. Ce jour est la borne
+droite, y compris pour une consultation passée. Le début d'un état le jour même
+est une marque ponctuelle : aucune durée antérieure n'est inventée.
+
+- En cours : trait continu ; Suspendu : trait discontinu.
+- Atteint : cercle ; Abandonné : croix, sans jugement ni pourcentage.
+- L'échéance reste une date visée dans les renseignements et versions. Elle ne
+  prolonge pas l'axe vers le futur, ne crée pas un état et ne déclenche rien.
+- Une modification de titre ou d'échéance à état inchangé ne crée pas une
+  nouvelle réussite ; seuls les états contigus de même nature sont fusionnés.
+  Une lacune entre versions ou un segment inaccessible n'est pas raccordé.
+- Les déclarations sont lues dans leur état corrigé actuel. Les corrections
+  techniques ne deviennent pas des étapes supplémentaires. Une annulation
+  retire l'objectif de la sélection actuelle, comme dans le bloc existant ;
+  elle reste distincte d'un état Abandonné.
+
+Élargir montre dates d'effet, états, titres, échéances et sources des versions.
+La légende est partagée près de Frise. Modifier cette version réutilise le
+formulaire de correction existant, sa confirmation de portée, ses droits et
+son jeton. Annuler puis rouvrir ce formulaire fonctionne sans quitter l'objectif.
+Après enregistrement, le dépliage est conservé. Le lien Source et historique
+ouvre l'objet exact ; un retour signé, lié au compte et limité à un chemin local,
+ramène à la même page, aux mêmes paramètres et au même dépliage. Un jeton expiré,
+mal formé, d'un autre compte ou contenant une destination externe est ignoré.
+
+Les versions sont filtrées par leurs gestionnaires contrôlés avant projection.
+La sélection conserve la cible et les bénéficiaires explicites du bloc Projet ;
+un objectif collectif n'est pas attribué aux autres personnes du ménage. Les
+objectifs annulés, les versions d'autres services et les objets inaccessibles ne
+contribuent ni aux marques, ni aux bornes, ni aux comptes ou libellés. Les droits
+sont revérifiés par les formulaires et pages sources. Aucun journal intégral ni
+texte narratif non daté n'est ajouté à la frise.
+
+Le chargement métier ajoute deux lectures groupées, indépendantes du nombre
+d'objectifs. Aucun chargement d'histoire n'est effectué lorsque Frise est désactivé.
+Au-delà de 128 marques, une synthèse de 64 cellules au maximum est annoncée
+comme condensée ; les états terminaux restent ponctuels. Les 80 versions les
+plus récentes sont détaillées, avec accès à l'histoire complète. Le chargement
+SQL des longues histoires n'est pas encore paginé. Aucun modèle, migration,
+dépendance technique, source sociale ou politique d'accès n'est modifié.
+
+### Qualification des objectifs
+
+- 65 tests ciblés réussis : objectifs, frises, condition sociale, parcours et
+  trajectoire ; neuf tests spécifiques couvrent les états, les échéances, les
+  corrections, annulations, bénéficiaires, trous, densité, retours signés,
+  versions hors service, révocation et nombre de requêtes sous contrôle actif.
+- Suite générale exécutée : 951 tests, 3 ignorés, seuls les deux échecs ACT13
+  reproduits sur la base inchangée persistent (voir diagnostic du lot 4).
+- Trois profils Django réussis : accès directs, PDF réels, export et révocation.
+  Le dossier du banc reste à 110 requêtes sans frise et 118 avec ; le jeu de ce
+  banc ne contient pas d'objectif. Le coût de l'histoire des objectifs est
+  comparé séparément pour un et neuf objets, sous contrôle actif.
+- Chromium réel sur un espace fictif neuf : objectif En cours → Suspendu →
+  En cours → Atteint avec échéance future ; retour exact depuis la source,
+  annulation et réouverture du formulaire, correction sans version ajoutée,
+  conservation du dépliage et de la préférence, clavier, 390 px et sans JS.
+  Captures inspectées, aucune erreur JS. Ce n'est pas une qualification Firefox,
+  Pyodide/OPFS, PostgreSQL ou des programmes natifs.
+
+Recette : activer Frise près d'Objectifs, élargir un objectif à plusieurs états,
+consulter une date passée puis revenir à aujourd'hui. Vérifier la séparation
+état/échéance, les étapes de suspension/reprise, les corrections et annulations,
+la portée d'un objectif collectif, le retour source et l'édition sur place.
+Tester aussi un objectif commencé le jour consulté et un historique dense.
+
+
+Dans les nouveaux espaces Les Passerelles, Maïa possède un objectif de logement
+avec suspension, reprise, révision de l'échéance puis état déclaré atteint. Les
+dates restent relatives à la génération. Aucun ancien espace n'est réinitialisé
+ou enrichi automatiquement. Les états sont tous passés ; l'échéance peut rester
+future sans changer le résultat affiché.
+
+L'enrichissement du scénario neuf est vérifié séparément : 23 tests de
+ démonstration, acteurs de démonstration et frises d'objectifs réussis. Le
+ scénario de Maïa conserve ses quatre états attendus. Les assertions existantes
+ sur les espaces déjà présents continuent de réussir.

@@ -41,6 +41,8 @@ class DemonstrationTests(TestCase):
         self.assertEqual(m.DemandeAccueil.objects.filter(accompagnement__isnull=False).count(),5)
         self.assertEqual(m.OrientationParcours.objects.count(),3)
         self.assertEqual(m.ObjectifParcours.objects.filter(annule_le__isnull=False).count(),1)
+        objectif=m.ObjectifParcours.objects.get(versions__titre='Trouver un logement autonome — Maïa (fictif)',versions__fin__isnull=True)
+        self.assertEqual(list(objectif.versions.order_by('debut').values_list('etat',flat=True)),['encours','suspendu','encours','atteint'])
         self.assertTrue(m.RevisionDemande.objects.filter(action='correction').exists())
         self.assertTrue(m.ObjectifParcours.objects.filter(accompagnement__fin__isnull=False,versions__etat='encours',versions__fin__isnull=True).exists())
         for nom in ('Noor','Samira','Thomas','Robin A','Robin B','Léo'):

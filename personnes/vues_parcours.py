@@ -175,7 +175,10 @@ def element(request,code,pk):
                 if fiche:contacts.append((label,fiche))
     from .exploration_releve import retour_verifie
     retour_rapport=retour_verifie(request.user,params.get('retour_exploration'))
-    return render(request,'dossiers/parcours_document.html' if request.GET.get('edition')=='impression' else 'dossiers/parcours_element.html',{'retour_rapport':retour_rapport,'objet':objet,'code':code,'rubrique':r,'x':x,'query':urlencode(params),'retour':base,
+    # Retour exact depuis la frise : destination signée pour ce compte,
+    # après les contrôles de l'objectif et de sa portée ci-dessus.
+    retour_frise = retour_depuis_frise(request,e) if code == 'objectifs' else None
+    return render(request,'dossiers/parcours_document.html' if request.GET.get('edition')=='impression' else 'dossiers/parcours_element.html',{'retour_rapport':retour_rapport,'objet':objet,'code':code,'rubrique':r,'x':x,'query':urlencode(params),'retour':retour_frise or base,
         'lecture_prises':request.user.has_perms(['personnes.view_accompagnement','personnes.view_menage']),
         'lecture_demande':request.user.has_perms(s.droits('demandes')),'journaux':journaux,'peut_modifier':request.user.has_perm('personnes.change_'+r.racine._meta.model_name),
         'peut_annuler':request.user.has_perm('personnes.annuler_'+r.racine._meta.model_name),
@@ -376,3 +379,24 @@ def rapport(request):
     params.pop('format',None);params.pop('page',None)
     return TemplateResponse(request,'dossiers/rapport_parcours.html',{'form':f,'code':code,'nombre':len(objets),'delais':delais,
         'repartition':repartition,'moyenne_delai':sum(delais)/len(delais) if delais else None,'page_obj':Paginator(lignes_rapport,40).get_page(request.GET.get('page')),'query_rapport':params.urlencode()})
+
+
+def retour_depuis_frise(request, element):
+    from django.core import signing
+    from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode
+    from . import frises
+    try:
+        valeurs=signing.loads(request.GET.get('retour_frise_objectif',''),salt=frises.SEL,max_age=86400)
+        if not isinstance(valeurs,dict) or not isinstance(valeurs.get('retour'),str):
+            return None
+        chemin=valeurs['retour']
+        if valeurs['compte']!=str(request.user.pk) or not chemin.startswith('/') or chemin.startswith('//') or '\\' in chemin:
+            return None
+        u=urlsplit(chemin)
+        if u.scheme or u.netloc:
+            return None
+        query=dict(parse_qsl(u.query,keep_blank_values=True))
+        query['frise_objectif']=str(element.pk)
+        return urlunsplit(('', '',u.path,urlencode(query),'objectif-histoire-'+str(element.pk)))
+    except (signing.BadSignature,KeyError,TypeError,ValueError):
+        return None

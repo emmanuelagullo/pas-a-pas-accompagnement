@@ -29,10 +29,10 @@
       if (anciens.length !== nouveaux.size || anciens.some(n => !nouveaux.has(n.dataset.friseSlot))) {
         location.reload(); return;
       }
-      document.querySelectorAll('.frise-details[open]').forEach(d => ouverts.add(d.id));
+      document.querySelectorAll('.frise-details[open],.frise-objectif-details[open]').forEach(d => ouverts.add(d.id));
       const y = scrollY;
       anciens.forEach(n => { n.replaceChildren(...nouveaux.get(n.dataset.friseSlot).childNodes); });
-      document.querySelectorAll('.frise-details').forEach(d => { if(ouverts.has(d.id)) d.open = true; });
+      document.querySelectorAll('.frise-details,.frise-objectif-details').forEach(d => { if(ouverts.has(d.id)) d.open = true; });
       document.querySelectorAll('.resultats-dossiers').forEach(l => l.classList.toggle('avec-frises',box.checked));
       document.querySelectorAll('[data-frise-choix] input[name=actif]').forEach(c => c.checked=box.checked);
       document.querySelectorAll('[data-frise-aide]').forEach(d => {d.hidden=!box.checked;if(!box.checked) d.open=false;});
@@ -47,7 +47,7 @@
     }
   });
   document.addEventListener('toggle', e => {
-    if(e.target.matches('.frise-details') && !e.target.open) ouverts.delete(e.target.id);
+    if(e.target.matches('.frise-details,.frise-objectif-details') && !e.target.open) ouverts.delete(e.target.id);
   }, true);
   document.addEventListener('focusin', e => { if(e.target.matches('[data-frise-repere]')) e.target.removeAttribute('data-ferme'); });
   document.addEventListener('pointerover', e => { e.target.closest?.('[data-frise-repere]')?.removeAttribute('data-ferme'); });

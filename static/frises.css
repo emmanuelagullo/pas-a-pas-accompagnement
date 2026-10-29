@@ -71,3 +71,29 @@
 .frise-outils .frise-aide>div{border:0;padding:.4rem 0 0;background:transparent;max-width:32rem;overflow-wrap:anywhere}
 .frise-outils .frise-cle{max-width:100%;white-space:normal}
 .frise-outils .frise-choix button{height:24px;line-height:22px;padding:0 .4rem}
+.objectif-mini{display:block;height:18px;margin:.2rem 0;background:#edf1f1;border-radius:2px}
+.objectif-dessin{display:block;position:relative;height:18px;margin-inline:4px}
+.objectif-marque{display:block;position:absolute;top:7px;height:3px;min-width:2px;background:#346575}
+.objectif-suspendu{background:repeating-linear-gradient(90deg,#346575 0 3px,transparent 3px 6px)}
+.objectif-marque.objectif-point{top:4px;width:9px!important;height:9px;transform:translateX(-50%);border:1px solid #346575;border-radius:50%;background:white}
+.objectif-marque.objectif-abandonne.objectif-point{border:0;border-radius:0;background:transparent;font-style:normal;font-size:14px;line-height:9px;color:#346575;text-align:center}
+.objectif-dense{background:repeating-linear-gradient(45deg,#66568b 0 1px,transparent 1px 3px)}
+.frise-objectif-details{font-size:.8rem;margin:.1rem 0}
+.frise-objectif-details>summary{list-style:none;cursor:pointer;text-align:right;min-height:24px;line-height:24px;color:#365e66}
+.frise-objectif-details>summary::-webkit-details-marker{display:none}
+.frise-objectif-details .objectif-fermer,.frise-objectif-details[open] .objectif-ouvrir{display:none}
+.frise-objectif-details[open] .objectif-fermer{display:inline}
+.objectif-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.objectif-histoire{border-inline-start:2px solid #cadbd3;padding-inline-start:.5rem}
+.objectif-histoire li{margin-block:.5rem}
+.objectif-histoire small{display:block}
+.objectif-exemple{display:inline-block;width:1.5rem;height:3px;background:#346575}
+.objectif-exemple.objectif-suspendu{background:repeating-linear-gradient(90deg,#346575 0 3px,transparent 3px 6px)}
+.frise-objectif-details>summary:focus-visible{outline:2px solid #365e66}
+
+.objectif-affichage{position:relative}
+.objectif-titre{display:block;min-height:24px;padding-inline-end:5.8rem}
+.objectif-affichage>.frise-objectif-details:not([open]){height:0;margin:0}
+.objectif-affichage>.frise-objectif-details>summary{position:absolute;right:0;top:0;white-space:nowrap}
+.objectif-marque.objectif-encours.objectif-point{top:6px;width:5px!important;height:5px;border:0;border-radius:0;background:#346575}
+.objectif-marque.objectif-suspendu.objectif-point{top:6px;width:5px!important;height:5px;border:1px dashed #346575;border-radius:0;background:transparent}
