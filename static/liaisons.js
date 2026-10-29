@@ -80,6 +80,7 @@
   });
   document.addEventListener('change', e => {
     const form = e.target.closest('[data-liaisons-filtres]');
+    if (e.target.matches('[data-liaison-borne]') && e.target.value) form.elements.namedItem(e.target.dataset.liaisonBorne).value = e.target.value;
     if (form) form.requestSubmit();
   });
   document.addEventListener('click', e => {

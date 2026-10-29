@@ -308,3 +308,13 @@ header > nav .menu-utilisateur { position: relative; }
 @media (max-width: 40rem) { .titre-equipe:has(.sans-equipe) h1 { padding-inline-end: 0; } }
 .liaison-type { display: inline-block; border: 1px solid #cadbd3; border-radius: .3rem; padding: .1rem .35rem; font-size: .9rem; }
 .liaisons-contenu #id_lia_types { display: flex; flex-wrap: wrap; gap: .4rem 1rem; }
+
+/* Cahier : recherche, période, contenu et options restent des groupes lisibles. */
+.liaisons-recherche { max-width: 40rem; margin-block-end: .7rem; }
+.liaisons-periode { display: flex; flex-wrap: wrap; gap: .7rem 1rem; align-items: start; }
+.liaisons-periode > div { flex: 1 1 12rem; max-width: 23rem; }
+.liaisons-types { margin: .8rem 0; padding: .5rem .7rem; border: 1px solid #cadbd3; border-radius: .35rem; }
+.liaisons-types legend { font-weight: 600; padding-inline: .3rem; }
+.liaisons-contenu label.liaisons-case { display: inline-flex; align-items: baseline; gap: .45rem; margin: .3rem 1rem .3rem 0; font-weight: normal; }
+.liaisons-case input[type=checkbox] { width: auto; flex: 0 0 auto; margin: 0; }
+.liaisons-options { display: flex; flex-wrap: wrap; gap: .3rem 1rem; margin-block-end: .6rem; }

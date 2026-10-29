@@ -1,12 +1,17 @@
 {% load textes saisie %}<section data-liaison-focus="{{ focus }}"><h2>{{ point.label }}</h2>
-{% if retour_origine %}<p><a href="{{ retour_origine }}">← Revenir au point de départ</a></p>{% endif %}
+{% if retour_origine %}<p><a href="{{ retour_origine }}">← {{ retour_origine_nom }}</a></p>{% endif %}
 {% if services_cahier|length > 1 %}<nav aria-label="Services du cahier">{% for s in services_cahier %}<a href="{{ s.url }}">{{ s.label }}</a>{% if not forloop.last %} · {% endif %}{% endfor %}</nav>{% endif %}
 {% if parents %}<nav aria-label="Cahiers des niveaux supérieurs">{% for p in parents %}<a href="{{ p.url }}">← {{ p.label }}</a>{% if not forloop.last %} · {% endif %}{% endfor %}</nav>{% endif %}
-<p><a href="{{ url_cahier }}">Ouvrir ce cahier en pleine page</a></p>
+
 <form method="get" action="{% url 'suivi:cahier' %}" data-liaisons-filtres>
 {% for cle,valeur in point.params.items %}<input type="hidden" name="{{ cle }}" value="{{ valeur }}">{% endfor %}
-{% if request.GET.lia_origine %}<input type="hidden" name="lia_origine" value="{{ request.GET.lia_origine }}">{% endif %}{% if request.GET.lia_enplace %}<input type="hidden" name="lia_enplace" value="1">{% endif %}{% if request.GET.lia_racine %}<input type="hidden" name="lia_racine" value="{{ request.GET.lia_racine }}">{% endif %}{% if retour_jour %}<input type="hidden" name="retour" value="jour"><input type="hidden" name="date_service" value="{{ date_service }}">{% endif %}<input type="hidden" name="lia_filtres" value="1"><input type="hidden" name="lia_sous" value="false">
-{{ filtres.as_p }}<button class="secondaire">Appliquer les filtres</button></form>
+{% if request.GET.lia_origine_nom %}<input type="hidden" name="lia_origine_nom" value="{{ request.GET.lia_origine_nom }}">{% endif %}{% if request.GET.lia_origine %}<input type="hidden" name="lia_origine" value="{{ request.GET.lia_origine }}">{% endif %}{% if request.GET.lia_enplace %}<input type="hidden" name="lia_enplace" value="1">{% endif %}{% if request.GET.lia_racine %}<input type="hidden" name="lia_racine" value="{{ request.GET.lia_racine }}">{% endif %}{% if retour_jour %}<input type="hidden" name="retour" value="jour"><input type="hidden" name="date_service" value="{{ date_service }}">{% endif %}<input type="hidden" name="lia_filtres" value="1"><input type="hidden" name="lia_sous" value="false">
+{{ filtres.non_field_errors }}
+<div class="liaisons-recherche"><label for="{{ filtres.lia_q.id_for_label }}">{{ filtres.lia_q.label }}</label>{{ filtres.lia_q }}{{ filtres.lia_q.errors }}</div>
+<div class="liaisons-periode"><div><label for="{{ filtres.lia_periode.id_for_label }}">Période</label>{{ filtres.lia_periode }}{{ filtres.lia_periode.errors }}</div>
+{% for champ in filtres %}{% if champ.name == 'lia_debut' or champ.name == 'lia_fin' %}<div><label for="{{ champ.id_for_label }}">{{ champ.label }}</label>{{ champ }}{{ champ.errors }}{% if filtres.dates_personnalisees %}<select aria-label="Proposition pour {{ champ.label }}" data-liaison-borne="{{ champ.name }}"><option value="">Choisir une date…</option>{% for label,date in filtres.bornes_symboliques %}<option value="{{ date }}">{{ label }}</option>{% endfor %}</select>{% endif %}</div>{% endif %}{% endfor %}</div>
+<fieldset class="liaisons-types"><legend>Contenu</legend>{% for choix in filtres.lia_types %}<label class="liaisons-case">{{ choix.tag }}<span>{{ choix.choice_label }}</span></label>{% endfor %}{{ filtres.lia_types.errors }}</fieldset>
+<div class="liaisons-options">{% if filtres.afficher_sous %}<label class="liaisons-case">{{ filtres.lia_sous }}<span>{{ filtres.lia_sous.label }}</span></label>{% endif %}<label class="liaisons-case">{{ filtres.lia_annules }}<span>{{ filtres.lia_annules.label }}</span></label></div><button class="secondaire">Appliquer les filtres</button></form>
 {% if publie %}<p role="status">Message publié dans ce cahier.{% if voir_message %} <a href="{{ voir_message }}">Voir le message publié</a>{% endif %}</p>{% endif %}
 {% if form %}<details class="liaison-rediger"{% if form.errors %} open{% endif %}><summary>Écrire un message</summary>
 <p>Partagé dans le cahier de {{ point.label }}, avec les professionnels autorisés à lire ce message. Ce n’est pas un message privé.</p>

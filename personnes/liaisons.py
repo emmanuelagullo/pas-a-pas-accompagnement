@@ -18,11 +18,13 @@ MODELES={'personne':m.Personne,'menage':m.Menage,'prise':m.Accompagnement,
 NATURES={v:k for k,v in MODELES.items()}
 NOTES={'prise':'accompagnement','hebergement':'accord_hebergement','repas':'accord_repas','aide':'accord_aide',
     'personne':'personne','menage':'menage','sejour':'sejour'}
-TYPES=[('messages','Messages'),('equipe','Équipe'),('prestations','Prestations'),('actions','Actions à faire')]
-CLES=('lia_debut','lia_fin','lia_types','lia_sous','lia_q','lia_annules')
+TYPES=[('messages','Messages'),('equipe','Attributions et relais'),('prestations','Événements des prestations'),('actions','Actions à faire')]
+CLES=('lia_periode','lia_debut','lia_fin','lia_types','lia_sous','lia_q','lia_annules')
 
 
 class Filtres(forms.Form):
+    lia_periode=forms.ChoiceField(label='Période',required=False,choices=[])
+
     lia_debut=forms.DateField(label='Du (inclus)',required=False,widget=forms.DateInput(format='%Y-%m-%d',attrs={'type':'date'}))
     lia_fin=forms.DateField(label='Au (exclu)',required=False,widget=forms.DateInput(format='%Y-%m-%d',attrs={'type':'date'}))
     lia_types=forms.MultipleChoiceField(label='Afficher',choices=TYPES,required=False,widget=forms.CheckboxSelectMultiple)
@@ -36,14 +38,41 @@ class Filtres(forms.Form):
 
 
 def filtres(donnees,point=None):
+    from .periodes_rapports import PERIODES,bornes_periode
     data=donnees.copy();jour=timezone.localdate()
-    if point is None or point.nature in ('service','ensemble'):
-        data.setdefault('lia_debut',(jour-timedelta(days=30)).isoformat());data.setdefault('lia_fin',(jour+timedelta(days=1)).isoformat())
+    objet=point.objet if point else None
+    periode_objet=objet is not None and hasattr(objet,'debut') and hasattr(objet,'fin')
+    choix=[('toutes','Toutes les dates'),*[(k,PERIODES[k]) for k in ('aujourdhui','sept_jours','trente_jours')]]
+    if periode_objet:choix.append(('element','Pendant cette prise en charge' if point.nature=='prise' else 'Pendant cette prestation'))
+    choix.append(('dates','Dates personnalisées…'))
+    code=data.get('lia_periode')
+    if code is None:
+        code='dates' if 'lia_debut' in data or 'lia_fin' in data else 'trente_jours' if point is None or point.nature in ('service','ensemble') else 'toutes'
+    data['lia_periode']=code
+    if code=='toutes':data['lia_debut']='';data['lia_fin']=''
+    elif code in ('aujourdhui','sept_jours','trente_jours'):
+        debut,fin=bornes_periode(code,jour);data['lia_debut']=debut.isoformat();data['lia_fin']=fin.isoformat()
+    elif code=='element' and periode_objet:
+        data['lia_debut']=objet.debut.isoformat();data['lia_fin']=objet.fin.isoformat() if objet.fin else ''
     if 'lia_filtres' not in data and 'lia_types' not in data:data.setlist('lia_types',['messages','equipe'])
     data.setdefault('lia_sous','true')
     for nom in ('lia_sous','lia_annules'):
         if data.get(nom) in ('0','false','False',''):data[nom]='false'
-    return Filtres(data)
+    f=Filtres(data);f.fields['lia_periode'].choices=choix
+    f.fields['lia_q'].label='Rechercher dans les liaisons'
+    f.fields['lia_annules'].label='Montrer les messages annulés'
+    f.fields['lia_sous'].label='Inclure les prises en charge et prestations' if point and point.nature in ('personne','menage') else 'Inclure les prestations' if point and point.nature=='prise' else 'Inclure les niveaux inférieurs'
+    f.afficher_sous=bool(point and point.nature in ('personne','menage','prise'))
+    f.dates_personnalisees=code=='dates'
+    f.bornes_symboliques=[]
+    if periode_objet:
+        f.bornes_symboliques=[('Début de la prise en charge' if point.nature=='prise' else 'Début de la prestation',objet.debut.isoformat())]
+        if objet.fin:f.bornes_symboliques.append(('Fin effective',objet.fin.isoformat()))
+        if getattr(objet,'fin_prevue',None):f.bornes_symboliques.append(('Fin prévue',objet.fin_prevue.isoformat()))
+    f.bornes_symboliques.append(('Aujourd’hui',jour.isoformat()))
+    for nom in ('lia_debut','lia_fin'):
+        if code!='dates':f.fields[nom].widget.attrs['disabled']=True
+    return f
 
 
 def identite(objet):return objet._meta.label_lower,str(objet.pk)
@@ -148,6 +177,7 @@ class Point:
         return url+'?'+urlencode(params,doseq=True)+'#liaisons'
     def parents(self,params):
         xs=[];params=params.copy();params.pop('lia_sous',None)
+        if params.get('lia_periode')=='element':params['lia_periode']='toutes'
         if self.objet:
             chemin=list(ancetres(self.objet))[1:]
             # La navigation remonte aux prises puis au dossier ; pas de note supérieure implicite.
@@ -155,8 +185,8 @@ class Point:
                 if type(obj) not in NATURES:continue
                 try:point=self.dossier_parent(params) if isinstance(obj,m.Menage) else Point(self.compte,NATURES[type(obj)],obj.pk)
                 except (PermissionDenied,ValidationError,ObjectDoesNotExist,Service.DoesNotExist,*[x.DoesNotExist for x in MODELES.values()]):continue
-                xs.append({'label':'Cahier de '+point.label,'url':point.page(params)})
-        if self.service and self.objet:xs.append({'label':'Cahier du service '+str(self.service),'url':Point(self.compte,'service',self.service.pk).page(params)})
+                xs.append({'label':'Cahier de liaison — '+point.label,'url':point.page(params)})
+        if self.service and self.objet:xs.append({'label':'Cahier de liaison du service '+str(self.service),'url':Point(self.compte,'service',self.service.pk).page(params)})
         return xs
 
 
@@ -280,6 +310,7 @@ def parametres(donnees):
     if donnees.get('retour')=='jour':
         from .retour_service import date_service
         d.update(retour='jour',date_service=date_service(donnees.get('date_service')))
+    if donnees.get('lia_origine_nom'):d['lia_origine_nom']=donnees['lia_origine_nom'][:240]
     if donnees.get('lia_origine'):d['lia_origine']=donnees['lia_origine'][:35000]
     return d
 
@@ -296,7 +327,7 @@ def widget(request,objet,racine=None):
     except (KeyError,PermissionDenied,ValidationError,ObjectDoesNotExist,m.Personne.DoesNotExist,m.Menage.DoesNotExist):return None
     params=parametres(request.GET);params['lia_enplace']='1'
     if isinstance(racine,(m.Personne,m.Menage)):params['lia_racine']=racine._meta.model_name+':'+str(racine.pk)
-    if not lire_retour(request.user,params.get('lia_origine','')):params['lia_origine']=retour_signe(request.user,ouvrir_url(request.get_full_path()))
+    if not lire_retour(request.user,params.get('lia_origine','')):params['lia_origine']=retour_signe(request.user,ouvrir_url(request.get_full_path()));params['lia_origine_nom']='Retour aux liaisons du '+point.label[0].lower()+point.label[1:]
     return {'url':point.url(params),'ouvrir':request.GET.get('lia_ouvrir')=='1','label':point.label}
 
 

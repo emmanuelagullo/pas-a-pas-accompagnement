@@ -124,3 +124,22 @@ class CahierTests(TestCase):
         for cibles in ({},{'menage':self.ma,'personne':self.personne_a}):
             with self.assertRaises(IntegrityError),transaction.atomic():
                 m.NotePartagee.objects.create(auteur=self.ua,contenu='INVALIDE',**cibles)
+
+    def test_periodes_symboliques_et_pas_de_borne_par_defaut(self):
+        with perimetre(self.ua):point=s.Point(self.ua,'prise',self.a.pk)
+        def lire(**kw):
+            q=QueryDict('',mutable=True);q.update(kw);f=s.filtres(q,point);self.assertTrue(f.is_valid(),f.errors);return f.cleaned_data
+        self.assertIsNone(lire()['lia_debut'])
+        self.assertEqual(lire(lia_periode='element')['lia_debut'],self.a.debut)
+        d=lire(lia_periode='sept_jours');self.assertEqual((d['lia_fin']-d['lia_debut']).days,7)
+        self.assertEqual(lire(lia_periode='toutes',lia_debut='2020-01-01')['lia_debut'],None)
+        self.assertEqual(lire(lia_periode='dates',lia_debut='2020-01-01')['lia_debut'],date(2020,1,1))
+
+    def test_presentations_du_cahier_sans_sortie_pleine_page(self):
+        c=Client();c.force_login(self.ua)
+        r=c.get(reverse('suivi:cahier'),{'lia_cible':'prise','lia_id':str(self.a.pk)})
+        self.assertNotContains(r,'Ouvrir ce cahier en pleine page')
+        self.assertContains(r,'Inclure les prestations')
+        self.assertNotContains(r,'Inclure les niveaux inférieurs')
+        self.assertContains(r,'Attributions et relais')
+        self.assertContains(r,'Cahier de liaison du service')

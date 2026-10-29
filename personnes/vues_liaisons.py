@@ -74,7 +74,7 @@ def cahier(request):
             query={**point.params(),**params,'lia_filtres':'1'}
             donnees={**contexte_jour(request),'point':point,'filtres':f,'form':form if point.ecriture() else None,'page_obj':page,
                 'services_cahier':services,'parents':point.parents(params),'retour_origine':s.lire_retour(request.user,params.get('lia_origine','')),
-                'url_cahier':point.url({k:v for k,v in params.items() if k!='lia_enplace'}),'url_formulaire':point.url({**params,**({'lia_fragment':'1'} if request.GET.get('lia_fragment')=='1' else {})}),
+                'retour_origine_nom':params.get('lia_origine_nom','Retour aux liaisons précédentes'),'url_cahier':point.url({k:v for k,v in params.items() if k!='lia_enplace'}),'url_formulaire':point.url({**params,**({'lia_fragment':'1'} if request.GET.get('lia_fragment')=='1' else {})}),
                 'url_precedente':point.url({**query,'lia_page':page.previous_page_number()}) if page.has_previous() else '',
                 'url_suivante':point.url({**query,'lia_page':page.next_page_number()}) if page.has_next() else '',
                 'voir_message':s.lire_retour(request.user,request.GET.get('lia_voir','')),'focus':focus,'publie':request.GET.get('lia_publie')=='1'}
