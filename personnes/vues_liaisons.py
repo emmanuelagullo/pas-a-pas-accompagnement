@@ -59,7 +59,7 @@ def cahier(request):
                         params['lia_publie']='reponse' if parent else '1'
                         if request.GET.get('lia_fragment')=='1':params['lia_fragment']='1'
                         return redirect(point.url(params)+'#liaisons')
-                else:statut=400
+                else:statut=400 if envoi_requis or request.GET.get('lia_fragment')=='1' else 200
             lignes=s.selection(point,f.cleaned_data) if f.is_valid() else []
             paginator=Paginator(lignes,25);page=request.GET.get('lia_page')
             focus=request.GET.get('lia_focus','')[:100]
@@ -107,7 +107,8 @@ def cahier(request):
             query={**point.params(),**params,'lia_filtres':'1'}
             retour_origine=s.lire_retour(request.user,params.get('lia_origine',''))
             if retour_origine and urlsplit(retour_origine).path==urlsplit(point.page(params)).path:retour_origine=''
-            donnees={**contexte_jour(request),'point':point,'filtres':f,'form':form if ecriture.ecriture() else None,'parent_cle':parent_cle,'parent':parent,'saisie_dans_fil':saisie_dans_fil,'ecriture':ecriture,'page_obj':page,
+            from .retour_service import url_jour
+            donnees={**contexte_jour(request),'retour_travail_jour':url_jour(contexte_jour(request)['date_service']),'point':point,'identites_cahier':point.identites,'filtres':f,'form':form if ecriture.ecriture() else None,'parent_cle':parent_cle,'parent':parent,'saisie_dans_fil':saisie_dans_fil,'ecriture':ecriture,'page_obj':page,
                 'resume_recherche':' · '.join(resume),'recherche_ouverte':request.GET.get('lia_recherche')=='1' or bool(f.errors),'nouveau_message_url':point.url({k:v for k,v in params.items() if k not in ('lia_repondre','lia_focus')}),'effacer_recherche':point.url(effacer),'services_cahier':services,'parents':point.parents(params),'retour_origine':retour_origine,
                 'mentions_selectionnees':mentions.selection(ecriture,request.POST.getlist('lia_mentions')),'url_mentions':s.reverse('suivi:mentions')+'?'+s.urlencode(ecriture.params()),'retour_origine_nom':params.get('lia_origine_nom','Retour aux liaisons précédentes'),'url_cahier':point.url({k:v for k,v in params.items() if k!='lia_enplace'}),'url_formulaire':point.url({**params,**({'lia_fragment':'1'} if request.GET.get('lia_fragment')=='1' else {})}),
                 'url_precedente':point.url({**query,'lia_page':page.previous_page_number()}) if page.has_previous() else '',

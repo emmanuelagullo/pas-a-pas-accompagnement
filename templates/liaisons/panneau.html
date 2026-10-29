@@ -1,4 +1,6 @@
 {% load textes saisie %}<section data-liaison-focus="{{ focus }}"><h2>{{ point.label }}</h2>
+{% if identites_cahier %}<p class="liaisons-identites">{% for nom in identites_cahier %}{{ nom }}{% if not forloop.last %} · {% endif %}{% endfor %}</p>{% endif %}
+{% if retour_jour %}<p><a href="{{ retour_travail_jour }}">← Retour au travail du jour{% if date_service %} du {{ date_service }}{% endif %}</a></p>{% endif %}
 {% if retour_origine %}<p><a href="{{ retour_origine }}">← {{ retour_origine_nom }}</a></p>{% endif %}
 {% if services_cahier|length > 1 %}<nav aria-label="Services du cahier">{% for s in services_cahier %}<a href="{{ s.url }}">{{ s.label }}</a>{% if not forloop.last %} · {% endif %}{% endfor %}</nav>{% endif %}
 {% if parents %}<nav aria-label="Cahiers des niveaux supérieurs">{% for p in parents %}<a href="{{ p.url }}">← {{ p.label }}</a>{% if not forloop.last %} · {% endif %}{% endfor %}</nav>{% endif %}

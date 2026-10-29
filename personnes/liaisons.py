@@ -120,6 +120,19 @@ class Point:
             if self.ds:self.service=self.ds.service;self.service_id=self.ds.service_id
         elif self.origine:
             self.ds=self.origine.dossier;self.service_id=self.origine.service_id;self.service=self.origine.service
+    @property
+    def identites(self):
+        if self.nature!='sejour':return []
+        # Ne pas transformer le rappel de contexte en accès aux identités repérées.
+        with perimetre(self.compte,statistiques='accessibles',reperage=False):
+            noms=[]
+            if self.compte.has_perm('personnes.view_personne'):
+                personnes=m.Personne.objects.filter(pk__in=self.objet.beneficiaires.values('pk'))
+                noms.extend(str(personne) for personne in personnes)
+            if self.compte.has_perm('personnes.view_menage'):
+                menage=m.Menage.objects.filter(pk=self.objet.accord.accompagnement.menage_id).first()
+                if menage:noms.append(str(menage))
+            return noms
     @staticmethod
     def nom(objet):
         if isinstance(objet,m.Accompagnement):return 'Prise en charge du '+objet.debut.strftime('%d/%m/%Y')
