@@ -177,7 +177,9 @@ def afficher(request, nature, objet, ancienne_prise=None, contexte=None):
         for ligne in lignes:
             if ligne.get('edition'):
                 nom,args=ligne['edition']
-                ligne['modifier_url']=edition_url(nom,args,params,nature,objet,selection,ligne['date'])
+                ligne['modifier_url']=edition_url(nom,args,params,nature,objet,ligne.get('prise') or selection,ligne['date'])
+                if ligne.get('prise'):
+                    ligne['modifier_url'] += '&' + urlencode({'contexte_dossier': dossier.pour_vue(request, ligne['prise'], nature, objet.pk, params)['contexte_dossier']})
             if ligne['url'] and ligne.get('prise'):
                 ligne['url'] += '?' + urlencode({'date':ligne['date'].isoformat(),
                     'contexte_dossier':dossier.pour_vue(request, ligne['prise'], nature, objet.pk, params)['contexte_dossier']})

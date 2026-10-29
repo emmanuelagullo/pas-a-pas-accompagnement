@@ -165,6 +165,62 @@ class TrajectoireUnifieeTests(TestCase):
         page = self.client.get(self.murl, {'format_elements':'personnelle', 'debut':'2025-01-01', 'fin':'2025-12-31'})
         self.assertEqual(page.context['frise_personnelle'], [])
 
+    def test_options_repliees_et_bornes_visibles(self):
+        page = self.client.get(reverse('dossiers:detail', args=['personne', self.p.pk]))
+        self.assertContains(page, 'data-condition-options="situation"')
+        self.assertNotContains(page, 'id="options-situation" data-condition-options="situation" open')
+        page = self.client.get(self.url, {'debut':'2026-01-01', 'fin':'2026-02-01'}, HTTP_X_CONDITION_EVOLUTION='1')
+        self.assertContains(page, 'data-condition-options="evolution"')
+        self.assertContains(page, '01/01/2026')
+        invalide = self.client.get(self.url, {'debut':'2026-03-01', 'fin':'2026-02-01'}, HTTP_X_CONDITION_EVOLUTION='1')
+        self.assertContains(invalide, 'data-condition-options="evolution" open')
+
+    def test_evenement_bilan_modifiables_sur_place_et_controle_perime(self):
+        e = social.evenement(self.u, self.a, self.p, date(2026,1,2), 'Événement fictif', 'Fictif')
+        b = social.bilan(self.u, self.a, date(2026,1,3), 'Bilan fictif')
+        page = self.client.get(self.murl, HTTP_X_CONDITION_EVOLUTION='1')
+        for objet, nature in [(e,'evenementsocial'),(b,'bilansocial')]:
+            ligne = next(l for l in page.context['frise_personnelle'] if l['cle'] == ('evenement-' if nature == 'evenementsocial' else 'bilan-') + str(objet.pk))
+            url = ligne['modifier_url']
+            self.assertIn('contexte_dossier=', url)
+            form = self.client.get(url, HTTP_X_CONDITION_FORM='1')
+            self.assertContains(form, 'data-condition-form')
+            data = {'date_effet':'2026-01-04','texte':'Fait rectifié fictif','source':'Source fictive','motif':'Correction fictive','attendu':form.context['form'].initial['attendu']}
+            self.assertEqual(self.client.post(url, data, HTTP_X_CONDITION_FORM='1').json(), {'enregistre':True})
+            objet.refresh_from_db()
+            self.assertEqual(objet.date_effet, date(2026,1,4))
+            self.assertEqual(objet.texte, 'Fait rectifié fictif')
+            refuse = self.client.post(url, data, HTTP_X_CONDITION_FORM='1')
+            self.assertNotEqual(refuse.get('Content-Type'), 'application/json')
+        self.assertEqual(m.RevisionTexteSocial.objects.count(), 2)
+
+    def test_formulaires_des_faits_de_prestations_et_des_anciens_suivis(self):
+        from . import hebergement, repas
+        accord = hebergement.accorder(self.u,self.a,[self.p],date(2026,1,1),date(2026,3,1))
+        sejour = hebergement.admettre(self.u,accord,[self.p],date(2026,1,3))
+        accord_repas = repas.accorder(self.u,self.a,[self.p],date(2026,1,1),date(2026,2,1),'dejeuner','Fictif')
+        distribution = repas.distribuer(self.u,accord_repas,self.p,date(2026,1,4),1)
+        social.renseigner(self.u,self.a,self.p,'emploi','formation',date(2026,1,5),'Fictif')
+        page = self.client.get(self.url,HTTP_X_CONDITION_EVOLUTION='1')
+        for nature in ['Admission','Repas','Ancienne situation de suivi']:
+            ligne = next(l for l in page.context['lignes'] if l['nature'] == nature)
+            self.assertContains(self.client.get(ligne['modifier_url'],HTTP_X_CONDITION_FORM='1'),'data-condition-form')
+        repas.annuler(self.u,distribution,'Annulation fictive')
+        page = self.client.get(self.url,HTTP_X_CONDITION_EVOLUTION='1')
+        ligne = next(l for l in page.context['lignes'] if l['nature']=='Repas')
+        self.assertFalse(ligne.get('modifier_url'))
+        self.assertContains(page,'annulé')
+
+    def test_evenement_lecture_seule_sans_lien_de_modification(self):
+        social.evenement(self.u, self.a, self.p, date(2026,1,2), 'Événement fictif', 'Fictif')
+        u = get_user_model().objects.create_user('lecteur-evenement-fictif', password='fictif')
+        u.user_permissions.set(Permission.objects.filter(codename__in=['view_personne','view_menage','view_accompagnement','view_evenementsocial']))
+        self.client.force_login(u)
+        page = self.client.get(self.url, HTTP_X_CONDITION_EVOLUTION='1')
+        self.assertFalse(any(l.get('modifier_url') for l in page.context['frise_personnelle']))
+        e = m.EvenementSocial.objects.get()
+        self.assertEqual(self.client.get(reverse('suivi:corriger_saisie', args=['evenementsocial',e.pk]), HTTP_X_CONDITION_FORM='1').status_code, 403)
+
     def test_modifier_depuis_evolution_reutilise_date_et_formulaire(self):
         self.fait('formation',date(2026,1,1))
         page=self.client.get(self.url,{'debut':'2026-01-01','fin':'2026-02-01'},HTTP_X_CONDITION_EVOLUTION='1')

@@ -659,3 +659,65 @@ Sans JavaScript, les formulaires GET restent utilisables par validation explicit
 avec un miroir des dates grisées. Le choix date libre s’applique avant de remplir
 le calendrier. Dans le bloc intégré, JavaScript active le calendrier ou applique le
 raccourci, sans navigation vers une autre page. Aucun nouveau mécanisme d’écriture.
+
+## Options communes et correction depuis Évolution
+
+Base publique examinée : `f45eb1bb93df42b4efdd2f41b5dbb01403d82da2`.
+
+Dans les dossiers et prises en charge, une commande Options à droite du sélecteur
+Situation / Évolution ouvre les réglages de la vue active. Ils sont repliés à la
+première arrivée ; leur ouverture est retenue par compte, dossier et mode dans
+la session de l'onglet, y compris après une correction. Les deux formulaires
+partagent une grille adaptative et les conventions de dates symboliques. Les
+choix propres à chaque vue gardent leur sens : informations renseignées et
+informations ayant évolué ne sont pas fusionnées. La date de Situation et les
+bornes symboliques avec leurs dates effectives d'Évolution restent visibles.
+Les erreurs d'un filtre ouvrent ses options. Sans JavaScript, les résumés natifs
+Options donnent accès aux formulaires GET ; l'évolution garde son lien dédié.
+
+Les éléments datés d'Évolution complètent les accès existants des déclarations
+personnelles et économiques : événements, bilans, anciennes valeurs de suivi,
+distributions de repas non annulées et dates des séjours. Le bouton Modifier
+vise l'objet précis, réutilise son formulaire, ses droits, sa preuve d'état et
+son journal. Les dates d'un séjour ne deviennent pas une nouvelle admission ;
+les règles de continuation et de dépendances restent celles du service existant.
+Les opérations nécessitant un motif le demandent toujours. Une correction de
+bilan reste collective ; le filtrage personnel ne montre pas ces bilans.
+
+Enregistrer ou Annuler conserve la vue sur place. Après une écriture, la vue est
+relue avec ses filtres et bornes, et ses dépliants identifiés sont restaurés.
+Les identifiants des lignes modifiables dépendent du fait, pas de sa place dans
+le tri ; une correction de date ne désigne donc pas accidentellement une autre
+ligne. Si une correction fait sortir le fait du filtre, il disparaît normalement
+de la sélection. Les liens de source restent des accès secondaires à l'historique.
+Les anciennes URL et les formulaires en pleine page restent disponibles.
+Aucun modèle, migration, droit ou dépendance n'est ajouté.
+
+Recette reproductible avec données fictives :
+
+```sh
+python3 manage.py test personnes.tests_trajectoire_unifiee personnes.tests_condition_sociale personnes.tests_frises_objectifs --noinput
+PWA_CHROMIUM=/chemin/vers/chromium python3 manage.py test personnes.qualification_evolution --noinput
+```
+
+La recette navigateur vérifie le clavier, les deux modes, les options et leur
+mémoire après rechargement, une annulation puis correction d'événement daté,
+le maintien de la vue, l'historique déplié, l'écran 390 px et les formulaires
+sans JavaScript. Les tests HTTP couvrent aussi bilans, refus de correction en
+lecture seule, formulaires périmés et accès aux formulaires de prestations.
+Cette observation Chromium ne qualifie pas Firefox, Pyodide/OPFS, les programmes
+natifs ni PostgreSQL.
+
+Validation du lot : 47 tests ciblés distincts réussis (trajectoire, condition
+sociale, objectifs et saisie sociale), deux recettes réelles Chromium réussies,
+contrôles Django, absence de migration, syntaxe JavaScript et diff sans erreur.
+Le patch est vérifié par git am sur la base publique indiquée ci-dessus.
+
+Suite générale exécutée : 964 tests, trois ignorés et trois échecs. Deux sont
+les échecs ACT13 déjà constatés sur la base :
+`personnes.tests_ergonomie.ErgonomieTests.test_notes_correction_annulation_et_conflit_conservent_contexte`
+et `personnes.tests_textes_integration.ParcoursTests.test_refus_document_malveillant_sans_ecriture`.
+Le troisième exigeait l'ancien titre « Vue et saisie » : cette assertion est
+adaptée à Options, puis les neuf tests de saisie sociale sont tous réussis.
+La suite générale n'a pas été répétée après cette adaptation du seul test ;
+les derniers ajustements de disposition sont vérifiés par la recette Chromium.

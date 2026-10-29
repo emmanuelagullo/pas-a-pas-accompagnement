@@ -31,12 +31,34 @@
   function memoriserContexte() {
     try { sessionStorage.setItem(cleContexte(), root.querySelector('[data-condition-contexte]').value); } catch (_) { /* stockage facultatif */ }
   }
+  let modeOptions = 'situation';
+  const cleOptions = mode => ['pas-a-pas-options', root.dataset.conditionUtilisateur, root.dataset.conditionCle, mode].join('-');
+  function actualiserOptions(mode = modeOptions) {
+    modeOptions = mode;
+    root.classList.add('condition-interactive');
+    const detail = root.querySelector(`[data-condition-options="${mode}"]`);
+    const button = root.querySelector('[data-condition-options-bouton]');
+    if (!detail || !button) return;
+    try { if (sessionStorage.getItem(cleOptions(mode)) === '1') detail.open = true; } catch (_) {}
+    button.hidden = false;
+    button.setAttribute('aria-controls', detail.id);
+    button.setAttribute('aria-expanded', String(detail.open));
+  }
+  document.addEventListener('click', event => {
+    if (!event.target.closest('[data-condition-options-bouton]')) return;
+    const detail = root.querySelector(`[data-condition-options="${modeOptions}"]`);
+    detail.open = !detail.open;
+    try { sessionStorage.setItem(cleOptions(modeOptions), detail.open ? '1' : '0'); } catch (_) {}
+    root.querySelector('[data-condition-options-bouton]').setAttribute('aria-expanded', String(detail.open));
+  });
   function choisirMode(mode) {
+    actualiserOptions(mode);
     root.querySelector('[data-condition-revenir]').checked=mode==='situation';
     root.querySelector('[data-condition-evolution]').checked=mode==='evolution';
   }
   function initialiserVue() {
     root.querySelector('[data-condition-evolution]').disabled=false;
+    actualiserOptions('situation');
     const form = root.querySelector('[data-condition-selection]');
     const select = form?.querySelector('[name="vue_sociale"]');
     const date = form?.querySelector('input[type="date"][name="date_sociale"]');
@@ -228,6 +250,8 @@
         if (!fresh) throw new Error('Enregistré. Rechargez la page pour consulter la nouvelle situation.');
         const anchor = active?.closest('[data-condition-groupe]')?.id;
         const objectifsOuverts=[...root.querySelectorAll('.frise-objectif-details[open]')].map(d=>d.id);
+        const position = window.scrollY;
+        const depliements = [...root.querySelectorAll('details[id][open]')].map(d => d.id);
         const evolutionUrl=active?.closest('[data-condition-evolution-panel]')?.dataset.url;
         // Recharger les valeurs et jetons après chaque écriture, sans perdre le
         // contexte d'entretien ni réutiliser un ancien formulaire périmé.
@@ -256,11 +280,13 @@
         initialiserVue();
         observerNavigation();
         if(evolutionUrl) {await evolution(evolutionUrl);tell('Modification enregistrée.');}
+        depliements.forEach(id => { const d = document.getElementById(id); if (d) d.open = true; });
+        window.scrollTo({ top: position });
         if (anchor) {
           const groupe = document.getElementById(anchor);
           const titre = groupe?.querySelector('h4') || groupe;
           if (titre) { titre.tabIndex = -1; titre.focus({ preventScroll: true }); }
-          groupe?.scrollIntoView({ block: 'nearest' });
+          if (groupe && (groupe.getBoundingClientRect().bottom < 0 || groupe.getBoundingClientRect().top > innerHeight)) groupe.scrollIntoView({ block: 'nearest' });
         }
       } else {
         const html = await response.text();

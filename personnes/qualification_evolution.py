@@ -1,0 +1,99 @@
+"""Recette réelle Chromium des modifications sur place dans Évolution.
+
+PWA_CHROMIUM=/chemin/chromium python3 manage.py test personnes.qualification_evolution
+Données et serveur isolés par Django ; aucune instance existante modifiée.
+"""
+import os
+from datetime import date
+from unittest import skipUnless
+from django.contrib.auth import get_user_model
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from django.urls import reverse
+from . import models as m, social, suivi
+
+
+@skipUnless(os.environ.get('PWA_CHROMIUM'), 'Chromium non configuré : aucune observation navigateur.')
+class EvolutionNavigateur(StaticLiveServerTestCase):
+    def setUp(self):
+        from playwright.sync_api import sync_playwright
+        self.u = get_user_model().objects.create_superuser('evolution-fictive', password='Fictif-Evolution-2026!')
+        self.p = m.Personne.objects.create(designation='Maïa fictive', cree_par=self.u)
+        self.m = suivi.creer_menage(self.u, 'Les Passerelles — fictif', [self.p], date(2026,1,1))
+        self.a = suivi.ouvrir(self.u, self.m, [self.p], date(2026,1,1))
+        self.e = social.evenement(self.u, self.a, self.p, date(2026,2,1), 'Événement fictif à corriger', 'Source fictive')
+        self.pw = sync_playwright().start(); self.addCleanup(self.pw.stop)
+        self.browser = self.pw.chromium.launch(executable_path=os.environ['PWA_CHROMIUM'], args=['--no-sandbox'])
+        self.addCleanup(self.browser.close)
+        self.url = reverse('dossiers:detail', args=['personne',self.p.pk])
+        self.errors = []
+
+    def page(self, **kwargs):
+        page = self.browser.new_page(**kwargs)
+        page.on('pageerror', lambda error: self.errors.append(str(error)))
+        page.goto(self.live_server_url + self.url)
+        page.locator('[name="username"]').fill('evolution-fictive')
+        page.locator('[name="password"]').fill('Fictif-Evolution-2026!')
+        page.get_by_role('button', name='Se connecter', exact=True).click()
+        page.wait_for_url('**' + self.url + '*')
+        return page
+
+    def test_options_et_correction_sur_place_bureau_mobile_clavier(self):
+        from playwright.sync_api import expect
+        page = self.page(viewport={'width':1280,'height':900})
+        bouton = page.locator('[data-condition-options-bouton]')
+        expect(bouton).to_have_attribute('aria-expanded','false')
+        bouton.focus(); page.keyboard.press('Enter')
+        expect(bouton).to_have_attribute('aria-expanded','true')
+        page.locator('[data-condition-evolution]').click()
+        expect(page.locator('[data-condition-trajectoire]')).to_be_visible()
+        expect(bouton).to_have_attribute('aria-expanded','false')
+        bouton.click()
+        expect(page.locator('[data-evolution-selection]')).to_be_visible()
+        bouton.click()
+        ligne = page.locator(f'#evolution-evenement-{self.e.pk}')
+        ligne.get_by_role('link', name='Modifier', exact=True).click()
+        expect(ligne.locator('[data-condition-form]')).to_be_visible()
+        ligne.locator('[data-condition-annuler]').click()
+        expect(ligne.locator('[data-condition-form]')).to_have_count(0)
+        ligne.locator('details').evaluate('(d) => d.open = true')
+        ligne.get_by_role('link', name='Modifier', exact=True).click()
+        ligne.locator('[name="date_effet"]').fill('2026-02-03')
+        ligne.locator('[name="texte"]').fill('Événement fictif corrigé sur place')
+        ligne.locator('[name="motif"]').fill('Recette fictive')
+        original = page.url
+        ligne.get_by_role('button', name='Enregistrer', exact=True).click()
+        expect(page.locator('[data-condition-statut]')).to_have_text('Modification enregistrée.')
+        self.assertEqual(page.url, original)
+        expect(page.locator('[data-condition-evolution]')).to_be_checked()
+        expect(ligne.locator('details')).to_have_attribute('open','')
+        expect(ligne).to_contain_text('03/02/2026')
+        expect(ligne).to_contain_text('Événement fictif corrigé sur place')
+        page.locator('[data-condition-revenir]').click()
+        expect(bouton).to_have_attribute('aria-expanded','true')
+        page.reload()
+        expect(bouton).to_have_attribute('aria-expanded','true')
+        page.set_viewport_size({'width':390,'height':844})
+        page.locator('[data-condition-evolution]').click()
+        expect(page.locator('[data-condition-trajectoire]')).to_be_visible()
+        bouton.click()
+        radios = page.locator('.condition-modes').bounding_box()
+        commande = bouton.bounding_box()
+        self.assertLess(commande['y'], radios['y'] + radios['height'])
+        labels = page.locator('.condition-modes label')
+        self.assertLess(abs(labels.nth(0).bounding_box()['y'] - labels.nth(1).bounding_box()['y']), 1)
+        self.assertLessEqual(page.evaluate('document.documentElement.scrollWidth'), 391)
+        self.assertEqual(self.errors, [])
+        page.screenshot(path='/tmp/evolution-options-mobile.png', full_page=True)
+
+    def test_options_sans_javascript(self):
+        from playwright.sync_api import expect
+        page = self.page(java_script_enabled=False, viewport={'width':390,'height':844})
+        options = page.locator('#options-situation')
+        expect(options).not_to_have_attribute('open','')
+        options.locator('summary').first.click()
+        expect(page.locator('[data-condition-selection]')).to_be_visible()
+        page.get_by_role('link', name='Consulter l’évolution', exact=True).click()
+        options = page.locator('#options-evolution')
+        options.locator('summary').first.click()
+        expect(page.locator('[data-evolution-selection]')).to_be_visible()
+        self.assertLessEqual(page.evaluate('document.documentElement.scrollWidth'), 391)

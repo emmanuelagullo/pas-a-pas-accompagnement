@@ -25,7 +25,7 @@ def construire(accompagnement, acteur, beneficiaire=None, debut=None, fin=None, 
     lignes = []
 
     def ajouter(date, enregistre, nature, texte, personne=None, document=None,
-                ancien=False, url='', personnel=False, terme=None, prise=None, edition=None):
+                ancien=False, url='', personnel=False, terme=None, prise=None, edition=None, cle=None):
         if (debut and date < debut) or (fin and date > fin):
             return
         if personne and personne.pk not in ids or beneficiaire and personne != beneficiaire:
@@ -34,7 +34,7 @@ def construire(accompagnement, acteur, beneficiaire=None, debut=None, fin=None, 
             return
         lignes.append(dict(date=date, enregistre=enregistre, nature=nature, texte=texte,
                            texte_document=document, beneficiaire=personne, ancien=ancien,
-                           url=url, terme=terme, prise=prise, edition=edition))
+                           url=url, terme=terme, prise=prise, edition=edition, cle=cle))
 
     if acteur.has_perms(['personnes.view_personne', 'personnes.view_situationpersonnelle',
                          'personnes.view_revisionsituationpersonnelle']):
@@ -42,7 +42,7 @@ def construire(accompagnement, acteur, beneficiaire=None, debut=None, fin=None, 
             ajouter(s.debut, s.enregistre_le, 'Déclaration personnelle',
                     f'{s.get_dimension_display()} : {s.libelle_valeur} (source : {s.source})',
                     s.personne, url=reverse('dossiers:social', args=[s.personne_id]),
-                    personnel=True, terme=s.fin, edition=('dossiers:social_corriger', [s.personne_id,s.dimension,s.pk]) if acteur.has_perms(['personnes.add_situationpersonnelle','personnes.change_situationpersonnelle']) else None)
+                    personnel=True, terme=s.fin, cle=f'{s._meta.model_name}-{s.pk}', edition=('dossiers:social_corriger', [s.personne_id,s.dimension,s.pk]) if acteur.has_perms(['personnes.add_situationpersonnelle','personnes.change_situationpersonnelle']) else None)
     # Les détails économiques ne deviennent jamais des prestations ni des paiements.
     for code in ('ressources', 'dettes'):
         if not acteur.has_perms(dossier_complet.droits_lecture(code)):
@@ -57,37 +57,43 @@ def construire(accompagnement, acteur, beneficiaire=None, debut=None, fin=None, 
             ajouter(s.debut, s.enregistre_le, dossier_complet.RUBRIQUES[code].titre,
                     f'{titre}{montant} (source : {s.source})', s.personne,
                     url=reverse('dossiers:fiche_a', args=[s.personne_id, 'economique']),
-                    personnel=True, terme=s.fin, edition=('dossiers:fait_a_corriger', [s.personne_id,code,s.pk]) if acteur.has_perms(['personnes.add_'+s._meta.model_name,'personnes.change_'+s._meta.model_name]) else None)
+                    personnel=True, terme=s.fin, cle=f'{s._meta.model_name}-{s.pk}', edition=('dossiers:fait_a_corriger', [s.personne_id,code,s.pk]) if acteur.has_perms(['personnes.add_'+s._meta.model_name,'personnes.change_'+s._meta.model_name]) else None)
     if not acteur.has_perms(dossier.DROITS):
         return sorted(lignes, key=ordre)
     if acteur.has_perm('personnes.view_situationsociale'):
         for s in SituationSociale.objects.filter(accompagnement__in=prises).select_related('beneficiaire', 'accompagnement'):
             ajouter(s.debut, s.cree_le, 'Ancienne situation de suivi',
                     f'{s.get_dimension_display()} : {s.libelle_valeur} (source : {s.source} ; prise en charge du {s.accompagnement.debut:%d/%m/%Y})',
-                    s.beneficiaire, ancien=True, url=reverse('suivi:social', args=[s.accompagnement_id]), terme=s.fin, prise=s.accompagnement)
+                    s.beneficiaire, ancien=True, url=reverse('suivi:social', args=[s.accompagnement_id]), terme=s.fin, prise=s.accompagnement, cle=f'ancienne-situation-{s.pk}',
+                    edition=('suivi:corriger_situation', [s.pk]) if acteur.has_perms(['personnes.change_situationsociale','personnes.view_menage']) else None)
     if acteur.has_perm('personnes.view_evenementsocial'):
         for e in EvenementSocial.objects.filter(accompagnement__in=prises).select_related('beneficiaire', 'accompagnement'):
             ajouter(e.date_effet, e.cree_le, 'Événement antérieur' if e.date_effet < e.accompagnement.debut else 'Événement',
                     e.texte + f' (source : {e.source})', e.beneficiaire,
-                    url=reverse('suivi:social', args=[e.accompagnement_id]) if acteur.has_perm('personnes.view_situationsociale') else '', prise=e.accompagnement)
+                    url=reverse('suivi:social', args=[e.accompagnement_id]) if acteur.has_perm('personnes.view_situationsociale') else '', prise=e.accompagnement, cle=f'evenement-{e.pk}',
+                    edition=('suivi:corriger_saisie', ['evenementsocial',e.pk]) if acteur.has_perms(['personnes.change_evenementsocial','personnes.view_revisiontextesocial','personnes.view_menage']) else None)
     if acteur.has_perm('personnes.view_bilansocial') and not beneficiaire:
         for b in BilanSocial.objects.filter(accompagnement__in=prises).select_related('accompagnement'):
             ajouter(b.date_effet, b.cree_le, 'Bilan du ménage', b.texte, document=b.texte_document,
-                    url=reverse('suivi:social', args=[b.accompagnement_id]) if acteur.has_perm('personnes.view_situationsociale') else '', prise=b.accompagnement)
+                    url=reverse('suivi:social', args=[b.accompagnement_id]) if acteur.has_perm('personnes.view_situationsociale') else '', prise=b.accompagnement, cle=f'bilan-{b.pk}',
+                    edition=('suivi:corriger_saisie', ['bilansocial',b.pk]) if acteur.has_perms(['personnes.change_bilansocial','personnes.view_revisiontextesocial','personnes.view_menage']) else None)
     if acteur.has_perms(['personnes.view_accordrepas', 'personnes.view_repasdistribue']):
-        for r in RepasDistribue.objects.filter(accord__accompagnement__in=prises).select_related('beneficiaire', 'accord'):
+        for r in RepasDistribue.objects.filter(accord__accompagnement__in=prises).select_related('beneficiaire', 'accord__accompagnement'):
             statut = 'annulé' if r.annule_le else 'réalisé'
-            ajouter(r.date, r.cree_le, 'Repas', f'{r.quantite} × {r.accord.get_service_display()} ({statut})', r.beneficiaire)
+            ajouter(r.date, r.cree_le, 'Repas', f'{r.quantite} × {r.accord.get_service_display()} ({statut})', r.beneficiaire, prise=r.accord.accompagnement, cle=f'repas-{r.pk}',
+                    url=reverse('suivi:accord_repas', args=[r.accord_id]),
+                    edition=('dossiers:corriger_distribution', [r.pk]) if not r.annule_le and acteur.has_perms(['personnes.change_repasdistribue','personnes.view_revisionrepas','personnes.view_menage']) else None)
     if acteur.has_perms(['personnes.view_accordhebergement', 'personnes.view_sejour']):
-        for s in Sejour.objects.non_annules().filter(accord__accompagnement__in=prises).prefetch_related('beneficiaires'):
+        for s in Sejour.objects.non_annules().filter(accord__accompagnement__in=prises).select_related('accord__accompagnement').prefetch_related('beneficiaires'):
+            edition = ('suivi:corriger_saisie', ['sejour',s.pk]) if acteur.has_perms(['personnes.change_sejour','personnes.view_correctionperiode','personnes.view_menage']) else None
             for p in s.beneficiaires.all():
                 ajouter(s.debut, s.cree_le, 'Continuation individuelle' if s.origine_collective_id else 'Admission',
-                        'Début du fragment individuel, sans nouvelle admission' if s.origine_collective_id else 'Entrée effective en hébergement', p)
+                        'Début du fragment individuel, sans nouvelle admission' if s.origine_collective_id else 'Entrée effective en hébergement', p, prise=s.accord.accompagnement, cle=f'sejour-{s.pk}-{p.pk}-entree', edition=edition, url=reverse('suivi:accord_hebergement', args=[s.accord_id]))
                 if s.fin:
                     # Une individualisation termine un fragment, pas l'épisode d'accueil.
                     continuation = hasattr(s, 'individualisation')
                     ajouter(s.fin, s.cree_le, 'Fin du fragment collectif' if continuation else 'Sortie',
-                            'Individualisation du séjour, sans sortie déduite' if continuation else 'Fin du séjour (date exclue)', p)
+                            'Individualisation du séjour, sans sortie déduite' if continuation else 'Fin du séjour (date exclue)', p, prise=s.accord.accompagnement, cle=f'sejour-{s.pk}-{p.pk}-sortie', edition=edition, url=reverse('suivi:accord_hebergement', args=[s.accord_id]))
     return sorted(lignes, key=ordre)
 
 

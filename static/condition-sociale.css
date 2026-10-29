@@ -68,3 +68,27 @@
 .condition-selection,.condition-selection>*{min-width:0;max-width:100%}
 .condition-selection select{max-width:100%}
 @media(max-width:650px){[data-evolution-selection] select,[data-evolution-selection] input[type=date]{width:100%;min-width:0;max-width:100%}[data-evolution-selection] label,[data-evolution-selection] .helptext{overflow-wrap:anywhere}}
+
+/* Même commande et même grille pour les options des deux lectures. */
+.condition-commandes { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:.5rem; }
+.condition-commandes .condition-modes { flex:0 1 auto; padding:0; min-width:0; }
+.condition-options-bouton { margin-left:auto; }
+.condition-options { min-width:0; margin:.4rem 0; }
+.condition-options > summary { cursor:pointer; text-align:right; }
+.condition-interactive .condition-options > summary { display:none; }
+.condition-options-contenu { border-top:1px solid #c8d9ce; padding:.4rem 0; }
+.condition-options .condition-selection { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,18rem),1fr)); gap:.7rem; align-items:start; border:0; padding:.5rem 0; }
+.condition-options .condition-selection > div { min-width:0; }
+.condition-options .condition-selection label { display:block; }
+.condition-options .condition-selection select,.condition-options .condition-selection input[type=date] { display:block; box-sizing:border-box; max-width:100%; margin:.3rem 0; }
+.condition-options .condition-selection .condition-cadre { background:transparent; border:0; padding:0; margin:0; }
+.condition-options .condition-selection button { justify-self:start; align-self:end; }
+@media print { .condition-options,.condition-options-bouton { display:none; } }
+
+@media(max-width:650px) {
+  .condition-commandes .condition-modes { gap:.3rem; flex-wrap:nowrap; font-size:.85rem; }
+  .condition-commandes .condition-modes label { display:inline-flex; align-items:center; gap:.2rem; padding:.3rem .35rem; white-space:nowrap; }
+  .condition-commandes .condition-modes input { margin:0; }
+  .condition-options-bouton { font-size:.85rem; padding:.4rem .55rem; }
+}
+@media(max-width:350px) { .condition-commandes .condition-modes { flex-wrap:wrap; } }
