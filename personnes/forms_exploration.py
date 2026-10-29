@@ -74,7 +74,7 @@ class ExplorationForm(FormulaireMetier):
             self.fields['classes'+str(i)].label='Classes du niveau '+str(i)+' (facultatives)'
         try:colonnes=int(data.get('nombre_colonnes') or 0)
         except (ValueError,TypeError):colonnes=0
-        for i in range(1,min(colonnes,11)+1):self.fields['colonne'+str(i)]=forms.ChoiceField(label='Colonne du relevé détaillé '+str(i),choices=[('','Aucune'),*dims],required=False)
+        for i in range(1,min(colonnes,11)+1):self.fields['colonne'+str(i)]=forms.ChoiceField(label='Colonne du relevé détaillé '+str(i),choices=[('','Aucune'),*e.disponibles(acteur,informations=True).items()],required=False)
         try:nombre=int(data.get('nombre_mesures') or 1)
         except (ValueError,TypeError):nombre=1
         for i in range(2,min(nombre,9)+1):

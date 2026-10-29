@@ -13,9 +13,12 @@ from . import parcours
 
 INCONNU='Non renseigné'
 POPULATIONS=[('personnes','Personnes enregistrées — situation à la référence'),('menages','Ménages enregistrés — membres à la référence'),('prises','Prises en charge chevauchant la période'),('demandes','Demandes — dernière version chevauchant la période'),('sejours','Épisodes de séjour chevauchant la période'),('accords_hebergement','Autorisations d’hébergement — sans réalisation déduite'),('accords_repas','Autorisations de repas — sans distribution déduite'),('affectations','Périodes de lieu d’hébergement — sans nouvelle admission'),('repas','Distributions effectives de repas'),('aides','Remises effectives des autres prestations'),('appels','Appels 115'),('ressources','Ressources déclarées applicables à la référence'),('dettes','Dettes déclarées applicables à la référence'),('couts','Composantes de coût — dernières versions'),('imputations','Imputations — dernières versions')]
+POPULATIONS += [(c,r.titre+' — déclarations à la référence') for c,r in dc.RUBRIQUES.items() if c not in ('ressources','dettes')]
+POPULATIONS += [('coordonnees','Déclarations de coordonnées à la référence'),('famille','Déclarations familiales à la référence'),('identite','Compléments d’identité à la référence'),('administration','Déclarations administratives à la référence'),('relations','Liens personnels déclarés à la référence'),('fragments_sejour','Fragments individuels de séjour chevauchant la période')]
+
 MISSIONS={'role':'Rôle professionnel dans la prise en charge','professionnel':'Intervenant choisi dans cette prise en charge','organisme':'Organisme choisi dans cette prise en charge'}
 BASE={'personne':'Bénéficiaire connu — nom et identifiant','lieu':'Lieu d’hébergement de la période','lieu_id':'Identifiant du lieu d’hébergement (pour distinguer les homonymes)','duree_selection':'Durée civile d’intersection avec la période (jours)','date_fin':'Fin effective ou autorisée de l’objet (exclue)','jour_semaine':'Jour de la semaine du fait / début','complement115':'Information complémentaire 115 déclarée','date_saisie':'Date de saisie de l’objet','date_version':'Date de saisie de la version affichée','appelant':'Appelant déclaré / répertoire','auteur':'Auteur de saisie initiale','auteur_version':'Auteur de la dernière version','quantite':'Quantité / montant porté par l’objet','phase':'Phase de calcul financier','financeur':'Financeur explicite','budget':'Budget / dispositif','prescripteur':'Prescripteur financier','signataire':'Signataire désigné','total':'Ensemble','mois':'Mois du fait / début','jour':'Jour du fait / début','heure':'Heure d’appel','type':'Type / service / activité déclarée','etat':'État déclaré','motif':'Motif principal / demande','secondaire':'Demandes secondaires 115','reponse':'Réponses 115','origine':'Lieu / origine déclaré','orientation':'Orientation déclarée','unite':'Unité de quantité','duree':'Durée de l’épisode clos (jours)','age':'Âge exact à la référence','precision_naissance':'Précision de naissance','entree_connue':'Première entrée connue / retour connu','adultes_declares':'Adultes déclarés par appel','enfants_declares':'Enfants déclarés par appel','grossesses_declarees':'Grossesses déclarées par appel'}
-BASE.update(nature_financement='Nature de la prestation financée',unite_facturee='Unité facturée',quantite_facturee='Quantité facturée',prix_unitaire='Prix unitaire',reference_calcul='Référence exacte du calcul financier',prescripteur_id='Identifiant du prescripteur financier',signataire_id='Identifiant du signataire financier',financeur_id='Identifiant du financeur',dossier='Libellé du dossier et bénéficiaires explicites')
+BASE.update(qualite_naissance='Qualité de naissance pour le calcul à la référence',nature_financement='Nature de la prestation financée',unite_facturee='Unité facturée',quantite_facturee='Quantité facturée',prix_unitaire='Prix unitaire',reference_calcul='Référence exacte du calcul financier',prescripteur_id='Identifiant du prescripteur financier',signataire_id='Identifiant du signataire financier',financeur_id='Identifiant du financeur',dossier='Libellé du dossier et bénéficiaires explicites')
 # Schémas déjà livrés ; les numéros administratifs et textes libres ne sont pas des axes.
 GROUPES={
  'identite':(m.ComplementIdentite,('sexe_declare','naissance_lieu','naissance_ville','naissance_pays','nationalites','apatridie_declaree'),('view_complementidentite','view_revisioncomplementidentite')),
@@ -33,14 +36,25 @@ PARCOURS={
 }
 DIMENSIONS={**{'mission.'+c:label for c,label in MISSIONS.items()},**{g+'.'+c:parcours.RUBRIQUES[code].titre+' — '+str(parcours.RUBRIQUES[code].version._meta.get_field(c).verbose_name) for g,(code,champs) in PARCOURS.items() for c in champs},**BASE,**{g+'.'+c:g.replace('_',' ').capitalize()+' — '+str(model._meta.get_field(c).verbose_name) for g,(model,cs,ps) in GROUPES.items() for c in cs},**{'social.'+c:label+' (déclaration personnelle saisie)' for c,label in m.SituationSociale.DIMENSIONS}}
 
+INFORMATIONS_DETAILLEES={'coordonnees':('rue','telephone','courriel','fax')}
+for code,r in dc.RUBRIQUES.items():
+    INFORMATIONS_DETAILLEES[code]=tuple(c for c in r.champs if c not in GROUPES[code][1] and c!='identifiant')
+DETAILS_SEULS={g+'.'+c for g,cs in INFORMATIONS_DETAILLEES.items() for c in cs}
+DIMENSIONS.update({g+'.'+c:g.capitalize()+' — '+str(GROUPES[g][0]._meta.get_field(c).verbose_name) for g,cs in INFORMATIONS_DETAILLEES.items() for c in cs})
+DECLARATIONS=set(GROUPES)
+DIMENSIONS.update({g+'.declaration_applicable':g.capitalize()+' — déclaration applicable' for g in GROUPES})
+DIMENSIONS.update({g+'.source':g.capitalize()+' — source déclarée' for g in GROUPES})
+DIMENSIONS.update({'relation.personne_a':'Lien — première personne','relation.personne_b':'Lien — seconde personne','relation.role':'Lien — rôle depuis la première personne','relation.precision':'Lien — précision déclarée','relation.source':'Lien — source déclarée'})
 
 @service_metier
-def disponibles(acteur):
+def disponibles(acteur,*,informations=False):
     suivi.exiger(acteur,'view_personne')
     def autorise(k):
+        if k in DETAILS_SEULS and not informations:return False
         if '.' not in k:return True
         g=k.split('.')[0]
-        if g=='mission':droits=['personnes.'+p for p in ('view_menage','view_accompagnement','view_affectationintervenant','view_revisionaffectationintervenant','view_intervenant','view_ficheintervenant','view_partenaire','view_fichepartenaire')]
+        if g=='relation':droits=['personnes.view_relationpersonnelle','personnes.view_revisionrelationpersonnelle']
+        elif g=='mission':droits=['personnes.'+p for p in ('view_menage','view_accompagnement','view_affectationintervenant','view_revisionaffectationintervenant','view_intervenant','view_ficheintervenant','view_partenaire','view_fichepartenaire')]
         elif g=='social':droits=['personnes.view_situationpersonnelle']
         elif g in PARCOURS:droits=parcours.droits(PARCOURS[g][0])
         else:droits=['personnes.'+p for p in GROUPES[g][2]]
@@ -82,7 +96,7 @@ def ligne(pk,date,ps,menages,*,saisie=None,version_saisie=None,prise=None,**vale
 def population(acteur,d):
     debut,fin=d['debut'],d['fin'];ref=d['reference'];code=d['population'];lignes=[]
     suivi.exiger(acteur,'view_personne')
-    if code not in ('personnes','ressources','dettes'):suivi.exiger(acteur,'view_menage')
+    if code not in {'personnes','relations',*DECLARATIONS}:suivi.exiger(acteur,'view_menage')
     if code=='personnes':
         appartenances=defaultdict(list)
         if acteur.has_perm('personnes.view_menage'):
@@ -136,6 +150,18 @@ def population(acteur,d):
             if d.get('mesure') in mesures.NUITS_DISTINCTES:
                 x['_fragments_justifies']=[(max(s.debut,debut) if d.get('portion')!='integrale' else s.debut,min(s.fin or fin,fin) if d.get('portion')!='integrale' else s.fin,{p.pk for p in s.beneficiaires.all()},absences_par_sejour.get(s.pk,[])) for s in fragments if d.get('portion')=='integrale' or s.debut<fin and (s.fin is None or s.fin>debut)]
             x['quantite']=sum((Decimal(max(0,(f-d).days)*len(ps)) for d,f,ps in x['_fragments']),Decimal('0'));x['unite']='personne-nuit de séjour (absences non déduites)';lignes.append(x)
+    elif code=='fragments_sejour':
+        suivi.exiger(acteur,'view_accompagnement','view_accordhebergement','view_sejour')
+        demander_lieux=any(d.get(c) in ('lieu','lieu_id') for c in ('axe','croisement',*[f'axe{i}' for i in range(3,8)],*[f'colonne{i}' for i in range(1,12)],*[f'filtre{i}' for i in range(1,21)]))
+        if demander_lieux:suivi.exiger(acteur,'view_affectation','view_lieuhebergement')
+        if d.get('mesure')=='nuits_hors_absences':suivi.exiger(acteur,'view_absence')
+        for s in m.Sejour.objects.non_annules().filter(debut__lt=fin).filter(Q(fin__isnull=True)|Q(fin__gt=debut)).select_related('accord__accompagnement').prefetch_related('beneficiaires',*(['absences'] if d.get('mesure')=='nuits_hors_absences' else []),*(['affectations__lieu'] if demander_lieux else [])):
+            ps=list(s.beneficiaires.all());a=max(s.debut,debut);b=min(s.fin or fin,fin)
+            x=ligne(s.pk,s.debut,ps,[s.accord.accompagnement.menage_id],prise=s.accord.accompagnement_id,saisie=s.cree_le,date_fin=[s.fin.isoformat()] if s.fin else [],lieu=[str(v.lieu) for v in s.affectations.all() if v.debut<b and (v.fin is None or v.fin>a)] if demander_lieux else [],lieu_id=[str(v.lieu_id) for v in s.affectations.all() if v.debut<b and (v.fin is None or v.fin>a)] if demander_lieux else [])
+            x['_fragments']=[(a,b,{p.pk for p in ps})]
+            if d.get('mesure') in mesures.NUITS_DISTINCTES:
+                x['_fragments_justifies']=[(a,b,{p.pk for p in ps},[(v.debut,v.fin) for v in s.absences.all()] if d.get('mesure')=='nuits_hors_absences' else [])]
+            x.update(quantite=Decimal((b-a).days*len(ps)),unite='personne-nuit de séjour (absences non déduites)');lignes.append(x)
     elif code=='affectations':
         suivi.exiger(acteur,'view_accompagnement','view_accordhebergement','view_sejour','view_affectation','view_lieuhebergement')
         if d.get('portion')=='integrale':raise ValidationError('Pour les périodes de lieu, les nuitées sont bornées à la sélection. Choisissez les épisodes clos pour une durée intégrale.')
@@ -156,15 +182,30 @@ def population(acteur,d):
         droit(acteur)
         for r in m.RemiseAide.objects.filter(annule_le__isnull=True,accord__annule_le__isnull=True,date__gte=debut,date__lt=fin).select_related('accord__accompagnement').prefetch_related('beneficiaires'):
             x=ligne(r.pk,r.date,r.beneficiaires.all(),[r.accord.accompagnement.menage_id],prise=r.accord.accompagnement_id,saisie=r.enregistre_le,type=[r.accord.libelle],etat=[r.accord.get_nature_display()]);x.update(quantite=r.quantite,unite=r.accord.unite);lignes.append(x)
-    elif code in ('ressources','dettes'):
-        dc.exiger_lecture(acteur,code)
-        for r in dc.a_date(code,m.Personne.objects.all(),ref).select_related('personne'):
-            x=ligne(r.pk,ref,[r.personne],[],saisie=r.enregistre_le,type=[r.libelle] if code=='ressources' else [r.creancier],etat=[r.get_etat_display()])
+    elif code in DECLARATIONS:
+        model,champs,droits=GROUPES[code]
+        suivi.exiger(acteur,*droits)
+        if code in dc.RUBRIQUES:
+            qs=dc.a_date(code,m.Personne.objects.all(),ref)
+        elif code=='administration':qs=dc.administration_a_date(m.Personne.objects.all(),ref)
+        else:
+            from . import coordonnees,famille,complements_identite
+            service={'coordonnees':coordonnees,'famille':famille,'identite':complements_identite}[code]
+            qs=service.a_date(m.Personne.objects.all(),ref)
+        for r in qs.select_related('personne'):
+            titre=str(getattr(r,'libelle',getattr(r,'creancier','Déclaration')))
+            x=ligne(r.pk,ref,[r.personne],[],saisie=r.enregistre_le,type=[titre],etat=[r.get_etat_display()] if hasattr(r,'get_etat_display') else [])
             x['_declaration']=(code,r)
-            x['quantite']=r.montant
-            x['unite']=r.devise+' / '+(r.periodicite or 'périodicité non renseignée') if code=='ressources' else r.devise+' / '+r.get_nature_display()
-            for c in GROUPES[code][1]:
-                v=getattr(r,c);x['valeurs'][code+'.'+c]=[categorie_valeur(r,c,v)] if v is not None and v!='' else []
+            if code in ('ressources','dettes'):
+                x['quantite']=r.montant
+                x['unite']=r.devise+' / '+(r.periodicite or 'périodicité non renseignée') if code=='ressources' else r.devise+' / '+r.get_nature_display()
+            lignes.append(x)
+    elif code=='relations':
+        from .relations_personnelles import DROITS_LECTURE
+        suivi.exiger(acteur,*DROITS_LECTURE)
+        for r in m.RelationPersonnelle.objects.filter(debut__lte=ref,annule_le__isnull=True).filter(Q(fin__isnull=True)|Q(fin__gt=ref)).select_related('personne_a','personne_b'):
+            x=ligne(r.pk,r.debut,[r.personne_a,r.personne_b],[],date_fin=[r.fin.isoformat()] if r.fin else [])
+            x['valeurs'].update({'relation.personne_a':[str(r.personne_a)],'relation.personne_b':[str(r.personne_b)],'relation.role':[r.role_depuis(r.personne_a)],'relation.precision':[r.precision],'relation.source':[r.source]})
             lignes.append(x)
     elif code in ('couts','imputations'):
         from . import financements
@@ -203,13 +244,13 @@ def population(acteur,d):
 
 @service_metier
 def enrichir(acteur,lignes,cles,ref):
-    autorise=disponibles(acteur)
+    autorise=disponibles(acteur,informations=True)
     if any(c not in autorise for c in cles if c):raise PermissionDenied
     ids={p for l in lignes for p in l['personnes']};personnes={p.pk:p for p in m.Personne.objects.filter(pk__in=ids)}
     cartes=defaultdict(lambda:defaultdict(list))
     declarations=defaultdict(lambda:defaultdict(list))
     def carte_fait(g,objet,champs):
-        carte={}
+        carte={g+'.declaration_applicable':['Oui'],g+'.source':[getattr(objet,'source','')]} if g in GROUPES else {}
         for c in champs:
             v=getattr(objet,c);vs=v if isinstance(v,list) else [v]
             carte[g+'.'+c]=[categorie_valeur(objet,c,v) for v in vs if v not in (None,'')]
@@ -217,11 +258,15 @@ def enrichir(acteur,lignes,cles,ref):
     for p in personnes.values():
         cartes[p.pk]['personne']=[str(p)+' · '+str(p.pk)]
         cartes[p.pk]['precision_naissance']=[p.get_precision_naissance_display() or INCONNU]
+        from .rapports_metier import LIBELLES_NAISSANCES
+        qualite=(p.precision_naissance if p.precision_naissance in LIBELLES_NAISSANCES else 'inconnue') if p.precision_naissance!='exacte' or not p.date_naissance else 'apres_reference' if p.date_naissance>ref else 'calculable'
+        cartes[p.pk]['qualite_naissance']=[LIBELLES_NAISSANCES.get(qualite,'Âge exact calculable')]
         cartes[p.pk]['age']=[]
         if p.precision_naissance=='exacte' and p.date_naissance and p.date_naissance<=ref:
             cartes[p.pk]['age']=[ref.year-p.date_naissance.year-((ref.month,ref.day)<(p.date_naissance.month,p.date_naissance.day))]
     groupes={c.split('.')[0] for c in cles if '.' in c}
     for g in groupes:
+        if g=='relation':continue
         if g=='mission':
             prises={x['prise'] for x in lignes if x['prise'] is not None};missions=defaultdict(lambda:defaultdict(list));faits_missions=defaultdict(list)
             qs=m.AffectationIntervenant.objects.filter(accompagnement_id__in=prises,annule_le__isnull=True,debut__lte=ref,accompagnement__debut__lte=ref).filter(Q(fin__isnull=True)|Q(fin__gt=ref)).filter(Q(accompagnement__fin__isnull=True)|Q(accompagnement__fin__gt=ref)).select_related('intervenant','organisme')
@@ -253,7 +298,7 @@ def enrichir(acteur,lignes,cles,ref):
             for x in m.SituationPersonnelle.objects.filter(personne_id__in=ids,debut__lte=ref).filter(Q(fin__isnull=True)|Q(fin__gt=ref)):
                 cartes[x.personne_id]['social.'+x.dimension].append(x.valeur)
             continue
-        model,champs,droits=GROUPES[g];qs=model.objects.filter(personne_id__in=ids,debut__lte=ref).filter(Q(fin__isnull=True)|Q(fin__gt=ref))
+        model,champs,droits=GROUPES[g];champs=(*champs,*[c for c in INFORMATIONS_DETAILLEES.get(g,()) if g+'.'+c in cles]);qs=model.objects.filter(personne_id__in=ids,debut__lte=ref).filter(Q(fin__isnull=True)|Q(fin__gt=ref))
         if any(f.name=='annule_le' for f in model._meta.fields):qs=qs.filter(annule_le__isnull=True)
         fks=[f.name for f in model._meta.fields if f.is_relation and f.name!='personne'];qs=qs.select_related(*fks)
         for x in qs:
@@ -265,18 +310,18 @@ def enrichir(acteur,lignes,cles,ref):
             for p in x['personnes']:x['_faits_par_personne'][p]['mission']=x['_faits_missions']
         if x.get('_declaration'):
             g,fait=x['_declaration']
-            champs=GROUPES[g][1] if g in GROUPES else PARCOURS[g][1]
+            champs=(*GROUPES[g][1],*[c for c in INFORMATIONS_DETAILLEES.get(g,()) if g+'.'+c in cles]) if g in GROUPES else PARCOURS[g][1]
             carte=carte_fait(g,fait,champs)
             x['valeurs'].update(carte)
             for p in x['personnes']:x['_faits_par_personne'][p][g]=[carte]
         x['_libelles_personnes']={p:str(personnes[p]) for p in x['personnes']}
         propres=set(x['valeurs'])
         for c in cles:
-            if (c in ('personne','age','precision_naissance') or '.' in c) and c not in propres:x['valeurs'][c]=list({v for p in x['personnes'] for v in cartes[p][c]})
+            if (c in ('personne','age','precision_naissance','qualite_naissance') or '.' in c) and c not in propres:x['valeurs'][c]=list({v for p in x['personnes'] for v in cartes[p][c]})
         x['_par_personne']={p:{**x['valeurs'],**{c:cartes[p][c] for c in cles if personnelle(c) and c not in propres},**({'entree_connue':x['_entrees'][p]} if p in x.get('_entrees',{}) else {})} for p in x['personnes']}
 
 
-def personnelle(c):return c in ('personne','age','precision_naissance','entree_connue') or '.' in c
+def personnelle(c):return c in ('personne','age','precision_naissance','qualite_naissance','entree_connue') or '.' in c
 
 
 def filtrer_personne(x,p,criteres):
@@ -352,18 +397,23 @@ def accepte(x,c,op,val):
 
 
 @service_metier
-def calculer(acteur,d,*,contributions=False):
+def calculer(acteur,d,*,contributions=False,selectionner=None):
     from . import cohortes_exploration as cohortes
     cohorte=cohortes.verifier(d)
     if d['mesure']=='menages':suivi.exiger(acteur,'view_menage')
-    communs={'personne','jour_semaine','date_saisie','date_version','total','mois','jour','age','precision_naissance','unite'}
+    communs={'personne','jour_semaine','date_saisie','date_version','total','mois','jour','age','precision_naissance','qualite_naissance','unite'}
     propres={'personnes':set(),'menages':set(),'prises':{'date_fin','type','etat','origine','orientation','motif'},'demandes':{'etat','motif','origine'},'accords_hebergement':{'date_fin','duree','type','origine','etat'},'accords_repas':{'date_fin','duree','type','origine','etat'},'sejours':{'duree_selection','date_fin','etat','duree','entree_connue','quantite'},'affectations':{'lieu','lieu_id','date_fin','duree','duree_selection','quantite'},'repas':{'type','etat','origine','quantite'},'aides':{'type','etat','quantite'},'appels':{'complement115','appelant','auteur','auteur_version','heure','type','etat','motif','secondaire','reponse','origine','orientation','adultes_declares','enfants_declares','grossesses_declarees'},'ressources':{'type','etat','quantite'},'dettes':{'type','etat','quantite'},'couts':{'phase','nature_financement','unite_facturee','quantite_facturee','prix_unitaire','reference_calcul','prescripteur_id','signataire_id','dossier','type','etat','prescripteur','signataire','quantite'},'imputations':{'phase','nature_financement','reference_calcul','prescripteur_id','signataire_id','financeur_id','dossier','type','prescripteur','signataire','financeur','budget','quantite'}}
+    for c in DECLARATIONS:propres.setdefault(c,{'type','etat'})
+    propres['relations']={'date_fin'}
+    propres['fragments_sejour']={'date_fin','lieu','lieu_id','quantite'}
     axes=[d['axe'],d['croisement'],*[d.get('axe'+str(i),'') for i in range(3,8)]]
     colonnes=[d.get('colonne'+str(i),'') for i in range(1,12)]
+    non_colonnes=[*axes,*[d['filtre'+str(i)] for i in range(1,(d.get('filtres') or 2)+1)]]
+    if any(c in DETAILS_SEULS for c in non_colonnes if c):raise ValidationError('Cette information qualitative est disponible en colonne détaillée, pas comme axe ou filtre.')
     choisies=[*colonnes,*axes,*[d['filtre'+str(i)] for i in range(1,(d.get('filtres') or 2)+1)]]
     if any(c.startswith('mission.') for c in choisies if c) and d['population'] not in ('prises','sejours','accords_hebergement','accords_repas','affectations','repas','aides','couts','imputations'):raise ValidationError('Les missions professionnelles se lisent dans une prise en charge ou ses prestations, pas depuis les appartenances de la personne.')
     if any(c and '.' not in c and c not in communs|propres[d['population']] for c in choisies):raise ValidationError('Un axe ou filtre ne correspond pas à cette population. Choisissez la population concernée, ou une dimension de situation personnelle.')
-    if d['mesure'] in (*mesures.DUREES,*mesures.NUITS_DISTINCTES,'participations') and d['population']!='sejours':raise ValidationError('Cette mesure concerne les épisodes de séjour, pas une autorisation ou une distribution.')
+    if (d['mesure'] in (*mesures.DUREES,'participations') and d['population']!='sejours') or (d['mesure'] in mesures.NUITS_DISTINCTES and d['population'] not in ('sejours','fragments_sejour')):raise ValidationError('Cette mesure concerne les épisodes de séjour, pas une autorisation ou une distribution.')
     n=d.get('filtres') or 2;cles=[*colonnes,*axes,*[d['filtre'+str(i)] for i in range(1,n+1)]];lignes=population(acteur,d);cles+=mesures.preparer(acteur,lignes,d)
     if d.get('reference_mode') in ('fait','saisie'):
         from datetime import date
@@ -386,8 +436,17 @@ def calculer(acteur,d,*,contributions=False):
         mesures.actualiser_nuitees(x)
         if not all(accepte(x,c,op,v) for c,op,v in criteres if not personnelle(c)):continue
         selection.append(x)
+    # Extension interne typée : aucune fonction ni chemin exécutable n'est
+    # accepté depuis un modèle. La composition relationnelle fournit ce rappel.
+    if selectionner is not None:selection=selectionner(selection)
     lignes=cohortes.retenir(selection,cohorte)
     for x in lignes:mesures.actualiser_nuitees(x)
+    return agreger(d,lignes,contributions=contributions)
+
+
+def agreger(d,lignes,*,contributions=False):
+    """Agrégation pure des faits déjà sélectionnés et contrôlés."""
+    axes=[d['axe'],d['croisement'],*[d.get('axe'+str(i),'') for i in range(3,8)]]
     # Les noms restent les valeurs des anciens filtres et modèles. L'identité
     # du lieu est une clé de regroupement séparée, également sélectionnable.
     lieux=defaultdict(set)
@@ -439,7 +498,7 @@ def calculer(acteur,d,*,contributions=False):
         if d['mesure']=='moyenne':return (sum(nombres)/len(nombres)).quantize(Decimal('.01'),rounding=ROUND_HALF_UP)
         return sum(nombres,Decimal('0'))
     if d['mesure'] in ('adultes_declares','enfants_declares','grossesses_declarees') and d['population']!='appels':raise ValidationError('Les effectifs déclarés par appel ne concernent que la population des appels.')
-    if d['mesure'] in ('quantite','minimum','maximum','moyenne') and d['population'] not in ('sejours','affectations','repas','aides','ressources','dettes','couts','imputations'):raise ValidationError('Cette population n’a pas de quantité additive ; choisissez objets ou personnes/ménages distincts.')
+    if d['mesure'] in ('quantite','minimum','maximum','moyenne') and d['population'] not in ('sejours','fragments_sejour','affectations','repas','aides','ressources','dettes','couts','imputations'):raise ValidationError('Cette population n’a pas de quantité additive ; choisissez objets ou personnes/ménages distincts.')
     resultats=[{'_cellule':{'chemin':cle[:-1],'unite':cle[-1]},'_objets':list(xs.values()) if contributions else [],'axe':libelle(cle[0]),'croisement':libelle(cle[1]),'niveaux':[libelle(c) for c in cle[2:-1]],'unite':cle[-1] if d['mesure'] in ('quantite','minimum','maximum','moyenne') else d['mesure'],'valeur':mesure(xs.values()),'inconnus':mesures.inconnus(xs.values(),d['mesure'])} for cle,xs in sorted(ventilation.items())]
     if d.get('sous_totaux'):
         niveaux=[i for i,c in enumerate(axes) if c];parties={}

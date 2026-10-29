@@ -145,7 +145,7 @@ def fiche_objet(acteur,d,cellule,identifiant,token,page):
         u=urlsplit(native);q=dict(parse_qsl(u.query,keep_blank_values=True))
         q['retour_exploration']=signer_retour(acteur,{'page':page},justificatif=token)
         native=urlunsplit((u.scheme,u.netloc,u.path,urlencode(q),u.fragment))
-    cles=[c for c in x['valeurs'] if c!='total' and c in e.disponibles(acteur)]
+    cles=[c for c in x['valeurs'] if c!='total' and c in e.disponibles(acteur,informations=True)]
     lignes=[]
     for c in cles:
         projection={**d,**{'colonne'+str(i):'' for i in range(1,12)},'colonne1':c}
