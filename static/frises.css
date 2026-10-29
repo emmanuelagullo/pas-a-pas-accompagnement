@@ -46,3 +46,17 @@
 
 .frise-marque[hidden],[data-frise-reperes-initial][hidden]{display:none}
 .frise-details>summary{min-width:5.5rem;text-align:right}
+/* La commande reste dans la ligne du nom, au-dessus du dessin. */
+.resultats-dossiers>li>.frise-slot>.frise-details>summary{top:.85rem;right:.5rem}
+.resultats-dossiers.avec-frises>li>a>strong{display:block;padding-inline-end:5.7rem;min-height:1.5rem}
+.frise-aide{position:relative;display:inline-block;font-size:.8rem;font-weight:normal}
+.frise-aide[hidden]{display:none}
+.frise-aide>summary{cursor:pointer}
+.frise-aide>div{border:1px solid #cadbd3;border-radius:.4rem;padding:.5rem;background:#fff;max-width:32rem}
+.frise-reglages{border:1px solid #cadbd3;border-radius:.4rem;padding:.3rem .5rem;margin:.35rem 0}
+.frise-reglages>summary{cursor:pointer;text-align:right}
+.elements-dates .frise-personnelle-trait{display:none}
+.elements-dates.avec-frise{list-style:none;padding:0}
+.elements-dates.avec-frise>li{margin:.7rem 0}
+.elements-dates.avec-frise .frise-personnelle-trait{display:block}
+.frise-aide>summary,.frise-reglages>summary{min-height:24px;line-height:24px}

@@ -142,26 +142,57 @@ class TrajectoireUnifieeTests(TestCase):
         self.assertEqual(self.client.get(reverse('dossiers:social',args=[self.p.pk])).status_code,403)
         self.assertEqual(self.client.get(reverse('dossiers:rapport_a'),{'rubrique':'ressources','format':'csv'}).status_code,403)
         lecteur.user_permissions.add(Permission.objects.get(content_type__app_label='personnes',codename='view_revisionsituationpersonnelle'))
-        self.assertContains(self.client.get(self.url),'En formation')
+        lecture=self.client.get(self.url)
+        self.assertContains(lecture,'En formation')
+        self.assertFalse(any(l.get('modifier_url') for l in lecture.context['frise_personnelle']))
         self.assertEqual(self.client.get(self.murl).status_code,403)
         self.assertEqual(self.client.get(reverse('suivi:trajectoire',args=[self.a.pk])).status_code,403)
 
-    def test_frise_personnelle_corrigee_et_filtree(self):
+    def test_frise_meme_liste_corrigee_et_filtrage_personnel(self):
         ancien = self.fait('sans_emploi', date(2026, 1, 1))
         self.fait('formation', date(2026, 2, 1))
         self.fait('emploi', ancien.debut, correction=ancien.pk, motif='Erreur fictive corrigée')
         social.evenement(self.u, self.a, self.p, date(2026, 2, 2), 'Récit fictif hors frise', 'Fictif')
         bd6.renseigner(self.u, self.q, 'emploi', 'sans_emploi', date(2026, 2, 1), 'Source privée fictive', bd6.jeton(self.q))
         page = self.client.get(self.url, {'format_elements':'personnelle', 'debut':'2026-01-01', 'fin':'2026-03-01'})
-        self.assertContains(page, 'frise-personnelle-point', count=2)
-        self.assertNotContains(page, 'Récit fictif hors frise')
+        self.assertContains(page, 'frise-personnelle-point', count=3)
+        self.assertContains(page, 'Récit fictif hors frise')
         self.assertNotContains(page, 'Source privée fictive')
-        self.assertEqual([l['date'] for l in page.context['frise_personnelle']], [date(2026,1,1), date(2026,2,1)])
+        self.assertEqual([l['date'] for l in page.context['frise_personnelle']], [date(2026,1,1), date(2026,2,1),date(2026,2,2)])
         self.assertIn('En emploi', page.context['frise_personnelle'][0]['texte'])
         self.assertTrue(all(l['url'] for l in page.context['frise_personnelle']))
         # Le ménage ne reçoit pas les faits personnels d'avant son contexte daté.
         page = self.client.get(self.murl, {'format_elements':'personnelle', 'debut':'2025-01-01', 'fin':'2025-12-31'})
         self.assertEqual(page.context['frise_personnelle'], [])
+
+    def test_modifier_depuis_evolution_reutilise_date_et_formulaire(self):
+        self.fait('formation',date(2026,1,1))
+        page=self.client.get(self.url,{'debut':'2026-01-01','fin':'2026-02-01'},HTTP_X_CONDITION_EVOLUTION='1')
+        emploi=next(l for l in page.context['comparaison'] if l['dimension']=='Emploi / formation')
+        correction=emploi['initial_lecture']['modifier_url']
+        nouveau=emploi['final_lecture']['modifier_url']
+        self.assertIn('/corriger/',correction)
+        self.assertIn('/nouveau/',nouveau)
+        f=self.client.get(nouveau,HTTP_X_CONDITION_FORM='1')
+        self.assertContains(f,'data-condition-form')
+        self.assertEqual(f.context['form'].initial['debut'],date(2026,2,1))
+        data={'attendu':f.context['form'].initial['attendu'],'debut':'2026-02-01','valeur':'emploi','source':''}
+        succes=self.client.post(nouveau,data,HTTP_X_CONDITION_FORM='1')
+        self.assertEqual(succes.json(),{'enregistre':True})
+        self.assertEqual(m.SituationPersonnelle.objects.get(debut=date(2026,2,1)).valeur,'emploi')
+        # Le même jeton ne doit pas permettre un deuxième enregistrement.
+        self.assertEqual(self.client.post(nouveau,data,HTTP_X_CONDITION_FORM='1').status_code,409)
+
+    def test_preference_frise_commune_sans_changer_les_elements(self):
+        self.fait()
+        a=self.client.get(self.url)
+        n=len(a.context['frise_personnelle'])
+        preference=reverse('dossiers:frises_preference')
+        self.assertEqual(self.client.post(preference,{'actif':'1','retour_frise':a.context['frise_retour']}).status_code,302)
+        b=self.client.get(self.url)
+        self.assertContains(b,'class="elements-dates avec-frise"')
+        self.assertEqual(len(b.context['frise_personnelle']),n)
+        self.assertNotContains(b,'name="format_elements"')
 
     def test_retours_bd_source_date_et_ancienne_url(self):
         self.fait()

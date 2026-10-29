@@ -31,7 +31,17 @@ class Form2Tests(Donnees, TestCase):
         r.beneficiaires.add(self.p)
         page = self.client.get(self.detail, {'repas': str(r.pk), 'q': 'Fictif'})
         self.assertNotContains(page, 'Afficher les actions')
-        self.assertNotContains(page, 'type="radio"')
+        # Le sélecteur Situation / Évolution utilise deux radios ; les
+        # prestations gardent leurs accès directs sans radio de sélection.
+        self.assertContains(page, 'name="lecture_sociale"', count=2)
+        from html.parser import HTMLParser
+        class Radios(HTMLParser):
+            noms=[]
+            def handle_starttag(self, tag, attrs):
+                a=dict(attrs)
+                if tag=='input' and a.get('type')=='radio':self.noms.append(a.get('name'))
+        parseur=Radios();parseur.feed(page.content.decode())
+        self.assertEqual(set(parseur.noms), {'lecture_sociale'})
         self.assertContains(page, 'data-dossier-selection')
         self.assertContains(page, 'data-dossier-action')
         selection = page.context['sejours_dossier'][0].selection_url

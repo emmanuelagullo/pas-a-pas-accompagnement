@@ -12,7 +12,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET
 from .champs_saisie import FormulaireMetier
 from .models import Accompagnement, Appartenance, Menage, Personne
-from . import dossier, social, trajectoire
+from . import dossier, social, trajectoire, frises
 
 
 class Filtres(FormulaireMetier):
@@ -22,7 +22,6 @@ class Filtres(FormulaireMetier):
     vue_debut = forms.ChoiceField(label='Situation de départ', required=False)
     vue_fin = forms.ChoiceField(label='Situation d’arrivée', required=False)
     presentation_evolution = forms.ChoiceField(label='Présentation', required=False, choices=[('changements','Informations ayant évolué'),('tout','Toutes les informations')])
-    format_elements = forms.ChoiceField(label='Éléments datés', required=False, choices=[('liste', 'Liste complète'), ('personnelle', 'Frise personnelle')])
     debut = forms.DateField(label='Depuis (inclus)', required=False,
                             widget=forms.DateInput(attrs={'type': 'date'}))
     fin = forms.DateField(label='Jusqu’au (inclus)', required=False,
@@ -153,7 +152,7 @@ def afficher(request, nature, objet, ancienne_prise=None, contexte=None):
         selection_personnes = [beneficiaire] if beneficiaire else (list(selection.beneficiaires.all()) if selection else personnes)
         if beneficiaire and selection and not any(p.pk == beneficiaire.pk for p in selection.beneficiaires.all()):
             form.add_error('beneficiaire', 'Cette personne ne bénéficie pas de la prise en charge sélectionnée.')
-            return render(request, 'social/_trajectoire_contenu.html' if request.headers.get('X-Condition-Evolution') == '1' else 'social/trajectoire.html', {'evolution_integree': request.headers.get('X-Condition-Evolution') == '1', 'objet':objet, 'nature':nature, 'form':form,
+            return render(request, 'social/_trajectoire_contenu.html' if request.headers.get('X-Condition-Evolution') == '1' else 'social/trajectoire.html', {'evolution_integree': request.headers.get('X-Condition-Evolution') == '1', 'objet':objet, 'nature':nature, 'form':form, 'frises_actives':frises.preference(request), 'frise_retour':frises.commande(request),
                 'retour_trajectoire':reverse('dossiers:detail', args=[nature,objet.pk]) + '?' + urlencode(params), 'parametres':params})
         params['date_service'] = (d['fin'] or timezone.localdate()).isoformat()
         lignes = trajectoire.construire(None, request.user, beneficiaire, d['debut'], d['fin'],
@@ -163,12 +162,22 @@ def afficher(request, nature, objet, ancienne_prise=None, contexte=None):
         date_initiale = d['debut'] or min([date_finale] + dates + [a.debut for a in retenues])
         comparaison = trajectoire.comparer(request.user, selection_personnes, date_initiale, date_finale, dans_dossier=dans_dossier)
         for entree in comparaison:
+            for cle, jour in [('initial_lecture', date_initiale), ('final_lecture', date_finale)]:
+                lecture = entree.get(cle)
+                if lecture and not lecture.get('projection'):
+                    fait = lecture.get('fait')
+                    if fait and request.user.has_perms(['personnes.add_situationpersonnelle', 'personnes.change_situationpersonnelle']):
+                        nom, args = ('dossiers:social_corriger', [fait.personne_id,fait.dimension,fait.pk]) if fait.debut == jour else ('dossiers:social_nouveau', [fait.personne_id,fait.dimension])
+                        lecture['modifier_url'] = edition_url(nom,args,params,nature,objet,selection,jour)
             for borne in ('initial_lecture', 'final_lecture'):
                 for fait in (entree.get(borne) or {}).get('anciens', []):
                     fait.url_provenance = reverse('suivi:social', args=[fait.accompagnement_id]) + '?' + urlencode({
                         'date': (date_initiale if borne == 'initial_lecture' else date_finale).isoformat(),
                         'contexte_dossier': dossier.pour_vue(request, fait.accompagnement, nature, objet.pk, params)['contexte_dossier']})
         for ligne in lignes:
+            if ligne.get('edition'):
+                nom,args=ligne['edition']
+                ligne['modifier_url']=edition_url(nom,args,params,nature,objet,selection,ligne['date'])
             if ligne['url'] and ligne.get('prise'):
                 ligne['url'] += '?' + urlencode({'date':ligne['date'].isoformat(),
                     'contexte_dossier':dossier.pour_vue(request, ligne['prise'], nature, objet.pk, params)['contexte_dossier']})
@@ -189,6 +198,7 @@ def afficher(request, nature, objet, ancienne_prise=None, contexte=None):
     return render(request, 'social/_trajectoire_contenu.html' if request.headers.get('X-Condition-Evolution') == '1' else 'social/trajectoire.html', {
         'evolution_integree': request.headers.get('X-Condition-Evolution') == '1',
         'objet': objet, 'nature': nature, 'form': form, 'lignes': lignes,
+        'frises_actives':frises.preference(request), 'frise_retour':frises.commande(request),
         'anciennes_lignes': [l for l in lignes if l['ancien']],
         'frise_personnelle': personnelle(lignes, date_initiale, date_finale),
         'comparaison': comparaison, 'comparaison_affichee': [l for l in comparaison if form.cleaned_data.get('presentation_evolution') == 'tout' or valeur_comparee(l, 'initial') != valeur_comparee(l, 'final')] if form.is_valid() else [],
@@ -218,15 +228,15 @@ def libelle_borne(form, borne, jour):
 
 
 def personnelle(lignes, debut, fin):
-    """Points à date d'effet, après le filtrage métier ; aucune continuité ajoutée.
-
-    Premier périmètre : déclarations personnelles et séries économiques déjà
-    chargées par la trajectoire. Les récits, prestations et témoins collectifs
-    restent dans la liste complète ; les corrections sont dans la source.
-    """
+    """Même liste de faits autorisés, avec leur position à date d'effet."""
     if debut is None or fin is None:
         return []
     duree = max(1, (fin - debut).days)
     return [{**l, 'position': f'{100 * (l["date"] - debut).days / duree:.4f}'}
-            for l in lignes if not l['ancien'] and l['beneficiaire'] is not None
-            and l['nature'] in ('Déclaration personnelle', 'Ressources', 'Dettes')]
+            for l in lignes if not l['ancien']]
+
+
+def edition_url(nom,args,params,nature,objet,prise,jour):
+    return reverse(nom,args=args)+'?'+urlencode({**params,'saisie_sociale':'1','portee':'1',
+        'date':jour.isoformat(),'depuis_nature':nature,'depuis_pk':str(objet.pk),
+        'depuis_prise':str(prise.pk) if prise else ''})

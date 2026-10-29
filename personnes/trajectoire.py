@@ -25,7 +25,7 @@ def construire(accompagnement, acteur, beneficiaire=None, debut=None, fin=None, 
     lignes = []
 
     def ajouter(date, enregistre, nature, texte, personne=None, document=None,
-                ancien=False, url='', personnel=False, terme=None, prise=None):
+                ancien=False, url='', personnel=False, terme=None, prise=None, edition=None):
         if (debut and date < debut) or (fin and date > fin):
             return
         if personne and personne.pk not in ids or beneficiaire and personne != beneficiaire:
@@ -34,7 +34,7 @@ def construire(accompagnement, acteur, beneficiaire=None, debut=None, fin=None, 
             return
         lignes.append(dict(date=date, enregistre=enregistre, nature=nature, texte=texte,
                            texte_document=document, beneficiaire=personne, ancien=ancien,
-                           url=url, terme=terme, prise=prise))
+                           url=url, terme=terme, prise=prise, edition=edition))
 
     if acteur.has_perms(['personnes.view_personne', 'personnes.view_situationpersonnelle',
                          'personnes.view_revisionsituationpersonnelle']):
@@ -42,7 +42,7 @@ def construire(accompagnement, acteur, beneficiaire=None, debut=None, fin=None, 
             ajouter(s.debut, s.enregistre_le, 'Déclaration personnelle',
                     f'{s.get_dimension_display()} : {s.libelle_valeur} (source : {s.source})',
                     s.personne, url=reverse('dossiers:social', args=[s.personne_id]),
-                    personnel=True, terme=s.fin)
+                    personnel=True, terme=s.fin, edition=('dossiers:social_corriger', [s.personne_id,s.dimension,s.pk]) if acteur.has_perms(['personnes.add_situationpersonnelle','personnes.change_situationpersonnelle']) else None)
     # Les détails économiques ne deviennent jamais des prestations ni des paiements.
     for code in ('ressources', 'dettes'):
         if not acteur.has_perms(dossier_complet.droits_lecture(code)):
@@ -57,7 +57,7 @@ def construire(accompagnement, acteur, beneficiaire=None, debut=None, fin=None, 
             ajouter(s.debut, s.enregistre_le, dossier_complet.RUBRIQUES[code].titre,
                     f'{titre}{montant} (source : {s.source})', s.personne,
                     url=reverse('dossiers:fiche_a', args=[s.personne_id, 'economique']),
-                    personnel=True, terme=s.fin)
+                    personnel=True, terme=s.fin, edition=('dossiers:fait_a_corriger', [s.personne_id,code,s.pk]) if acteur.has_perms(['personnes.add_'+s._meta.model_name,'personnes.change_'+s._meta.model_name]) else None)
     if not acteur.has_perms(dossier.DROITS):
         return sorted(lignes, key=ordre)
     if acteur.has_perm('personnes.view_situationsociale'):

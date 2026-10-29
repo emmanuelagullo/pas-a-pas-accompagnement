@@ -5,6 +5,7 @@
   const boutons = () => document.querySelectorAll('[data-frise-choix] button').forEach(b => b.hidden = true);
   boutons();
   document.addEventListener('dossier:actualise', boutons);
+  document.addEventListener('dossier:commandes', boutons);
   document.addEventListener('change', async event => {
     const box = event.target;
     const form = box.closest('[data-frise-choix]');
@@ -33,6 +34,9 @@
       anciens.forEach(n => { n.replaceChildren(...nouveaux.get(n.dataset.friseSlot).childNodes); });
       document.querySelectorAll('.frise-details').forEach(d => { if(ouverts.has(d.id)) d.open = true; });
       document.querySelectorAll('.resultats-dossiers').forEach(l => l.classList.toggle('avec-frises',box.checked));
+      document.querySelectorAll('[data-frise-choix] input[name=actif]').forEach(c => c.checked=box.checked);
+      document.querySelectorAll('[data-frise-aide]').forEach(d => d.hidden=!box.checked);
+      document.querySelectorAll('[data-elements-dates]').forEach(l => l.classList.toggle('avec-frise',box.checked));
       scrollTo(0,y);
       document.dispatchEvent(new Event('frises:actualise'));
     } catch (_) {
@@ -109,6 +113,13 @@
       }
     }
     if(cadre==='annee') a=Math.max(e.debut,anneeAvant(e.fin));
+    if(cadre==='semaine') a=Math.max(e.debut,e.fin-7);
+    if(cadre==='mois'||cadre==='trimestre') {
+      const d=new Date(e.fin*86400000), mois=d.getUTCMonth()-(cadre==='mois'?1:3);
+      const premier=new Date(Date.UTC(d.getUTCFullYear(),mois,1));
+      const dernier=new Date(Date.UTC(premier.getUTCFullYear(),premier.getUTCMonth()+1,0)).getUTCDate();
+      a=Math.max(e.debut,Date.UTC(premier.getUTCFullYear(),premier.getUTCMonth(),Math.min(d.getUTCDate(),dernier))/86400000);
+    }
     const message=zone.querySelector('[data-frise-message]');
     if(!Number.isFinite(a)||!Number.isFinite(b)||b<=a||a<e.debut||b>e.fin) {
       message.textContent='Choisissez deux dates ordonnées dans la période initiale.';return;

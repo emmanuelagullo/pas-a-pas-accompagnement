@@ -165,7 +165,7 @@ accessible suit l'état et identifie la frise. Les repères temporels ont une
 apparence stable au survol et au focus ; seul leur détail apparaît. La légende
 réutilise les couleurs et les motifs effectivement dessinés, accompagnés de mots.
 
-Dans le dépliage seulement, **Période** ouvre :
+Dans le dépliage seulement, **Zoom** ouvre :
 
 - Cadrage initial ou Dernière année ;
 - À des dates : bornes symboliques initiales, Il y a un an, Aujourd'hui lorsque
@@ -187,21 +187,13 @@ réglages ne modifient ni recherche ni dates sociales. Sans JavaScript, les
 réglages graphiques sont cachés ; la vue élargie initiale et ses textes restent
 consultables, ainsi que la préférence serveur via Appliquer.
 
-Dans **Évolution**, Éléments datés propose **Liste complète / Frise personnelle**,
-sur place par le même formulaire GET et le même contrat de fragment. La table
-comparative entre les deux dates reste indépendante. La première frise retient
-les déclarations personnelles de situation, les ressources et les dettes déjà
-chargées par la trajectoire. Des points sur une échelle commune à la sélection
-montrent leurs dates d'effet ; les textes, bénéficiaires, fins explicites,
-sources et liens d'historique restent lisibles sans survol. Aucun segment ne
-suppose une continuité personnelle ou une appartenance au ménage entre deux
-faits. Aucun fait ancien en cours n'est redaté à l'ouverture de la fenêtre.
-Les versions corrigées sont celles lues aujourd'hui ; les corrections et retraits
-ne deviennent pas des événements métier supplémentaires. Les données de naissance
-imprécises, les autres séries sociales non encore projetées, les récits et les
-journaux ne sont pas injectés dans cette première vue. Les membres, bénéficiaires
-et droits sont ceux du constructeur de trajectoire, avant cette projection, qui
-n'ajoute aucune requête.
+Dans **Évolution**, le sélecteur initial Liste complète / Frise personnelle a
+été remplacé par la case **Frise** commune à la session, près d'Éléments datés.
+La même liste autorisée est affichée dans les deux modes, avec les mêmes textes,
+comptes et liens. La représentation ajoute seulement un point à la date d'effet.
+Les anciennes situations de suivi restent à part, dans le même dépliage dans
+les deux modes. Les sources, bénéficiaires et compositions datées restent ceux
+du constructeur de trajectoire ; aucune date n'est extraite d'un récit.
 
 ### Projet : examen et limite volontaire
 
@@ -222,7 +214,7 @@ métier existante et n'empêche pas la livraison des améliorations indépendant
 2. Élargir puis réduire : commande à droite, libellé et nom accessible adaptés.
 3. Survoler / atteindre au clavier un repère : trait stable, bulle consultable,
    masquable par Échap. Comparer les cinq échantillons aux marques de la frise.
-4. Ouvrir Période, zoomer, se déplacer, choisir des bornes symboliques puis une
+4. Ouvrir Zoom, zoomer, se déplacer, choisir des bornes symboliques puis une
    date ; une paire invalide affiche une explication et conserve le dessin.
 5. Réinitialiser : dessin et échelle initiaux ; vérifier que la miniature n'a
    jamais changé. Naviguer vers une source et revenir : cadrage restauré.
@@ -253,3 +245,87 @@ intégration d’ACT12–13 sur fdc0b52, les 43 tests ciblés des frises, de la
 trajectoire, des liaisons et des messages d’attribution réussissent. La suite
 générale entière n’a pas été relancée sur cette seconde base ; les validations
 complémentaires ciblent les zones modifiées et leurs interactions.
+
+
+## Lot 4 : compacité et édition dans Évolution (état courant)
+
+Base examinée : `2b42c14141eaaa45981a41a955e20399161d71a9` (main Inria,
+lot 3 déjà intégré). Les politiques d'accès, sources sociales et dépendances
+restent inchangées. Aucun changement de modèles ou migration.
+
+- Form1 : Élargir / Réduire est dans la ligne du nom, à droite, avec une place
+  réservée lorsque les frises sont visibles. Il ne recouvre plus le dessin.
+- Une légende partagée se déplie près de Frise ; elle est cachée lorsque la
+  préférence est désactivée, et repliée au chargement. Les échantillons ne sont
+  plus répétés dans les détails de chaque bande. Les phrases génériques
+  « Ni présence attestée… » et « Le futur reste… » sont retirées ; les libellés
+  autorisé / enregistré / accordé, les dates, prévisions et liens restent précis.
+- Zoom est aligné à droite, sous la commande Réduire, dans un cadre léger qui
+  contient ses réglages. Aux cadrages initiaux et annuel s'ajoutent 7 jours,
+  un et trois mois glissants calculés en dates civiles, relativement à la borne droite.
+  Le calcul civil traite les fins de mois ; les limites initiales restent fixes.
+- Situation / Évolution reprend les radios visuelles de Ménages / Personnes.
+  Situation reste légèrement mise en avant ; la sélection active est cochée et
+  encadrée. Les filtres d'Évolution se conservent au retour depuis Situation.
+  Sans JavaScript, un lien permet de consulter la page d'Évolution.
+- Les deux paragraphes introductifs sur l'histoire et les droits sont retirés.
+  Les règles continuent d'être appliquées côté serveur. Les contrôles datés et
+  les libellés des sources restent explicites.
+- Éléments datés possède la case Frise commune et un compteur ; le prototype
+  limité aux seules déclarations personnelles / économiques n'est plus une vue
+  distincte. Tous les éléments de la liste principale ont leur point, y compris
+  les prestations, événements ou bilans collectifs déjà autorisés par la vue.
+  Le changement de présentation ne remplace ni table comparative ni liste et
+  ne déplace pas la sélection. Le terme « Échelle linéaire » n'est plus ajouté
+  dans cette partie de l'interface ; les deux dates restent visibles.
+
+### Modifier depuis Évolution
+
+Aux bornes de comparaison, une déclaration personnelle simple peut être modifiée
+avec le même contrat que Situation : à la date de début du fait, correction du
+fait existant ; à une date ultérieure, nouveau changement à la date consultée.
+Les liens portent la personne, la dimension, la date et le contexte d'origine.
+Dans Éléments datés, Modifier vise le fait exact pour les déclarations personnelles,
+les ressources et les dettes. Une projection économique agrégée conserve son
+accès détaillé : elle n'est jamais modifiée comme une déclaration unique.
+Les autres objets continuent à proposer leur source, sans formulaire générique
+qui contournerait leurs règles spécialisées.
+
+Les formulaires existants sont chargés sur place. Ils conservent droits serveur,
+jetons périmés, portée des corrections, contexte de saisie, Enregistrer / Annuler
+et journaux. L'historique reste disponible à la demande. Après enregistrement,
+Situation est réactualisée et Évolution est réouverte avec ses personnes, prise,
+dates et présentation ; la sélection active reste Évolution. Les changements
+non enregistrés sont protégés lors des changements de mode et de filtres.
+
+### Qualification du lot 4
+
+- 45 tests ciblés réussis : frises, trajectoire, condition sociale et Form2.
+  Vérification de l'égalité des éléments, de la préférence commune, des droits
+  partiels, de la date de modification et du refus d'un deuxième POST périmé.
+- Suite générale exécutée : 942 tests, 3 ignorés, 3 échecs initiaux. Le test
+  Form2 qui interdisait toute radio a été précisé : seules les deux radios
+  Situation / Évolution sont attendues ; les prestations gardent leurs accès
+  directs. Il repasse dans la qualification ciblée.
+- Les deux autres échecs se reproduisent sur main 2b42c14 inchangé, dans un
+  checkout distinct :
+  `personnes.tests_ergonomie.ErgonomieTests.test_notes_correction_annulation_et_conflit_conservent_contexte`
+  (nom de la personne absent de la page du cahier) et
+  `personnes.tests_textes_integration.ParcoursTests.test_refus_document_malveillant_sans_ecriture`
+  (POST du cahier retournant 400 au lieu de 200). Ils concernent les parcours
+  du cahier ACT13 ; ce patch ne modifie pas ces contrats. La suite entière ne
+  peut donc pas être annoncée verte sur cette base.
+- Chromium réel, scénario neuf uniquement : commande au-dessus du dessin,
+  légende partagée et repliée, raccourcis de Zoom, radios de modes, Maïa avec
+  exactement 24 éléments dans les deux représentations, synchronisation des
+  préférences, annulation et enregistrement sur place, filtres et mode conservés.
+  Écran 390 px vérifié : les champs de sélection restent dans leur cadre ; la
+  table possède son propre défilement horizontal. Captures inspectées, aucune
+  erreur JavaScript observée. Ce n'est pas une qualification Firefox, WCAG,
+  programmes natifs ou Pyodide/OPFS.
+- Les trois profils Django et leurs PDF/export/révocation réussissent : 110
+  requêtes sans frise et 118 avec sur le dossier du banc, sans augmentation.
+
+Complément navigateur du lot 4 : sélection Situation / Évolution au clavier,
+retour aux filtres, et préférence Frise commune exercée sans JavaScript via
+Appliquer, y compris sur la page d'Évolution de repli. Ces parcours réussissent.

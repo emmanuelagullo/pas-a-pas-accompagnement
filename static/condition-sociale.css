@@ -58,3 +58,13 @@
 [data-evolution-selection] > div { flex-basis: 100%; }
 [data-evolution-selection] .condition-cadre { flex: 1 1 16rem; margin: .3rem 0; }
 [data-evolution-selection] .condition-cadre select, [data-evolution-selection] .condition-cadre input { display: block; margin: .4rem 0; max-width: 100%; box-sizing: border-box; }
+.condition-modes{margin:.4rem 0;gap:.5rem}
+.condition-modes legend{font-size:.85rem}
+.condition-modes label{border:1px solid #cadbd3;border-radius:2rem;padding:.4rem .85rem;cursor:pointer}
+.condition-modes .condition-recommandee{background:#f0f6f2}
+.condition-modes label:has(input:checked){background:#eaf4ef;border-color:#175c50;font-weight:650}
+.condition-modes input{width:auto}
+/* Les choix de période restent dans leur cadre sur écran étroit. */
+.condition-selection,.condition-selection>*{min-width:0;max-width:100%}
+.condition-selection select{max-width:100%}
+@media(max-width:650px){[data-evolution-selection] select,[data-evolution-selection] input[type=date]{width:100%;min-width:0;max-width:100%}[data-evolution-selection] label,[data-evolution-selection] .helptext{overflow-wrap:anywhere}}

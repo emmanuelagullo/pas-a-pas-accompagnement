@@ -1,6 +1,6 @@
-<details class="frise-reglages" hidden data-frise-reglages><summary>Période</summary>
+<details class="frise-reglages" hidden data-frise-reglages><summary>Zoom</summary>
 <div class="frise-commandes">
-<label>Cadrage <select data-frise-cadre><option value="initial">Cadrage initial</option><option value="annee">Dernière année</option><option value="dates">À des dates…</option></select></label>
+<label>Cadrage <select data-frise-cadre><option value="initial">Cadrage initial</option><option value="semaine">Les 7 derniers jours</option><option value="mois">Le dernier mois</option><option value="trimestre">Les 3 derniers mois</option><option value="annee">La dernière année</option><option value="dates">À des dates…</option></select></label>
 <div class="frise-bornes" hidden><label>De <select data-frise-borne="debut"><option value="debut">Début de la période affichée</option><option value="annee">Il y a un an</option><option value="date">À une date…</option></select><input type="date" aria-label="Date de début" data-frise-date="debut" disabled></label>
 <label>À <select data-frise-borne="fin"><option value="fin">{% if bande.fin_aujourdhui %}Aujourd’hui{% else %}Fin de la période affichée{% endif %}</option><option value="date">À une date…</option></select><input type="date" aria-label="Date de fin" data-frise-date="fin" disabled></label></div>
 <label>Zoom <input type="range" min="0" max="100" value="0" data-frise-zoom aria-label="Zoom de la frise"></label>

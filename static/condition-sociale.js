@@ -31,7 +31,12 @@
   function memoriserContexte() {
     try { sessionStorage.setItem(cleContexte(), root.querySelector('[data-condition-contexte]').value); } catch (_) { /* stockage facultatif */ }
   }
+  function choisirMode(mode) {
+    root.querySelector('[data-condition-revenir]').checked=mode==='situation';
+    root.querySelector('[data-condition-evolution]').checked=mode==='evolution';
+  }
   function initialiserVue() {
+    root.querySelector('[data-condition-evolution]').disabled=false;
     const form = root.querySelector('[data-condition-selection]');
     const select = form?.querySelector('[name="vue_sociale"]');
     const date = form?.querySelector('input[type="date"][name="date_sociale"]');
@@ -57,9 +62,11 @@
     const content = doc.querySelector('[data-condition-trajectoire]');
     if (!content) throw new Error('Évolution indisponible ou session expirée.');
     const panel = root.querySelector('[data-condition-evolution-panel]');
-    panel.replaceChildren(content); panel.hidden = false;
+    panel.replaceChildren(content); panel.hidden = false;panel.dataset.url=String(url);
+    document.dispatchEvent(new Event('frises:actualise'));
+    document.dispatchEvent(new Event('dossier:commandes'));
     root.querySelector('[data-condition-situation]').hidden = true;
-    root.querySelector('[data-condition-revenir]').setAttribute('aria-pressed', 'false');
+    choisirMode('evolution');
     tell('');
     } finally { busy = false; }
   }
@@ -90,17 +97,19 @@
       event.preventDefault(); return;
     }
     if (event.target.closest('[data-condition-revenir]')) {
+      if(dirty && !confirm('Abandonner les modifications non enregistrées ?')) {choisirMode(root.querySelector('[data-condition-evolution-panel]').hidden?'situation':'evolution');return;}
+      close();
       root.querySelector('[data-condition-situation]').hidden = false;
       root.querySelector('[data-condition-evolution-panel]').hidden = true;
-      root.querySelector('[data-condition-revenir]').setAttribute('aria-pressed', 'true');
+      choisirMode('situation');
       return;
     }
     const evolutionLink = event.target.closest('[data-condition-evolution]');
     if (evolutionLink && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) {
-      event.preventDefault();
-      if (dirty && !confirm('Abandonner les modifications non enregistrées ?')) return;
+      if(evolutionLink.tagName==='A') event.preventDefault();
+      if (dirty && !confirm('Abandonner les modifications non enregistrées ?')) {choisirMode(root.querySelector('[data-condition-evolution-panel]').hidden?'situation':'evolution');return;}
       close();
-      try { await evolution(evolutionLink.href); } catch (error) { tell(error.message); }
+      try { await evolution(root.querySelector('[data-condition-evolution-panel]').dataset.url || evolutionLink.dataset.url); } catch (error) { choisirMode(root.querySelector('[data-condition-evolution-panel]').hidden?'situation':'evolution');tell(error.message); }
       return;
     }
     if (event.target.closest('[data-condition-annuler]')) {
@@ -152,7 +161,7 @@
       }
       form.requestSubmit(); return;
     }
-    if (['debut', 'fin', 'beneficiaire', 'presentation_evolution', 'format_elements'].includes(mode)) { form.requestSubmit(); return; }
+    if (['debut', 'fin', 'beneficiaire', 'presentation_evolution'].includes(mode)) { form.requestSubmit(); return; }
     if (!['vue_debut', 'vue_fin'].includes(mode)) return;
     const borne = mode.slice(4);
     const date = form.querySelector('input[type="date"][name="' + borne + '"]');
@@ -177,9 +186,10 @@
     const currentRoot = event.target.closest('[data-condition-sociale]');
     if (!currentRoot) return;
     root = currentRoot; status = root.querySelector('[data-condition-statut]');
-    if (event.target.closest('[data-condition-trajectoire]')) {
+    if (event.target.matches('[data-frise-choix]')) return;
+    if (event.target.matches('[data-evolution-selection]')) {
       event.preventDefault();
-      if (busy) return;
+      if (busy || active) {tell('Terminez ou annulez la modification en cours.');return;}
       const url = new URL(event.target.action, location.href);
       url.search = new URLSearchParams(new FormData(event.target)).toString();
       try { await evolution(url); } catch (error) { tell(error.message); }
@@ -214,6 +224,7 @@
         const fresh = doc.querySelector('[data-condition-sociale]');
         if (!fresh) throw new Error('Enregistré. Rechargez la page pour consulter la nouvelle situation.');
         const anchor = active?.closest('[data-condition-groupe]')?.id;
+        const evolutionUrl=active?.closest('[data-condition-evolution-panel]')?.dataset.url;
         // Recharger les valeurs et jetons après chaque écriture, sans perdre le
         // contexte d'entretien ni réutiliser un ancien formulaire périmé.
         root.innerHTML = fresh.innerHTML;
@@ -239,9 +250,10 @@
         active = null; masques = []; declencheur = null;
         initialiserVue();
         observerNavigation();
+        if(evolutionUrl) {await evolution(evolutionUrl);tell('Modification enregistrée.');}
         if (anchor) {
           const groupe = document.getElementById(anchor);
-          const titre = groupe?.querySelector('h4');
+          const titre = groupe?.querySelector('h4') || groupe;
           if (titre) { titre.tabIndex = -1; titre.focus({ preventScroll: true }); }
           groupe?.scrollIntoView({ block: 'nearest' });
         }
@@ -260,7 +272,7 @@
     if (target?.closest('[data-condition-situation]')) {
       root.querySelector('[data-condition-situation]').hidden = false;
       root.querySelector('[data-condition-evolution-panel]').hidden = true;
-      root.querySelector('[data-condition-revenir]').setAttribute('aria-pressed', 'true');
+      choisirMode('situation');
     }
     if (target) indiquerPosition(target);
     const mobile = link.closest('.condition-menu-mobile');
