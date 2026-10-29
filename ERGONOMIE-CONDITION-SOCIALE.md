@@ -775,3 +775,13 @@ correction de repas sur place et en pleine page. Captures inspectées ; aucune
 erreur JavaScript observée. Contrôles Django, absence de migration, syntaxe du
 script de condition sociale et diff sans erreur. Les programmes natifs,
 Firefox, PostgreSQL et Pyodide/OPFS n'ont pas été exécutés pour ce lot.
+
+## Harmonisation transversale des corrections
+
+La règle de précision facultative est généralisée aux corrections ordinaires,
+y compris les anciens suivis, prestations, textes, documents et financements.
+Elle ne dépend plus du type de journal. Les formulaires complets et sur place
+utilisent le même regroupement. Les formulaires mixtes affichent l'exigence
+selon l'opération et la recalculent au serveur. Ce lot actualise la restriction
+historique aux seuls journaux sociaux et le périmètre limité aux repas du 0008.
+L'inventaire et les exceptions par opération sont dans CORRECTIONS-COHERENTES.md.

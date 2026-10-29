@@ -73,7 +73,7 @@ def histoire(request, pk, action=None, fait_pk=None):
         form = DesignationForm(request.POST if request.method == 'POST' else None, initial={
             'contact': personne, 'debut': correction.debut if correction else timezone.localdate(),
             'source': correction.source if correction else '', 'attendu': attendu})
-        form.fields['motif'].required = bool(correction)
+        form.fields['motif'].required = False
         # Le choix a été fait explicitement dans la recherche, y compris le
         # retrait ; un POST forgé ne peut remplacer sa cible silencieusement.
         if form.is_bound and form.is_valid() and form.cleaned_data['contact'] != personne:

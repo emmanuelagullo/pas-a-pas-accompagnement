@@ -25,7 +25,7 @@ class TexteForm(FormulaireMetier):
 class CorrectionForm(TexteForm):
     etat_attendu = forms.CharField(widget=forms.HiddenInput, required=False)
     texte_attendu = forms.CharField(widget=forms.HiddenInput)
-    motif = forms.CharField(label="Motif de correction", widget=forms.Textarea(attrs={"rows": 2}))
+    motif = forms.CharField(label="Précision sur la correction (facultative)", max_length=240, required=False, widget=forms.Textarea(attrs={"rows": 2}))
 
 
 @never_cache

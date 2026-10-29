@@ -1,3 +1,4 @@
+from . import precisions_correction as precision
 from django.template.response import TemplateResponse
 from datetime import timedelta
 from urllib.parse import urlencode
@@ -113,10 +114,11 @@ def saisir(request,pk=None):
         exiger(request.user,'view_personne','view_menage');initial['menage']=reference(m.Menage,request.GET['menage'])
     initial.update(attendu=s.jeton(a) if a else s.creation(),action='suite' if a else 'saisie')
     form=AppelForm(request.POST if request.method=='POST' else None,acteur=request.user,initial=initial)
+    precision.operation(form,facultatives=('saisie','correction'))
     form.fields['action'].choices=[x for x in form.fields['action'].choices if (x[0]!='saisie')==bool(a)]
     ctx,q,retour=contexte(request,v)
-    principaux=('date','heure','motif_principal','details','demandes_secondaires','secondaires_proposes','etat_reponse','reponses','reponses_proposees','source','action','motif','attendu')
-    secondaires=[form[nom] for nom in form.fields if nom not in principaux]
+    principaux=('date','heure','motif_principal','details','demandes_secondaires','secondaires_proposes','etat_reponse','reponses','reponses_proposees','source','action','attendu')
+    secondaires=[form[nom] for nom in form.fields if nom not in principaux and nom!='motif']
     selection=list(form.fields['beneficiaires'].queryset.filter(pk__in=initial.get('beneficiaires',[])))
     return traiter(request,form,'Appel 115 — '+('suite ou correction' if a else 'nouvel appel'),lambda **d:s.ecrire(request.user,appel=a,**d),lambda x:url(x,q),a or 'Appel sans dossier obligatoire',annuler=url(a,q) if a else retour,gabarit='appels115/form.html',principaux=[form[nom] for nom in principaux if nom in form.fields],secondaires=secondaires,personnes_initiales=selection,
         explication='Un appel n’ouvre ni ménage, ni demande d’accueil, ni prise en charge, ni hébergement. Plusieurs appels restent des événements distincts.',**ctx)

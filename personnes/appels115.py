@@ -1,3 +1,4 @@
+from . import precisions_correction as precision
 from acteurs.contexte import service_metier
 """Appels autonomes : faits, versions et liaisons explicites, aucune admission implicite."""
 from uuid import uuid4
@@ -50,7 +51,9 @@ def _ecrire(acteur,attendu,beneficiaires,action,motif='',appel=None,**valeurs):
         bd6.reserver(appel,attendu);lire(acteur,appel)
         if appel.annule_le:raise ValidationError('Cet appel est annulé.')
         if action not in ('suite','correction'):raise ValidationError('Distinguez suite et correction d’erreur.')
-        motif_valide(motif);precedente=appel.versions.first()
+        if action=='correction':motif=precision.valider(motif)
+        else:motif_valide(motif)
+        precedente=appel.versions.first()
         if action=='suite' and (valeurs['date']!=precedente.date or precedente.heure is not None and valeurs['heure']!=precedente.heure):raise ValidationError({'date':'Corriger une date ou heure connue exige « Correction d’erreur ». Un rappel effectué est un nouvel appel.'})
         if action=='suite' and not set(precedente.beneficiaires.values_list('pk',flat=True)).issubset({p.pk for p in beneficiaires}):raise ValidationError({'beneficiaires':'Une erreur de personnes se corrige explicitement ; une suite peut compléter leur identification.'})
         n=precedente.version+1

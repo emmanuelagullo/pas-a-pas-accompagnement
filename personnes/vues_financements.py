@@ -1,3 +1,4 @@
+from . import precisions_correction as precision
 from django.template.response import TemplateResponse
 import csv
 from datetime import timedelta
@@ -55,6 +56,7 @@ def tarifs(request,pk=None):
         initial={c:getattr(v,c) for c in s.TARIF} if v else {'debut':timezone.localdate(),'devise':'EUR','actif':True}
         initial.update(attendu=bd6.jeton(t) if t else s.creation_tarif(),action='changement' if t else 'definition')
         f=TarifForm(request.POST if request.method=='POST' else None,initial=initial)
+        precision.operation(f)
         f.fields['action'].choices=[x for x in f.fields['action'].choices if (x[0]!='definition')==bool(t)]
         return traiter(request,f,'Définir un tarif daté',lambda **d:s.definir_tarif(request.user,tarif=t,**d),retour,t or 'Catalogue des tarifs',
             explication='Chaque prix est conservé dans une version. Un nouveau prix ne recalcule aucun ancien financement.')
@@ -120,6 +122,7 @@ def calcul(request,nature,pk):
         except ValueError:n=0
         data[pref+'-TOTAL_FORMS']=str(min(n+1,101))
     form=CalculForm(data,initial=initial)
+    precision.operation(form)
     form.fields['action'].choices=[x for x in form.fields['action'].choices if (x[0]!='definition')==bool(v)]
     lignes=LignesFormSet(data,prefix='lignes',initial=lignes_initiales(v,s.LIGNE,'lignes'))
     imputations=ImputationsFormSet(data,prefix='imputations',initial=lignes_initiales(v,s.IMPUTATION,'imputations'))

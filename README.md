@@ -10,6 +10,13 @@ fiche. Les comptes professionnels sont distincts des personnes suivies.
 Non disponible : documents joints, invitations. Une PWA fictive est disponible sous #SOC5a ; voir ci-dessous. La date et l'auteur de création ne sont pas un journal
 d'audit. Ce prototype n'est pas une installation de production.
 
+## Rectifier une information
+
+Les corrections ordinaires acceptent une précision facultative, sur place comme
+dans les formulaires complets. Les anciennes valeurs, l'auteur et la date restent
+conservés. Les motifs métier et les opérations de décision ou d'annulation sont
+distincts. Voir [les règles communes et leur couverture](CORRECTIONS-COHERENTES.md).
+
 ## Découvrir les acteurs et les relais
 
 Le lancement habituel `bash start-render.sh` prépare le jeu Les Passerelles enrichi avec les

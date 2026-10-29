@@ -9,6 +9,8 @@ register=template.Library()
 def adapter_saisie(form, acteur):
     if not hasattr(form, 'fields'):return ''
     adapter(form)
+    if 'motif' in form.fields and not form.fields['motif'].required and not getattr(form,'precision_conditionnelle',False):
+        form.fields['motif'].label = 'Précision sur l’opération (facultative)'
     if not acteur.has_perm('personnes.view_propositionsaisie'):return ''
     correspondances={'naissance_ville':'ville','naissance_pays':'pays'}
     model=getattr(getattr(form,'_meta',None),'model',None)

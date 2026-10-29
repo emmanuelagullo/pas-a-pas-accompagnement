@@ -1,3 +1,4 @@
+from . import precisions_correction as precision
 from acteurs.contexte import service_metier
 """Prises en charge et histoire sociale personnelle, sans réécriture des anciens journaux."""
 from . import textes_riches as tr
@@ -68,8 +69,7 @@ def corriger_prevision(acteur, accompagnement, fin_prevue, motif, attendu):
     reserver(accompagnement, attendu)
     if accompagnement.fin:
         raise ValidationError('Cette prise en charge est close. Sa prévision historique ne peut plus être modifiée ici.')
-    if not motif.strip() or len(motif) > 240:
-        raise ValidationError({'motif': 'Expliquez l’erreur de prévision (240 caractères maximum).'})
+    motif=precision.valider(motif)
     if fin_prevue == accompagnement.fin_prevue:
         raise ValidationError({'fin_prevue': 'La prévision est inchangée.'})
     if fin_prevue is not None and fin_prevue <= accompagnement.debut:
@@ -210,8 +210,7 @@ def commenter(acteur, objet, texte, motif, attendu):
         Menage.objects.filter(pk=objet.menage_id).update(revision=F('revision') + 1)
     reserver(objet, attendu)
     cible = cible_commentaire(objet)
-    if CommentaireDossier.objects.filter(**cible).exists() and not motif.strip():
-        raise ValidationError('Expliquez la modification du commentaire.')
+    motif=precision.valider(motif)
     commentaire = CommentaireDossier(**cible, **tr.colonnes('texte', texte, max_length=4000), motif=motif, auteur=acteur)
     commentaire.full_clean()
     commentaire.save()

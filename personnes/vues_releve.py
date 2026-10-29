@@ -1,3 +1,4 @@
+from . import precisions_correction as precision
 from datetime import timedelta
 from django import forms
 from django.contrib.auth import get_user_model
@@ -81,5 +82,6 @@ def action(request,pk):
     f.fields['libelle']=forms.CharField(max_length=240,label='Action',initial=x.libelle)
     f.fields['echeance']=date_champ('Échéance prévue',False);f.initial['echeance']=x.echeance
     f.fields['motif']=forms.CharField(max_length=240,label='Motif')
+    precision.operation(f,'operation')
     def faire(operation,**d):return s.changer_action(request.user,x,reouvrir=operation=='reouvrir',annuler=operation=='annuler',**d)
     return traiter(request,f,'Corriger ou rouvrir l’action',faire,reverse('suivi:actions_relais'),x.pk)

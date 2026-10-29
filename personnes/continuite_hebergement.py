@@ -1,3 +1,4 @@
+from . import precisions_correction as precision
 from acteurs.contexte import service_metier
 """Continuer un ancien séjour collectif par personne à une date confirmée.
 
@@ -74,7 +75,8 @@ def corriger_coupure(acteur,sejour,date,motif,attendu):
     if avant_token!=courant:raise ValidationError('Un des fragments a changé ; rechargez la continuité.')
     if s.annule_le:raise ValidationError('Cette arrivée est annulée ; ses périodes sont conservées sans modification.')
     c=s.individualisation
-    if date==c.date or date<=s.debut or date>timezone.localdate() or not motif.strip() or len(motif)>240:raise ValidationError('Choisissez une date corrigée après l’admission, non future, et expliquez l’erreur.')
+    motif=precision.valider(motif)
+    if date==c.date or date<=s.debut or date>timezone.localdate():raise ValidationError('Choisissez une date corrigée après l’admission et non future.')
     periodes_origines={(x['modele'],x['id']) for x in c.avant['periodes'] if x['fin']=='None'}
     for x in [*s.affectations.all(),*s.absences.all()]:
         if (x._meta.model_name,x.pk) in periodes_origines:

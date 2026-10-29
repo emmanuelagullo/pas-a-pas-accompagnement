@@ -1,3 +1,4 @@
+from . import precisions_correction as precision
 from acteurs.contexte import service_metier
 from django.core import signing
 from django.core.exceptions import ValidationError
@@ -34,7 +35,7 @@ def corriger_service(acteur,accord,jours_semaine,prestataire,motif,attendu):
     from django.db.models import F
     service.droit(acteur,'change_accordrepas');service.exiger(acteur,'view_revisionservicerepas','view_repasdistribue')
     a=m.AccordRepas.objects.select_related('accompagnement').get(pk=accord.pk);accords.exiger_actif(a);accords.verifier(a,attendu)
-    if not motif.strip() or len(motif)>240:raise ValidationError('Expliquez la correction du service.')
+    motif=precision.valider(motif)
     avant=[{'jours_semaine':a.jours_semaine,'prestataire':a.prestataire}]
     a.jours_semaine=jours_semaine;a.prestataire=prestataire.strip();a.full_clean()
     if a.jours_semaine and any(r.date.weekday() not in a.jours_semaine for r in a.realisations.filter(annule_le__isnull=True)):

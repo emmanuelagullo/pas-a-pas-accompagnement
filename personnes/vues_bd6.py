@@ -62,7 +62,7 @@ class CommentaireForm(EtatForm):
     texte = tr.ChampTexte(label='Commentaire libre', max_length=4000, required=False,
         help_text='Informations utiles au dossier. Les versions précédentes restent consultables.')
     motif = forms.CharField(label='Motif de la modification', max_length=240, required=False,
-        help_text='Obligatoire après la première version, y compris pour effacer le texte.')
+        help_text='Les versions précédentes restent conservées, même si cette précision est vide.')
 
 
 class SituationForm(EtatForm):
@@ -83,7 +83,7 @@ class SituationForm(EtatForm):
         else:
             self.fields['debut'].help_text = 'La situation précédente reste dans l’historique jusqu’à cette date.'
             self.fields['motif'].label = 'Explication de l’ajout dans le passé (si nécessaire)'
-            self.fields['motif'].help_text = 'À remplir seulement si une situation plus récente est déjà enregistrée pour cette rubrique.'
+            self.fields['motif'].help_text = 'Vous pouvez préciser le contexte de cet ajout ; les situations précédentes restent conservées.'
 
 
 def objet_dossier(request, nature, pk):
@@ -196,6 +196,7 @@ def corriger_prevision(request, nature, pk, prise_pk):
     suivi.exiger(request.user, 'corriger_prevision_accompagnement', 'view_evolutionpriseencharge')
     form = PrevisionForm(request.POST if request.method == 'POST' else None,
         initial={'attendu': bd6.jeton(a), 'fin_prevue': a.fin_prevue})
+    form.fields['motif'].required = False
     form.fields['fin_prevue'].required = False
     form.fields['fin_prevue'].help_text = 'Laissez vide pour retirer une prévision saisie par erreur. La clôture effective et les prestations restent inchangées.'
     return traiter(request, form, 'Corriger une erreur de fin prévue',

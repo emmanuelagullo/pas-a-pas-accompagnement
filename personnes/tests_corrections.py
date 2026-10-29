@@ -69,7 +69,7 @@ class CorrectionsTests(TestCase):
 
     def test_vue_et_droits_explicites(self):
         cible=reverse('suivi:corriger_saisie',args=['accompagnement',self.a.pk])
-        self.assertContains(self.client.get(cible),'Motif de correction')
+        self.assertContains(self.client.get(cible),'Précisions facultatives')
         reponse=self.client.post(cible,{'debut':'2026-01-02','fin':'','motif':'Erreur fictive','attendu':c.jeton(self.a)})
         self.assertRedirects(reponse,reverse('suivi:accompagnement',args=[self.a.pk]))
         self.assertContains(self.client.get(reverse('suivi:corrections',args=[self.a.pk])),'Erreur fictive')

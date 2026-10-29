@@ -101,7 +101,7 @@ def fiche(request, pk=None, action=None, fait_pk=None):
         initial, proposition = valeurs_proposees(request, faits, intervenants.CHAMPS, corrigee)
         initial["attendu"] = attendu
         form = FicheForm(request.POST if request.method == 'POST' else None, initial=initial)
-        form.fields['motif'].required = bool(corrigee)
+        form.fields['motif'].required = False
         if not request.user.has_perm('personnes.view_partenaire'):
             form.fields['organisme'].queryset = form.fields['organisme'].queryset.none()
         base = reverse('dossiers:intervenant', args=[pk]) + '?' + query if objet else reverse('dossiers:intervenants') + '?' + query

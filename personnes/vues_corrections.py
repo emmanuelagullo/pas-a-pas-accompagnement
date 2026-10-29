@@ -18,7 +18,7 @@ class PeriodeForm(FormulaireMetier):
     debut = date_champ('Début inclus')
     fin = date_champ('Fin non comprise',False)
     source = forms.CharField(max_length=160,required=False,label='Source de l’information')
-    motif = forms.CharField(max_length=240,label='Motif de correction')
+    motif = forms.CharField(max_length=240,label='Précision sur la correction (facultative)',required=False)
     attendu = forms.CharField(widget=forms.HiddenInput)
 
 
@@ -26,7 +26,7 @@ class TexteForm(FormulaireMetier):
     date_effet = date_champ('Date d’effet')
     texte = forms.CharField(max_length=2000,widget=forms.Textarea)
     source = forms.CharField(max_length=160,required=False,label='Source de l’information')
-    motif = forms.CharField(max_length=240,label='Motif de correction')
+    motif = forms.CharField(max_length=240,label='Précision sur la correction (facultative)',required=False)
     attendu = forms.CharField(widget=forms.HiddenInput)
 
 

@@ -39,7 +39,7 @@ def jeton_catalogue():return signing.dumps(str(uuid4()),salt='type-aide-creation
 def _cataloguer(acteur,attendu,motif,objet=None,**valeurs):
     suivi.exiger(acteur,'view_typeaide','view_revisiontypeaide','change_typeaide' if objet else 'add_typeaide')
     if set(valeurs)!=set(CATALOGUE):raise ValidationError('Précisez le schéma complet du type d’aide.')
-    if not motif.strip() or len(motif)>240:raise ValidationError({'motif':'Expliquez la définition ou la modification.'})
+    if len(motif)>240 or objet is None and not motif.strip():raise ValidationError({'motif':'Expliquez la définition (240 caractères au plus).'})
     if not valeurs['libelle'].strip() or not valeurs['unite'].strip():raise ValidationError('Le libellé et l’unité sont obligatoires.')
     with transaction.atomic():
         avant=[]
@@ -102,7 +102,7 @@ def accorder(acteur,accompagnement,type_aide,beneficiaires,attendu,**valeurs):
 @serialiser('accord')
 def modifier(acteur,accord,attendu,motif,prolongation=False,**valeurs):
     droit(acteur,'change_accordaide');bd6.reserver(accord,attendu)
-    source_valide(valeurs.get('source',''),motif,True)
+    source_valide(valeurs.get('source',''),motif,prolongation)
     if accord.annule_le or set(valeurs)!=set(CHAMPS):raise ValidationError('Accord annulé ou données incomplètes.')
     avant=photo(accord);ancienne_fin=accord.fin;ancien_debut=accord.debut
     if prolongation:
@@ -125,7 +125,7 @@ def modifier(acteur,accord,attendu,motif,prolongation=False,**valeurs):
 @serialiser('accord')
 def remettre(acteur,accord,beneficiaires,date,quantite,source,attendu,motif='',correction=None):
     droit(acteur,'change_remiseaide' if correction else 'add_remiseaide');bd6.reserver(accord,attendu)
-    source_valide(source,motif,bool(correction));bornes(accord,date)
+    source_valide(source,motif);bornes(accord,date)
     if accord.annule_le:raise ValidationError('Cet accord est annulé.')
     ids=beneficiaires_valides(beneficiaires,accord.beneficiaires)
     x=m.RemiseAide(accord=accord,auteur=acteur);avant=[];ancien=Decimal('0')
@@ -173,7 +173,7 @@ def constater(acteur,accord,remise,date,quantite,source,attendu,motif=''):
     dernier=r.usages.first()
     if r.annule_le or date<r.date or date>timezone.localdate() or quantite is not None and quantite>r.quantite:raise ValidationError('Constat d’usage incompatible avec la remise, sa date ou sa quantité.')
     if dernier:
-        source_valide(source,motif,True)
+        source_valide(source,motif)
         if date<dernier.date and r.usages.filter(date__gt=date).exclude(pk=dernier.pk).exists():raise ValidationError('Une correction de date ne traverse pas un autre constat.')
     entier(accord,quantite)
     x=m.UsageAide(remise=r,version=dernier.version+1 if dernier else 1,date=date,quantite=quantite,source=source.strip(),motif=motif.strip(),auteur=acteur)

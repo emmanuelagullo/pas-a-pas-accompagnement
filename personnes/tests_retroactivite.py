@@ -38,12 +38,13 @@ class RetroactiviteTests(TestCase):
 
     def test_insertion_exige_motif_et_droits_et_refuse_meme_date(self):
         self.ajouter(20)
-        for jour, motif in [(10, ''), (20, 'Doublon')]:
-            with self.assertRaises(ValidationError): self.ajouter(jour, motif=motif)
+        self.ajouter(10, motif='')
+        self.assertEqual(OperationSociale.objects.filter(action='Situation insérée').get().motif, '')
+        with self.assertRaises(ValidationError): self.ajouter(20, motif='Doublon')
         self.u.user_permissions.remove(*self.u.user_permissions.filter(codename='view_correctionperiode'))
         self.u = type(self.u).objects.get(pk=self.u.pk)
-        with self.assertRaises(PermissionDenied): self.ajouter(10)
-        self.assertEqual(SituationSociale.objects.count(), 1)
+        with self.assertRaises(PermissionDenied): self.ajouter(5)
+        self.assertEqual(SituationSociale.objects.count(), 2)
 
     def test_perime_et_echec_journal_ne_modifient_pas_bornes(self):
         premiere = self.ajouter(5)

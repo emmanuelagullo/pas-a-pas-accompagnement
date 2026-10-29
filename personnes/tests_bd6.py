@@ -155,9 +155,8 @@ class BD6Tests(Donnees, TestCase):
         bd6.commenter(self.u, self.m, 'Premier commentaire fictif', '', token)
         with self.assertRaises(ValidationError):
             bd6.commenter(self.u, self.m, 'Écrasement fictif', 'Fictif', token)
-        with self.assertRaises(ValidationError):
-            bd6.commenter(self.u, self.m, '', '', bd6.jeton(self.m))
-        bd6.commenter(self.u, self.m, '', 'Retrait motivé fictif', bd6.jeton(self.m))
+        bd6.commenter(self.u, self.m, '', '', bd6.jeton(self.m))
+        self.assertEqual(CommentaireDossier.objects.first().motif, '')
         self.assertEqual(CommentaireDossier.objects.count(), 2)
         self.assertEqual(CommentaireDossier.objects.last().texte, 'Premier commentaire fictif')
         self.assertContains(self.client.get(self.url), 'Commentaire effacé.')

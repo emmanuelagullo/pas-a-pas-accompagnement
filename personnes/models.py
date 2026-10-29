@@ -492,7 +492,7 @@ class CorrectionPeriode(ModeleControle):
     nouvelle_fin = models.DateField(null=True)
     ancienne_source = models.CharField(max_length=160, blank=True)
     nouvelle_source = models.CharField(max_length=160, blank=True)
-    motif = models.CharField(max_length=240)
+    motif = models.CharField(max_length=240, blank=True)
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     enregistre_le = models.DateTimeField(auto_now_add=True)
 
@@ -512,7 +512,7 @@ class RevisionTexteSocial(ModeleControle):
     nouveau_texte_document = models.JSONField(null=True, blank=True, editable=False)
     ancienne_source = models.CharField(max_length=160, blank=True)
     nouvelle_source = models.CharField(max_length=160, blank=True)
-    motif = models.CharField(max_length=240)
+    motif = models.CharField(max_length=240, blank=True)
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     enregistre_le = models.DateTimeField(auto_now_add=True)
 
@@ -577,7 +577,7 @@ class RevisionContribution(ModeleControle):
     ancien_texte_document = models.JSONField(null=True, blank=True, editable=False)
     nouveau_texte = models.TextField()
     nouveau_texte_document = models.JSONField(null=True, blank=True, editable=False)
-    motif = models.TextField()
+    motif = models.TextField(blank=True)
 
     class Meta:
         ordering = ["date", "pk"]
@@ -656,7 +656,7 @@ class EvolutionPriseEnCharge(ModeleControle):
     ancienne_fin = models.DateField(null=True)
     nouvelle_fin = models.DateField(null=True, blank=True)
     action = models.CharField(max_length=20, choices=[('prolongation', 'Prolongation'), ('correction', 'Correction de prévision')], default='prolongation')
-    motif = models.CharField(max_length=240)
+    motif = models.CharField(max_length=240, blank=True)
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     enregistre_le = models.DateTimeField(auto_now_add=True)
 
@@ -1009,7 +1009,7 @@ class RevisionPropositionSaisie(ModeleControle):
     proposition = models.ForeignKey(PropositionSaisie, on_delete=models.PROTECT, related_name='revisions')
     avant = models.JSONField(default=dict)
     apres = models.JSONField(default=dict)
-    motif = models.CharField(max_length=240)
+    motif = models.CharField(max_length=240, blank=True)
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     enregistre_le = models.DateTimeField(auto_now_add=True)
 
@@ -1588,7 +1588,7 @@ class VersionTarif(Periode):
     prestataire=models.ForeignKey(Partenaire,on_delete=models.PROTECT,null=True,blank=True)
     actif=models.BooleanField('Proposer ce tarif',default=True)
     source=models.CharField(max_length=160)
-    motif=models.CharField(max_length=240)
+    motif=models.CharField(max_length=240,blank=True)
     action=models.CharField(max_length=16,choices=[('definition','Définition'),('changement','Nouveau prix'),('correction','Correction d’erreur')])
     auteur=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT)
     enregistre_le=models.DateTimeField(auto_now_add=True)
@@ -1628,7 +1628,7 @@ class VersionFinancement(Periode):
     signataire=models.ForeignKey(Intervenant,on_delete=models.PROTECT,null=True,blank=True)
     reference=models.CharField('Référence de décision / convention',max_length=100,blank=True)
     source=models.CharField(max_length=160)
-    motif=models.CharField(max_length=240)
+    motif=models.CharField(max_length=240,blank=True)
     action=models.CharField(max_length=16,choices=[('definition','Définition'),('changement','Nouvelle décision'),('correction','Correction d’erreur')])
     auteur=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT)
     enregistre_le=models.DateTimeField(auto_now_add=True)

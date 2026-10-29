@@ -7,8 +7,8 @@ from .forms_hebergement import date_champ
 
 class SituationForm(FormulaireMetier):
     attendu = forms.CharField(widget=forms.HiddenInput)
-    motif = forms.CharField(label="Motif de l’insertion rétroactive", max_length=240, required=False,
-        help_text="Requis uniquement pour ajouter une situation oubliée avant une situation déjà renseignée.")
+    motif = forms.CharField(label="Précision sur l’ajout antérieur (facultative)", max_length=240, required=False,
+        help_text="Les dates et la portée restent contrôlées, même si cette précision est vide.")
     beneficiaire = forms.ModelChoiceField(Personne.objects.none())
     valeur = forms.ChoiceField()
     debut = date_champ("Date d’effet incluse")
@@ -23,7 +23,7 @@ class SituationForm(FormulaireMetier):
 class CorrectionForm(FormulaireMetier):
     attendu = forms.CharField(widget=forms.HiddenInput)
     valeur = forms.ChoiceField()
-    motif = forms.CharField(label="Motif de correction",max_length=240)
+    motif = forms.CharField(label="Précision sur la correction (facultative)",max_length=240,required=False)
 
     def __init__(self,*args,dimension,**kwargs):
         super().__init__(*args,**kwargs)

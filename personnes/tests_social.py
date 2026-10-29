@@ -43,7 +43,10 @@ class SocialTests(TestCase):
         operation=OperationSociale.objects.get(action='Valeur corrigée')
         self.assertEqual(operation.ancienne_valeur,'sans_emploi')
         self.assertEqual(operation.nouvelle_valeur,'formation')
-        with self.assertRaises(ValidationError):social.corriger(self.u,s,'emploi',' ')
+        social.corriger(self.u,s,'emploi',' ')
+        operation=OperationSociale.objects.filter(action='Valeur corrigée').latest('pk')
+        self.assertEqual(operation.motif,'')
+        self.assertEqual((operation.ancienne_valeur,operation.nouvelle_valeur),('formation','emploi'))
 
     def test_refus_et_rollback(self):
         s=self.renseigner()

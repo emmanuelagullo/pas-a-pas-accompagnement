@@ -1,3 +1,4 @@
+from . import precisions_correction as precision
 from acteurs.contexte import service_metier
 """Écritures CHRS3, périodes civiles et sérialisation par séjour."""
 from .verrous_metier import serialiser
@@ -210,7 +211,7 @@ def corriger_lieu(acteur,lieu,attendu,motif,**valeurs):
     from .series_personnelles import valeur_journal
     if set(valeurs)!=set(('libelle','parent','niveau','partenaire','organisme')):raise ValidationError('Précisez tous les champs du lieu.')
     if valeurs['organisme']:exiger(acteur,'view_partenaire')
-    if not motif.strip() or len(motif)>240:raise ValidationError('Expliquez la correction du lieu.')
+    motif=precision.valider(motif)
     with transaction.atomic():
         # Répertoire petit, mutations rares : ordre stable pour empêcher deux
         # corrections concurrentes de fabriquer ensemble une boucle de parents.

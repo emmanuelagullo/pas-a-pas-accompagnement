@@ -102,7 +102,7 @@ def fiche(request, pk=None, action=None, fait_pk=None):
         initial, proposition = valeurs_proposees(request, faits, partenaires.CHAMPS, corrigee)
         initial["attendu"] = attendu
         form = FicheForm(request.POST if request.method == 'POST' else None, initial=initial)
-        form.fields['motif'].required = bool(corrigee)
+        form.fields['motif'].required = False
         base = reverse('dossiers:partenaire', args=[pk]) + '?' + query if objet else reverse('dossiers:partenaires') + '?' + query
         return traiter(request, form, 'Corriger la fiche partenaire' if corrigee else 'Mettre à jour le partenaire' if objet else 'Créer un organisme partenaire',
             lambda **d: partenaires.renseigner(request.user, objet, correction=corrigee.pk if corrigee else None, **d) if objet else partenaires.creer(request.user, **d),

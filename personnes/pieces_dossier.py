@@ -1,3 +1,4 @@
+from . import precisions_correction as precision
 from acteurs.contexte import service_metier
 """Pièces opaques de petit volume : octets et versions dans la copie transactionnelle.
 
@@ -58,7 +59,7 @@ def ajouter(acteur,cible,attendu,*,titre,date_document,source,fichier,piece=None
         piece=m.PieceDossier.objects.get(pk=piece.pk)
         if getattr(piece,nature(cible)+'_id')!=cible.pk:raise ValidationError('Ce document appartient à une autre cible.')
         if piece.annule_le:raise ValidationError('Une pièce annulée conserve ses versions mais ne peut plus être modifiée.')
-        if not motif.strip() or len(motif)>240:raise ValidationError({'motif':'Expliquez ce remplacement ou cette correction (240 caractères au plus).'})
+        motif=precision.valider(motif)
     derniere=piece.versions.first()
     if fichier is None:
         nom=derniere.nom_fichier;contenu=octets(acteur,derniere)

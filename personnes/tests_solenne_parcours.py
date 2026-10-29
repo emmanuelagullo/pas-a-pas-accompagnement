@@ -85,10 +85,11 @@ class ParcoursSolenneTests(Donnees, TestCase):
         self.assertEqual(EvolutionPriseEnCharge.objects.first().action, 'correction')
         with self.assertRaises(ValidationError):
             bd6.corriger_prevision(self.u, self.a, None, 'Fictif', token)
-        for fin, motif in [(date(2026, 6, 1), 'Inchangée'), (self.a.debut, 'Mauvaise date'), (None, '  ')]:
+        for fin, motif in [(date(2026, 6, 1), 'Inchangée'), (self.a.debut, 'Mauvaise date')]:
             with self.assertRaises(ValidationError):
                 bd6.corriger_prevision(self.u, self.a, fin, motif, bd6.jeton(self.a))
-        bd6.corriger_prevision(self.u, self.a, None, 'Prévision non connue fictive', bd6.jeton(self.a))
+        bd6.corriger_prevision(self.u, self.a, None, '', bd6.jeton(self.a))
+        self.assertEqual(EvolutionPriseEnCharge.objects.first().motif, '')
         self.a.refresh_from_db()
         self.assertIsNone(self.a.fin_prevue)
         self.assertIsNone(EvolutionPriseEnCharge.objects.first().nouvelle_fin)

@@ -1,3 +1,4 @@
+from . import precisions_correction as precision
 from acteurs.contexte import service_metier
 """Rôles professionnels datés, distincts de l'auteur et du contact de ménage."""
 from django.core.exceptions import ValidationError
@@ -64,12 +65,11 @@ def affecter(acteur, accompagnement, debut, fin, role, intervenant, organisme, s
             action = 'cloture'
         else:
             action = 'correction'
-        if not motif.strip():
-            raise ValidationError({'motif': 'Expliquez cette fin de mission ou correction.'})
+        if cloture and not motif.strip():
+            raise ValidationError({'motif': 'Expliquez cette fin de mission.'})
     elif accompagnement.interventions.filter(role=role, debut__gt=debut,annule_le__isnull=True).exists():
         action = 'insertion'
-        if not motif.strip():
-            raise ValidationError({'motif': 'Expliquez l’ajout de cette affectation antérieure.'})
+        motif=precision.valider(motif)
     x.debut, x.fin, x.role, x.intervenant, x.organisme, x.source = debut, fin, role, intervenant, organisme, source.strip()
     x.full_clean()
     voisins = accompagnement.interventions.filter(role=role, intervenant=intervenant, organisme=organisme,annule_le__isnull=True).exclude(pk=x.pk)

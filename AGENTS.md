@@ -508,3 +508,15 @@ l’échelle commune des lignes comparées, le bénéfice personnel explicite et
 lectures groupées sous contrôle actif. Les marques de densité ne sont pas des
 anomalies ni des réalisations. Préserver le retour au dépliage et les anciens
 liens chronologiques. Tester personnes.tests_frises et la trajectoire.
+
+Corrections cohérentes : lire CORRECTIONS-COHERENTES.md. Une précision de
+rectification ordinaire est facultative indépendamment du domaine et du type de
+journal, avec la même présentation sur place et en pleine page. Le serveur
+recalcule l'exigence dans les formulaires mixtes ; une correction financière
+n'est pas une nouvelle décision. Préserver les sources, les traces, les droits,
+les états signés, les confirmations de portée et les règles des opérations
+spécialisées (annulations, clôtures, décisions, associations et imports). Ne pas
+inventer de motif automatique ni convertir les anciens journaux. Tester
+personnes.tests_precisions_correction, les services touchés et les recettes
+personnes.qualification_evolution. Cette règle actualise, pour la rectification
+ordinaire, les anciennes mentions générales de « corrections motivées ».

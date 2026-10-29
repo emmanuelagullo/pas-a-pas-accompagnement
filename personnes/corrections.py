@@ -1,3 +1,4 @@
+from . import precisions_correction as precision
 from acteurs.contexte import service_metier
 """Corrections limitées, contrôles de dépendances et avant/après persistants."""
 from . import textes_riches as tr
@@ -138,7 +139,7 @@ def periode(acteur,objet,debut,fin,motif,attendu,source=None):
     droits(acteur,nature)
     objet=type(objet).objects.get(pk=objet.pk)
     verifier_jeton(objet,attendu)
-    motif=motif_valide(motif)
+    motif=precision.valider(motif)
     accord = isinstance(objet, (m.AccordRepas, m.AccordHebergement))
     if accord:
         from .accords import exiger_actif
@@ -174,7 +175,7 @@ def texte(acteur,objet,date_effet,texte,motif,attendu,source=''):
     nature=objet._meta.model_name
     droits(acteur,nature)
     objet=type(objet).objects.get(pk=objet.pk)
-    verifier_jeton(objet,attendu);motif=motif_valide(motif)
+    verifier_jeton(objet,attendu);motif=precision.valider(motif)
     ancienne=etat(objet)
     from .social import date_valide, date_evenement
     (date_evenement if nature == 'evenementsocial' else date_valide)(objet.accompagnement,date_effet)

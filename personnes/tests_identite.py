@@ -79,7 +79,7 @@ class IdentiteTests(TestCase):
     def test_parcours_et_refus_direct(self):
         url = reverse('personnes:corriger_identite', args=[self.p.pk])
         page = self.client.get(url)
-        self.assertContains(page, 'Motif de correction')
+        self.assertContains(page, 'Précisions facultatives')
         valeurs = self.donnees(motif='Complément fictif', attendu=identite.jeton(self.p))
         valeurs['date_naissance'] = ''
         self.assertRedirects(self.client.post(url, valeurs), reverse('personnes:detail', args=[self.p.pk]))

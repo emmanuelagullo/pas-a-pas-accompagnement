@@ -29,7 +29,7 @@ def enregistrer(acteur, champ, valeur, active, motif, *, objet=None, attendu=Non
 @service_metier
 @transaction.atomic
 def _enregistrer(acteur, champ, valeur, active, motif, *, objet, attendu):
-    if not motif.strip() or len(motif)>240:
+    if len(motif)>240 or objet is None and not motif.strip():
         raise ValidationError({'motif':'Expliquez cette modification (240 caractères maximum).'})
     avant = {}
     if objet:

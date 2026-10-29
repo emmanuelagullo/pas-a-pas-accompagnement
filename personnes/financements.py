@@ -1,3 +1,4 @@
+from . import precisions_correction as precision
 from acteurs.contexte import service_metier
 """Calculs déclarés versionnés ; aucune dépense, facture ou réalisation implicite."""
 from decimal import Decimal, ROUND_HALF_UP, InvalidOperation
@@ -36,7 +37,8 @@ def creation_tarif():return signing.dumps(str(uuid4()),salt='financement-tarif')
 @transaction.atomic
 def _definir_tarif(acteur,attendu,motif,action='definition',tarif=None,**valeurs):
     suivi.exiger(acteur,'view_tarifprestation','view_versiontarif','add_versiontarif','change_tarifprestation' if tarif else 'add_tarifprestation')
-    requis(motif,'motif',240)
+    if action=='correction':motif=precision.valider(motif)
+    else:requis(motif,'motif',240)
     if set(valeurs)!=set(TARIF):raise ValidationError('Tarif incomplet.')
     requis(valeurs['source'],'source',160);requis(valeurs['libelle'],'libelle',160);requis(valeurs['unite'],'unite',60)
     if tarif:
@@ -104,7 +106,8 @@ def detail_totaux(version):
 @serialiser('accord')
 def enregistrer(acteur,accord,attendu,motif,action,lignes,imputations,**valeurs):
     droit(acteur,accord,'add_versionfinancement')
-    requis(motif,'motif',240)
+    if action=='correction':motif=precision.valider(motif)
+    else:requis(motif,'motif',240)
     if set(valeurs)!=set(ENTETE) or action not in ('definition','changement','correction'):raise ValidationError('Définition de financement incomplète.')
     requis(valeurs['source'],'source',160)
     f=reserver(accord,attendu)

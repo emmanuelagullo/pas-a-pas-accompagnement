@@ -1,3 +1,4 @@
+from . import precisions_correction as precision
 from acteurs.contexte import service_metier
 """CHRS4 : valeurs datées par dimension, sans reconstruction événementielle."""
 from . import textes_riches as tr
@@ -70,12 +71,11 @@ def renseigner(acteur, accompagnement, beneficiaire, dimension, valeur, debut, s
     precedente = serie.filter(debut__lt=debut).order_by('-debut').first()
     suivante = serie.filter(debut__gt=debut).order_by('debut').first()
     if suivante:
-        from .corrections import motif_valide
         droit(acteur, 'change_situationsociale')
         droit(acteur, 'view_correctionperiode')
         if attendu is None:
             raise ValidationError('Rechargez le formulaire pour insérer une situation antérieure.')
-        motif = motif_valide(motif)
+        motif = precision.valider(motif)
     nouvelle = SituationSociale(accompagnement=a, beneficiaire=beneficiaire, dimension=dimension,
         valeur=valeur, debut=debut, fin=suivante.debut if suivante else None, source=source, cree_par=acteur)
     nouvelle.clean_fields()
@@ -118,8 +118,7 @@ def corriger(acteur, situation, valeur, motif, attendu=None):
             raise ValidationError('Le formulaire a expiré. Rechargez la situation.') from exc
         if precedent != etat_valeur(situation):
             raise ValidationError('Cette situation a changé. Rechargez le formulaire.')
-    motif=motif.strip()
-    if not motif or len(motif)>240: raise ValidationError("Indiquez un motif de 1 à 240 caractères.")
+    motif=precision.valider(motif)
     ancienne=situation.valeur
     if ancienne==valeur: raise ValidationError("La valeur est inchangée.")
     situation.valeur=valeur; situation.full_clean(); situation.save(update_fields=["valeur"])

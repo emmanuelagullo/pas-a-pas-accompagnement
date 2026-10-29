@@ -62,7 +62,7 @@ def gerer(request, pk, action=None, affectation_pk=None):
         initial = {champ: getattr(x, champ) for champ in ('role','intervenant','organisme','debut','fin','source')} if x else {'debut': timezone.localdate()}
         initial['attendu'] = attendu
         form = AffectationForm(request.POST if request.method == 'POST' else None, initial=initial)
-        form.fields['motif'].required = bool(x)
+        form.fields['motif'].required = action == 'clore'
         if action == 'clore':
             for c in ('role','intervenant','organisme','debut','source'):
                 form.fields[c].disabled = True

@@ -1,3 +1,4 @@
+from . import precisions_correction as precision
 from acteurs.contexte import service_metier
 """Écriture transactionnelle des transmissions et notes métier."""
 from . import textes_riches as tr
@@ -56,7 +57,7 @@ def rectifier(auteur, contribution, nouveau_texte, motif, *, texte_attendu=None,
     if modele == "notepartagee":
         cible = cible_note(contribution)
         _droit(auteur, "view", type(cible).__name__.lower())
-    nouveau_texte, motif = tr.preparer(nouveau_texte, required=True), _texte(motif)
+    nouveau_texte, motif = tr.preparer(nouveau_texte, required=True), precision.valider(motif)
     objet = type(contribution).objects.select_for_update().get(pk=contribution.pk)
     if etat_attendu:
         verifier_etat(objet, etat_attendu)

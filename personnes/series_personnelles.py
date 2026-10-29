@@ -1,3 +1,4 @@
+from . import precisions_correction as precision
 from acteurs.contexte import service_metier
 """Chronologie commune à deux histoires personnelles typées, sans moteur de champs."""
 from django.core.exceptions import ValidationError
@@ -49,9 +50,7 @@ def enregistrer(acteur, personne, debut, source, attendu, motif, correction, val
         serie.append(fait)
     if action != 'changement':
         suivi.exiger(acteur, 'change_' + modele._meta.model_name)
-        from .models import TraceSaisie
-        if not issubclass(journal, TraceSaisie) and not motif.strip():
-            raise ValidationError({'motif': 'Expliquez la correction ou l’ajout d’un fait antérieur oublié.'})
+        motif=precision.valider(motif)
     if any(x is not fait and x.debut == debut for x in serie):
         raise ValidationError({'debut': 'Une information existe déjà à cette date. Corrigez-la explicitement.'})
     fait.debut, fait.source = debut, source.strip()

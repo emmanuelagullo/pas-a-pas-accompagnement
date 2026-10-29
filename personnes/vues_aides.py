@@ -1,3 +1,4 @@
+from . import precisions_correction as precision
 from django.template.response import TemplateResponse
 import csv,json
 from datetime import timedelta
@@ -46,6 +47,7 @@ def catalogue(request,pk=None):
     if pk or request.GET.get('nouveau'):
         exiger(request.user,'change_typeaide' if pk else 'add_typeaide')
         f=TypeForm(request.POST if request.method=='POST' else None,instance=objet,initial={'attendu':bd6.jeton(objet) if objet else s.jeton_catalogue()})
+        if objet:precision.preparer(f)
         def action(**d):return s.cataloguer(request.user,objet=objet,**d)
         return traiter(request,f,'Définir un type d’aide',action,reverse('dossiers:types_aides'),objet or 'Catalogue des aides',
             explication='Unité et libellé seront conservés dans chaque accord. Modifier ce catalogue ne réécrit aucun accord ni remise existante.')
@@ -101,17 +103,17 @@ def action(request,pk,action,remise_pk=None):
         initial={'date':r.date if r else date_remise_proposee(request,a),'quantite':r.quantite if r else None,'source':r.source if r else '',
             'beneficiaires':list((r or a).beneficiaires.values_list('pk',flat=True)),'attendu':token}
         f=RemiseForm(request.POST if request.method=='POST' else None,accord=a,initial=initial)
-        if r:f.fields['beneficiaires'].disabled=True;f.fields['motif'].required=True
+        if r:f.fields['beneficiaires'].disabled=True
         fn=lambda **d:s.remettre(request.user,a,correction=r.pk if r else None,**d)
     elif action=='usage' and r:
         s.droit(request.user,'add_usageaide')
         f=UsageForm(request.POST if request.method=='POST' else None,initial={'date':timezone.localdate(),'attendu':token})
-        if r.usages.exists():f.fields['motif'].required=True
+        f.fields['motif'].required=False
         fn=lambda **d:s.constater(request.user,a,remise=r.pk,**d)
     elif action in ('corriger','prolonger'):
         s.droit(request.user,'change_accordaide')
         f=AccordForm(request.POST if request.method=='POST' else None,accompagnement=a.accompagnement,instance=a,initial={'attendu':token})
-        f.fields.pop('type_aide');f.fields.pop('beneficiaires');f.fields['motif'].required=True
+        f.fields.pop('type_aide');f.fields.pop('beneficiaires');f.fields['motif'].required=action=='prolonger'
         if action=='prolonger':
             for c in s.CHAMPS:
                 if c not in ('fin','source'):f.fields[c].disabled=True

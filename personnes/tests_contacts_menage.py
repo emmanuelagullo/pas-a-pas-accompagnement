@@ -38,10 +38,9 @@ class ContactTests(Donnees, TestCase):
     def test_correction_personne_date_et_insertion_motivees(self):
         premier = self.designer(self.p)
         self.designer(None, date(2026, 4, 1))
-        with self.assertRaises(ValidationError):
-            self.designer(self.autre, date(2026, 3, 1))
-        inter = self.designer(self.autre, date(2026, 3, 1), motif='Désignation oubliée fictive')
-        self.designer(self.p, date(2026, 2, 15), correction=inter.pk, motif='Personne et date erronées fictives')
+        inter = self.designer(self.autre, date(2026, 3, 1))
+        self.assertEqual(RevisionContactMenage.objects.first().motif, '')
+        self.designer(self.p, date(2026, 2, 15), correction=inter.pk, motif='')
         premier.refresh_from_db(); inter.refresh_from_db()
         self.assertEqual(premier.fin, date(2026, 2, 15))
         self.assertEqual(inter.fin, date(2026, 4, 1))

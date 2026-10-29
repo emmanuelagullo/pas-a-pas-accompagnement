@@ -1,3 +1,4 @@
+from . import precisions_correction as precision
 from acteurs.contexte import service_metier
 """Recherche chronologique de contributions ; les droits de cible restent nécessaires."""
 from datetime import timedelta
@@ -61,7 +62,8 @@ def photo(x):
 @transaction.atomic
 def changer_action(acteur,action,attendu,motif,libelle=None,echeance=None,terminer=False,reouvrir=False,annuler=False):
     suivi.exiger(acteur,'view_actionrelais','change_actionrelais','view_revisionactionrelais');bd6.reserver(action,attendu)
-    if not motif.strip() or len(motif)>240:raise ValidationError({'motif':'Expliquez la correction ou le changement.'})
+    motif=precision.valider(motif)
+    if (annuler or terminer or reouvrir) and not motif:raise ValidationError({'motif':'Expliquez cette annulation ou ce changement de statut.'})
     avant=photo(action)
     if annuler:
         suivi.exiger(acteur,'annuler_actionrelais')

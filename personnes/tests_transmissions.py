@@ -28,8 +28,10 @@ class TransmissionsTests(TestCase):
         self.assertEqual(RevisionContribution.objects.get(note=n).ancien_texte, "Note fictive")
         with self.assertRaises(ValidationError):
             transmissions.noter(self.u, "Sans cible")
-        with self.assertRaises(ValidationError):
-            transmissions.rectifier(self.u, t, "Autre", " ")
+        transmissions.rectifier(self.u, t, "Autre", " ")
+        revision=RevisionContribution.objects.get(transmission=t)
+        self.assertEqual(revision.motif, "")
+        self.assertEqual(revision.ancien_texte, "Relève fictive")
 
     def test_droits_et_parcours(self):
         self.client.force_login(self.u)

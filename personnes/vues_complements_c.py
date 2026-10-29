@@ -21,6 +21,7 @@ def individualiser(request,pk):
     f.fields['date']=date_champ('Continuer individuellement depuis le')
     f.fields['motif']=forms.CharField(label='Motif',max_length=240)
     correction=hasattr(s,'individualisation')
+    f.fields['motif'].required=not correction
     if correction:
         h.exiger(request.user,'change_continuitesejour','view_revisioncontinuite');f.initial['date']=s.individualisation.date
     else:h.exiger(request.user,'add_continuitesejour')
@@ -58,7 +59,7 @@ def lieu(request,pk=None):
         f=LieuForm(request.POST if request.method=='POST' else None,instance=x,acteur=request.user)
         if 'organisme' not in f.fields:
             f.fields['organisme']=forms.ModelChoiceField(m.Partenaire.objects.none(),required=False,disabled=True);f.initial['organisme']=x.organisme_id
-        f.fields['motif']=forms.CharField(label='Pourquoi les informations précédentes étaient-elles erronées ?',max_length=240)
+        f.fields['motif']=forms.CharField(label='Précision sur la correction (facultative)',max_length=240,required=False)
         f.fields['attendu']=forms.CharField(widget=forms.HiddenInput,initial=bd6.jeton(x))
         return traiter(request,f,'Corriger un lieu',lambda **d:h.corriger_lieu(request.user,x,**d),reverse('dossiers:lieux_c'),x)
     return render(request,'aides/lieux.html',{'lieux':m.LieuHebergement.objects.select_related('parent').prefetch_related('revisions__auteur')})
@@ -120,7 +121,7 @@ def service_repas(request,pk):
     f=FormulaireMetier(request.POST if request.method=='POST' else None,initial={'jours_semaine':x.jours_semaine,'prestataire':x.prestataire})
     f.fields['jours_semaine']=deepcopy(ServicesForm.base_fields['jours_semaine'])
     f.fields['prestataire']=forms.CharField(label='Prestataire déclaré',max_length=160,required=False)
-    f.fields['motif']=forms.CharField(label='Motif de correction',max_length=240)
+    f.fields['motif']=forms.CharField(label='Précision sur la correction (facultative)',max_length=240,required=False)
     f.fields['attendu']=forms.CharField(widget=forms.HiddenInput,initial=accords.jeton(x))
     ctx=dossier.lire(request,x.accompagnement)
     return traiter(request,f,'Corriger les jours ou le prestataire du service',lambda **d:r.corriger_service(request.user,x,**d),ctx.get('retour_dossier') or reverse('suivi:accord_repas',args=[x.pk]),x.accompagnement.menage)

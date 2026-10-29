@@ -1,3 +1,4 @@
+from . import precisions_correction as precision
 from django import forms
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import get_object_or_404, render
@@ -31,6 +32,7 @@ def liste(request,pk=None,action=None):
         initial=propositions.photo(objet) if objet else {'active':True}
         if objet:initial['attendu']=propositions.jeton(objet)
         form=PropositionForm(request.POST if request.method=='POST' else None,initial=initial)
+        if objet:precision.preparer(form)
         return traiter(request,form,'Modifier une proposition' if objet else 'Ajouter une proposition',
             lambda attendu=None,**d:propositions.enregistrer(request.user,objet=objet,attendu=attendu,**d),
             reverse('dossiers:propositions'), 'Listes de propositions',
