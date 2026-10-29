@@ -32,6 +32,7 @@ class CahierNavigateur(StaticLiveServerTestCase):
         page.get_by_text('Liaisons',exact=True).click()
         root=page.locator('#liaisons .liaisons-contenu')
         ancien.expect(root.locator('.liaisons-fil')).to_be_visible()
+        root.locator('.liaisons-recherche-details > summary').click()
         return root
     def test_niveaux_brouillon_riche_publication_et_remontee(self):
         page=self.navigateur(self.social);root=self.ouvrir(page,prise=self.prise.pk)
@@ -88,9 +89,9 @@ class CahierNavigateur(StaticLiveServerTestCase):
         editeur=root.locator('.ProseMirror');editeur.fill('Bonjour @Jo')
         root.get_by_role('option',name='Joël Bernard',exact=True).click()
         ancien.expect(editeur).to_contain_text('@Joël Bernard')
-        ancien.expect(root.locator('[name=lia_mentions]')).to_be_checked()
+        ancien.expect(root.locator('[name=lia_mentions]')).to_have_count(1)
         root.get_by_label('Attributions et relais',exact=True).uncheck()
-        ancien.expect(root.locator('[name=lia_mentions]')).to_be_checked()
+        ancien.expect(root.locator('[name=lia_mentions]')).to_have_count(1)
         ancien.expect(root.locator('.ProseMirror')).to_contain_text('@Joël Bernard')
         root.get_by_role('button',name='Publier le message',exact=True).click()
         ancien.expect(root.locator('.liaisons-fil')).to_contain_text('@Joël Bernard')

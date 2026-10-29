@@ -4,7 +4,7 @@
   window.pasLiaisons = true;
   const states = new WeakMap(), initialized = new WeakSet();
   const state = root => {
-    if (!states.has(root)) states.set(root, {seq: 0, controller: null});
+    if (!states.has(root)) states.set(root, {seq: 0, controller: null, drafts: new Map()});
     return states.get(root);
   };
   const focus = root => {
@@ -18,8 +18,13 @@
     s.controller?.abort(); s.controller = new AbortController();
     const url = new URL(raw, location.href); url.searchParams.set('lia_fragment', '1');
     const draft = root.querySelector('[data-liaisons-message]');
-    const saved = draft && !form ? ['contenu', 'contenu_document', 'date_fait'].map(n => [n, draft.elements.namedItem(n)?.value]) : [];
-    const mentionsSaved = draft && !form ? [...draft.querySelectorAll('[name=lia_mentions]:checked')].map(x => ({token: x.value, label: x.closest('label').dataset.mentionLabel || x.closest('label').textContent})) : [];
+    const garder = () => {
+      const f = root.querySelector('[data-liaisons-message]'); if (!f) return;
+      const valeurs = ['contenu','contenu_document','date_fait'].map(n => [n,f.elements.namedItem(n)?.value]);
+      const mentions = [...f.querySelectorAll('[name=lia_mentions]')].map(x => ({token:x.value,label:x.closest('[data-mention-label]').dataset.mentionLabel}));
+      s.drafts.set(f.dataset.liaisonParent || '', {valeurs,mentions});
+    };
+    if (!form) garder();
     const options = {credentials: 'same-origin', signal: s.controller.signal};
     if (form) {options.method = 'POST'; options.body = new FormData(form); form.inert = true; s.posting = true; root.inert = true;}
     root.setAttribute('aria-busy', 'true');
@@ -35,15 +40,19 @@
       if (![200, 400, 409].includes(response.status)) throw new Error('chargement');
       const html = await response.text();
       if (s.seq !== seq) return;
+      if (!form) garder();
+      else if (response.ok) s.drafts.delete(form.dataset.liaisonParent || '');
+      const active = document.activeElement;
+      const caret = active?.name === 'lia_q' && root.contains(active) ? [active.selectionStart,active.selectionEnd] : null;
       root.innerHTML = html;
-      for (const [name, value] of saved) {
-        const input = root.querySelector('[data-liaisons-message]')?.elements.namedItem(name);
-        if (input && value !== undefined) input.value = value;
-        if (name === 'contenu' && value) root.querySelector('[data-liaisons-message]').dataset.dirty = '1';
+      const nouveau = root.querySelector('[data-liaisons-message]');
+      const sauvegarde = nouveau && s.drafts.get(nouveau.dataset.liaisonParent || '');
+      if (sauvegarde && !form) {
+        for (const [name,value] of sauvegarde.valeurs) {const champ=nouveau.elements.namedItem(name);if(champ && value !== undefined) champ.value=value;}
+        if (nouveau.elements.namedItem('contenu')?.value) {nouveau.dataset.dirty='1';nouveau.closest('details')?.setAttribute('open','');}
+        for (const m of sauvegarde.mentions) ajouterMention(nouveau.querySelector('[data-mentions-selection]'),m.token,m.label);
       }
-      if (saved.some(([n,v]) => n === 'contenu' && v)) root.querySelector('.liaison-rediger')?.setAttribute('open', '');
-      const selection = root.querySelector('[data-mentions-selection]');
-      if (selection) for (const m of mentionsSaved) ajouterMention(selection, m.token, m.label);
+      if (caret) {const q=root.querySelector('[name=lia_q]');q?.focus();q?.setSelectionRange(...caret);}
       root.dataset.liaisonsLoaded = '1'; focus(root);
     } catch (e) {
       if (e.name !== 'AbortError' && s.seq === seq) {
@@ -58,10 +67,19 @@
   }
   function ajouterMention(selection, token, label) {
     if ([...selection.querySelectorAll('input')].some(x => x.value === token)) return;
-    const l = document.createElement('label'), c = document.createElement('input');
-    c.type = 'checkbox'; c.name = 'lia_mentions'; c.value = token; c.checked = true;
-    l.dataset.mentionLabel = label; l.append(c, document.createTextNode(label + ' — notifier')); selection.append(l);
+    const l = document.createElement('span'), c = document.createElement('input'), b=document.createElement('button');
+    c.type = 'hidden'; c.name = 'lia_mentions'; c.value = token;
+    b.type='button';b.dataset.mentionRetirer='';b.textContent='Retirer la notification';
+    l.dataset.mentionLabel = label; l.append(c, document.createTextNode(label + ' sera notifié '),b); selection.append(l);
   }
+  function nettoyerMentions(form) {
+    const texte=form.elements.namedItem('contenu')?.value || '';
+    form.querySelectorAll('[data-mention-label]').forEach(x => {
+      const nom=x.dataset.mentionLabel.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+      if (!(new RegExp(nom+'(?![\\wÀ-ÿ])','u')).test(texte)) x.remove();
+    });
+  }
+
   const recherches = new WeakMap();
   function positionMention(form) {
     const ta = form.elements.namedItem('contenu');
@@ -76,7 +94,7 @@
     const ancien = recherches.get(form); if (ancien) {clearTimeout(ancien.timer); ancien.controller.abort();}
     const position = positionMention(form), controller = new AbortController(), etat = {controller, position, actif: 0};
     recherches.set(form, etat); box.hidden = true; box.replaceChildren();
-    if (!position || position.query.trim().length < 2) return;
+    if (!position) return;
     etat.timer = setTimeout(async () => {
       try {
         const url = new URL(form.dataset.mentionsUrl, location.href); url.searchParams.set('q', position.query.trim());
@@ -102,13 +120,16 @@
           box.append(b);
         }
         if (!box.children.length) {box.removeAttribute('role'); box.textContent = 'Aucun collègue autorisé proposé pour cette recherche.';}
+        const rect = position.rect || form.elements.namedItem('contenu').getBoundingClientRect();
+        box.style.left = Math.max(8,Math.min(rect.left,innerWidth-330))+'px';
+        box.style.top = Math.max(8,Math.min(rect.bottom+5,innerHeight-200))+'px';
         box.hidden = false;
       } catch(e) {if (e.name !== 'AbortError' && recherches.get(form) === etat) {box.removeAttribute('role'); box.textContent = 'Propositions indisponibles ; aucun collègue ne sera ajouté automatiquement.'; box.hidden = false;}}
     }, 180);
   }
   document.addEventListener('input', e => {
     const form = e.target.closest('[data-liaisons-message]');
-    if (form && (e.target.name === 'contenu' || e.target.closest('.ProseMirror'))) proposerMentions(form);
+    if (form && (e.target.name === 'contenu' || e.target.closest('.ProseMirror'))) {nettoyerMentions(form);proposerMentions(form);}
   });
   document.addEventListener('keydown', e => {
     const form = e.target.closest('[data-liaisons-message]'), etat = form && recherches.get(form), box = form?.querySelector('[data-mentions-propositions]');
@@ -139,11 +160,19 @@
     if (!form.matches('[data-liaisons-filtres],[data-liaisons-message]')) return;
     if (e.defaultPrevented) return;
     e.preventDefault();
+    form._rechercheDifferee?.annuler();
     const root = form.closest('.liaisons-contenu');
     if (form.matches('[data-liaisons-message]')) load(root, form.action, form);
     else {
       const url = new URL(form.action); url.search = new URLSearchParams(new FormData(form));
       load(root, url);
+    }
+  });
+  document.addEventListener('input', e => {
+    const form=e.target.closest('[data-liaisons-filtres]');
+    if (form && e.target.name==='lia_q') {
+      form._rechercheDifferee ||= window.PasRecherche.temporiser(() => {if(form.isConnected)form.requestSubmit();});
+      form._rechercheDifferee();
     }
   });
   document.addEventListener('change', e => {
@@ -152,6 +181,9 @@
     if (form) form.requestSubmit();
   });
   document.addEventListener('click', e => {
+    const retirer=e.target.closest('[data-mention-retirer]');if(retirer){retirer.closest('[data-mention-label]').remove();return;}
+    const ecrire=e.target.closest('[data-liaison-ecrire]');
+    if(ecrire){const root=ecrire.closest('.liaisons-contenu'),details=root.querySelector('.liaison-rediger');if(details){details.open=true;details.querySelector('.ProseMirror,textarea')?.focus();details.scrollIntoView({block:'nearest'});}return;}
     const link = e.target.closest('[data-liaisons-page]');
     if (link && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {e.preventDefault(); load(link.closest('.liaisons-contenu'), link.href);}
   });

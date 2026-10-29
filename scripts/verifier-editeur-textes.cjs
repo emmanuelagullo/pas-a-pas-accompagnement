@@ -5,7 +5,7 @@ const requirePwa = createRequire(path.resolve(__dirname, '../pwa/package.json'))
 const {chromium} = process.env.PWA_PLAYWRIGHT ? require(process.env.PWA_PLAYWRIGHT) : requirePwa('playwright');
 const racine = path.resolve(__dirname, '../static');
 const formulaire = (texte='**ancien** <à compléter>', doc='') => `<form><label for="id_texte">Commentaire libre</label><textarea id="id_texte" name="texte" data-texte-riche="1" data-max-texte="100" data-texte-obligatoire="1"${doc?' readonly':''}>${texte.replaceAll('&','&amp;').replaceAll('<','&lt;')}</textarea><input type="hidden" name="texte_document" data-document-riche value="${doc.replaceAll('&','&amp;').replaceAll('"','&quot;')}"><button type="submit">Enregistrer</button></form>`;
-const pageHTML = `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/textes-riches.css"><script src="/textes-riches.js" data-editeur-source="/editeur/texte-riche.js" defer></script></head><body><main>${formulaire()}</main></body></html>`;
+const pageHTML = `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>textarea {display:block}</style><link rel="stylesheet" href="/textes-riches.css"><script src="/textes-riches.js" data-editeur-source="/editeur/texte-riche.js" defer></script></head><body><main>${formulaire()}</main></body></html>`;
 const serveur = http.createServer((req,res) => {
   if (req.url === '/') {res.setHeader('Content-Type','text/html; charset=utf-8');res.end(pageHTML);return;}
   const fichier = path.resolve(racine, '.' + req.url);
@@ -27,6 +27,7 @@ const serveur = http.createServer((req,res) => {
   await page.goto(origine);
   const zone=page.getByRole('textbox',{name:'Commentaire libre',exact:true});
   await page.locator('.ProseMirror').waitFor();
+  assert.equal(await page.locator('textarea[data-texte-riche]').isVisible(),false);
   assert.equal(await zone.innerText(),'**ancien** <à compléter>');
   assert.equal(await page.locator('[name=texte_document]').inputValue(),'','aucune conversion à l’ouverture');
   await zone.fill('Texte fictif');await zone.press('ControlOrMeta+a');await page.getByRole('button',{name:'Gras',exact:true}).click();

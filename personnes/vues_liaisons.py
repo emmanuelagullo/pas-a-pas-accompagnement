@@ -75,11 +75,19 @@ def cahier(request):
                 from acteurs.models import Service
                 services=[{'label':str(x),'url':s.Point(request.user,'service',x.pk).url(params)} for x in Service.objects.filter(pk__in=s.services(request.user))]
                 if len(services)>1:services.append({'label':'Tous mes services accessibles','url':s.Point(request.user,'ensemble').url(params)})
+            initial=s.filtres(request.GET.__class__(''),point)
+            resume=[]
+            if f.is_valid():
+                resume=[dict(f.fields['lia_periode'].choices).get(f.cleaned_data['lia_periode'],'Dates personnalisées'),', '.join(dict(s.TYPES)[v] for v in f.cleaned_data['lia_types']) or 'Aucun contenu']
+                if f.cleaned_data['lia_q']:resume.append('Recherche : '+f.cleaned_data['lia_q'])
+                if f.afficher_sous and f.cleaned_data['lia_sous']:resume.append('Sous-niveaux inclus')
+                if f.cleaned_data['lia_annules']:resume.append('Messages annulés inclus')
+            effacer={k:v for k,v in params.items() if k not in s.CLES and k not in ('lia_filtres','lia_focus')}
             query={**point.params(),**params,'lia_filtres':'1'}
             retour_origine=s.lire_retour(request.user,params.get('lia_origine',''))
             if retour_origine and urlsplit(retour_origine).path==urlsplit(point.page(params)).path:retour_origine=''
             donnees={**contexte_jour(request),'point':point,'filtres':f,'form':form if point.ecriture() else None,'page_obj':page,
-                'services_cahier':services,'parents':point.parents(params),'retour_origine':retour_origine,
+                'resume_recherche':' · '.join(resume),'recherche_ouverte':request.GET.get('lia_recherche')=='1' or bool(f.errors),'effacer_recherche':point.url(effacer),'services_cahier':services,'parents':point.parents(params),'retour_origine':retour_origine,
                 'mentions_selectionnees':mentions.selection(point,request.POST.getlist('lia_mentions')),'url_mentions':s.reverse('suivi:mentions')+'?'+s.urlencode(point.params()),'retour_origine_nom':params.get('lia_origine_nom','Retour aux liaisons précédentes'),'url_cahier':point.url({k:v for k,v in params.items() if k!='lia_enplace'}),'url_formulaire':point.url({**params,**({'lia_fragment':'1'} if request.GET.get('lia_fragment')=='1' else {})}),
                 'url_precedente':point.url({**query,'lia_page':page.previous_page_number()}) if page.has_previous() else '',
                 'url_suivante':point.url({**query,'lia_page':page.next_page_number()}) if page.has_next() else '',

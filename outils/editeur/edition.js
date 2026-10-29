@@ -55,7 +55,10 @@ function initialiser(ta) {
   let derniereSelection = null, editeur;
   const marques = [];
   const format = (libelle, type, methode) => {
-    const b = bouton(libelle, () => editeur.chain().focus()[methode]().run());
+    const b = bouton(libelle, () => {
+      const {from,to}=editeur.state.selection;
+      editeur.chain().focus().setTextSelection({from,to})[methode]().run();
+    });
     b.setAttribute('aria-pressed', 'false'); marques.push([b, type]); toolbar.append(b);
   };
   format('Gras', 'bold', 'toggleBold'); format('Italique', 'italic', 'toggleItalic');
@@ -150,7 +153,7 @@ window.PasTextes = {
     const {from, $from} = editeur.state.selection;
     const prefixe = $from.parent.textBetween(0, $from.parentOffset, '\n');
     const trouve = prefixe.match(/(?:^|\s)@([^@\n]{0,60})$/);
-    return trouve ? {from: from - trouve[1].length - 1, to: from, query: trouve[1]} : null;
+    return trouve ? {from: from - trouve[1].length - 1, to: from, query: trouve[1], rect: editeur.view.coordsAtPos(from)} : null;
   },
   insererMention(ta, position, label) {
     const editeur = instances.get(ta)?.editeur;

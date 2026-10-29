@@ -18,7 +18,7 @@ MODELES={'personne':m.Personne,'menage':m.Menage,'prise':m.Accompagnement,
 NATURES={v:k for k,v in MODELES.items()}
 NOTES={'prise':'accompagnement','hebergement':'accord_hebergement','repas':'accord_repas','aide':'accord_aide',
     'personne':'personne','menage':'menage','sejour':'sejour'}
-TYPES=[('messages','Messages'),('equipe','Attributions et relais'),('prestations','Événements des prestations'),('actions','Actions à faire')]
+TYPES=[('messages','Messages'),('equipe','Attributions et relais'),('prestations','Arrivées, départs et autres opérations'),('actions','Actions à faire')]
 CLES=('lia_periode','lia_debut','lia_fin','lia_types','lia_sous','lia_q','lia_annules')
 
 
@@ -61,7 +61,7 @@ def filtres(donnees,point=None):
     f=Filtres(data);f.fields['lia_periode'].choices=choix
     f.fields['lia_q'].label='Rechercher dans les liaisons'
     f.fields['lia_annules'].label='Montrer les messages annulés'
-    f.fields['lia_sous'].label='Inclure les prises en charge et prestations' if point and point.nature in ('personne','menage') else 'Inclure les prestations' if point and point.nature=='prise' else 'Inclure les niveaux inférieurs'
+    f.fields['lia_sous'].label='Dans ce dossier et ses prises en charge et prestations' if point and point.nature in ('personne','menage') else 'Dans cette prise en charge et ses prestations' if point and point.nature=='prise' else 'Inclure les niveaux inférieurs'
     f.afficher_sous=bool(point and point.nature in ('personne','menage','prise'))
     f.dates_personnalisees=code=='dates'
     f.bornes_symboliques=[]

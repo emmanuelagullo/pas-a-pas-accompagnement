@@ -139,7 +139,7 @@ class CahierTests(TestCase):
         c=Client();c.force_login(self.ua)
         r=c.get(reverse('suivi:cahier'),{'lia_cible':'prise','lia_id':str(self.a.pk)})
         self.assertNotContains(r,'Ouvrir ce cahier en pleine page')
-        self.assertContains(r,'Inclure les prestations')
+        self.assertContains(r,'Dans cette prise en charge et ses prestations')
         self.assertNotContains(r,'Inclure les niveaux inférieurs')
         self.assertContains(r,'Attributions et relais')
         self.assertContains(r,'Cahier de liaison du service')

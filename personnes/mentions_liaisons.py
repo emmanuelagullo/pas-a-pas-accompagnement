@@ -43,7 +43,7 @@ def candidats(point,q):
     exiger_emetteur(point)
     if not p.active():raise PermissionDenied
     q=q.strip()[:60]
-    if len(q)<2 or not point.service_id:return []
+    if not point.service_id:return []
     from acteurs.models import Habilitation
     liens=LienCompteProfessionnel.objects.filter(compte_id__in=Habilitation.objects.filter(service_id=point.service_id).values('compte_id'),compte__is_active=True,professionnel__libelle__icontains=q).exclude(compte=point.compte).select_related('compte','professionnel').order_by('professionnel__libelle','pk')
     # Préfiltre organisationnel puis contrôle de la portée exacte. Aucun compte

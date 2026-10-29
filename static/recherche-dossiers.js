@@ -4,7 +4,8 @@
   if (!form) return;
   const results = document.getElementById('resultats-dossiers');
   const status = document.getElementById('recherche-etat');
-  let timer, controller, sequence = 0;
+  let controller, sequence = 0;
+  const temporiser = window.PasRecherche.temporiser(version => update(version));
   const nouveau = form.querySelector?.('[data-nouveau-dossier]');
   function adapterCreation() {
     if (nouveau) nouveau.disabled = nouveau.dataset[form.elements.mode.value] !== 'oui';
@@ -15,7 +16,7 @@
     results.inert = true;
     nouveau?.classList.add('secondaire');
     status.textContent = 'Recherche en cours…';
-    clearTimeout(timer);
+    temporiser.annuler();
     if (controller) controller.abort();
   }
   async function update(version) {
@@ -50,7 +51,7 @@
     adapterCreation();
     invalidate();
     const version = sequence;
-    timer = setTimeout(() => update(version), 250);
+    temporiser(version);
   });
   form.addEventListener('submit', () => invalidate());
 })();

@@ -20,3 +20,6 @@
 .edition-lien input { max-width: 100%; }
 .edition-texte [hidden] { display: none !important; }
 @media print { .edition-outils, .edition-lien { display: none; } .texte-narratif a { color: inherit; } .texte-narratif li { break-inside: avoid; } }
+
+/* Le champ de repli est un frère du composant, pas son enfant. */
+textarea[data-texte-riche][hidden] { display: none !important; }
