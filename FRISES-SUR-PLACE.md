@@ -329,3 +329,19 @@ non enregistrés sont protégés lors des changements de mode et de filtres.
 Complément navigateur du lot 4 : sélection Situation / Évolution au clavier,
 retour aux filtres, et préférence Frise commune exercée sans JavaScript via
 Appliquer, y compris sur la page d'Évolution de repli. Ces parcours réussissent.
+
+## Lot 5 : commandes regroupées et Zoom sans cadre
+
+Base : `a53012d650d37b38d122550722fb0521c44d473b` (main Inria).
+Frise et Légende partagent un petit contour sans fond lorsque la préférence est
+active. La bordure transparente à l'arrêt réserve le même espace ; les deux
+libellés ont la même taille et une ligne de 24 px. La légende ouverte reste sous
+sa commande sans déplacer la première ligne. À la désactivation, elle se referme.
+Le grand cadre autour de Zoom et de ses réglages est supprimé ; sa commande reste
+à droite. Aucun modèle, droit, donnée métier ou dépendance n'est modifié.
+
+Qualification : 11 tests frises réussis ; contrôles Django, absence de migration,
+syntaxe JS et banc de recherche réussis. Chromium réel confirme un alignement à
+moins d'un pixel et une hauteur inchangée entre les états, Zoom sans bordure,
+Form1/2/3, 390 px et repli sans JavaScript. Captures inspectées ; aucune erreur JS.
+Les deux échecs du cahier ACT13 signalés au lot 4 restent des limites de la base.

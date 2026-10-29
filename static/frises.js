@@ -35,7 +35,8 @@
       document.querySelectorAll('.frise-details').forEach(d => { if(ouverts.has(d.id)) d.open = true; });
       document.querySelectorAll('.resultats-dossiers').forEach(l => l.classList.toggle('avec-frises',box.checked));
       document.querySelectorAll('[data-frise-choix] input[name=actif]').forEach(c => c.checked=box.checked);
-      document.querySelectorAll('[data-frise-aide]').forEach(d => d.hidden=!box.checked);
+      document.querySelectorAll('[data-frise-aide]').forEach(d => {d.hidden=!box.checked;if(!box.checked) d.open=false;});
+      document.querySelectorAll('[data-frise-outils]').forEach(g => g.classList.toggle('frise-active',box.checked));
       document.querySelectorAll('[data-elements-dates]').forEach(l => l.classList.toggle('avec-frise',box.checked));
       scrollTo(0,y);
       document.dispatchEvent(new Event('frises:actualise'));

@@ -53,10 +53,21 @@
 .frise-aide[hidden]{display:none}
 .frise-aide>summary{cursor:pointer}
 .frise-aide>div{border:1px solid #cadbd3;border-radius:.4rem;padding:.5rem;background:#fff;max-width:32rem}
-.frise-reglages{border:1px solid #cadbd3;border-radius:.4rem;padding:.3rem .5rem;margin:.35rem 0}
+.frise-reglages{border:0;padding:0;margin:.35rem 0}
 .frise-reglages>summary{cursor:pointer;text-align:right}
 .elements-dates .frise-personnelle-trait{display:none}
 .elements-dates.avec-frise{list-style:none;padding:0}
 .elements-dates.avec-frise>li{margin:.7rem 0}
 .elements-dates.avec-frise .frise-personnelle-trait{display:block}
 .frise-aide>summary,.frise-reglages>summary{min-height:24px;line-height:24px}
+
+/* Une seule bordure discrète, ajustée aux commandes actives. */
+.frise-outils{display:inline-flex;align-items:flex-start;gap:.45rem;max-width:100%;min-width:0;border:1px solid transparent;border-radius:.35rem;padding:.1rem .4rem;font-size:.85rem;line-height:24px;vertical-align:middle}
+.frise-outils.frise-active{border-color:#cadbd3}
+.frise-outils .frise-choix{margin:0;font-size:inherit;line-height:24px;flex-shrink:0}
+.frise-outils .frise-choix label{min-height:24px}
+.frise-outils .frise-aide{font-size:inherit;min-width:0}
+.frise-outils .frise-aide>summary{line-height:24px}
+.frise-outils .frise-aide>div{border:0;padding:.4rem 0 0;background:transparent;max-width:32rem;overflow-wrap:anywhere}
+.frise-outils .frise-cle{max-width:100%;white-space:normal}
+.frise-outils .frise-choix button{height:24px;line-height:22px;padding:0 .4rem}
