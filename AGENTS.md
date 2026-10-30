@@ -624,3 +624,9 @@ jamais des résultats ou des droits ; aucune mise à jour d'origine silencieuse.
 Les rapports spécialisés non traduits restent utilisables et leurs limites
 explicites. Tester les analyses, assemblages, acteurs et les trois profils ;
 distinguer HTML, Chromium et vrai Pyodide/OPFS. Aucun nouveau droit implicite.
+
+ST14 — Composition contextuelle : garder les choix conservés visibles lors
+d'un changement de faits, sans effacement silencieux. La compatibilité des
+dimensions est commune au calcul et au formulaire ; les contrôles de droits
+restent serveur. Tester personnes.tests_compositeur et les parcours existants
+personnes.qualification_analyses / RapportsNavigateur, y compris sans JavaScript.

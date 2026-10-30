@@ -201,15 +201,21 @@ def analyse(request):
             else:return redirect(reverse('dossiers:analyse')+'?'+urlencode({'modele':x.pk}))
         parties=[]
         for nom,titre in [('retenir','Retenir'),('afficher','Afficher'),('compter','Compter'),('classer','Classer')]:
-            blocs=[]
-            for bloc in form.parties['critere' if nom=='retenir' else 'mesure'] if nom in ('retenir','compter') else []:
-                blocs.append({**bloc,'champs':[form[k] for k in bloc['champs']],'regles':[form[k] for k in bloc['regles']],'filtres':[[form[k] for k in fs] for fs in bloc['filtres']]})
+            from .presentation_analyses import blocs as presenter_blocs
+            blocs=presenter_blocs(form,'critere' if nom=='retenir' else 'mesure',action) if nom in ('retenir','compter') else []
             compteur=len(d.get('criteres',[])) if nom=='retenir' else len(d.get('colonnes',[])) if nom=='afficher' else len(d.get('mesures',[])) if nom=='compter' else sum(x!='total' for x in d.get('axes',[]))
-            regles_generales={'retenir':{'reference_mode','reference','decalage_debut','decalage_fin'},'afficher':{'affichage','export_prioritaire'},'classer':{'sous_totaux'}}.get(nom,set())
+            regles_generales={'retenir':{'reference_mode','reference','decalage_debut','decalage_fin'},'afficher':{'affichage','export_prioritaire'},'classer':{'sous_totaux',*('classes'+str(i) for i in range(1,8))}}.get(nom,set())
             champs=[form[k] for k in form.groupes[nom] if k not in regles_generales]
             regles=[form[k] for k in form.groupes[nom] if k in regles_generales]
             resume=(' · '.join(('Sans' if c.get('mode')=='sans' else 'Avec')+' '+dict(e.POPULATIONS).get(c.get('source'),'faits') for c in d.get('criteres',[])) or 'Aucun critère supplémentaire') if nom=='retenir' else ' · '.join(e.DIMENSIONS.get(c,c) for c in d.get('colonnes',[])) if nom=='afficher' else ' · '.join(c.get('titre') or dict(e.POPULATIONS).get(c.get('source'),'faits') for c in d.get('mesures',[])) if nom=='compter' else ' → '.join(e.DIMENSIONS.get(c,c) for c in d.get('axes',[]) if c!='total') or 'Aucun regroupement'
-            parties.append(dict(nom=nom,titre=titre,champs=champs,regles=regles,resume=resume,blocs=blocs,compteur=compteur,ouvert=source.get('panneau')==nom or (nom=='retenir' and not cible and not source.get('definition') and not source.get('nombre_mesure')) or bool(form.errors)))
+            if blocs:resume=' · '.join(b['titre'] for b in blocs)
+            if nom in ('retenir','compter'):compteur=len(blocs)
+            if nom=='classer':
+                if any(form[k].value() for k in form.groupes[nom] if k.startswith('classes')):resume+=' · Classes numériques définies'
+                if form['sous_totaux'].value() not in (None,'',False,'False','false','0'):resume+=' · Sous-totaux recalculés'
+            groupe_action='retenir' if 'critere' in action else 'compter' if 'mesure' in action else 'classer' if 'axe' in action else 'afficher' if 'colonne' in action else ''
+            erreurs_locales=any(f.errors for f in champs+regles) or any(b['erreurs'] for b in blocs)
+            parties.append(dict(nom=nom,titre=titre,champs=champs,regles=regles,resume=resume,blocs=blocs,compteur=compteur,regles_ouvertes=any(f.errors for f in regles),ouvert=source.get('panneau')==nom or (nom=='retenir' and not cible and not source.get('definition') and not source.get('nombre_mesure')) or nom==groupe_action or erreurs_locales or bool(form.non_field_errors())))
         from .presentation_exports import prioritaire
         ctx=dict(description=description_modele(cible,request.user),nouveau=not cible and not source.get('definition') and not source.get('nombre_mesure') and not source.get('ancien'),form=form,parties=parties,resultat=resultat,sauvegarde=sauvegarde,peut_conserver=peut_conserver,cible=cible,definition=a.encoder(d),prioritaire=prioritaire('analyse',d),page_obj=Paginator(resultat['details'],50).get_page(source.get('page')) if resultat and d['affichage']=='detail' else None)
         reponse=TemplateResponse(request,'analyses/rapport.html',ctx,status=statut)

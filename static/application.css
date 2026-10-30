@@ -356,3 +356,7 @@ header > nav .menu-utilisateur { position: relative; }
 .analyse-filtre { border-inline-start: 2px solid #cadbd3; padding-inline-start: .5rem; margin-block: .5rem; }
 .analyse-resultats table { min-width: 32rem; }
 .analyse-apercu { display: block; color: #3d544c; font-size: .85rem; margin-block-start: .3rem; }
+
+/* Un bloc ouvert utilise la largeur disponible sans étirer les volets fermés. */
+.analyse-parties { align-items: start; }
+.analyse-parties > details[open] { grid-column: 1 / -1; }

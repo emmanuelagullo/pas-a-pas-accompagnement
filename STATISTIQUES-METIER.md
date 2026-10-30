@@ -690,3 +690,19 @@ de l'explorateur restent explicites, sans troncature. Qualification complémenta
 `personnes.tests_analyses_acteurs`, `personnes.qualification_analyses` et
 `scripts/qualifier-analyses-profils.py`. Les profils Django PWA ne qualifient pas
 à eux seuls l'exécution réelle Pyodide/OPFS.
+
+### ST14 — Composition contextuelle
+
+Le compositeur conserve Retenir, Afficher, Compter et Classer. Chaque bloc
+résume ses faits, son calcul et ses conditions ; l'ajout ou une erreur ouvre
+la partie concernée. Après un changement de faits, « Actualiser les choix de
+ce bloc » présente les calculs et filtres compatibles, aussi sans JavaScript.
+Les classements sont communs aux mesures de l'analyse ; des classements
+indépendants relèvent de parties distinctes dans un assemblage. Les dimensions
+personnelles sont rangées par domaine. Les règles non pertinentes disparaissent
+quand elles sont à leur valeur ordinaire ; tout paramètre différent déjà choisi
+reste visible. Les choix devenus incompatibles restent identifiables et sont
+signalés, jamais supprimés silencieusement. Les classes numériques sont dans
+les options de classement ; le type de ligne n'apparaît qu'en restitution détaillée.
+Cette présentation ne traduit pas de nouveau rapport spécialisé et ne change
+ni les sources sociales, ni les définitions, ni les formats enregistrés.

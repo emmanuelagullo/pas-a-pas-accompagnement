@@ -396,23 +396,29 @@ def accepte(x,c,op,val):
     return any(str(v).casefold()==val.casefold() for v in vs)
 
 
-@service_metier
-def calculer(acteur,d,*,contributions=False,selectionner=None):
-    from . import cohortes_exploration as cohortes
-    cohorte=cohortes.verifier(d)
-    if d['mesure']=='menages':suivi.exiger(acteur,'view_menage')
+def dimension_compatible(source, cle):
+    """Même contrat pour le calcul et les choix contextuels du compositeur."""
     communs={'personne','jour_semaine','date_saisie','date_version','total','mois','jour','age','precision_naissance','qualite_naissance','unite'}
     propres={'personnes':set(),'menages':set(),'prises':{'date_fin','type','etat','origine','orientation','motif'},'demandes':{'etat','motif','origine'},'accords_hebergement':{'date_fin','duree','type','origine','etat'},'accords_repas':{'date_fin','duree','type','origine','etat'},'sejours':{'duree_selection','date_fin','etat','duree','entree_connue','quantite'},'affectations':{'lieu','lieu_id','date_fin','duree','duree_selection','quantite'},'repas':{'type','etat','origine','quantite'},'aides':{'type','etat','quantite'},'appels':{'complement115','appelant','auteur','auteur_version','heure','type','etat','motif','secondaire','reponse','origine','orientation','adultes_declares','enfants_declares','grossesses_declarees'},'ressources':{'type','etat','quantite'},'dettes':{'type','etat','quantite'},'couts':{'phase','nature_financement','unite_facturee','quantite_facturee','prix_unitaire','reference_calcul','prescripteur_id','signataire_id','dossier','type','etat','prescripteur','signataire','quantite'},'imputations':{'phase','nature_financement','reference_calcul','prescripteur_id','signataire_id','financeur_id','dossier','type','prescripteur','signataire','financeur','budget','quantite'}}
     for c in DECLARATIONS:propres.setdefault(c,{'type','etat'})
     propres['relations']={'date_fin'}
     propres['fragments_sejour']={'date_fin','lieu','lieu_id','quantite'}
+    if cle.startswith('mission.') and source not in ('prises','sejours','accords_hebergement','accords_repas','affectations','repas','aides','couts','imputations'):return False
+    return '.' in cle or cle in communs | propres.get(source,set())
+
+
+@service_metier
+def calculer(acteur,d,*,contributions=False,selectionner=None):
+    from . import cohortes_exploration as cohortes
+    cohorte=cohortes.verifier(d)
+    if d['mesure']=='menages':suivi.exiger(acteur,'view_menage')
     axes=[d['axe'],d['croisement'],*[d.get('axe'+str(i),'') for i in range(3,8)]]
     colonnes=[d.get('colonne'+str(i),'') for i in range(1,12)]
     non_colonnes=[*axes,*[d['filtre'+str(i)] for i in range(1,(d.get('filtres') or 2)+1)]]
     if any(c in DETAILS_SEULS for c in non_colonnes if c):raise ValidationError('Cette information qualitative est disponible en colonne détaillée, pas comme axe ou filtre.')
     choisies=[*colonnes,*axes,*[d['filtre'+str(i)] for i in range(1,(d.get('filtres') or 2)+1)]]
     if any(c.startswith('mission.') for c in choisies if c) and d['population'] not in ('prises','sejours','accords_hebergement','accords_repas','affectations','repas','aides','couts','imputations'):raise ValidationError('Les missions professionnelles se lisent dans une prise en charge ou ses prestations, pas depuis les appartenances de la personne.')
-    if any(c and '.' not in c and c not in communs|propres[d['population']] for c in choisies):raise ValidationError('Un axe ou filtre ne correspond pas à cette population. Choisissez la population concernée, ou une dimension de situation personnelle.')
+    if any(c and '.' not in c and not dimension_compatible(d['population'],c) for c in choisies):raise ValidationError('Un axe ou filtre ne correspond pas à cette population. Choisissez la population concernée, ou une dimension de situation personnelle.')
     if (d['mesure'] in (*mesures.DUREES,'participations') and d['population']!='sejours') or (d['mesure'] in mesures.NUITS_DISTINCTES and d['population'] not in ('sejours','fragments_sejour')):raise ValidationError('Cette mesure concerne les épisodes de séjour, pas une autorisation ou une distribution.')
     n=d.get('filtres') or 2;cles=[*colonnes,*axes,*[d['filtre'+str(i)] for i in range(1,n+1)]];lignes=population(acteur,d);cles+=mesures.preparer(acteur,lignes,d)
     if d.get('reference_mode') in ('fait','saisie'):
