@@ -1,14 +1,31 @@
 # Pas à Pas — Accompagnement
 
-Prototype **#SOC1–#SOC6c** pour préparer une application d'accueil et d'accompagnement
-social, notamment en CHRS. **Données fictives uniquement ; développement local.**
+Application libre Django pour l'accueil et l'accompagnement social, notamment
+en CHRS. Le parcours compact est **Recherche → Dossier → Prise en charge**,
+avec les prestations accessibles dans ce parcours.
 
-Disponible : connexion, accueil, liste des personnes, création d'une identité
-incomplète, consultation et correction tracée de sa fiche. Pas de suppression de
-fiche. Les comptes professionnels sont distincts des personnes suivies.
+**Le prototype reste réservé aux données fictives.** Les profils serveur,
+programmes Linux/Windows et PWA ne constituent pas une qualification pour des
+dossiers réels. Les comptes professionnels sont distincts des personnes suivies.
 
-Non disponible : documents joints, invitations. Une PWA fictive est disponible sous #SOC5a ; voir ci-dessous. La date et l'auteur de création ne sont pas un journal
-d'audit. Ce prototype n'est pas une installation de production.
+## État courant et repères de lecture
+
+| Domaine disponible selon les droits | Référence |
+| --- | --- |
+| Dossiers personne/ménage, appartenances datées, prises en charge et prestations d'hébergement, repas et aides | [Parcours de démonstration](DEMONSTRATION.md) et [architecture actuelle](ARCHITECTURE.md#état-courant) |
+| Situation sociale et projet, Évolution, saisie et corrections sur place | [Ergonomie commune](ERGONOMIE-CONDITION-SOCIALE.md) et [corrections](CORRECTIONS-COHERENTES.md) |
+| Frises compactes facultatives, vues élargies et navigation vers les objets | [Frises sur place](FRISES-SUR-PLACE.md) |
+| Services, professionnels, responsabilités, habilitations et relais | [Acteurs et accès](ACTEURS-ACCES.md) |
+| Documents associés privés et versionnés, financements, appels 115, notes et cahier de liaison | [Documents et déclarations](#consolidation-solenne-f), [financements](#financements-et-documents--méta-lot-d) et [115 et relève](#appels-115-relève-et-exploration--méta-lot-e) |
+| Rapports, analyses composables, modèles personnels, assemblages et exports | [Statistiques métier, dont ST13](STATISTIQUES-METIER.md#st13--mesures-indépendantes-et-assemblages-personnels) |
+
+Les sections repérées #SOC, CHRS, BD et Solenne conservent l'histoire des
+introductions et leurs contrats. Une limite propre à un ancien jalon n'est pas
+une limite globale actuelle : les documents associés et leurs sections récentes
+précisent les évolutions. Par exemple, les documents joints sont maintenant
+présents, et le contrôle par service est activable explicitement. Les limites de
+qualification et les invariants de sécurité ne disparaissent pas pour autant.
+Voir aussi [comment lire l'historique architectural](ARCHITECTURE.md#historique-des-jalons).
 
 ## Rectifier une information
 
@@ -70,8 +87,9 @@ SQL, sans révéler les données. Il ne certifie ni les migrations ni les sauveg
 
 ## Droits et limites
 
-La connexion seule ne donne aucun accès aux personnes. Les vues contrôlent les
-permissions Django `personnes.view_personne` et `personnes.add_personne` ; la
+La connexion seule ne donne aucun droit métier. Les vues et services contrôlent
+les droits propres aux objets et aux opérations. Par exemple, les fiches
+personnes utilisent `personnes.view_personne` et `personnes.add_personne` ; la
 création exige aussi la lecture pour pouvoir consulter la fiche résultante.
 Les écritures utilisent POST et CSRF ; la déconnexion utilise POST.
 
@@ -87,31 +105,51 @@ Le profil serveur peut proposer ou imposer le TOTP ; voir [AUTHENTIFICATION.md](
 ## Vérifications
 
 ```sh
-python manage.py check
-python manage.py test
-python manage.py makemigrations --check --dry-run
+python3 manage.py check
+python3 manage.py test
+python3 manage.py makemigrations --check --dry-run
 git diff --check
 ```
 
-La CI GitLab exécute ces contrôles sous Python 3.12 et 3.13, avec Django 5.2 et 6.1
-et les dépendances TOTP. GitHub teste aussi le parcours serveur et les programmes. Elle nécessite un
-runner Docker autorisé pour le futur projet. Les jobs de contrôle ne publient rien ; les jobs Pages et les promotions
+La CI GitLab définit ces contrôles sous Python 3.12 et 3.13, avec Django 5.2 et 6.1
+et les dépendances TOTP. Les workflows GitHub couvrent aussi le serveur, la PWA
+et les programmes ; les matrices exactes sont dans les fichiers CI du dépôt.
+Les jobs de contrôle ne publient rien ; les jobs Pages et les promotions
 de tags qualifiés ont leurs déclenchements propres (voir la section publication).
 Les tests n'emploient que des identités fictives et une base de test temporaire.
 La persistance réelle après redémarrage peut être exercée par le parcours ci-dessus.
 
 `requirements.txt` décrit la plage de compatibilité ; `requirements.lock` fixe
-l'environnement de ce jalon. Les mises à jour de dépendances sont explicites. La compatibilité déclarée
-couvre Django 5.2 à <7 ; la matrice qualifie les branches 5.2 et 6.1 sous Python
+l'environnement par défaut. Les mises à jour de dépendances sont explicites. La compatibilité déclarée
+couvre Django 5.2 à <7 ; la matrice cible les branches 5.2 et 6.1 sous Python
 3.12/3.13. Le lock conserve Django 5.2.18. Cela ne prétend pas tester chaque
 version intermédiaire. Serveur, bureau, 2FA et PDF gardent leurs profils explicites.
 
-La version pas-communs 0.8.0 est publiée et adoptée ; son wheel et son tag
+La version pas-communs 0.9.0 est adoptée dans cette base ; son wheel et son tag
 restent immuables. Les mises à jour documentaires ne la republient pas. Les versions citées par les
 sections #SOC ci-dessous sont celles d'introduction des mécanismes. La version
 et l'empreinte effectives restent dans requirements-communs.txt. La recette
 QUALIFICATION.md du socle s'utilise sans installation implicite, y compris
 avec un environnement Guix ; elle vérifie les octets importés et les deux produits.
+
+### Portée des résultats de qualification
+
+Les commandes ci-dessus ne constituent pas à elles seules une recette visuelle.
+Distinguer les tests automatisés et les réponses HTTP/HTML, les observations dans
+un vrai navigateur, les essais Pyodide/OPFS et les programmes réellement exécutés.
+Une configuration Django PWA ne prouve pas le fonctionnement du navigateur ou de
+son stockage. Une qualification SQLite ne remplace pas celle de PostgreSQL.
+
+Pour un changement de formulaire, adapter les recettes communes qui le
+parcourent : déplier les précisions facultatives, utiliser l'éditeur visible et
+vérifier les retours, sans forcer la saisie d'un champ masqué. Voir les
+[règles de qualification pour les contributions](AGENTS.md#état-courant-historique-et-qualification),
+les [bancs PWA](pwa/README.md#bancs-fictifs) et la
+[qualification PostgreSQL](BASE-CIBLE.md#matrice-de-qualification-livrée).
+Les comptes rendus précisent SHA, profils, résultats, tests ignorés et limites ;
+les chiffres conservés dans les jalons sont des résultats datés, pas l'état des
+CI actuelles. Une recette définie, un patch livré et une publication effective
+sont des états distincts.
 
 ## Socle commun avec Petits Pas
 
@@ -381,9 +419,10 @@ Cette adoption nécessite la publication préalable de pas-communs 0.7.0.
 ## Base cible du serveur d'équipe
 
 SQLite reste le backend des profils livrés. [BASE-CIBLE.md](BASE-CIBLE.md)
-retient PostgreSQL pour le futur serveur, avec une matrice CI avant toute
-règle métier dépendant de ses contraintes ou de sa concurrence. Ce choix
-est cadré ; aucun déploiement ni profil d'exploitation n'est modifié.
+retient PostgreSQL pour le futur serveur. Un profil de tests et une matrice CI
+PostgreSQL 17 sont présents pour qualifier ses garanties séparément de SQLite.
+Ce profil de qualification n'est pas un déploiement serveur PostgreSQL ; aucun
+profil d'exploitation n'est modifié par ce choix.
 Les sauvegardes PostgreSQL ne sont pas les paquets SQLite du bureau/PWA.
 
 ## CHRS1 — ménages et accompagnements fictifs

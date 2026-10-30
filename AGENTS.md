@@ -85,11 +85,53 @@ Préserver le modèle utilisateur et ses migrations ; ne pas changer
 AUTH_USER_MODEL par simple renommage. Les permissions sont contrôlées dans
 les vues, y compris si les boutons sont cachés. Pas de nouveau droit implicite.
 Conserver les écrans en français, les formulaires accessibles et CSRF.
-Pour un changement applicatif, vérifier `python manage.py check`, `python manage.py test`,
-`python manage.py makemigrations --check --dry-run` et `git diff --check`.
+Pour un changement applicatif, vérifier `python3 manage.py check`, `python3 manage.py test`,
+`python3 manage.py makemigrations --check --dry-run` et `git diff --check`.
 Commits français avec #SOC. Utiliser l’identité de commit explicitement
 indiquée ; si elle n’est pas précisée, la demander avant de créer les commits.
 Livraison par patch git am, sans Signed-off-by.
+
+## État courant, historique et qualification
+
+README.md présente l'état courant et les accès aux documents thématiques ;
+ARCHITECTURE.md sépare cette synthèse des jalons historiques. Les restrictions
+explicitement limitées à une première tranche ne décrivent pas nécessairement
+l'application actuelle. Les contrats de sécurité, d'intégrité et de compatibilité
+hérités restent applicables tant qu'une évolution explicite ne les remplace pas.
+Lors d'une évolution, actualiser la synthèse et les documents concernés sans
+supprimer l'historique utile. La dépendance réellement adoptée reste celle de
+requirements-communs.txt ; un ancien numéro de version ne la remplace pas.
+
+Pour une modification d'interface ou de formulaire, examiner les recettes qui
+utilisent le même parcours : pleine page, fragments sur place, bureau et iframe
+PWA selon les usages concernés. Adapter aussi les parcours communs tels que
+scripts/verifier-parcours-metier.cjs, pas seulement les nouveaux tests du lot.
+Une recette ouvre les dépliables par leurs commandes et renseigne l'éditeur
+visible ; elle ne remplit pas une zone technique masquée. Ne pas contourner une
+interaction manquante par un remplissage forcé, une manipulation du DOM ou un
+allongement de délai. Les attentes doivent correspondre à des états observables
+et aux opérations asynchrones réellement attendues. Vérifier aussi le repli
+sans JavaScript lorsque le parcours le prévoit.
+
+Dans les comptes rendus, distinguer les preuves :
+
+- tests automatisés de modèles/services, autorisations et concurrence ;
+- requêtes HTTP et HTML rendus, sans prétendre avoir observé l'interface ;
+- parcours dans un vrai navigateur, en précisant navigateur, tailles d'écran,
+  clavier/tactile et captures effectivement inspectées lorsque pertinents ;
+- vrai runtime Pyodide et stockage OPFS/IndexedDB pour les mécanismes PWA
+  concernés : des tests Django avec pwa.settings ou un stockage simulé ne les
+  qualifient pas ;
+- programmes réellement construits/exécutés et systèmes concernés, ainsi que
+  PostgreSQL lorsque ses garanties sont en jeu : Chromium/Linux et SQLite ne
+  qualifient pas à eux seuls ces autres profils.
+
+Indiquer le SHA, les commandes/profils exécutés, les résultats et les tests
+ignorés, ainsi que les limites ou échecs restants. Une recette disponible ou un
+job configuré n'est pas un résultat réussi ; ne pas annoncer la CI verte sans
+l'avoir vérifiée. Distinguer aussi livré, appliqué et publié. Pour un patch
+strictement documentaire, vérifier cohérence, liens locaux et `git diff --check` ;
+il n'impose pas à lui seul de rejouer les suites applicatives inchangées.
 
 ## Contrats techniques hérités des jalons
 

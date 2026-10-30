@@ -1,13 +1,69 @@
 # Architecture — état courant et historique des jalons
 
-Les sections #SOC retracent les introductions successives. La version adoptée
-est fixée par requirements-communs.txt (0.8.0 publiée et adoptée au 20 octobre 2026),
-non par les mentions anciennes ci-dessous. La fiche PDF est désormais disponible
-(voir PDF.md). Le cadrage retenu avant CHRS1 est dans V0-METIER.md.
+## État courant
+
+Cette synthèse décrit le `main` examiné au 30 octobre 2026 ; les jalons plus bas
+expliquent son évolution. La version et les octets du socle sont fixés par
+[requirements-communs.txt](requirements-communs.txt), actuellement **0.9.0** dans
+cette base. Les anciens numéros ne changent pas cette dépendance.
+
+- **Modèles applicatifs** : `identites` porte les comptes et l'authentification ;
+  `personnes` porte les identités accompagnées, ménages et appartenances datées,
+  prises en charge, prestations, faits personnels/projet, documents versionnés,
+  financements, notes, appels 115 et rapports. `acteurs` porte l'organisation,
+  les responsabilités et les habilitations par service. Les deux applications
+  Petits Pas et CHRS gardent leurs modèles, données et comptes séparés.
+- **Socle partagé** : `pas_communs` est une bibliothèque embarquée, pas un service
+  distant. Il fournit les primitives techniques réutilisées pour les copies,
+  l'authentification, le navigateur, les PDF, les programmes et la publication.
+  Les définitions métier et leurs politiques d'accès restent dans le produit.
+- **Écritures et histoire** : les vues et services contrôlent droits, dates et
+  preuves d'état ; versions et journaux restent propres à chaque domaine.
+  Une précision de correction ordinaire est facultative ; elle ne remplace pas
+  les sources, les confirmations de portée ou les règles des décisions et
+  annulations. Voir [CORRECTIONS-COHERENTES.md](CORRECTIONS-COHERENTES.md).
+- **Présentation** : Recherche → Dossier → Prise en charge conserve les liens et
+  formulaires métier. Situation/Évolution et les formulaires sur place utilisent
+  les lectures et écritures existantes ; les frises sont des projections de
+  consultation, pas des données ou éditeurs temporels supplémentaires. Voir
+  [l'ergonomie](ERGONOMIE-CONDITION-SOCIALE.md) et les
+  [frises](FRISES-SUR-PLACE.md).
+- **Accès** : les objets sont contrôlés côté serveur avant agrégation, y compris
+  dans les frises et rapports. L'activation des règles par service et la reprise
+  des anciennes données sont explicites ; une migration ne les active pas.
+  Voir [ACTEURS-ACCES.md](ACTEURS-ACCES.md).
+- **Profils** : serveur, bureau et PWA partagent les modèles et services, avec
+  leurs adaptateurs et contraintes propres. Les profils livrés utilisent SQLite ;
+  PostgreSQL 17 dispose d'un profil de tests distinct, sans adoption implicite
+  en exploitation. Voir [BASE-CIBLE.md](BASE-CIBLE.md),
+  [DEPLOIEMENTS.md](DEPLOIEMENTS.md) et [pwa/README.md](pwa/README.md).
+
+La présence de ces mécanismes ne constitue pas une qualification pour des
+informations réelles. Un test Django sous les réglages PWA ne qualifie pas le
+vrai runtime Pyodide ni OPFS ; une recette Chromium/Linux ne qualifie pas à elle
+seule les programmes Windows, les autres navigateurs ou PostgreSQL. Les preuves,
+commandes, environnements, tests ignorés et limites doivent être explicités selon
+[AGENTS.md](AGENTS.md#état-courant-historique-et-qualification).
+
+## Historique des jalons
+
+Les sections suivantes conservent les introductions successives, les choix et
+les limites de chaque tranche. Les formulations « pas encore », « futur » ou
+« à décider » se lisent dans le contexte du jalon ; elles ne constituent pas un
+inventaire actuel. Les invariants hérités restent à respecter, sauf remplacement
+explicite documenté. [V0-METIER.md](V0-METIER.md) est le cadrage initial, pas une
+liste exhaustive des fonctions désormais présentes. Les documents thématiques
+référencés dans la synthèse permettent de lire les contrats et évolutions récents.
 
 ## Architecture initiale de #SOC1
 
-## Composants
+La première tranche couvrait connexion, accueil, liste des personnes et création,
+consultation et correction d'une identité incomplète. Documents joints et
+invitations n'étaient pas disponibles dans cette tranche. La date et l'auteur
+de création ne constituaient pas à eux seuls un journal des corrections ; les
+versions et journaux métier ont été ajoutés dans les jalons suivants.
+
+### Composants
 
 - `pas_a_pas_accompagnement` : configuration locale, routes, accueil, contrôle SQL.
 - `identites.Utilisateur` : compte Django minimal, défini dès la première migration.
@@ -21,7 +77,7 @@ La désignation accepte un nom d'usage ou un identifiant provisoire. Ce n'est pa
 une vérification d'identité et elle n'est pas unique. Ne pas déduire un ménage
 d'une égalité de nom. Les personnes suivies n'ont pas de compte de connexion.
 
-## État de la factorisation
+### État de la factorisation
 
 Les trois dépôts restent distincts : Petits Pas, pas-communs et cette
 application. #SOC2 adopte `pas_communs.paquets` : enveloppe ZIP, copie SQLite,
@@ -34,7 +90,7 @@ Ne pas imposer des organisations ou habilitations génériques avant d'avoir
 confronté les deux métiers. Préserver l'identité des modèles et des migrations
 lors des extractions futures, notamment celle du modèle utilisateur.
 
-## Jalons suivants
+### Jalons suivants
 
 - #SOC2 : paquets et sauvegardes avec identité du produit et refus croisé.
 - #SOC3 : lanceur et construction des programmes locaux.
