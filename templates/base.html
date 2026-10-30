@@ -9,7 +9,7 @@
 <a class="evitement" href="#contenu">Aller au contenu</a>
 <header><a class="marque" href="{% url 'accueil' %}">Pas à Pas <span>Accompagnement</span></a>
 {% if user.is_authenticated %}<nav aria-label="Navigation principale">
-{% if not controle_acteurs or peut_ouvrir_dossiers_acteurs %}<a href="{% url 'accueil' %}">Dossiers</a>{% endif %}
+{% if not controle_acteurs or peut_ouvrir_dossiers_acteurs %}<a href="{% if url_recherche_dossiers %}{{ url_recherche_dossiers }}{% else %}{% url 'accueil' %}{% endif %}">Dossiers</a>{% endif %}
 {% if perms.personnes.view_accompagnement and perms.personnes.view_sejour and perms.personnes.view_repasdistribue and not request.inscription_2fa_requise %}<a href="{% if controle_acteurs and not peut_ouvrir_dossiers_acteurs %}{{ rapport_service_acteurs|default:rapport_etablissement_acteurs }}{% elif controle_acteurs %}{% url 'dossiers:rapports_accueil' %}?filtre=tous{% else %}{% url 'statistiques' %}{% endif %}">Statistiques</a>{% endif %}
 {% if perms.acteurs.gerer_organisation and not request.inscription_2fa_requise %}<a href="{% url 'acteurs:organisation' %}">Établissement</a>{% endif %}
 {% if perms.personnes.view_transmission or perms.personnes.view_notepartagee or perms.personnes.view_actionrelais %}<a href="{% url 'suivi:cahier' %}">Cahier de liaison</a>{% endif %}

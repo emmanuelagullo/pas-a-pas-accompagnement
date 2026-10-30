@@ -48,7 +48,7 @@ const server=(tls?require('node:https'):http).createServer(options,(req,res)=>{
    });
   }
   async function rechercherPersonnes(app){
-   await cliquerLienPwa(app.getByRole('link',{name:'Dossiers',exact:true}));
+   await cliquerLienPwa(app.getByRole('navigation', {name:'Navigation principale', exact:true}).getByRole('link',{name:'Dossiers',exact:true}));
    await app.getByLabel('Personnes',{exact:true}).check();
    await cliquerLienPwa(app.getByRole('button',{name:'Rechercher',exact:true}));
   }

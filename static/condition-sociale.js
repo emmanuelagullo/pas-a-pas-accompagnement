@@ -256,10 +256,11 @@
         // Recharger les valeurs et jetons après chaque écriture, sans perdre le
         // contexte d'entretien ni réutiliser un ancien formulaire périmé.
         root.innerHTML = fresh.innerHTML;
+        document.title = doc.title;
         objectifsOuverts.forEach(id=>{const d=document.getElementById(id);if(d)d.open=true;});
         // Les en-têtes restent non éditables, mais reflètent aussitôt une
         // correction d'identité enregistrée dans la condition sociale.
-        for (const selector of ['.bd-dossier > .bd-titre', '.bd-dossier > .bd-chemin', '.condition-sommaire', '.condition-menu-mobile']) {
+        for (const selector of ['.bd-dossier > .bd-titre', '.bd-dossier > .fil-ariane', '.condition-sommaire', '.condition-menu-mobile']) {
           const oldElement = document.querySelector(selector);
           const newElement = doc.querySelector(selector);
           if (oldElement && newElement) {

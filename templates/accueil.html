@@ -1,5 +1,5 @@
 {% extends "base.html" %}{% load static %}
-{% block contenu %}<div class="entree-dossiers"><p class="surtitre">Dossiers</p><h1>Quel dossier souhaitez-vous ouvrir ?</h1>
+{% block titre %}Dossiers — Pas à Pas{% endblock %}{% block contenu %}{% include 'dossiers/_ariane.html' %}<div class="entree-dossiers"><h1>Quel dossier souhaitez-vous ouvrir ?</h1>
 {% if peut_personnes %}
 <form class="carte recherche-centrale" method="get" id="recherche-dossiers" action="{% url 'accueil' %}">
 <fieldset class="choix-recherche"><legend>Rechercher dans</legend>

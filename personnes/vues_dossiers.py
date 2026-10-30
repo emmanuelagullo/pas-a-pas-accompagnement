@@ -363,6 +363,8 @@ def detail(request, nature, pk, prise_pk=None):
         'retour_form2': reverse('dossiers:detail', args=[nature, pk]) + '?' + urlencode({**params, 'ecran': 'dossier', 'vue_sociale': 'date' if condition_vue in ('entree', 'fin') else condition_vue}),
         'arrivees_annulees':arrivees_annulees,
         'evolutions': prise.evolutions_prevision.select_related('auteur') if prise and request.user.has_perm('personnes.view_evolutionpriseencharge') else [],
+        'libelle_dossier': ('Ménage ' + str(objet)) if nature == 'menage' and not str(objet).casefold().startswith('ménage ') else str(objet),
+        'url_recherche_dossiers': retour,
         'objet': objet, 'nature': nature, 'liens': liens, 'liens_uniques': liens_uniques.values(), 'contact_designe': contact_designe,
         'retour_exploration':retour_exploration,'navigation_personne': dossier.pour_personne(pk, params) if nature == 'personne' else {}, 'origine_url': origine_url, 'origine': origine, 'retour': retour, 'navigation_query': urlencode(params), 'recherche': params['q'], 'mode_recherche': params['mode'], 'page_recherche': params['page'], 'origine_sejour': params.get('origine_sejour', ''), 'origine_repas': params.get('origine_repas', ''),
         'periode_actuelle': actuelle, 'information_actuelle': informations_actuelles[0] if informations_actuelles else None,

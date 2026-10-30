@@ -130,7 +130,6 @@ textarea, select { border: 1px solid #617d73; border-radius: .4rem; }
 /* BD6 : la même hiérarchie visuelle pour rechercher, lire et agir. */
 main:has(.bd-dossier) { max-width: 76rem; }
 .bd-dossier { --bd-fond: #fff; --bd-bord: #d3e3dc; --bd-discret: #f0f7f3; }
-.bd-chemin { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; font-size: .9rem; color: #526d63; }
 .bd-titre { display: block; padding: .7rem 0 1.2rem; background: transparent; border: 0; }
 .bd-titre h1 { margin: .2rem 0 .7rem; letter-spacing: -.035em; font-size: clamp(1.7rem, 3vw, 2.35rem); }
 .bd-titre .surtitre { margin: 0; }
@@ -168,8 +167,8 @@ main:has(.bd-dossier) { max-width: 76rem; }
 .bd-prestations { grid-template-columns: repeat(2, minmax(0, 1fr)); margin: .5rem 0 1.2rem; }
 .bd-formulaire { max-width: 48rem; margin: auto; }
 .bd-formulaire .carte { max-width: none; }
-@media (max-width: 48rem) { .bd-synthese, .bd-prestations { grid-template-columns: minmax(0, 1fr); } .social-valeurs { grid-template-columns: minmax(0, 1fr); } .bd-dossier .carte { padding: 1rem; } .bd-chemin span { display: none; } }
-@media print { .bd-chemin, .bd-actions, .bd-titre nav { display: none; } .bd-dossier .carte { box-shadow: none; } }
+@media (max-width: 48rem) { .bd-synthese, .bd-prestations { grid-template-columns: minmax(0, 1fr); } .social-valeurs { grid-template-columns: minmax(0, 1fr); } .bd-dossier .carte { padding: 1rem; } }
+@media print { .bd-actions, .bd-titre nav { display: none; } .bd-dossier .carte { box-shadow: none; } }
 
 /* Un accueil prévu reste dans la liste d’hébergement, sans simuler une présence. */
 .episodes-compacts .hebergement-prevu { padding: .7rem .8rem; border: 1px dashed #6b9988; border-radius: .5rem; }
@@ -360,3 +359,14 @@ header > nav .menu-utilisateur { position: relative; }
 /* Un bloc ouvert utilise la largeur disponible sans étirer les volets fermés. */
 .analyse-parties { align-items: start; }
 .analyse-parties > details[open] { grid-column: 1 / -1; }
+
+
+/* Le chemin reste lisible à fort zoom et ne tronque pas les identités. */
+.fil-ariane { margin-block: 0 1rem; font-size: .95rem; }
+.fil-ariane ol { display: flex; flex-wrap: wrap; gap: .4rem .6rem; list-style: none; padding: 0; margin: 0; }
+.fil-ariane li { display: flex; align-items: baseline; gap: .6rem; min-width: 0; max-width: 100%; }
+.fil-ariane a, .fil-ariane [aria-current] { min-width: 0; overflow-wrap: anywhere; }
+.fil-ariane [aria-current] { font-weight: 700; }
+.bd-titre h1, .bd-titre .surtitre { overflow-wrap: anywhere; }
+.fil-ariane .separateur { flex: none; }
+@media print { .fil-ariane { display: none; } }

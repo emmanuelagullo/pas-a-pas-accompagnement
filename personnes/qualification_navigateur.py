@@ -478,6 +478,41 @@ class EntreeBDNavigateur(StaticLiveServerTestCase):
         self.u.set_password('Recette-fictive-CHRS14!')
         self.u.save(update_fields=['password'])
 
+    def test_ariane_clavier_ecran_etroit_sans_javascript(self):
+        self.m.libelle = 'Ménage ' + 'Martin' * 24
+        self.m.save(update_fields=['libelle'])
+        page = self.navigateur()
+        url = self.live_server_url + reverse('dossiers:prise', args=['menage', self.m.pk, self.a.pk]) + '?q=Martin&mode=menage&page=2&filtre=service'
+        # Le chemin et ses retours fonctionnent aussi sans les scripts.
+        contexte = page.context.browser.new_context(
+            storage_state=page.context.storage_state(), java_script_enabled=False,
+            viewport={'width': 320, 'height': 800})
+        self.addCleanup(contexte.close)
+        page = contexte.new_page()
+        page.goto(url)
+        chemin = page.get_by_role('navigation', name='Fil d’Ariane')
+        self.assertEqual(chemin.locator('[aria-current="page"]').count(), 1)
+        self.assertEqual(chemin.locator('a[aria-current]').count(), 0)
+        self.assertEqual(chemin.get_by_role('link').count(), 2)
+        self.assertTrue(page.evaluate('document.documentElement.scrollWidth <= window.innerWidth'))
+        # Taille de texte doublée, puis activation au clavier du dossier.
+        page.add_style_tag(content='html { font-size: 200%; }')
+        self.assertTrue(chemin.evaluate('(e) => e.getBoundingClientRect().right <= innerWidth'))
+        dossier = chemin.get_by_role('link', name=self.m.libelle, exact=True)
+        dossier.focus()
+        dossier.press('Enter')
+        page.wait_for_url('**#prises')
+        self.assertTrue(page.locator('#prises').is_visible())
+        page.go_back()
+        page.get_by_role('heading', name='Prise en charge du 01/01/2026', exact=True).wait_for()
+        chemin = page.get_by_role('navigation', name='Fil d’Ariane')
+        recherche = chemin.get_by_role('link', name='Dossiers', exact=True)
+        recherche.focus()
+        recherche.press('Enter')
+        page.wait_for_url('**/?q=Martin&mode=menage&page=2&filtre=service&en_cours=')
+        self.assertEqual(page.locator('#recherche-nom').input_value(), 'Martin')
+        self.assertTrue(page.get_by_label('Ménages', exact=True).is_checked())
+
     def test_recherche_bascule_et_sortie_retour(self):
         page = self.navigateur()
         page.get_by_role('heading', name='Quel dossier souhaitez-vous ouvrir ?').wait_for()
@@ -498,9 +533,9 @@ class EntreeBDNavigateur(StaticLiveServerTestCase):
         page.get_by_text("Dossier actualisé.", exact=True).wait_for()
         self.assertEqual(page.locator('#hebergement a[aria-current="true"]').count(), 1)
         self.assertEqual(page.locator('[data-dossier-boite="repas"]').count(), 1)
-        page.get_by_role('link', name='← Dossier ' + str(self.p), exact=True).click()
+        page.get_by_role('navigation', name='Fil d’Ariane').get_by_role('link', name=str(self.p), exact=True).click()
         page.get_by_role('link', name='← Revenir au ménage ' + self.m.libelle, exact=True).click()
-        page.get_by_role('link', name='← Rechercher un dossier', exact=True).click()
+        page.get_by_role('navigation', name='Fil d’Ariane').get_by_role('link', name='Dossiers', exact=True).click()
         self.assertEqual(page.locator('#recherche-nom').input_value(), self.p.designation)
         page.get_by_label('Personnes', exact=True).check()
         page.get_by_text('Résultats actualisés.', exact=True).wait_for()

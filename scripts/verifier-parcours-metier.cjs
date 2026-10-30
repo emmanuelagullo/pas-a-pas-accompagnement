@@ -2,7 +2,7 @@
 const assert = require('node:assert/strict');
 const cliquerLienPwa = require('./cliquer-lien-pwa.cjs');
 module.exports = async function verifierParcoursMetier(app) {
-  await cliquerLienPwa(app.getByRole('link', {name:'Dossiers', exact:true}));
+  await cliquerLienPwa(app.getByRole('navigation', {name:'Navigation principale', exact:true}).getByRole('link', {name:'Dossiers', exact:true}));
   await app.getByLabel('Nom, prénom ou libellé du dossier', {exact:true}).fill('Thomas');
   await app.getByText('Résultats actualisés.', {exact:true}).waitFor();
   await cliquerLienPwa(app.locator('#resultats-dossiers ul.resultats-dossiers').getByRole('link', {name:/Thomas — Établissement Les Passerelles \(fictif\)/}));

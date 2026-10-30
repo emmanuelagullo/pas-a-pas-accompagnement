@@ -2,7 +2,8 @@
 
 Application libre Django pour l'accueil et l'accompagnement social, notamment
 en CHRS. Le parcours compact est **Recherche → Dossier → Prise en charge**,
-avec les prestations accessibles dans ce parcours.
+avec les prestations accessibles dans ce parcours. Le [fil d’Ariane et les retours](NAVIGATION-DOSSIERS.md)
+conservent le contexte de recherche et les sélections.
 
 **Le prototype reste réservé aux données fictives.** Les profils serveur,
 programmes Linux/Windows et PWA ne constituent pas une qualification pour des

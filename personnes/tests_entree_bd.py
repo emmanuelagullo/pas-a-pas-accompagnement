@@ -28,6 +28,42 @@ class EntreeBDTests(Donnees, TestCase):
         self.url = reverse('dossiers:detail', args=['menage', self.m.pk])
         self.purl = reverse('dossiers:detail', args=['personne', self.p.pk])
 
+    def test_fil_ariane_recherche_paginee_dossier_et_prise_signee(self):
+        from django.utils.html import escape
+        for n in range(27):
+            Menage.objects.create(libelle=f'Navigation {n:02}', cree_par=self.u)
+        recherche = self.client.get(reverse('accueil'), {'q': 'Navigation', 'page': '2', 'filtre': 'service'})
+        self.assertContains(recherche, '<span aria-current="page">Dossiers</span>', html=True)
+        cible = recherche.context['page_obj'][0]
+        page = self.client.get(cible.url_dossier)
+        self.assertContains(page, '<span aria-current="page">Ménage ' + str(cible) + '</span>', html=True)
+        self.assertIn('page=2', page.context['retour'])
+        self.assertIn('filtre=service', page.context['retour'])
+        retour = self.client.get(page.context['retour'])
+        self.assertEqual(retour.context['page_obj'].number, 2)
+        self.assertEqual(retour.context['recherche'], 'Navigation')
+        # Une opération renvoie via le jeton signé à la même prise et recherche.
+        page = self.client.get(self.url, {'q': 'Personne', 'mode': 'personne', 'page': '2', 'filtre': 'mes', 'en_cours': '1'})
+        prise = self.client.get(page.context['periodes'][0].url_prise)
+        self.assertContains(prise, '<span aria-current="page">Prise en charge du 01/01/2026</span>', html=True)
+        self.assertContains(prise, 'href="' + escape(prise.context['retour_form2'] + '#prises') + '"')
+        nav = prise.context['prise'].navigation
+        retour = self.client.get(nav['retour_dossier'])
+        self.assertEqual(retour.context['prise'].pk, self.a.pk)
+        self.assertEqual(retour.context['mode_recherche'], 'personne')
+        self.assertIn('en_cours=1', retour.context['retour'])
+        self.assertIn('filtre=mes', retour.context['retour'])
+        self.assertNotContains(retour, '3 · Prise en charge')
+
+    def test_fil_ariane_personne_sans_hierarchie_menage(self):
+        page = self.client.get(self.url)
+        personne = self.client.get(list(page.context['liens_uniques'])[0].url)
+        chemin = personne.content.decode().split('aria-label="Fil d’Ariane">', 1)[1].split('</nav>', 1)[0]
+        self.assertIn('aria-current="page"', chemin)
+        self.assertNotIn(self.m.libelle, chemin)
+        self.assertContains(personne, 'Revenir au ménage')
+        self.assertIn(str(self.m.pk), personne.context['origine_url'])
+
     def test_accueil_recherche_menages_par_tous_membres_et_anciennes_appartenances(self):
         enfant = Personne.objects.create(designation='Benali', prenom='Inès', cree_par=self.u)
         suivi.ajouter_appartenance(self.u, self.m, enfant, date(2025, 1, 1), date(2025, 2, 1))
