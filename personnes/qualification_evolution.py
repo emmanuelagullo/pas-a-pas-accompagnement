@@ -28,6 +28,9 @@ class EvolutionNavigateur(StaticLiveServerTestCase):
         from decimal import Decimal
         self.tarif_correction = financements.definir_tarif(self.u,financements.creation_tarif(),'Définition fictive',
             debut=date(2026,1,1),fin=None,libelle='Repas fictif',unite='repas',categorie='',montant=Decimal('25'),devise='EUR',prestataire=None,actif=True,source='Convention fictive')
+        if self._testMethodName == 'test_frises_episodes_et_depliage_sous_la_ligne':
+            autre = m.Accompagnement.objects.create(menage=self.m,debut=date(2025,5,1),fin=date(2025,7,1),cree_par=self.u)
+            autre.beneficiaires.add(self.p)
         self.pw = sync_playwright().start(); self.addCleanup(self.pw.stop)
         self.browser = self.pw.chromium.launch(executable_path=os.environ['PWA_CHROMIUM'], args=['--no-sandbox'])
         self.addCleanup(self.browser.close)
@@ -208,4 +211,78 @@ class EvolutionNavigateur(StaticLiveServerTestCase):
         sansjs.wait_for_url('**' + reverse('dossiers:tarifs'))
         sansjs.goto(url)
         expect(sansjs.locator('[name=montant]')).to_have_value('29,0000')
+        self.assertEqual(self.errors,[])
+
+    def test_frises_episodes_et_depliage_sous_la_ligne(self):
+        from playwright.sync_api import expect
+        page=self.page(viewport={'width':1280,'height':900})
+        page.locator('[data-frise-choix] input[name=actif]').first.check()
+        ligne=page.locator('.bd-liste-prises>li').first
+        dessin=ligne.locator('a>.frise-slot>.frise-mini')
+        details=ligne.locator('.frise-details')
+        titre=ligne.locator('a>strong').first
+        commande=details.locator(':scope>summary')
+        expect(dessin).to_be_visible()
+        for largeur in (1280,390):
+            page.set_viewport_size({'width':largeur,'height':900})
+            commande.scroll_into_view_if_needed()
+            avant=dessin.bounding_box()
+            y_avant=page.evaluate('scrollY')
+            bouton=commande.bounding_box(); texte=titre.bounding_box()
+            self.assertLess(abs(bouton['y']-texte['y']),12)
+            self.assertLessEqual(bouton['y']+bouton['height'],avant['y']+2)
+            commande.focus()
+            page.keyboard.press('Enter')
+            expect(details).to_have_attribute('open','')
+            expect(commande).to_contain_text('Réduire')
+            apres=dessin.bounding_box()
+            self.assertEqual(avant['x'],apres['x'])
+            self.assertEqual(avant['width'],apres['width'])
+            self.assertEqual(avant['y']+y_avant,apres['y']+page.evaluate('scrollY'))
+            corps=details.locator('.frise-depliee').bounding_box()
+            self.assertGreaterEqual(corps['y'],apres['y']+apres['height'])
+            self.assertLessEqual(page.evaluate('document.documentElement.scrollWidth'),largeur+1)
+            expect(details.locator('.frise-bulle').first).not_to_be_visible()
+            page.locator('#prises').screenshot(path=f'/tmp/frise-form2-{largeur}.png')
+            commande.click()
+        page.goto(self.live_server_url + reverse('accueil')+'?mode=personne&q=Maïa')
+        carte=page.locator('.resultats-dossiers>li').first
+        details=carte.locator('.frise-details')
+        details.locator(':scope>summary').click()
+        expect(details.locator('.frise-episode')).to_have_count(2)
+        expect(details.locator('.frise-episode-titre').first).to_contain_text('close le')
+        groupe=details.locator('.frise-prestations').first
+        expect(groupe).not_to_have_attribute('open','')
+        groupe.locator('summary').click()
+        liens=details.locator('.frise-episode-titre')
+        destination=liens.last.get_attribute('href')
+        self.assertIn('contexte_dossier=',destination)
+        zoom=details.locator('[data-frise-reglages]')
+        zoom.locator('summary').click()
+        details.locator('[data-frise-cadre]').select_option('annee')
+        expect(details.locator('[data-frise-cadrage]')).to_contain_text('Période affichée')
+        self.assertNotIn('linéaire',details.inner_text())
+        details.locator('[data-frise-reset]').click()
+        page.goto(self.live_server_url+destination)
+        page.get_by_role('link',name='← Revenir à la frise',exact=True).click()
+        # Le retour signé ouvre la frise et retrouve les prestations dépliées.
+        carte=page.locator('.resultats-dossiers>li').first
+        expect(carte.locator('.frise-details')).to_have_attribute('open','')
+        expect(carte.locator('.frise-prestations').first).to_have_attribute('open','')
+        for largeur in (1280,390):
+            page.set_viewport_size({'width':largeur,'height':900})
+            self.assertLessEqual(page.evaluate('document.documentElement.scrollWidth'),largeur+1)
+            carte.screenshot(path=f'/tmp/frise-form1-episodes-{largeur}.png')
+        sans_js=self.page(java_script_enabled=False,viewport={'width':390,'height':900})
+        formulaire=sans_js.locator('[data-frise-choix]').first
+        formulaire.locator('input[name=actif]').check()
+        formulaire.get_by_role('button',name='Appliquer',exact=True).click()
+        sans_js.goto(self.live_server_url+reverse('accueil')+'?mode=personne&q=Maïa')
+        carte=sans_js.locator('.resultats-dossiers>li').first
+        carte.locator('.frise-details>summary').click()
+        expect(carte.locator('.frise-episode')).to_have_count(2)
+        carte.locator('.frise-episode-titre').last.click()
+        sans_js.get_by_role('link',name='← Revenir à la frise',exact=True).click()
+        expect(sans_js.locator('.resultats-dossiers .frise-details')).to_have_attribute('open','')
+        self.assertLessEqual(sans_js.evaluate('document.documentElement.scrollWidth'),391)
         self.assertEqual(self.errors,[])

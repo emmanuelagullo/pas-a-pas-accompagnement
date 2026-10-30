@@ -359,6 +359,7 @@ def detail(request, nature, pk, prise_pk=None):
         'parametres_navigation': {k: v for k, v in params.items() if k not in ('prise', 'ecran', 'accompagnement', *dossier.CLES_SOCIALES)}, 'selection_prise': selection_prise, 'commentaires': commentaires, 'commentaire': commentaires[0] if commentaires else None,
         'url_trajectoire': reverse('dossiers:trajectoire', args=[nature, pk]) + '?' + urlencode({**{k:v for k,v in params.items() if k not in ('prise', 'ecran')}, **({'prise':str(prise.pk), 'retour_prise':str(prise.pk)} if prise else {})}),
         'date_sociale': date_sociale,
+        'retour_frise_origine': dossier.lire(request, prise).get('retour_dossier', '') if prise and params.get('frise_ouverte') else '',
         'retour_form2': reverse('dossiers:detail', args=[nature, pk]) + '?' + urlencode({**params, 'ecran': 'dossier', 'vue_sociale': 'date' if condition_vue in ('entree', 'fin') else condition_vue}),
         'arrivees_annulees':arrivees_annulees,
         'evolutions': prise.evolutions_prevision.select_related('auteur') if prise and request.user.has_perm('personnes.view_evolutionpriseencharge') else [],

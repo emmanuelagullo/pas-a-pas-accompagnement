@@ -160,7 +160,7 @@
       }
     }
     zone.querySelector('[data-frise-reperes-initial]').hidden=!initial;
-    zone.querySelector('[data-frise-cadrage]').textContent=initial?e.legende:`Échelle linéaire · ${date(a)} → ${date(b)} · Les dates exactes et les faits hors fenêtre restent dans les lignes ci-dessous.`;
+    zone.querySelector('[data-frise-cadrage]').textContent=initial?e.legende:`Période affichée : ${date(a)} → ${date(b)}`;
     const image=zone.querySelector('[data-frise-dessin] .frise-mini');
     if(!e.aria) e.aria=image.getAttribute('aria-label');
     image.setAttribute('aria-label',initial?e.aria:`Fenêtre du ${date(a)} au ${date(b)}. Détails textuels ci-dessous.`);
@@ -189,4 +189,19 @@
     afficher(zone);
   });
   init();document.addEventListener('dossier:actualise',init);document.addEventListener('frises:actualise',init);
+})();
+
+/* Retrouver les prestations dépliées après une consultation ou un retour. */
+(() => {
+  const cle = d => 'pas-frise-prestations:'+d.closest('[data-frise-fenetre]').dataset.compte+':'+location.pathname+':'+d.id;
+  const restaurer = () => document.querySelectorAll('.frise-prestations').forEach(d => {
+    try {d.open=sessionStorage.getItem(cle(d))==='1';} catch (_) {}
+  });
+  restaurer();
+  document.addEventListener('frises:actualise',restaurer);
+  document.addEventListener('toggle',e => {
+    if(e.target.matches('.frise-prestations')) {
+      try {sessionStorage.setItem(cle(e.target),e.target.open?'1':'0');} catch (_) {}
+    }
+  },true);
 })();

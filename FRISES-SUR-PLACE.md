@@ -444,3 +444,51 @@ bulle persistante. Ce lot ne change ni les faits, ni la préférence de session.
 La recette Chromium vérifie l'absence de déplacement, le survol de l'aide,
 Échap, le focus clavier, la recherche à 390 px et le tap sur écran tactile.
 Douze tests réussis pour ce lot (onze tests de frises et cette recette réelle).
+
+## Vue élargie par prise en charge (30 octobre 2026)
+
+Base examinée : `0c965683cba0dbea20e22cbd627c00a5dc190e4e` (main Inria).
+Dans les résultats, Élargir conserve la miniature et ouvre dessous une ligne
+par prise en charge consultable, avec son titre, sa clôture effective ou sa fin
+prévue explicitement nommée et un lien vers la prise exacte. Les prestations
+restent représentées en synthèse à l'intérieur des contours ; leur liste est
+repliée sous chaque prise. Toutes les lignes partagent l'axe de la carte et son
+zoom. Aucun recentrage par prise ne fausse la comparaison. Les bandes compactes
+restent inchangées pendant le zoom. Une période sans objet consultable ne prouve
+pas l'absence de tout accompagnement.
+
+En Form2, Élargir / Réduire reste dans le titre de la prise ; le contenu s'ouvre
+sur la rangée suivante. La miniature reste visible. Le lien Projet demeure
+séparé. La mise en page des listes sans frises n'est pas modifiée.
+
+Les explications techniques d'échelle sont remplacées par « Période affichée ».
+La légende dépliable explique seulement que les périodes anciennes occupent
+moins de place dans les vues des dossiers. Les dates restent attachées aux
+objets nommés, sans paragraphe de dates isolées. Les prévisions et les
+annulations conservent leurs états distincts ; aucun fait futur n'est inventé.
+
+Les lectures contrôlées existantes précèdent le regroupement, y compris dans
+une vue personnelle à bénéficiaires partiels. Aucun droit, source, modèle,
+migration, dépendance ou format de copie n'est modifié. Le regroupement
+n'ajoute pas de requête par prise. La liste est bornée aux 80 prises les plus récentes et 80 détails
+de prestations au total par carte ; les fiches restent accessibles pour la
+suite. Les états des listes Prestations sont mémorisés par compte, chemin et
+identifiant dans la session navigateur. Le lien de retour depuis une prise
+ouverte dans la frise conserve le contexte signé, la recherche et l'ancre.
+Sans JavaScript, les liens et les dépliages natifs restent utilisables ; la
+mémoire locale des dépliages et le zoom nécessitent JavaScript.
+
+Qualification ciblée : 13 tests de frises et 6 recettes Chromium réussis.
+Les contrôles couvrent les bénéficiaires partiels et objets inaccessibles,
+l'axe commun, les limites de volume (82 prises et 85 accords fictifs), les
+requêtes groupées, le retour signé et la mémoire des prestations dépliées.
+La recette visuelle observe les Form1 et Form2 à 1280 et 390 px : commande dans
+le titre, miniature conservée sans déplacement, dépliage dessous, absence de
+débordement et infobulles initialement cachées. Le parcours clavier et le
+parcours natif sans JavaScript sont également vérifiés. Les captures ont été
+inspectées ; aucun essai réel Pyodide/OPFS ou programme Windows n'est ajouté à
+cette qualification Chromium/Django.
+
+Suite générale finale : 1 010 tests réussis (3 ignorés), exécutés avec quatre
+processus Django sur SQLite. Les contrôles Django, l'absence de migration,
+la syntaxe JavaScript, le banc de recherche et `git diff --check` réussissent.

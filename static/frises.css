@@ -104,3 +104,23 @@
 .frise-libelle-aide:focus-within:not([data-ferme]) .frise-explication { display:block; }
 @media(hover:hover) { .frise-libelle-aide:hover:not([data-ferme]) .frise-explication { display:block; } }
 @media(hover:none) { .frise-libelle-aide .frise-explication { display:none!important; } }
+
+/* Form2 : commande dans le titre, miniature conservée, détail en dessous. */
+#prises .bd-liste-prises>li:has(.frise-details){position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) 3.5rem;align-items:center}
+#prises .bd-liste-prises>li:has(.frise-details)>input{grid-column:1;grid-row:1}
+#prises .bd-liste-prises>li:has(.frise-details)>a:not(.bd-lien-projet){grid-column:2/-1;grid-row:1;min-width:0}
+#prises .bd-liste-prises>li:has(.frise-details)>a>strong{display:block;padding-inline-end:5.7rem;min-height:1.5rem}
+#prises .bd-liste-prises>li:has(.frise-details)>.bd-lien-projet{grid-column:3;grid-row:1;align-self:end}
+#prises .bd-liste-prises>li:has(.frise-details)>.frise-slot>.frise-details{grid-column:2/-1;position:static;padding-top:0;min-width:0}
+#prises .bd-liste-prises>li:has(.frise-details)>.frise-slot>.frise-details:not([open]){height:0;margin:0}
+#prises .bd-liste-prises>li:has(.frise-details)>.frise-slot>.frise-details>summary{top:1rem;right:1rem}
+.bd-liste-prises .frise-depliee a{padding:.15rem 0;font-size:.85rem}
+.frise-episode{margin:.6rem 0;min-width:0}
+.frise-episode-titre{display:block;font-weight:600}
+.frise-prestations>summary{cursor:pointer;min-height:24px;font-size:.8rem;color:#365e66}
+.frise-prestations>.frise-detail{margin-inline-start:.5rem}
+@media(max-width:600px){#prises .bd-liste-prises>li:has(.frise-details){gap:.4rem;padding-inline:.5rem;grid-template-columns:auto minmax(0,1fr) 2.8rem}#prises .bd-liste-prises>li:has(.frise-details)>.frise-slot>.frise-details>summary{right:.5rem}#prises .bd-liste-prises>li:has(.frise-details)>a>strong{padding-inline-end:5.3rem}}
+/* Le style générique des textes de la liste ne doit pas ouvrir les infobulles. */
+.bd-liste-prises .frise-bulle{display:none}
+
+#prises .bd-liste-prises>li:has(.frise-details)>a:not(.bd-lien-projet)>span:not(.frise-slot){padding-inline-end:3.8rem}

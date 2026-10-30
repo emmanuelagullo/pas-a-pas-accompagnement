@@ -95,6 +95,23 @@ class FrisesTests(Donnees,TestCase):
         revenu=self.client.get(cible.context['retour_dossier'])
         self.assertContains(revenu,'id="frise-accompagnement-'+str(self.a.pk)+'" open')
 
+    def test_episodes_par_prise_axe_commun_et_retour_exact(self):
+        self.activer()
+        r=self.client.get(reverse('accueil'),{'mode':'personne','q':'fictive'})
+        o=next(x for x in r.context['page_obj'] if x.pk==self.p.pk)
+        episode=o.frise['episodes'][0]
+        self.assertEqual(episode['prise'].pk,self.a.pk)
+        self.assertEqual(episode['debut'],o.frise['debut'])
+        self.assertEqual(episode['fin'],o.frise['fin'])
+        self.assertContains(r,'frise-episode-titre')
+        self.assertContains(r,'Prise en charge du')
+        self.assertNotContains(r,'linéaire')
+        self.assertNotContains(r,'comprimé')
+        cible=self.client.get(episode['url'])
+        self.assertEqual(cible.status_code,200)
+        self.assertIn('#frise-personne-'+str(self.p.pk),cible.context['retour_frise_origine'])
+        self.assertEqual({f['id'] for f in episode['details']}, {f['id'] for f in o.frise['details']})
+
     def test_preference_signee_et_csrf(self):
         self.assertEqual(self.client.get(reverse('dossiers:frises_preference')).status_code,405)
         self.assertEqual(self.client.post(reverse('dossiers:frises_preference'),{'retour_frise':'https://ailleurs.example'}).status_code,400)
@@ -121,6 +138,30 @@ class FrisesTests(Donnees,TestCase):
         self.assertLessEqual(len(self.p.frise['segments']), 4*64+1)
         for s in self.p.frise['segments']:
             self.assertLessEqual(float(s['x'])+float(s['w']),100.001)
+
+    def test_details_dossier_bornes_et_prise_sans_prestation(self):
+        from . import suivi
+        vide=suivi.ouvrir(self.u,self.m,[self.p],date(2025,1,1))
+        for i in range(85):
+            r=m.AccordRepas.objects.create(accompagnement=self.a,debut=date(2026,1,1),fin=date(2026,2,1),service='diner',cree_par=self.u)
+            r.beneficiaires.add(self.p)
+        self.u.user_permissions.add(*Permission.objects.filter(content_type__app_label='personnes'))
+        self.u=type(self.u).objects.get(pk=self.u.pk)
+        frises.charger(self.u,[self.p],'personne')
+        groupes=self.p.frise['episodes']
+        self.assertEqual(len(groupes),2)
+        self.assertEqual(groupes[0]['prise'].pk,vide.pk)
+        self.assertEqual(groupes[0]['details'],[])
+        self.assertLessEqual(sum(len(g['details']) for g in groupes),80)
+        self.assertTrue(groupes[1]['suite'])
+        self.assertEqual(groupes[0]['reperes'],groupes[1]['reperes'])
+        for i in range(80):
+            ancienne=m.Accompagnement.objects.create(menage=self.m,debut=date(2020,1,1),fin=date(2020,2,1),cree_par=self.u)
+            ancienne.beneficiaires.add(self.p)
+        frises.charger(self.u,[self.p],'personne')
+        self.assertEqual(len(self.p.frise['episodes']),80)
+        self.assertTrue(self.p.frise['suite_episodes'])
+        self.assertEqual(self.p.frise['episodes'][-1]['prise'].pk,self.a.pk)
 
     def test_lecture_groupee_sur_la_page(self):
         with CaptureQueriesContext(connection) as a:
@@ -163,6 +204,7 @@ class FrisesAccesTests(TestCase):
         with __import__('acteurs.contexte',fromlist=['perimetre']).perimetre(self.ua):
             frises.charger(self.ua,[self.ma],'menage')
         self.assertNotIn(str(autre.pk),[f['id'] for f in self.ma.frise['details']])
+        self.assertNotIn(str(autre.pk),[f['id'] for e in self.ma.frise['episodes'] for f in e['details']])
         Habilitation.objects.filter(compte=self.ua).update(revoque_le=timezone.now())
         self.client.force_login(self.ua)
         session=self.client.session;session[frises.SESSION]=True;session.save()

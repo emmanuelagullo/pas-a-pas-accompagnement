@@ -55,7 +55,7 @@ class Echelle:
         return {'x': f'{x:.4f}', 'w': f'{max(0, y-x):.4f}'}
 
     def reperes(self):
-        valeurs = [(self.fin, 'Aujourd’hui' if self.fin == timezone.localdate() else 'Fin de la prise')]
+        valeurs = [(self.fin, 'Aujourd’hui' if self.fin == timezone.localdate() else 'Fin de la prise en charge')]
         if self.comprimee:
             for annees in (1, 2, 5, 10, 20, 50):
                 if self.fin.year <= annees:
@@ -64,7 +64,7 @@ class Echelle:
                 if jour >= self.debut:
                     valeurs.append((jour, f'−{annees} an' + ('s' if annees > 1 else '')))
         else:
-            valeurs.append((self.debut, 'Début de la prise'))
+            valeurs.append((self.debut, 'Début de la prise en charge'))
         return [{'x': f'{self.position(j):.4f}', 'label': f'{libelle} · {j:%d/%m/%Y}'} for j, libelle in valeurs]
 
 
@@ -134,8 +134,8 @@ def bande(echelle, prises, faits):
         details.append({**f, 'geo': geo})
     return {'segments': segments, 'reperes': echelle.reperes(), 'dense': dense, 'recouvrement': chevauchement,
             'approximative': approximative, 'futur': futurs, 'details': details[:80], 'suite': len(details) > 80,
-            'description': ' ; '.join(f'{p.debut:%d/%m/%Y} → ' + (f'{p.fin:%d/%m/%Y}' if p.fin else 'clôture non enregistrée') + (f' ; fin prévue {p.fin_prevue:%d/%m/%Y}' if p.fin_prevue else '') for p in tri),
-            'echelle': 'Dernière année linéaire ; passé plus ancien comprimé progressivement' if echelle.comprimee else 'Échelle linéaire de la prise',
+            'description': ' ; '.join(f'Prise en charge du {p.debut:%d/%m/%Y} → ' + (f'{p.fin:%d/%m/%Y}' if p.fin else 'clôture non enregistrée') + (f' ; fin prévue {p.fin_prevue:%d/%m/%Y}' if p.fin_prevue else '') for p in tri),
+            'echelle': 'Période affichée',
             'debut': echelle.debut, 'fin': echelle.fin, 'comprimee': echelle.comprimee, 'fin_aujourdhui': echelle.fin == aujourd}
 
 
@@ -222,16 +222,33 @@ def _charger(acteur, objets, nature, *, prise=None, navigations=None, retour_rec
         def enrichir(b, cle):
             b['cle'] = cle
             b['titre'] = str(o) if cle.startswith(nature+'-') else ('Prise en charge' if cle.startswith('accompagnement-') else (b['details'][0]['label'] if b['details'] else 'Prestation'))
-            for f in b['details']:
-                nav = (navigations or {}).get(f['prise_id'])
+            def lien(url, p_id):
+                nav = (navigations or {}).get(p_id)
                 if retour_recherche is not None:
-                    nav = dossier.pour_vue_params(prises[f['prise_id']], nature, o.pk, {**retour_recherche, 'ecran':'recherche'})
-                if nav:
-                    valeurs = signing.loads(nav['contexte_dossier'], salt=dossier.SEL)
-                    valeurs['vue'] = {**valeurs['vue'], 'frise_ouverte':cle}
-                    token = signing.dumps(valeurs, salt=dossier.SEL, compress=True)
-                    url = urlsplit(f['url'])
-                    f['url'] = url.path + '?' + urlencode({'contexte_dossier':token}) + ('#'+url.fragment if url.fragment else '')
+                    nav = dossier.pour_vue_params(prises[p_id], nature, o.pk, {**retour_recherche, 'ecran':'recherche'})
+                if not nav:
+                    return url
+                valeurs = signing.loads(nav['contexte_dossier'], salt=dossier.SEL)
+                valeurs['vue'] = {**valeurs['vue'], 'frise_ouverte':cle}
+                token = signing.dumps(valeurs, salt=dossier.SEL, compress=True)
+                cible = urlsplit(url)
+                return cible.path + '?' + urlencode({'contexte_dossier':token}) + ('#'+cible.fragment if cible.fragment else '')
+            for f in b['details']:
+                f['url'] = lien(f['url'], f['prise_id'])
+            if cle.startswith(nature+'-'):
+                b['episodes'] = []
+                # Même axe, mêmes faits contrôlés ; pas de requête par ligne.
+                budget = 80
+                for p in sorted(pp, key=lambda p: (p.debut, str(p.pk)))[-80:]:
+                    ligne = bande(echelle, [p], [f for f in ff if f['prise_id'] == p.pk])
+                    ligne['suite'] = ligne['suite'] or len(ligne['details']) > budget
+                    ligne['details'] = ligne['details'][:budget]
+                    budget -= len(ligne['details'])
+                    for f in ligne['details']:
+                        f['url'] = lien(f['url'], p.pk)
+                    ligne.update(prise=p, cle=str(p.pk), url=lien(reverse('dossiers:prise', args=[nature, o.pk, p.pk]), p.pk))
+                    b['episodes'].append(ligne)
+                b['suite_episodes'] = len(pp) > 80
             return b
         o.frise = enrichir(bande(echelle, pp, ff), nature+'-'+str(o.pk))
         for p in pp:
