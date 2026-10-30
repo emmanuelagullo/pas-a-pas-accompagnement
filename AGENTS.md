@@ -87,9 +87,61 @@ les vues, y compris si les boutons sont cachés. Pas de nouveau droit implicite.
 Conserver les écrans en français, les formulaires accessibles et CSRF.
 Pour un changement applicatif, vérifier `python3 manage.py check`, `python3 manage.py test`,
 `python3 manage.py makemigrations --check --dry-run` et `git diff --check`.
-Commits français avec #SOC. Utiliser l’identité de commit explicitement
-indiquée ; si elle n’est pas précisée, la demander avant de créer les commits.
-Livraison par patch git am, sans Signed-off-by.
+Commits en français, avec un préfixe de chantier de une à trois lettres et un
+numéro de jalon : par exemple `#BD1` pour la Bande Dessinée, `#ST14` pour les
+statistiques, `#ACT22` pour les acteurs ou `#DOC1` pour la documentation.
+Réutiliser le préfixe du chantier et vérifier les jalons existants avant de
+choisir le numéro suivant ; ne pas recommencer la numérotation à chaque chat.
+Réserver `#SOC` aux travaux relatifs au socle commun pas-communs, sans l'ajouter
+systématiquement aux évolutions applicatives. Les anciens titres de commits et
+repères historiques restent inchangés.
+Utiliser l’identité de commit explicitement indiquée ; si elle n’est pas
+précisée, la demander avant de créer les commits. Livraison par patch git am,
+sans Signed-off-by.
+
+## Réception des patches et travail local
+
+L'utilisateur place les patches dans `/tmp/patches-pas-a-pas/`. Fournir des liens
+de téléchargement cliquables vers chaque fichier, sans ZIP pour une poignée de
+patches, puis un seul bloc copiable d'application et de validations adaptées au
+lot. Employer `python3`. Les noms des fichiers et leur ordre doivent correspondre
+exactement aux patches livrés ; expliciter leur base et leurs dépendances.
+
+Pour un lot applicatif nécessitant la suite générale, le bloc suit ce modèle.
+Les étapes préalables sont synchrones ; seule la suite de tests part en arrière-
+plan, sur quatre processus. Les `&&` arrêtent la chaîne en cas d'échec préalable.
+
+```sh
+git am /tmp/patches-pas-a-pas/BD01-description.patch \
+       /tmp/patches-pas-a-pas/BD02-description.patch &&
+python3 manage.py migrate --noinput &&
+python3 manage.py check &&
+python3 manage.py makemigrations --check --dry-run &&
+{ python3 manage.py test --noinput --parallel 4 & }
+```
+
+Adapter les tests ciblés, bancs JavaScript et qualifications au changement ; ne
+pas imposer une suite générale pour un patch purement documentaire. Lancer une
+suite en arrière-plan ne signifie pas qu'elle est réussie : distinguer son
+lancement de son résultat, et signaler les vérifications non exécutées.
+
+L'utilisateur pousse et essaie l'application dans un second terminal, sans
+attendre systématiquement la fin des tests locaux ou des CI :
+
+```sh
+git push github ; git push inria
+env -u ACCOMPAGNEMENT_DONNEES -u DATABASE_URL \
+    -u ACCOMPAGNEMENT_STATIC_ROOT \
+    -u ACCOMPAGNEMENT_2FA_CLES -u ACCOMPAGNEMENT_2FA \
+    ACCOMPAGNEMENT_HOSTS=127.0.0.1,localhost \
+    ACCOMPAGNEMENT_BIND=127.0.0.1 PORT=8002 \
+    bash start-render.sh
+```
+
+Ce second bloc documente son fonctionnement habituel ; ne pas le répéter à
+chaque livraison sauf changement nécessaire. Il ne constitue pas une
+autorisation de push ou de lancement du serveur par l'assistant. Les retours CI
+sont suivis de manière asynchrone ; ne pas annoncer leur réussite sans résultat.
 
 ## État courant, historique et qualification
 
