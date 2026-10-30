@@ -60,10 +60,10 @@ python3 -m venv .venv
 # Linux :
 . .venv/bin/activate
 # Windows PowerShell, à la place : .venv\Scripts\Activate.ps1
-python -m pip install -r requirements.lock
-python manage.py migrate
-python manage.py creer_compte_essai essai
-python manage.py runserver 127.0.0.1:8000
+python3 -m pip install -r requirements.lock
+python3 manage.py migrate
+python3 manage.py creer_compte_essai essai
+python3 manage.py runserver 127.0.0.1:8000
 ```
 
 Choisir un mot de passe d'au moins 12 caractères lorsque la commande le demande.
@@ -72,7 +72,7 @@ superpouvoir ni accès à une console d'administration : ses seules permissions
 sont consultation et création des personnes fictives. Une nouvelle exécution
 sur le même identifiant est refusée et ne modifie pas le compte existant.
 
-Ouvrir <http://127.0.0.1:8000/>, se connecter, puis **Personnes → Nouveau dossier** dans la recherche d’accueil. Par exemple, nom d'usage `Personne fictive A`, prénom vide.
+Ouvrir <http://127.0.0.1:8000/>, se connecter, puis **Dossiers → Nouveau dossier** dans la recherche d’accueil. Par exemple, nom d'usage `Personne fictive A`, prénom vide.
 Enregistrer, consulter la fiche, revenir à la liste, arrêter puis relancer la
 commande `runserver` : la fiche est toujours présente. Deux personnes peuvent
 avoir la même désignation ; leurs UUID sont distincts et stables.
