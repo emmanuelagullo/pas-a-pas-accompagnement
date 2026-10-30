@@ -1,4 +1,5 @@
 """Recette Chromium des permissions métier (lancée explicitement en CI)."""
+import re
 from concurrent.futures import ThreadPoolExecutor
 
 from django.contrib.auth.models import Permission
@@ -496,12 +497,14 @@ class EntreeBDNavigateur(StaticLiveServerTestCase):
         self.assertEqual(chemin.get_by_role('link').count(), 2)
         self.assertTrue(page.evaluate('document.documentElement.scrollWidth <= window.innerWidth'))
         # Taille de texte doublée, puis activation au clavier du dossier.
-        page.add_style_tag(content='html { font-size: 200%; }')
+        # La modification de taille de texte ne dépend pas d'un événement load
+        # de feuille de style, absent dans ce contexte sans JavaScript.
+        page.evaluate("document.documentElement.style.fontSize = '200%'")
         self.assertTrue(chemin.evaluate('(e) => e.getBoundingClientRect().right <= innerWidth'))
         dossier = chemin.get_by_role('link', name=self.m.libelle, exact=True)
         dossier.focus()
         dossier.press('Enter')
-        page.wait_for_url('**#prises')
+        page.wait_for_url(re.compile(r'#prises$'))
         self.assertTrue(page.locator('#prises').is_visible())
         page.go_back()
         page.get_by_role('heading', name='Prise en charge du 01/01/2026', exact=True).wait_for()
@@ -767,9 +770,9 @@ class ConditionSocialeNavigateur(StaticLiveServerTestCase):
         self.assertEqual(page.locator('.condition-menu-mobile').get_by_role('link', name='Thomas corrigé fictif', exact=True, include_hidden=True).count(), 1)
         page.set_viewport_size({'width': 390, 'height': 844})
         mobile = page.locator('.condition-menu-mobile')
-        mobile.locator(':scope > summary').click()
+        page.get_by_role('button', name='Sommaire', exact=True).click()
         mobile.get_by_role('link', name='Situation sociale et projet', exact=True).click()
-        self.assertFalse(mobile.evaluate('element => element.open'))
+        self.assertTrue(mobile.is_hidden())
         self.assertTrue(page.evaluate('document.documentElement.scrollWidth <= window.innerWidth'))
 
 

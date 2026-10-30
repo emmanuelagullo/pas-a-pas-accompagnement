@@ -5,26 +5,6 @@
   let status = root.querySelector('[data-condition-statut]');
   let active = null, dirty = false, busy = false;
   let masques = [], declencheur = null;
-  let navigationObserver = null;
-  function indiquerPosition(target) {
-    const person = target.closest('.condition-personne');
-    document.querySelectorAll('[data-person-nav]').forEach(item => {
-      item.classList.toggle('is-current', Boolean(person && item.dataset.personNav === person.id));
-    });
-    document.querySelectorAll('.condition-menu a').forEach(link => {
-      if (link.hash === '#' + target.id) link.setAttribute('aria-current', 'location');
-      else link.removeAttribute('aria-current');
-    });
-  }
-  function observerNavigation() {
-    navigationObserver?.disconnect();
-    if (!window.IntersectionObserver) return;
-    navigationObserver = new IntersectionObserver(entries => {
-      const visible = entries.filter(entry => entry.isIntersecting).sort((a, b) => Math.abs(a.boundingClientRect.top) - Math.abs(b.boundingClientRect.top));
-      if (visible.length) indiquerPosition(visible[0].target);
-    }, { rootMargin: '-8% 0px -65% 0px' });
-    document.querySelectorAll('.condition-groupe[id],.condition-personne[id],#condition-composition,#projet,#note-dossier,#documents-dossier,#prises,#titre-prestations,#appels-115').forEach(element => navigationObserver.observe(element));
-  }
   const tell = text => { status.textContent = text; };
   const headers = { 'X-Condition-Form': '1' };
   const cleContexte = () => ['pas-a-pas-contexte', root.dataset.conditionUtilisateur, root.dataset.conditionCle, root.dataset.conditionJour].join('-');
@@ -55,6 +35,7 @@
     actualiserOptions(mode);
     root.querySelector('[data-condition-revenir]').checked=mode==='situation';
     root.querySelector('[data-condition-evolution]').checked=mode==='evolution';
+    document.dispatchEvent(new Event('condition:vue'));
   }
   function initialiserVue() {
     root.querySelector('[data-condition-evolution]').disabled=false;
@@ -260,7 +241,7 @@
         objectifsOuverts.forEach(id=>{const d=document.getElementById(id);if(d)d.open=true;});
         // Les en-têtes restent non éditables, mais reflètent aussitôt une
         // correction d'identité enregistrée dans la condition sociale.
-        for (const selector of ['.bd-dossier > .bd-titre', '.bd-dossier > .fil-ariane', '.condition-sommaire', '.condition-menu-mobile']) {
+        for (const selector of ['.bd-dossier > .bd-titre', '.bd-dossier > .fil-ariane', '.condition-sommaire']) {
           const oldElement = document.querySelector(selector);
           const newElement = doc.querySelector(selector);
           if (oldElement && newElement) {
@@ -279,7 +260,7 @@
         status = newStatus;
         active = null; masques = []; declencheur = null;
         initialiserVue();
-        observerNavigation();
+        document.dispatchEvent(new Event('navigation:actualise'));
         if(evolutionUrl) {await evolution(evolutionUrl);tell('Modification enregistrée.');}
         depliements.forEach(id => { const d = document.getElementById(id); if (d) d.open = true; });
         window.scrollTo({ top: position });
@@ -297,21 +278,8 @@
     } catch (error) { tell(error.message); }
     finally { controls.forEach(control => { control.disabled = false; }); button.disabled = false; busy = false; }
   });
-  document.addEventListener('click', event => {
-    const link = event.target.closest('.condition-menu a');
-    if (!link) return;
-    const target = document.getElementById(link.hash.slice(1));
-    if (target?.closest('[data-condition-situation]')) {
-      root.querySelector('[data-condition-situation]').hidden = false;
-      root.querySelector('[data-condition-evolution-panel]').hidden = true;
-      choisirMode('situation');
-    }
-    if (target) indiquerPosition(target);
-    const mobile = link.closest('.condition-menu-mobile');
-    if (mobile) mobile.open = false;
-  });
   initialiserVue();
-  observerNavigation();
+  document.dispatchEvent(new Event('navigation:actualise'));
   document.addEventListener('condition:disponible', event => {
     if (active || busy) {
       event.preventDefault(); tell('Terminez ou annulez la saisie de la situation sociale avant de changer de prestation.');
@@ -325,7 +293,7 @@
     root.querySelector('[data-condition-contexte]').value = contexte;
     active = null; dirty = false; masques = []; declencheur = null;
     initialiserVue();
-    observerNavigation();
+    document.dispatchEvent(new Event('navigation:actualise'));
   });
   window.addEventListener('beforeunload', event => { if (dirty || busy) { event.preventDefault(); event.returnValue = ''; } });
 })();

@@ -1,3 +1,13 @@
 {% load static %}<link rel="stylesheet" href="{% static 'condition-sociale.css' %}">
-<nav class="condition-sommaire" aria-label="Dans cette page"><strong>Dans cette page</strong><a class="retour-haut" href="#haut-de-page">↑ Haut de page</a>{% include 'dossiers/_condition_liens.html' %}</nav>
-<details class="condition-menu-mobile"><summary>Dans cette page</summary><nav aria-label="Sommaire de la page"><a class="retour-haut" href="#haut-de-page">↑ Haut de page</a>{% include 'dossiers/_condition_liens.html' %}</nav></details>
+<nav class="condition-sommaire condition-menu-mobile" id="sommaire-dossier" aria-label="Dans cette page">
+<div class="condition-sommaire-entete"><strong id="titre-sommaire" tabindex="-1">Dans cette page</strong><button type="button" class="secondaire" data-sommaire-fermer hidden>Fermer</button></div>
+<a class="retour-haut" href="#haut-de-page">↑ Haut de page</a>{% include 'dossiers/_condition_liens.html' %}
+</nav>
+<nav class="condition-acces" aria-label="Accès rapides dans cette page">
+<a href="#condition-sociale" data-navigation-bloc="condition-sociale"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M3 4h7l2 2 2-2h7v16h-7l-2 2-2-2H3zM12 6v16"/></svg><span>Situation</span></a>
+{% if prise %}<a href="#titre-prestations" data-navigation-bloc="titre-prestations"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M4 7h16v14H4zM8 7V3h8v4M4 12h16M10 12v3h4v-3"/></svg><span>Prestations</span></a>
+{% else %}<a href="#prises" data-navigation-bloc="prises"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M3 5h7l2 3h9v13H3zM7 13h10M7 17h7"/></svg><span>Prises en charge</span></a>{% endif %}
+<a href="#sommaire-dossier" data-sommaire-repli><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1"/></svg><span>Sommaire</span></a>
+<button type="button" data-sommaire-ouvrir aria-expanded="false" aria-controls="sommaire-dossier" hidden><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1"/></svg><span>Sommaire</span></button>
+</nav>
+<script src="{% static 'navigation-dossier.js' %}" defer></script>

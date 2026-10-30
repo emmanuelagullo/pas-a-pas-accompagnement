@@ -2,11 +2,18 @@
 const assert = require('node:assert/strict');
 const cliquerLienPwa = require('./cliquer-lien-pwa.cjs');
 module.exports = async function verifierParcoursMetier(app) {
+  async function rejoindreBloc(ancre) {
+    const acces = app.locator('.condition-acces');
+    const navigation = await acces.isVisible() ? acces : app.locator('.condition-sommaire');
+    // Une ancre ne recharge pas l'iframe : ne pas attendre framenavigated.
+    await navigation.locator('a[href="#' + ancre + '"]').click();
+  }
   await cliquerLienPwa(app.getByRole('navigation', {name:'Navigation principale', exact:true}).getByRole('link', {name:'Dossiers', exact:true}));
   await app.getByLabel('Nom, prénom ou libellé du dossier', {exact:true}).fill('Thomas');
   await app.getByText('Résultats actualisés.', {exact:true}).waitFor();
   await cliquerLienPwa(app.locator('#resultats-dossiers ul.resultats-dossiers').getByRole('link', {name:/Thomas — Établissement Les Passerelles \(fictif\)/}));
   await app.getByRole('heading', {name:/Dossier — Thomas/}).waitFor();
+  await rejoindreBloc('prises');
   await cliquerLienPwa(app.locator('.condition-personne').first().getByRole('link', {name:'Dossier individuel', exact:true}));
   await cliquerLienPwa(app.getByRole('link', {name:/Revenir au ménage/}));
   // Commentaire append-only dans le dossier, avant d’ouvrir sa prise.
@@ -20,6 +27,8 @@ module.exports = async function verifierParcoursMetier(app) {
   await app.locator('.texte-narratif strong').filter({hasText:'Commentaire fictif de la recette BD6.'}).waitFor();
   await cliquerLienPwa(app.getByRole('button', {name:'Ouvrir', exact:true}));
   await app.getByRole('heading', {name:/Prise en charge du/}).waitFor();
+  await rejoindreBloc('titre-prestations');
+  await rejoindreBloc('condition-sociale');
   // Form3 : ouvrir puis annuler sans créer de prestation et sans quitter la prise.
   await app.getByRole('link', {name:'Nouveau séjour', exact:true}).click();
   const hebergement = app.locator('#hebergement');

@@ -8,13 +8,13 @@
 </div></details>
 <p class="condition-date"><strong>{{ libelle_debut }} → {{ libelle_fin }}</strong></p>
 {% if comparaison %}
-<h2>Situations aux bornes de la période</h2>
+<h2 id="evolution-situations">Situations aux bornes de la période</h2>
 <p>Du {{ date_initiale|date:'d/m/Y' }} au {{ date_finale|date:'d/m/Y' }}. « Non renseigné » ne signifie pas absence déclarée. Les anciennes informations ne deviennent pas des déclarations personnelles consolidées.</p>
 <div class="tableau-defilant trajectoire-comparaison" role="region" aria-label="Situations aux deux dates" tabindex="0"><table><thead><tr><th scope="col">Personne</th><th scope="col">Dimension</th><th scope="col">{{ libelle_debut }}</th><th scope="col">{{ libelle_fin }}</th></tr></thead><tbody>
 {% for ligne in comparaison_affichee %}<tr><th scope="row">{{ ligne.beneficiaire }}</th><td>{{ ligne.dimension }}{% if ligne.initial or ligne.final %}<p><a href="{% url 'dossiers:fiche_a' ligne.beneficiaire.pk 'economique' %}?{{ navigation_query }}&amp;date={{ date_finale|date:'Y-m-d' }}&amp;date_service={{ date_finale|date:'Y-m-d' }}&amp;depuis_nature={{ nature }}&amp;depuis_pk={{ objet.pk }}&amp;depuis_prise={{ prise.pk }}">Détail et historique au {{ date_finale|date:'d/m/Y' }}</a></p>{% endif %}</td><td>{% if ligne.initial_lecture %}{% include 'dossiers/_lecture_situation.html' with ligne=ligne.initial_lecture date_sociale=date_initiale borne_evolution='initiale' %}{% else %}{{ ligne.initial|default:'Hors du contexte daté du ménage' }}{% endif %}</td><td>{% if ligne.final_lecture %}{% include 'dossiers/_lecture_situation.html' with ligne=ligne.final_lecture date_sociale=date_finale borne_evolution='finale' %}{% else %}{{ ligne.final|default:'Hors du contexte daté du ménage' }}{% endif %}</td></tr>{% empty %}<tr><td colspan="4">Aucune différence entre les situations aux deux dates. Choisissez « Toutes les informations » pour les consulter.</td></tr>{% endfor %}
 </tbody></table></div>
 {% endif %}
-<div class="frise-entete"><h2>Éléments datés</h2>{% include 'frises/_choix.html' with legende_elements=True %}</div>
+<div class="frise-entete"><h2 id="evolution-elements">Éléments datés</h2>{% include 'frises/_choix.html' with legende_elements=True %}</div>
 <p>{{ date_initiale|date:'d/m/Y' }} → {{ date_finale|date:'d/m/Y' }} · {{ frise_personnelle|length }} élément{{ frise_personnelle|length|pluralize }}</p>
 <ol class="elements-dates{% if frises_actives %} avec-frise{% endif %}" data-elements-dates>{% for ligne in frise_personnelle %}{% include 'social/_ligne_trajectoire.html' %}{% empty %}<li>Aucun élément pour cette sélection.</li>{% endfor %}</ol>
 {% if anciennes_lignes %}<details><summary>Anciennes situations de suivi conservées</summary><ol>{% for ligne in anciennes_lignes %}{% include 'social/_ligne_trajectoire.html' %}{% endfor %}</ol></details>{% endif %}
