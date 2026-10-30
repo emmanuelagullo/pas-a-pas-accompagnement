@@ -42,6 +42,6 @@ def classer(compte,objets,nature,filtre='tous',service=None):
         actifs=any(a.debut<=timezone.localdate() and (not a.fin or a.fin>timezone.localdate()) for a in periodes[x.pk])
         fins=[a.fin.toordinal() for a in periodes[x.pk] if a.fin]
         creation=getattr(x,'cree_le',None)
-        x.ordre_acteurs=(groupe,0 if actifs else 1,-max(fins,default=0),-creation.timestamp() if creation else 0,str(x.pk))
+        x.ordre_acteurs=(groupe,0 if actifs else 1,0 if actifs else -max(fins,default=0),-creation.timestamp() if creation else 0,str(x.pk))
         resultat.append(x)
     return sorted(resultat,key=lambda x:x.ordre_acteurs)

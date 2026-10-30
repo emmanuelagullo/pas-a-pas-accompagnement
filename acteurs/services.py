@@ -144,7 +144,7 @@ def relayer(compte,dossier,entrant,attendu,proposition,message=""):
     hs=p.habilitations(compte).filter(service=dossier.service,tache__in=['social','accueil','gestion'])
     if not hs.exists():raise PermissionDenied
     if d['sortant']!=str(p.professionnel(compte)) and not hs.filter(corriger_autrui=True).exists():raise PermissionDenied('La reprise du suivi d’un collègue nécessite le droit correspondant.')
-    verifier_professionnel(entrant,dossier.service,date.date())
+    verifier_professionnel(entrant,dossier.service,timezone.localdate(date))
     if str(entrant.pk)==d['sortant']:raise ValidationError('Choisissez une autre personne pour le relais.')
     lignes=list(Responsabilite.objects.filter(pk__in=d['ids'],dossier=dossier,professionnel_id=d['sortant'],annule_le__isnull=True).filter(p.periode(date)))
     if len(lignes)!=len(d['ids']) or not lignes:raise Conflit('Une responsabilité a changé ou aucune responsabilité ne correspond.')
@@ -160,7 +160,7 @@ def relayer(compte,dossier,entrant,attendu,proposition,message=""):
         y=Responsabilite(dossier=dossier,professionnel=entrant,debut=date,role=x.role,cree_par=compte,message=message,**cible);y.full_clean();y.save()
         avant.append(x.pk);apres.append(y.pk)
     journal(compte,dossier.service,'relais',{'responsabilites':avant,'professionnel':d['sortant']},
-        {'responsabilites':apres,'professionnel':str(entrant.pk)},dossier,date.date())
+        {'responsabilites':apres,'professionnel':str(entrant.pk)},dossier,timezone.localdate(date))
     oublier_initialisation(dossier,lignes)
     return apres
 
@@ -221,7 +221,7 @@ def terminer_responsabilite(compte,x,date,attendu):
     x.refresh_from_db();date=instant(date)
     if x.fin or x.annule_le or date<=x.debut:raise ValidationError('Cette responsabilité est déjà terminée ou sa fin est invalide.')
     x.fin=date;x.full_clean();x.save(update_fields=['fin'])
-    journal(compte,dossier.service,'fin_responsabilite',{'id':x.pk},{'fin':date.isoformat()},dossier,date.date())
+    journal(compte,dossier.service,'fin_responsabilite',{'id':x.pk},{'fin':date.isoformat()},dossier,timezone.localdate(date))
     oublier_initialisation(dossier,[x])
 
 
@@ -245,7 +245,7 @@ def ajouter_responsabilite(compte,dossier,objet,professionnel,debut,role,attendu
     if not peut_attribuer(compte,dossier,objet):raise PermissionDenied
     champs=selection_cible(dossier,objet)
     date=instant(debut)
-    verifier_professionnel(professionnel,dossier.service,date.date())
+    verifier_professionnel(professionnel,dossier.service,timezone.localdate(date))
     if not en_cours(objet,date):
         raise ValidationError('Cet élément est terminé ; son historique reste conservé.')
     if Responsabilite.objects.filter(p.periode(date),annule_le__isnull=True,dossier=dossier,professionnel=professionnel,**champs).exists():
@@ -256,7 +256,7 @@ def ajouter_responsabilite(compte,dossier,objet,professionnel,debut,role,attendu
     x.full_clean();x.save()
     if isinstance(objet,DossierService):
         dossier.en_attente=False;dossier.save(update_fields=['en_attente'])
-    journal(compte,dossier.service,'ajout_responsabilite',{}, {'id':x.pk,'professionnel':str(professionnel.pk),'role':role,'debut':date.isoformat(),'fin':borne.isoformat() if borne else None},dossier,date.date())
+    journal(compte,dossier.service,'ajout_responsabilite',{}, {'id':x.pk,'professionnel':str(professionnel.pk),'role':role,'debut':date.isoformat(),'fin':borne.isoformat() if borne else None},dossier,timezone.localdate(date))
     return x
 
 

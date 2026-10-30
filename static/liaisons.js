@@ -18,6 +18,8 @@
     s.controller?.abort(); s.controller = new AbortController();
     const url = new URL(raw, location.href); url.searchParams.set('lia_fragment', '1');
     const draft = root.querySelector('[data-liaisons-message]');
+    const publication = busy => root.querySelectorAll('[data-liaisons-message] button[type=submit]').forEach(b => {b.disabled = busy;});
+    if (!form) publication(true);
     const garder = () => {
       const f = root.querySelector('[data-liaisons-message]'); if (!f) return;
       const valeurs = ['contenu','contenu_document','date_fait'].map(n => [n,f.elements.namedItem(n)?.value]);
@@ -62,7 +64,7 @@
         p.textContent = 'Chargement non confirmé. Votre saisie est conservée ; vous pouvez réessayer.';
       }
     } finally {
-      if (s.seq === seq) root.removeAttribute('aria-busy');
+      if (s.seq === seq) {root.removeAttribute('aria-busy');publication(false);}
       if (form) {form.inert = false; root.inert = false; s.posting = false;}
     }
   }

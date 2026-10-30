@@ -2,14 +2,18 @@
 
 Un même cahier s’ouvre depuis le menu et le bouton **Liaisons**, placé à gauche
 d’**Équipe de suivi**. Le menu choisit le service de travail. Un dossier inclut
-ses prises et prestations ; une prise ses prestations. Une prestation reste
-sur sa propre portée. **Inclure les niveaux inférieurs** permet de restreindre
-la lecture. Les renvois supérieurs ouvrent le bon écran, directement sur son
-cahier ; ils ne mélangent pas automatiquement les messages supérieurs.
+ses prises en charge et prestations ; une prise en charge ses prestations. Une
+prestation reste sur sa propre portée. La case de portée nomme les éléments
+inclus : **Dans ce dossier et ses prises en charge et prestations**, ou
+**Dans cette prise en charge et ses prestations**.
+La décocher restreint la lecture au niveau ouvert ; aucune case n’est proposée
+dans une prestation. Les renvois supérieurs ouvrent le bon écran, directement
+sur son cahier ; ils ne mélangent pas automatiquement les messages supérieurs.
 
-Messages et Équipe sont cochés par défaut. Prestations et Actions à faire
-complètent la lecture. Le service commence sur les trente derniers jours ;
-les dossiers, prises et prestations n’imposent pas de borne historique.
+**Messages** et **Attributions et relais** sont cochés par défaut.
+**Arrivées, départs et autres opérations** et **Actions de suivi** complètent
+la lecture. Le service commence sur les trente derniers jours ;
+les dossiers, prises en charge et prestations n’imposent pas de borne historique.
 Les dates et types restent modifiables. Les filtres masquent sans supprimer.
 
 Les messages existants, leurs corrections et annulations sont réutilisés.
@@ -35,11 +39,12 @@ Recettes : `personnes.tests_liaisons`, `acteurs.tests_messages_attribution`,
 `personnes.tests_transmissions`, `personnes.qualification_liaisons` (Chromium).
 
 Les périodes symboliques réutilisent les calculs civils existants, sans modifier
-les statistiques. Toutes les dates reste le défaut des dossiers et prestations.
+les statistiques. **Toutes les dates** reste le défaut des dossiers, prises en
+charge et prestations.
 Les mentions @ sont proposées uniquement parmi les collègues actuellement
 habilités à lire le message dans sa portée exacte. La publication revalide
 chaque destinataire ; une mention n'accorde aucun droit et ne rend pas le texte
-privé. Retirer la mention du texte ou décocher le destinataire évite sa
+privé. Retirer la mention du texte ou utiliser **Retirer la notification** évite sa
 notification. Les mentions concernent les nouveaux messages, pas les corrections.
 Les notifications de mention conduisent au message exact ; leur visibilité et
 la pastille du compte suivent les accès actuels, y compris après révocation,
@@ -49,6 +54,8 @@ La recherche est regroupée et repliée par défaut avec son résumé. Recherche
 Effacer ont le même GET avec ou sans JavaScript ; la frappe est temporisée
 comme dans Dossiers. Écrire un message reste accessible sans ouvrir les filtres.
 Les destinataires de mentions retirées du texte sont retirés de la sélection.
+Pendant le rafraîchissement des filtres, Publier est temporairement désactivé :
+la saisie reste disponible et son brouillon est conservé.
 
 Une réponse est une contribution attachée par fil_cle à une entrée autorisée,
 avec exactement la même portée. Aucun sous-fil ni destinataire implicite.
@@ -62,3 +69,14 @@ Les brouillons de message et de réponse restent distincts en mémoire dans le
 panneau ; ils ne sont pas enregistrés sur le serveur avant publication.
 Les actions terminées restent consultables dans Actions de suivi pour conserver
 leurs discussions ; les actions annulées ne permettent pas de nouvelle réponse.
+
+**Annuler**, à côté de Publier, abandonne uniquement la rédaction ouverte,
+avec confirmation si elle a été modifiée. Les filtres et les autres brouillons
+restent conservés ; aucun message publié n’est annulé par cette commande.
+Le lien fonctionne aussi sans JavaScript, par retour au même cahier filtré.
+
+La recette `scripts/verifier-pwa-pyodide.mjs` contrôle aussi une publication de
+réponse par les vues HTTP dans le vrai Python/SQLite WASM, son réessai sans
+doublon et une copie relue dans un second runtime. Elle revalide la lecture du
+fragment après fin d’habilitation. Ce contrôle ne constitue pas un essai OPFS ;
+la recette Chromium PWA vérifie séparément le stockage et les copies.

@@ -33,7 +33,10 @@ class CahierNavigateur(StaticLiveServerTestCase):
     def ouvrir(self,page,nature='menage',pk=None,prise=None):
         url=reverse('dossiers:prise',args=[nature,pk or self.ds.menage_id,prise]) if prise else reverse('dossiers:detail',args=[nature,pk or self.ds.menage_id])
         page.goto(self.live_server_url+url)
-        page.get_by_text('Liaisons',exact=True).click()
+        with page.expect_response(lambda r: reverse('suivi:cahier') in r.url and 'lia_fragment=1' in r.url and r.request.method=='GET') as chargement:
+            page.get_by_text('Liaisons',exact=True).click()
+        self.assertEqual(chargement.value.status,200)
+        chargement.value.finished()
         root=page.locator('#liaisons .liaisons-contenu')
         ancien.expect(root.locator('.liaisons-fil')).to_be_visible()
         root.locator('.liaisons-recherche-details > summary').click()
@@ -95,6 +98,7 @@ class CahierNavigateur(StaticLiveServerTestCase):
         ancien.expect(editeur).to_contain_text('@Joël Bernard')
         ancien.expect(root.locator('[name=lia_mentions]')).to_have_count(1)
         root.get_by_label('Attributions et relais',exact=True).uncheck()
+        ancien.expect(root).not_to_have_attribute('aria-busy','true')
         ancien.expect(root.locator('[name=lia_mentions]')).to_have_count(1)
         ancien.expect(root.locator('.ProseMirror')).to_contain_text('@Joël Bernard')
         root.get_by_role('button',name='Publier le message',exact=True).click()

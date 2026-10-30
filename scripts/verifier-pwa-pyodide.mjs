@@ -47,10 +47,67 @@ assert client.get('/statistiques/',{**params,'format':'csv'},secure=True).status
 Habilitation.objects.filter(compte=coord).update(exporter=True)
 assert client.get('/statistiques/',{**params,'format':'csv'},secure=True).status_code==200
 with perimetre(coord,service):assert Menage.objects.count()==0
-Habilitation.objects.filter(compte=social).update(fin=timezone.localdate())
-with perimetre(social,service):assert Menage.objects.count()==0
+# Le même formulaire HTTP publie une réponse idempotente dans le vrai WASM.
+from acteurs.models import DossierService
+from personnes import liaisons,transmissions
+from django.urls import reverse
+from urllib.parse import urlencode
+from html import unescape
+import re
+client.force_login(social,backend='django.contrib.auth.backends.ModelBackend')
+with perimetre(social,service):
+    dossier=DossierService.objects.get(menage__libelle='Alex Martin')
+    racine=transmissions.noter(social,'Racine du cahier WASM',menage=dossier.menage)
+cle='message-notepartagee-'+str(racine.pk)
+url=reverse('suivi:cahier')+'?'+urlencode({'lia_cible':'menage','lia_id':dossier.menage_id,'lia_periode':'toutes','lia_repondre':cle})
+page=client.get(url,secure=True)
+assert page.status_code==200
+jeton=unescape(re.search(r'name="lia_envoi" value="([^"]+)"',page.content.decode()).group(1))
+saisie={'contenu':'Réponse conservée du cahier WASM','lia_envoi':jeton}
+assert client.post(url,saisie,secure=True).status_code==302
+assert client.post(url,saisie,secure=True).status_code==302
+from personnes.models import NotePartagee
+with perimetre(social,service):
+    assert NotePartagee.objects.filter(fil_cle=cle).count()==1
+page=client.get(url,secure=True)
+assert page.status_code==200 and 'Réponse conservée du cahier WASM' in page.content.decode()
+client.force_login(coord,backend='django.contrib.auth.backends.ModelBackend')
+assert client.get(url,secure=True).status_code==403
 `);
- console.log('Acteurs WASM : contrôle actif, dossiers bornés, statistiques regroupées distinctes et expiration : OK');
+ // Une copie relue par un autre Python WASM ne conserve aucun accès périmé.
+ const copieActeurs={};
+ for(const nom of Object.keys(JSON.parse(acteurs.runPython('b.inventory()')).files)){
+  const f=acteurs.globals.get('b').file_bytes(nom);try{copieActeurs[nom]=f.toJs();}finally{f.destroy();}
+ }
+ const reprise=await moteur(copieActeurs);
+ reprise.runPython(`
+from django.contrib.auth import get_user_model
+from django.test import Client
+from django.urls import reverse
+from django.utils import timezone
+from acteurs.models import Habilitation,Service
+from personnes.models import NotePartagee
+from acteurs.contexte import perimetre
+from urllib.parse import urlencode
+social=get_user_model().objects.get(username='acteurs-social-wasm-fictif')
+service=Service.objects.get(libelle='Accompagnement')
+with perimetre(social,service):
+    message=NotePartagee.objects.get(contenu='Réponse conservée du cahier WASM')
+    assert message.fil_cle
+    racine=NotePartagee.objects.get(pk=message.fil_cle.rsplit('-',1)[1])
+    assert message.menage_id==racine.menage_id
+    url=reverse('suivi:cahier')+'?'+urlencode({'lia_cible':'menage','lia_id':message.menage_id,'lia_periode':'toutes','lia_fragment':'1'})
+client=Client(HTTP_HOST='chrs-fictif.example')
+client.force_login(social,backend='django.contrib.auth.backends.ModelBackend')
+page=client.get(url,secure=True)
+assert page.status_code==200 and 'Réponse conservée du cahier WASM' in page.content.decode()
+Habilitation.objects.filter(compte=social).update(fin=timezone.localdate())
+from personnes.models import Menage
+with perimetre(social,service):assert Menage.objects.count()==0
+page=client.get(url,secure=True)
+assert page.status_code in (403,404) and 'Réponse conservée du cahier WASM' not in page.content.decode()
+`);
+ console.log('Acteurs WASM : contrôle actif, totaux distincts, fil HTTP sans doublon, copie relue et expiration : OK');
 }
 const premier=await moteur();
 premier.runPython(`

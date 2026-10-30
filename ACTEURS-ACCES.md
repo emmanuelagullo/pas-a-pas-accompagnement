@@ -140,8 +140,11 @@ normal. Les espaces bureau/PWA existants restent inchangés.
 Le menu Compte reprend le principe de Petits Pas : raccourcis personnels
 repliés dans un élément natif details/summary. Les destinations restent métier ;
 aucune nouvelle abstraction ni dépendance du socle n’est nécessaire.
-Le contrôle du relais compare les dates dans le fuseau métier, y compris
-quand le jour local diffère du jour UTC. Les anciens instants restent conservés.
+Les attributions, relais et fins utilisent le jour local pour vérifier
+l’appartenance au service et dater le journal, y compris lorsque le jour UTC
+diffère. Les anciens instants restent conservés. Les dossiers en cours sont
+départagés par leur création récente ; leurs anciens épisodes clos ne changent
+pas cet ordre.
 
 ## Voir immédiatement les changements sur une base fictive séparée
 
@@ -164,7 +167,7 @@ commence en lecture/écriture collectives. Dans **Dossiers**, essayer **Tous**,
 le suivi**, puis **Passer le relais** au collègue fictif sans compte. L’histoire
 reste consultable et aucun accès n’est accordé à ce collègue par sa désignation.
 
-Dans **Organisation et accès**, passer le service en politique individuelle :
+Dans **Établissement**, passer le service en politique individuelle :
 le dossier relayé n’est plus accessible au premier professionnel ; le dossier
 réservé à l’autre service n’était déjà pas visible. Le dossier « Ma prestation
 seule » reste un exemple de responsabilité limitée à une prestation. Le compte
@@ -227,7 +230,7 @@ transaction atomique. Une confirmation périmée ne crée aucun doublon.
 
 ## ACT11 — Signaux internes
 
-Compte → À suivre présente attributions/relais, nouvelles prestations, principales
+Compte → Notifications présente attributions/relais, nouvelles prestations, principales
 informations de suivi complétées ou modifiées par autrui, et demandes à l’équipe.
 Aucun courriel ni compte n’est créé. Les propres saisies ne produisent aucun
 signal ; les changements du même fait sont regroupés. Marquer comme lu est un
