@@ -120,7 +120,7 @@
     // Une ancienne ancre ne doit jamais abandonner une édition ni changer de vue.
     if (element?.closest('[hidden]')) element = document.getElementById('condition-sociale');
     if (!element) return;
-    for (let parent = element.parentElement; parent; parent = parent.parentElement) {
+    for (let parent = element; parent; parent = parent.parentElement) {
       if (parent.tagName === 'DETAILS') parent.open = true;
     }
     fermer();
@@ -188,7 +188,7 @@
     mesurer();
   });
   document.addEventListener('focusout', mesurer);
-  ['condition:vue', 'navigation:actualise', 'dossier:actualise'].forEach(nom =>
+  ['condition:vue', 'navigation:actualise', 'dossier:actualise', 'condition:depliements'].forEach(nom =>
     document.addEventListener(nom, planifier));
   large.addEventListener('change', () => {
     const focusPanneau = panneau()?.contains(document.activeElement);

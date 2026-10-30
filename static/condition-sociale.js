@@ -74,7 +74,7 @@
     } finally { busy = false; }
   }
   function close() {
-    if (active) active.replaceChildren();
+    if (active) { active.replaceChildren(); tell(''); }
     masques.forEach(element => { element.hidden = false; });
     masques = []; active = null; dirty = false;
     declencheur?.focus({ preventScroll: true }); declencheur = null;

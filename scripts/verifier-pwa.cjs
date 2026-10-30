@@ -78,6 +78,7 @@ const server=(tls?require('node:https'):http).createServer(options,(req,res)=>{
   // Le PDF doit être un téléchargement réel, y compris sans réseau.
   await cliquerLienPwa(apres.getByText('Personne fictive conservée',{exact:true}));
   const identite=apres.locator('[data-condition-groupe]').filter({has:apres.getByRole('heading',{name:'Identité',exact:true})});
+  if (await identite.getAttribute('open') === null) await identite.locator(':scope > summary').click();
   await identite.getByText('Autres actions de la rubrique',{exact:true}).click();
   await cliquerLienPwa(identite.getByRole('link',{name:'Historique',exact:true}));
   const pdfFini=page.waitForEvent('download',{timeout:120000});

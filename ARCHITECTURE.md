@@ -28,7 +28,9 @@ cette base. Les anciens numéros ne changent pas cette dépendance.
   consultation, pas des données ou éditeurs temporels supplémentaires. Voir
   [l'ergonomie](ERGONOMIE-CONDITION-SOCIALE.md) et les
   [frises](FRISES-SUR-PLACE.md). Le [sommaire et les accès internes](NAVIGATION-DOSSIERS.md#nav2--navigation-à-lintérieur-des-pages)
-  déplacent la lecture sans nouvelle requête ni changement de vue.
+  déplacent la lecture sans nouvelle requête ni changement de vue. Les rubriques
+  repliables utilisent les faits déjà présentés ; seuls leurs identifiants et
+  états ouvert/fermé sont mémorisés dans la session du navigateur.
 - **Accès** : les objets sont contrôlés côté serveur avant agrégation, y compris
   dans les frises et rapports. L'activation des règles par service et la reprise
   des anciennes données sont explicites ; une migration ne les active pas.

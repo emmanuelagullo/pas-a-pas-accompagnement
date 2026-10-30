@@ -16,6 +16,8 @@ module.exports = async function verifierParcoursMetier(app) {
   await rejoindreBloc('prises');
   await cliquerLienPwa(app.locator('.condition-personne').first().getByRole('link', {name:'Dossier individuel', exact:true}));
   await cliquerLienPwa(app.getByRole('link', {name:/Revenir au ménage/}));
+  // La recette de saisie complète ouvre les rubriques par leur commande.
+  await app.getByRole('button', {name:'Tout déplier', exact:true}).click();
   // Commentaire append-only dans le dossier, avant d’ouvrir sa prise.
   await cliquerLienPwa(app.locator('.bd-commentaire').getByRole('link', {name:'Modifier', exact:true}));
   const commentaire = app.locator('.edition-texte .ProseMirror');

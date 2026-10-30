@@ -129,3 +129,25 @@ body:has(.condition-acces) { padding-bottom: calc(var(--navigation-hauteur, 7rem
 
 .condition-nav-details[data-navigation-active] > summary { background:#dfeee5; border-radius:.25rem; }
 .condition-nav-details > summary[aria-current=location] { box-shadow:inset 3px 0 #175c50; }
+
+/* NAV3 : chaque rubrique est un dépliant natif, sans niveau englobant de plus. */
+.condition-depliant { border-bottom:1px solid #d3e3dc; padding:.6rem 0; min-width:0; }
+.condition-depliant > summary { cursor:pointer; padding:.55rem .45rem; min-height:2.75rem; overflow-wrap:anywhere; }
+.condition-depliant > summary h3, .condition-depliant > summary h4 { display:inline; margin:0; font-size:1rem; }
+.condition-depliant > summary .condition-apercu { display:block; font-size:.9rem; font-weight:400; color:#526d63; margin:.2rem 0 0 1.1rem; }
+.condition-depliant[open] > summary .condition-apercu { display:none; }
+.condition-depliant:not([open]) > summary { background:#f0f7f3; border-radius:.4rem; }
+.condition-depliant > .boite-entete { margin-top:.5rem; }
+.condition-repli-commandes { display:flex; align-items:center; flex-wrap:wrap; gap:.4rem .65rem; margin:.75rem 0; }
+.condition-repli-commandes[hidden] { display:none; }
+.condition-repli-commandes button { padding:.45rem .65rem; }
+@media print {
+  .condition-repli-commandes, .condition-depliant .condition-apercu { display:none !important; }
+  .condition-depliant::details-content { display:block !important; content-visibility:visible !important; }
+  .condition-depliant > :not(summary) { display:block; }
+  .condition-depliant > summary { display:block; background:transparent; padding:.3rem 0; }
+  .condition-depliant > summary::marker { content:''; }
+  .condition-depliant > summary::-webkit-details-marker { display:none; }
+  .condition-depliant > .boite-entete, .condition-depliant [data-condition-ajout],
+  .condition-depliant .condition-actions { display:none !important; }
+}

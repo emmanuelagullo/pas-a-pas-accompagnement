@@ -14,10 +14,47 @@ from django.db.models.functions import RowNumber
 from django.http import Http404
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.text import Truncator
 
 from . import models as m, famille, coordonnees, complements_identite
 from . import dossier_complet as complet, relations_personnelles, parcours
 from .presentation_dossier_complet import lignes
+
+
+def apercu_rubrique(fiches, *, collection=False, code=''):
+    """Repères de lecture déjà autorisés, sans requête ni nouvelle interprétation."""
+    if not fiches:
+        return 'Non renseigné à cette date.'
+    if collection:
+        if len(fiches) == 1:
+            fait = fiches[0]['fait']
+            if getattr(fait, 'etat', '') in ('aucun', 'inconnu'):
+                return fait.get_etat_display()
+        nombre = len(fiches)
+        texte = f'{nombre} élément' + ('s' if nombre > 1 else '') + ' enregistré' + ('s' if nombre > 1 else '')
+        for etat, singulier, pluriel in (('aucun', 'absence déclarée', 'absences déclarées'), ('inconnu', 'déclaration non connue', 'déclarations non connues')):
+            n = sum(getattr(f['fait'], 'etat', '') == etat for f in fiches)
+            if n:
+                texte += f' · {n} {singulier if n == 1 else pluriel}'
+        return texte
+    resume = fiches[0]['resume']
+    # Ne pas répéter des numéros administratifs dans un repère de navigation.
+    if code == 'administration':
+        return f'{len(resume)} champ' + ('s renseignés' if len(resume) > 1 else ' renseigné') if resume else 'Non renseigné à cette date.'
+    if code == 'coordonnees':
+        repere = [c for c in resume if c['nom'] in ('ville', 'telephone', 'courriel')]
+        resume = repere or resume
+    if not resume:
+        return 'Non renseigné à cette date.'
+    reperes = []
+    for champ in resume[:2]:
+        if champ.get('nombre') is not None:
+            n = champ['nombre']
+            valeur = f'{n} élément' + ('s' if n > 1 else '')
+        else:
+            valeur = Truncator(str(champ['valeur'])).chars(70)
+        reperes.append(f"{champ['label']} : {valeur}")
+    return ' · '.join(reperes)
 
 
 def selection(request, prise, valeurs=None):
@@ -94,7 +131,8 @@ def presentation(request, personnes, jour, objet, nature, prise, params):
                               and getattr(x, c) == getattr(precedent, c))
                 origine = precedent if repris else x
                 vide = getattr(x, c) in (None, '', [])
-                champs_affiches.append({'label': label, 'valeur': valeur, 'herite': herite or repris,
+                champs_affiches.append({'nom': c, 'label': label, 'valeur': valeur, 'herite': herite or repris,
+                    'nombre': len(getattr(x, c)) if isinstance(getattr(x, c), list) else None,
                     'vide': vide, 'origine': getattr(origine, 'debut', None), 'repris': repris})
             retrait = code in retraits_chronologiques.series() and getattr(x, 'debut', None) == jour
             fiches.append({'fait': x, 'lignes': contenu, 'champs': champs_affiches,
@@ -105,6 +143,7 @@ def presentation(request, personnes, jour, objet, nature, prise, params):
                 'changer': changer(x) if changer and getattr(x, 'debut', jour) < jour else '',
                 'corriger': corriger(x) if corriger else ''})
         resultats[p.pk]['groupes'].append({'code': code, 'titre': titre, 'fiches': fiches,
+            'apercu': apercu_rubrique(fiches, collection=multiple, code=code),
             'ajouter': ajouter if multiple or not fiches else '', 'historique': historique,
             'ancre': 'social-' + str(p.pk) + '-' + code,
             'vides': [model._meta.get_field(c).verbose_name for c in champs] if not fiches else []})

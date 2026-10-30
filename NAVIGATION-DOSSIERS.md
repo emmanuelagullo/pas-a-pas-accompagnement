@@ -119,3 +119,94 @@ Après les derniers ajustements de présentation : 43 contrôles ciblés, OK,
 dont les 8 parcours Chromium (4 nouveaux, 3 recettes sociales existantes et
 le repli clavier sans JavaScript de NAV1). Le banc JavaScript de recherche,
 les contrôles Django, l’absence de migration et git diff --check passent.
+
+
+# NAV3 — Rubriques repliables
+
+Les rubriques personnelles de Situation, la composition du ménage et les
+sous-rubriques du projet sont des details/summary natifs, ouverts à la première
+consultation. Projet et parcours reste un titre de regroupement : pas de
+dépliant englobant supplémentaire. Les informations propres à une prise en charge
+et ses missions suivent la même convention. Évolution conserve sa présentation.
+
+Le déclencheur contient le titre et un aperçu court, sans lien ni action d’édition.
+L’aperçu disparaît quand le contenu complet est ouvert. Il réutilise les champs
+renseignés déjà présentés, au maximum deux repères courts. Les collections
+emploient des compteurs ; une absence déclarée, une déclaration non connue et
+une rubrique non renseignée restent distinctes. Les listes internes à un champ
+sont également comptées. Les numéros administratifs ne sont pas répétés dans
+l’aperçu. Aucun diagnostic, total financier ou continuité n’est déduit.
+
+## Portée et mémoire des choix
+
+« Tout déplier / Tout replier » concerne la composition, les rubriques
+personnelles et le projet de la lecture Situation. Les options, actions secondaires
+et historiques annexes gardent leurs dépliants indépendants. Les actions d’édition
+restent à l’intérieur de la rubrique ouverte.
+
+La session navigateur mémorise uniquement des identifiants de rubrique et des
+booléens, sous une clé propre à l’utilisateur et au dossier. Aucun aperçu,
+renseignement, source ou contenu de formulaire n’entre dans cette mémorisation.
+Les identifiants personnels stables permettent de retrouver les mêmes choix entre
+Dossier et Prise en charge. Les informations et missions propres à une prise
+ont une clé incluant cette prise ; aucune correspondance entre deux prises
+différentes n’est inventée. Un dossier personne et un dossier ménage restent
+deux contextes distincts.
+
+Le mécanisme reprend la convention sessionStorage déjà utilisée pour les options
+sociales, avec une mémoire de page en secours. Si le stockage est refusé ou
+malformé, les commandes et actualisations restent utilisables ; les choix
+survivent dans la page courante. Une nouvelle page peut alors repartir ouverte.
+
+## Navigation, saisie et impression
+
+NAV2 ouvre aussi un dépliant qui constitue lui-même la cible d’une ancre.
+Les liens du sommaire, liens directs et liens du résumé d’erreurs ouvrent
+les parents nécessaires sans changer de lecture. L’observation de rubrique
+courante est réinstallée après un changement de dépliage. Les choix et la
+position restent conservés après les actualisations sociales et de prestations.
+
+Une rubrique contenant un formulaire actif reste ouverte. Cela vaut pour
+« Tout replier » et pour son propre déclencheur : un message invite à terminer
+ou annuler la saisie. Le refus ne supprime aucune valeur et ne modifie pas les
+contrôles serveur, preuves d’état ou confirmations. Les erreurs restent dans
+une rubrique ouverte et leurs liens rejoignent les champs concernés.
+
+Sans JavaScript, tous les contenus sont ouverts initialement ; les commandes
+globales sont masquées et les dépliants natifs restent consultables et éditables.
+L’impression expose le contenu des rubriques concernées, même fermées à l’écran,
+sans changer les choix mémorisés. Les historiques annexes et les deux lectures
+gardent leur périmètre antérieur. La qualification d’impression porte sur
+Situation hors saisie active.
+
+## Qualification et limites NAV3
+
+- personnes.tests_rubriques_sociales : absence/non connu/non renseigné,
+  collections longues, listes internes, aperçu borné et échappé, zéro requête
+  pour la fabrication d’un aperçu à partir des données déjà lues, titres et
+  actions hors des déclencheurs.
+- personnes.qualification_rubriques_sociales : dossier individuel, ménage
+  de plusieurs personnes et prise en charge ; commandes et clavier, 320/390/
+  640/1 366 px, texte doublé, ancres NAV2, deux lectures, erreurs serveur,
+  Enregistrer/Annuler, séparation par utilisateur, stockage refusé et
+  actualisations sociales/prestations.
+- Les recettes NAV2 et sociales existantes sont rejouées. Les recettes communes
+  PWA ouvrent explicitement les rubriques nécessaires et la CI navigateur
+  GitLab inclut la nouvelle qualification.
+
+Les captures livrées ont été inspectées. L’impression Chromium est exercée sans
+JavaScript et le PDF produit est contrôlé, dont le texte d’une rubrique fermée.
+Cela ne qualifie pas une imprimante physique, tous les navigateurs, le zoom
+natif, le clavier virtuel réel, les programmes Windows/Linux ou Pyodide/OPFS.
+Ce lot réduit la longueur visible ; aucun gain de performance serveur n’est
+annoncé. Aucun nouveau modèle, droit ou format de copie.
+
+Qualification du 30 octobre 2026 sur la base publique NAV2
+46d5b3118f9b326241be9b3be052550c78a0e616 : Python 3.12.14, Django 5.2.18,
+SQLite 3.53.1, Chromium 134.0.6998.35/Linux et Playwright Python 1.51.0.
+Suite générale : 1 031 tests, OK, 35 ignorés. Un test supplémentaire sur les
+listes internes a ensuite été ajouté. La validation ciblée finale comprend
+28 contrôles réussis, dont 12 parcours Chromium (5 nouveaux, 4 NAV2 et
+3 recettes sociales). Le texte du PDF sans JavaScript contient bien les
+coordonnées de la rubrique fermée à l’écran. Contrôles Django, absence de
+migration, banc JavaScript de recherche, syntaxes JS et git diff --check : OK.

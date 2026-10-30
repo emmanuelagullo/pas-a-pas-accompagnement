@@ -1,7 +1,7 @@
-<section id="condition-composition"><h3>Composition du ménage au {{ condition_jour|date:'d/m/Y' }}</h3>
+<details open id="condition-composition" class="condition-depliant" data-condition-repli="condition-composition"><summary aria-labelledby="condition-composition-titre" aria-describedby="condition-composition-apercu"><h3 id="condition-composition-titre">Composition du ménage au {{ condition_jour|date:'d/m/Y' }}</h3><span class="condition-apercu" id="condition-composition-apercu">{{ condition_composition|length }} appartenance{{ condition_composition|length|pluralize }} à cette date</span></summary>
 <ul>{% for lien in condition_composition %}<li>{{ lien.personne }}</li>{% empty %}<li>Aucune appartenance à cette date.</li>{% endfor %}</ul>
 {% if prise %}<p>Bénéficiaires de cette prise en charge : {% for p in prise.beneficiaires.all %}{{ p }}{% if not forloop.last %} ; {% endif %}{% endfor %}.</p>{% endif %}
 {% if perms.personnes.view_contactmenage and perms.personnes.view_revisioncontactmenage %}<p><strong>Contact du ménage :</strong> {% if contact_designe %}{{ contact_designe.contact|default:'Aucun contact désigné' }}{% else %}non renseigné à cette date{% endif %} · <a href="{% url 'dossiers:contact_menage' objet.pk %}?{{ navigation_query }}&amp;date={{ condition_jour|date:'Y-m-d' }}">Modifier / Historique</a></p>{% endif %}
 {% if perms.personnes.add_appartenance %}<a href="{% url 'dossiers:membre' objet.pk %}?{{ navigation_query }}">Ajouter une personne</a>{% endif %}
 <a href="{% url 'suivi:detail' objet.pk %}">Appartenances : dates et historique</a>
-<p class="helptext">L’appartenance au ménage, les liens déclarés et les bénéficiaires de la prise en charge sont distincts.</p></section>
+<p class="helptext">L’appartenance au ménage, les liens déclarés et les bénéficiaires de la prise en charge sont distincts.</p></details>

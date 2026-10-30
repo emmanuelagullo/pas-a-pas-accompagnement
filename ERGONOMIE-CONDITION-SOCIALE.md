@@ -1,8 +1,10 @@
 # Bande Dessinée — inventaire, conception et livraison
 
-**État courant : lot BD-SOLENNE-02, à appliquer après le lot 01.** La section finale actualise les limites historiques du premier lot. Une migration est nécessaire pour le lot 02.
+**Présentation actuelle :** les [rubriques repliables de NAV3](NAVIGATION-DOSSIERS.md#nav3--rubriques-repliables) complètent le sommaire et les accès de NAV2. Elles sont ouvertes par défaut et ne changent ni les lectures datées ni les données.
 
-Référence examinée : `bada708692221bc90e84c870128eaf2ca1650907` (miroir GitHub téléchargé le 25 octobre 2026). Les main Inria et GitHub ont ensuite été revérifiés au même SHA le 26 octobre 2026.
+Les sections BD-SOLENNE ci-dessous conservent l’inventaire et les jalons historiques. Le lot BD-SOLENNE-02 s’appliquait après le lot 01 et nécessitait sa propre migration ; NAV3 ne comporte aucune migration.
+
+Référence de l’inventaire initial : `bada708692221bc90e84c870128eaf2ca1650907` (miroir GitHub téléchargé le 25 octobre 2026). Les main Inria et GitHub ont ensuite été revérifiés au même SHA le 26 octobre 2026.
 
 ## Portée
 
