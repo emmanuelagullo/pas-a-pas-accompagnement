@@ -1,6 +1,6 @@
 # Bande Dessinée — inventaire, conception et livraison
 
-**Présentation actuelle :** les [rubriques repliables de NAV3](NAVIGATION-DOSSIERS.md#nav3--rubriques-repliables) complètent le sommaire et les accès de NAV2. Elles sont ouvertes par défaut et ne changent ni les lectures datées ni les données.
+**Présentation actuelle :** les [rubriques repliables de NAV3](NAVIGATION-DOSSIERS.md#nav3--rubriques-repliables) complètent le sommaire et les accès de NAV2. Le [volet entier de NAV4](NAVIGATION-DOSSIERS.md#nav4--volet-social-repliable) et ses rubriques démarrent repliés avec JavaScript, puis retrouvent les choix de session ; sans JavaScript ils sont initialement ouverts. Les lectures datées et les données restent inchangées.
 
 Les sections BD-SOLENNE ci-dessous conservent l’inventaire et les jalons historiques. Le lot BD-SOLENNE-02 s’appliquait après le lot 01 et nécessitait sa propre migration ; NAV3 ne comporte aucune migration.
 

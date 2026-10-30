@@ -10,7 +10,8 @@
   let ancreInitiale = location.hash.startsWith('#evolution-') ? location.hash : '';
   const panneau = () => document.getElementById('sommaire-dossier');
   const bouton = () => document.querySelector('[data-sommaire-ouvrir]');
-  const visible = element => element && !element.closest('[hidden]') && element.getClientRects().length;
+  const visible = element => element && !element.closest('[hidden]') &&
+    !element.parentElement?.closest('details:not([open])') && element.getClientRects().length;
   const cible = hash => {
     try { return document.getElementById(decodeURIComponent(hash.slice(1))); }
     catch (_) { return null; }
@@ -105,8 +106,9 @@
     observerPosition();
     const actuel = cible(location.hash);
     if (visible(actuel)) position(actuel);
+    else if (actuel?.closest('[data-condition-volet]:not([open])')) position(document.querySelector('[data-condition-volet]'));
     mesurer();
-    if (ancreInitiale && visible(cible(ancreInitiale))) {
+    if (ancreInitiale && cible(ancreInitiale) && !cible(ancreInitiale).closest('[hidden]')) {
       const hash = ancreInitiale; ancreInitiale = '';
       rejoindre(hash, false);
     }

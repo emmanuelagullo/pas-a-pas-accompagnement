@@ -7,7 +7,9 @@ conservent le contexte de recherche et les sélections. Dans le dossier et la pr
 en charge, un sommaire latéral ou trois accès en bas permettent de rejoindre les
 grands blocs sans quitter la lecture en cours. Les rubriques de Situation sont
 [repliables indépendamment](NAVIGATION-DOSSIERS.md#nav3--rubriques-repliables),
-ouvertes par défaut et toujours consultables intégralement.
+toujours consultables intégralement. Le [volet entier](NAVIGATION-DOSSIERS.md#nav4--volet-social-repliable)
+et ses rubriques démarrent repliés avec JavaScript, puis retrouvent les choix
+de la session ; sans JavaScript, ils restent ouverts initialement.
 
 **Le prototype reste réservé aux données fictives.** Les profils serveur,
 programmes Linux/Windows et PWA ne constituent pas une qualification pour des

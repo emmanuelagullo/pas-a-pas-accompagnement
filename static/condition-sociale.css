@@ -151,3 +151,17 @@ body:has(.condition-acces) { padding-bottom: calc(var(--navigation-hauteur, 7rem
   .condition-depliant > .boite-entete, .condition-depliant [data-condition-ajout],
   .condition-depliant .condition-actions { display:none !important; }
 }
+
+/* NAV4 : un seul volet parent, sans commandes imbriquées dans son déclencheur. */
+.condition-volet-titre { cursor:pointer; padding:.6rem .25rem; min-height:2.75rem; overflow-wrap:anywhere; }
+.condition-volet-titre h2 { display:inline; }
+.condition-volet-apercu { display:block; font-size:.9rem; color:#526d63; margin:.3rem 0 0 1.1rem; }
+[data-condition-volet][open] > summary .condition-volet-apercu { display:none; }
+@media print {
+  [data-condition-volet]::details-content { display:block !important; content-visibility:visible !important; }
+  [data-condition-volet] > :not(summary) { display:block; }
+  [data-condition-volet] > summary { display:block; }
+  [data-condition-volet] > summary::marker { content:''; }
+  [data-condition-volet] > summary::-webkit-details-marker { display:none; }
+  .condition-volet-apercu { display:none !important; }
+}

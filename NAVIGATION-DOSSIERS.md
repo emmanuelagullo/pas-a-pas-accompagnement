@@ -210,3 +210,38 @@ listes internes a ensuite été ajouté. La validation ciblée finale comprend
 3 recettes sociales). Le texte du PDF sans JavaScript contient bien les
 coordonnées de la rubrique fermée à l’écran. Contrôles Django, absence de
 migration, banc JavaScript de recherche, syntaxes JS et git diff --check : OK.
+
+
+## NAV4 — Volet social repliable
+
+« Situation sociale et projet » devient un dépliant natif unique englobant
+Situation, Évolution et leurs commandes. À la première visite avec JavaScript,
+le volet et les rubriques sans choix préalable sont repliés. Les choix NAV3
+existants sont conservés ; fermer le volet ne réinitialise pas ses rubriques.
+Le titre et un repère de portée restent visibles, sans synthèse sociale ajoutée.
+
+Tout déplier/Tout replier conserve sa portée intérieure et ne ferme pas le volet.
+Les ancres ouvrent tous les parents nécessaires. Aucun changement implicite de
+Situation/Évolution ; un formulaire actif bloque aussi le repli du parent.
+La mémoire par utilisateur/dossier reste limitée aux identifiants et booléens.
+Sans stockage, la page et ses actualisations gardent une mémoire temporaire ;
+une nouvelle page retrouve les défauts. Sans JavaScript, les dépliants sont
+ouverts initialement. À l’impression le parent et les rubriques sont visibles.
+Aucun changement du modèle, des droits ou des règles temporelles ; aucun gain
+serveur annoncé.
+
+Qualification NAV4 : Python 3.12.14, Django 5.2.18, SQLite 3.53.1,
+Chromium 134/Linux. Les recettes ciblées couvrent dossier individuel, ménage
+à plusieurs personnes, prise en charge, clavier, largeurs 320–1920 CSS px,
+texte doublé, liens directs Situation/Évolution, erreurs serveur, Enregistrer,
+Annuler, actualisation des prestations, mémoire isolée et stockage refusé.
+Le test sans JavaScript ferme aussi le parent avant l’impression ; le PDF
+contient bien les coordonnées masquées à l’écran. Les captures ont été
+inspectées. Les recettes PWA sont adaptées et vérifiées syntaxiquement ;
+le vrai runtime Pyodide/OPFS, le clavier virtuel, le zoom natif et les autres
+navigateurs ne sont pas qualifiés par ces tests.
+
+Les 19 tests ciblés sont validés (6 tests unitaires/HTML et 13 parcours Chromium).
+La dernière adaptation de recette NAV2 a été rejouée seule avec succès après
+les 18 autres tests réussis. Contrôles Django, absence de migration, syntaxe JS,
+banc de recherche et `git diff --check` validés.

@@ -14,8 +14,10 @@ module.exports = async function verifierParcoursMetier(app) {
   await cliquerLienPwa(app.locator('#resultats-dossiers ul.resultats-dossiers').getByRole('link', {name:/Thomas — Établissement Les Passerelles \(fictif\)/}));
   await app.getByRole('heading', {name:/Dossier — Thomas/}).waitFor();
   await rejoindreBloc('prises');
+  if (await app.locator('[data-condition-volet]').getAttribute('open') === null) await app.locator('[data-condition-volet] > summary').click();
   await cliquerLienPwa(app.locator('.condition-personne').first().getByRole('link', {name:'Dossier individuel', exact:true}));
   await cliquerLienPwa(app.getByRole('link', {name:/Revenir au ménage/}));
+  if (await app.locator('[data-condition-volet]').getAttribute('open') === null) await app.locator('[data-condition-volet] > summary').click();
   // La recette de saisie complète ouvre les rubriques par leur commande.
   await app.getByRole('button', {name:'Tout déplier', exact:true}).click();
   // Commentaire append-only dans le dossier, avant d’ouvrir sa prise.

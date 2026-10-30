@@ -54,6 +54,8 @@ class RubriquesHTMLTests(TestCase):
         pour_prise = self.client.get(self.url)
         pour_dossier = self.client.get(reverse('dossiers:detail', args=['menage', self.m.pk]))
         for page in (pour_prise, pour_dossier):
+            self.assertContains(page, '<details open data-condition-volet')
+            self.assertContains(page, 'aria-labelledby="condition-volet-titre"')
             self.assertContains(page, 'data-condition-tout="ouvrir"')
             self.assertContains(page, 'data-condition-tout="fermer"')
             self.assertContains(page, '<details open id="social-' + str(self.p.pk) + '-identite"')

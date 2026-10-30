@@ -714,6 +714,8 @@ class ConditionSocialeNavigateur(StaticLiveServerTestCase):
         page = self.navigateur()
         page.set_viewport_size({'width': 1800, 'height': 1000})
         page.goto(self.live_server_url + reverse('dossiers:prise', args=['menage', self.m.pk, self.a.pk]))
+        page.locator('[data-condition-volet] > summary').click()
+        page.get_by_role('button', name='Tout déplier', exact=True).click()
         menu = page.locator('nav.condition-sommaire')
         social = menu.locator('.condition-menu > li').filter(has=page.locator('a[href="#condition-sociale"]'))
         self.assertEqual(social.locator('a[href="#condition-composition"]').count(), 1)
@@ -761,6 +763,8 @@ class ConditionSocialeNavigateur(StaticLiveServerTestCase):
     def test_identite_actualise_entete_et_sommaire_mobile(self):
         page = self.navigateur()
         page.goto(self.live_server_url + reverse('dossiers:detail', args=['personne', self.p.pk]))
+        page.locator('[data-condition-volet] > summary').click()
+        page.get_by_role('button', name='Tout déplier', exact=True).click()
         groupe = page.locator('#social-' + str(self.p.pk) + '-identite')
         groupe.get_by_role('link', name='Modifier', exact=True).click()
         form = groupe.locator('form[data-condition-form]')
@@ -782,6 +786,8 @@ class ConditionSocialeNavigateur(StaticLiveServerTestCase):
         from . import models as m
         page = self.navigateur()
         page.goto(self.live_server_url + reverse('dossiers:prise', args=['menage', self.m.pk, self.a.pk]))
+        page.locator('[data-condition-volet] > summary').click()
+        page.get_by_role('button', name='Tout déplier', exact=True).click()
         date_vue = page.locator('[data-condition-selection] input[type=date]')
         expect(date_vue).to_be_disabled()
         expect(date_vue).to_have_value(self.entree.isoformat())
@@ -844,6 +850,7 @@ class ConditionSocialeNavigateur(StaticLiveServerTestCase):
 
 
 @skipIf(sync_playwright is None, 'Module Python Playwright non installé : qualification navigateur ignorée.')
+
 class RapportsNavigateur(StaticLiveServerTestCase):
     """Catalogue en premier, variantes fidèles, gestion et retour depuis les faits."""
     navigateur=ProfilsNavigateur.navigateur

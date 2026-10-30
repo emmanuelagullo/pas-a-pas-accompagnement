@@ -30,7 +30,10 @@ cette base. Les anciens numéros ne changent pas cette dépendance.
   [frises](FRISES-SUR-PLACE.md). Le [sommaire et les accès internes](NAVIGATION-DOSSIERS.md#nav2--navigation-à-lintérieur-des-pages)
   déplacent la lecture sans nouvelle requête ni changement de vue. Les rubriques
   repliables utilisent les faits déjà présentés ; seuls leurs identifiants et
-  états ouvert/fermé sont mémorisés dans la session du navigateur.
+  états ouvert/fermé sont mémorisés dans la session du navigateur. NAV4 étend
+  ce mécanisme au volet Situation/Évolution entier ; sans choix préalable,
+  volet et rubriques démarrent repliés avec JavaScript. Les ancres ouvrent leurs
+  parents, un formulaire actif empêche leur repli et l’impression révèle le volet.
 - **Accès** : les objets sont contrôlés côté serveur avant agrégation, y compris
   dans les frises et rapports. L'activation des règles par service et la reprise
   des anciennes données sont explicites ; une migration ne les active pas.

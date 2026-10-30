@@ -31,7 +31,7 @@
     aSauver.clear();
   }
   function memoriser(detail) {
-    choix()[detail.dataset.conditionRepli] = detail.open;
+    choix()[(detail.dataset.conditionRepli || 'volet-social')] = detail.open;
     aSauver.add(cle());
     if (!frame) frame = requestAnimationFrame(enregistrer);
   }
@@ -40,7 +40,7 @@
       'Rubrique en cours de saisie laissée ouverte. Terminez ou annulez la saisie pour la replier.';
   }
   function ouvrirParents(element) {
-    for (let parent = element; parent && parent !== racine(); parent = parent.parentElement) {
+    for (let parent = element; parent && racine().contains(parent); parent = parent.parentElement) {
       if (parent.tagName === 'DETAILS') parent.open = true;
     }
   }
@@ -51,9 +51,9 @@
   function initialiser() {
     if (!racine()) return;
     const etat = choix();
-    rubriques().forEach(detail => {
+    [racine(), ...rubriques()].forEach(detail => {
       if (initialises.has(detail)) return;
-      if (typeof etat[detail.dataset.conditionRepli] === 'boolean') detail.open = etat[detail.dataset.conditionRepli];
+      detail.open = etat[(detail.dataset.conditionRepli || 'volet-social')] === true;
       if (detail.querySelector('[data-condition-form],.errorlist')) detail.open = true;
       initialises.add(detail);
     });
@@ -76,7 +76,7 @@
     }
     const resume = event.target.closest('summary');
     const detail = resume?.parentElement;
-    if (detail?.matches('[data-condition-repli][open]') && detail.querySelector('[data-condition-form]')) {
+    if (detail?.matches('[data-condition-repli][open], [data-condition-volet][open]') && detail.querySelector('[data-condition-form]')) {
       event.preventDefault(); avertir(); return;
     }
     // Inclut les liens du résumé d'erreurs, sans intercepter une navigation externe.
@@ -92,7 +92,7 @@
   }, true);
   document.addEventListener('toggle', event => {
     const detail = event.target;
-    if (!detail.matches('[data-condition-repli]') || !racine()?.contains(detail)) return;
+    if (!detail.matches('[data-condition-repli], [data-condition-volet]') || !racine()?.contains(detail)) return;
     if (!detail.open && detail.querySelector('[data-condition-form]')) {
       detail.open = true; avertir();
     }
