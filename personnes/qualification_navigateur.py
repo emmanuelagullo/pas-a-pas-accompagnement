@@ -18,6 +18,13 @@ except ModuleNotFoundError as erreur:
 from .tests_navigation import NavigationTests
 
 
+def ouvrir_precisions(page, champ='motif'):
+    """Ouvrir le dépliable natif avant de renseigner une précision facultative."""
+    depliable = page.locator(f'[name="{champ}"]').locator('xpath=ancestor::details[1]')
+    if depliable.count() and depliable.get_attribute('open') is None:
+        depliable.locator(':scope > summary').click()
+
+
 def verifier_hors_boucle_playwright(verification):
     """Vérifier la base hors de la boucle événementielle Playwright."""
     def executer():
@@ -346,6 +353,7 @@ class NouveauxParcoursNavigateur(StaticLiveServerTestCase):
         page.get_by_role('link', name='Compléter ou mettre à jour', exact=True).click()
         page.locator('input[name="referent"]').fill('Référente extérieure fictive')
         page.locator('p').filter(has=page.locator('textarea[name="objectifs_courts"]')).locator('.ProseMirror').fill('Projet fictif à court terme')
+        ouvrir_precisions(page)
         page.locator('[name="motif"]').fill('Projet préparé')
         page.get_by_role('button', name='Enregistrer', exact=True).click()
         page.get_by_role('link', name='Situation et parcours sociaux', exact=True).click()
@@ -354,6 +362,7 @@ class NouveauxParcoursNavigateur(StaticLiveServerTestCase):
         page.locator('select[name="valeur"]').select_option('formation')
         page.locator('input[name="debut"]').fill('2026-01-10')
         page.locator('[name="source"]').fill('Source fictive précisée')
+        ouvrir_precisions(page)
         page.locator('[name="motif"]').fill('Situation oubliée')
         page.get_by_role('button', name='Enregistrer', exact=True).click()
         page.get_by_role('heading', name='Dossier — ' + self.m.libelle, exact=True).wait_for()
@@ -549,7 +558,7 @@ class BD6Navigateur(EntreeBDNavigateur):
         page = self.navigateur()
         page.goto(self.live_server_url + reverse('dossiers:detail', args=['menage', self.m.pk]) + '?q=Fictif')
         page.locator('.bd-commentaire').get_by_role('link', name='Modifier', exact=True).click()
-        page.get_by_label('Commentaire libre', exact=False).fill('Accueil fictif à préparer.')
+        page.locator('.edition-texte .ProseMirror').fill('Accueil fictif à préparer.')
         page.get_by_role('button', name='Enregistrer', exact=True).click()
         page.get_by_text('Accueil fictif à préparer.', exact=True).wait_for()
         emploi = page.locator('#social-' + str(self.p.pk) + '-emploi')
@@ -558,6 +567,7 @@ class BD6Navigateur(EntreeBDNavigateur):
         page.locator('.social-valeurs > div').filter(has=page.get_by_text('Emploi / formation', exact=True)).get_by_role('link', name='Renseigner', exact=True).click()
         page.locator('[name=debut]').fill('2026-01-01')
         page.locator('[name=valeur]').select_option('formation')
+        ouvrir_precisions(page, 'source')
         page.locator('[name=source]').fill('Entretien fictif navigateur')
         page.get_by_role('button', name='Enregistrer', exact=True).click()
         page.get_by_role('heading', name='Histoire sociale — ' + str(self.p), exact=True).wait_for()
@@ -566,6 +576,7 @@ class BD6Navigateur(EntreeBDNavigateur):
         rubrique.get_by_role('link', name='Corriger une erreur', exact=True).click()
         self.assertTrue(page.locator('[name=debut]').is_disabled())
         self.assertIsNone(page.locator('[name=motif]').get_attribute('required'))
+        ouvrir_precisions(page)
         page.locator('[name=source]').fill('Entretien fictif corrigé')
         page.locator('[name=motif]').fill('Erreur de transcription fictive')
         page.get_by_role('button', name='Enregistrer', exact=True).click()

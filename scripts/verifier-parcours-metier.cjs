@@ -1,4 +1,5 @@
 // Parcours fictif BD6 et CHRS5–7 dans le vrai navigateur/Pyodide.
+const assert = require('node:assert/strict');
 const cliquerLienPwa = require('./cliquer-lien-pwa.cjs');
 module.exports = async function verifierParcoursMetier(app) {
   await cliquerLienPwa(app.getByRole('link', {name:'Dossiers', exact:true}));
@@ -47,7 +48,13 @@ module.exports = async function verifierParcoursMetier(app) {
   const evenement = app.locator('textarea[name=texte]:not([data-texte-riche])');
   await evenement.waitFor();
   await evenement.fill('Installation fictive — texte rectifié pendant l’essai.');
-  await app.locator('[name=motif]').fill('Correction fictive du parcours navigateur');
+  // Une correction ordinaire peut être enregistrée sans précision. Ici on
+  // choisit d’en fournir une pour vérifier sa restitution dans l’historique.
+  const precision = app.locator('[name=motif]');
+  assert.equal(await precision.isVisible(), false);
+  assert.equal(await precision.getAttribute('required'), null);
+  await precision.locator('xpath=ancestor::details[1]').locator(':scope > summary').click();
+  await precision.fill('Correction fictive du parcours navigateur');
   await cliquerLienPwa(app.getByRole('button', {name:'Enregistrer', exact:true}));
   await app.getByRole('heading', {name:/Prise en charge du/}).waitFor();
   await cliquerLienPwa(historique.getByRole('link', {name:'Historique des corrections', exact:true}));

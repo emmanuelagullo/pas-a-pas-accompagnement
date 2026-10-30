@@ -112,3 +112,35 @@ générale n'a pas été répétée après ces adaptations de tests uniquement.
 Contrôles Django, absence de migration manquante, syntaxe JS et diff réussis.
 Les contrôles d'accès, de doublons, de bornes et de formulaires périmés de ces
 tests sont conservés ; les nouveaux cas vérifient aussi le journal vide.
+
+## Recettes PWA et navigateur — correctif du 30 octobre 2026
+
+Base : `4aedd9e09ae25f4cb24e3debd3990ce39fdc32ba` (main Inria).
+La recette PWA tentait encore de remplir directement le motif de correction,
+alors que le lot d'harmonisation l'avait placé dans le dépliable fermé des
+précisions facultatives. Le délai d'attente ne signalait donc pas un champ
+bloqué dans l'application, mais une interaction manquante dans la recette.
+
+Le parcours vérifie maintenant que la précision est facultative et repliée,
+ouvre son dépliable natif puis renseigne volontairement une valeur fictive,
+dont la restitution dans l'historique reste contrôlée. Aucun remplissage forcé,
+aucune ouverture par manipulation du DOM et aucun allongement de délai ne
+remplacent cette interaction.
+
+L'audit des autres saisies de motifs dans les scripts et qualifications
+navigateur a adapté les précisions facultatives des informations de suivi,
+d'une insertion antérieure et d'une correction personnelle. La source
+personnelle facultative se renseigne elle aussi après ouverture du dépliable.
+Les motifs obligatoires de prolongation et d'annulation restent saisis sans
+repli. La recette du commentaire utilise son éditeur visible plutôt que la
+zone de texte technique masquée. Les deux recettes Django touchées ont été
+exécutées dans Chromium avec succès. Les formulaires, services, permissions,
+politiques de sources, migrations et dépendances ne changent pas.
+
+Le banc complet `scripts/verifier-pwa.cjs` réussit en HTTPS sous `/chrs/`,
+dans Chromium et le vrai runtime Pyodide : correction/historique, fonctionnement
+hors ligne, espaces séparés, PDF, sauvegardes natives, restauration, interruption,
+quota, mise à jour, refus des bases futures, corruption et OPFS réel. Le contrôle
+Django, la syntaxe du script Node et `git diff --check` réussissent également.
+La variante à la racine et la construction de production ne sont pas rejouées
+pour ce correctif de recettes ; elles restent dans les jobs CI existants.
