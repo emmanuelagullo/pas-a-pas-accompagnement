@@ -8,7 +8,21 @@ def aides_directes(context,prise):
     if not context['request'].user.has_perms(service.LECTURE):return {}
     qs=m.AccordAide.objects.filter(accompagnement=prise).prefetch_related('beneficiaires')
     groupes=[(n,t,list(qs.filter(nature=n))) for n,t in m.TypeAide.NATURES]
-    return {'frises_actives': context.get('frises_actives'), 'frises_objets':context.get('frises_objets', {}), 'peut_ajouter':context['request'].user.has_perm('personnes.add_accordaide'),'groupes':groupes,'prise':prise,'request':context['request'],'query': 'contexte_dossier='+__import__('urllib.parse',fromlist=['quote']).quote(prise.navigation.get('contexte_dossier',''))}
+    from django.utils import timezone
+    from urllib.parse import parse_qsl, urlencode
+    from django.urls import reverse
+    from personnes import dossier
+    params = dict(parse_qsl(context['navigation_query']))
+    for code, titre, accords in groupes:
+        cle = 'aide_' + code
+        selection = next((a for a in accords if str(a.pk) == params.get(cle)), accords[0] if accords else None)
+        for a in accords:
+            a.peut_realiser = a.debut <= timezone.localdate() and prise.debut <= timezone.localdate()
+            a.selectionnee = a is selection
+            valeurs = {**params, cle: str(a.pk)}
+            a.selection_url = reverse('dossiers:prise', args=[context['nature'], context['objet'].pk, prise.pk]) + '?' + urlencode(valeurs) + '#aides-' + code
+            a.navigation = dossier.pour_vue_params(prise, context['nature'], context['objet'].pk, valeurs, prise.navigation['dossier_valeurs'])
+    return {'peut_remettre': context['request'].user.has_perm('personnes.add_remiseaide'), 'peut_corriger': context['request'].user.has_perm('personnes.change_accordaide'), 'parametres_navigation': params, 'frises_actives': context.get('frises_actives'), 'frises_objets':context.get('frises_objets', {}), 'peut_ajouter':context['request'].user.has_perm('personnes.add_accordaide'),'groupes':groupes,'prise':prise,'request':context['request'],'query': 'contexte_dossier='+__import__('urllib.parse',fromlist=['quote']).quote(prise.navigation.get('contexte_dossier',''))}
 
 
 @register.inclusion_tag('aides/_jour.html',takes_context=True)

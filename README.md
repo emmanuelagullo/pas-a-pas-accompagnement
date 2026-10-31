@@ -10,7 +10,10 @@ garde la rubrique courante visible, sauf pendant son exploration manuelle. Les r
 [repliables indépendamment](NAVIGATION-DOSSIERS.md#nav3--rubriques-repliables),
 toujours consultables intégralement. Le [volet entier](NAVIGATION-DOSSIERS.md#nav4--volet-social-repliable)
 et ses rubriques démarrent repliés avec JavaScript, puis retrouvent les choix
-de la session ; sans JavaScript, ils restent ouverts initialement.
+de la session ; sans JavaScript, ils restent ouverts initialement. Les
+[prestations](NAVIGATION-DOSSIERS.md#nav6--prestations-en-une-colonne-et-interactions-cohérentes)
+occupent une colonne : sélection des actions par bouton rond, consultation
+par le titre et saisie courante sur place.
 
 **Le prototype reste réservé aux données fictives.** Les profils serveur,
 programmes Linux/Windows et PWA ne constituent pas une qualification pour des

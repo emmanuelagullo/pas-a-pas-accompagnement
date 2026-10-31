@@ -255,3 +255,43 @@ fermée est représentée par son intitulé, sans ouverture automatique. Le suiv
 est suspendu lorsque le pointeur ou le focus parcourt le menu, puis reprend à
 sa sortie. Il utilise les notifications IntersectionObserver existantes ;
 aucun gestionnaire de défilement continu ni requête serveur n'est ajouté.
+
+## NAV6 — Prestations en une colonne et interactions cohérentes
+
+Les blocs Hébergement, Repas et aides restent dans leur ordre métier, sur une
+colonne à toutes les largeurs. Le bouton rond sélectionne les actions ; le lien
+du titre et du résumé ouvre la fiche complète existante. Les actions restent
+séparées des liens et des frises. Les accueils prévus gardent leurs commandes
+explicites sans inventer un séjour réalisé.
+
+Avec JavaScript, une sélection actualise la page sans ajouter une entrée
+d'historique. Sans JavaScript, un bouton explicite valide le choix par GET.
+Les retours signés conservent la recherche, les vues sociales et les sélections,
+y compris la prestation consultée directement. Les choix des quatre familles
+d'aides sont des identifiants de navigation dans le contexte signé ; ils ne
+créent aucune autorisation et ne modifient ni les modèles ni leurs règles.
+
+Les actions courantes restent sur place, dans une seule zone d'édition et avec
+une largeur de formulaire bornée. Les protections de saisie, erreurs et preuves
+d'état existantes restent actives. Aucune nouvelle Form4 générique n'est créée.
+Les fiches spécialisées demeurent accessibles directement par les liens natifs,
+y compris sans JavaScript et dans un nouvel onglet.
+
+Qualification NAV5/NAV6 : Python 3.12.14, Django 5.2.18, SQLite 3.53.1 et
+Chromium 134/Linux. Les 25 tests ciblés sont validés, dont 14 parcours Chromium
+(sommaire, rubriques sociales et prestations). La suite générale a exécuté
+1 032 tests avec succès, dont 38 ignorés ; les deux tests HTTP ajoutés ensuite
+ont également été exécutés avec succès. La recette de prestation a été rejouée
+après correction du contrôleur : refus serveur d'une date hors accord, saisie
+conservée, correction et enregistrement réel, Annuler, blocage d'un changement
+de sélection pendant la saisie, consultation/retour et repli sans JavaScript.
+Les contrôles Django, absence de migration, banc de recherche et syntaxe JS
+passent. Le contrôleur lit l'attribut action du formulaire : un bouton nommé
+« action » ne peut plus masquer son URL de soumission.
+
+Les captures étroite/portable, éditeur et sommaire suivi ont été inspectées.
+Les dispositions 390/640/1366/1920 CSS px et les libellés longs sont couvertes ;
+la recette NAV2 couvre aussi 320 px et le texte doublé. Le vrai runtime PWA,
+Firefox/Safari, le zoom natif et le clavier virtuel ne sont pas qualifiés ici.
+La recette commune PWA ne comporte pas de sélecteur de carte devenu obsolète ;
+la qualification navigateur CI inclut désormais le parcours NAV6.

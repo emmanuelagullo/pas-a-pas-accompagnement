@@ -53,8 +53,10 @@
       if (courant) link.setAttribute('aria-current', 'location');
       else link.removeAttribute('aria-current');
     });
+    const destination = liens.find(link => link.hash === '#' + element.id) ||
+      (element.closest('[data-dossier-form2]') ? liens.find(link => link.hash === '#titre-prestations') : null);
     liens.forEach(link => {
-      if (link.hash === '#' + element.id) link.setAttribute('aria-current', 'location');
+      if (link === destination) link.setAttribute('aria-current', 'location');
       else link.removeAttribute('aria-current');
     });
     document.querySelectorAll('.condition-nav-details').forEach(detail => {
@@ -118,7 +120,7 @@
     });
     appliquerPanneau();
     observerPosition();
-    const actuel = cible(location.hash);
+    const actuel = document.querySelector('.operation-en-place')?.closest('[data-dossier-boite]') || cible(location.hash);
     if (visible(actuel)) position(actuel);
     else if (actuel?.closest('[data-condition-volet]:not([open])')) position(document.querySelector('[data-condition-volet]'));
     mesurer();

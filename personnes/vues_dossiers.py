@@ -202,7 +202,7 @@ def detail(request, nature, pk, prise_pk=None):
     jour = timezone.localdate()
     anciens = dossier.valeurs_vue(request, nature, pk)
     params = {**parametres(request), **anciens}
-    for cle in ('sejour', 'repas', 'origine_menage', 'origine_sejour', 'origine_repas', 'prise', 'date_service', 'prevision', *dossier.CLES_SOCIALES, *dossier.CLES_CHRONO):
+    for cle in ('sejour', 'repas', 'origine_menage', 'origine_sejour', 'origine_repas', 'prise', 'date_service', 'prevision', *dossier.CLES_AIDES, *dossier.CLES_SOCIALES, *dossier.CLES_CHRONO):
         if cle in request.GET:
             params[cle] = request.GET[cle][:80 if cle in dossier.CLES_CHRONO else 40]
     from . import condition_sociale
@@ -305,9 +305,13 @@ def detail(request, nature, pk, prise_pk=None):
             liens_uniques[cle] = lien
     for s in sejours:
         s.selection_url = reverse('dossiers:prise', args=[nature, pk, prise.pk]) if prise else reverse('dossiers:detail', args=[nature, pk])
+        nav_consultation = dossier.pour_vue_params(s.accord.accompagnement, nature, pk, {**params, 'sejour': str(s.pk)}, {**nav_h.get('dossier_valeurs', {}), 'sejour': str(s.pk)})
+        s.consultation_url = reverse('suivi:accord_hebergement', args=[s.accord_id]) + '?' + urlencode({'contexte_dossier': nav_consultation['contexte_dossier']}) + '#sejour-' + str(s.pk)
         s.selection_url = s.selection_url + '?' + urlencode({**params, 'sejour': str(s.pk)}) + '#hebergement'
     for accord in accords_r:
         accord.selection_url = reverse('dossiers:prise', args=[nature, pk, prise.pk]) if prise else reverse('dossiers:detail', args=[nature, pk])
+        nav_consultation = dossier.pour_vue_params(accord.accompagnement, nature, pk, {**params, 'repas': str(accord.pk)}, {**nav_r.get('dossier_valeurs', {}), 'repas': str(accord.pk)})
+        accord.consultation_url = reverse('suivi:accord_repas', args=[accord.pk]) + '?' + urlencode({'contexte_dossier': nav_consultation['contexte_dossier']})
         accord.selection_url = accord.selection_url + '?' + urlencode({**params, 'repas': str(accord.pk)}) + '#repas'
     courantes = [a for a in periodes if a.debut <= jour and (a.fin is None or a.fin > jour)]
     actuelle = courantes[0] if len(courantes) == 1 else None
@@ -356,7 +360,7 @@ def detail(request, nature, pk, prise_pk=None):
         'url_chronologie': chronologie.lien(nature, pk, {**params, 'chrono_prise': str(prise.pk) if prise else '', 'chrono_type': params.get('chrono_type') or ('' if prise else 'prise')}),
         'retour_chronologie': chronologie.lien(nature, pk, params) + '#chrono-' + params.get('chrono_ancre', '') if params.get('chrono_origine') else '',
         'prise': prise, 'demande_origine':demande_origine, 'lecture_interventions': lecture_interventions, 'interventions_courantes': interventions_courantes,
-        'parametres_navigation': {k: v for k, v in params.items() if k not in ('prise', 'ecran', 'accompagnement', *dossier.CLES_SOCIALES)}, 'selection_prise': selection_prise, 'commentaires': commentaires, 'commentaire': commentaires[0] if commentaires else None,
+        'parametres_prestations': params, 'parametres_navigation': {k: v for k, v in params.items() if k not in ('prise', 'ecran', 'accompagnement', *dossier.CLES_SOCIALES)}, 'selection_prise': selection_prise, 'commentaires': commentaires, 'commentaire': commentaires[0] if commentaires else None,
         'url_trajectoire': reverse('dossiers:trajectoire', args=[nature, pk]) + '?' + urlencode({**{k:v for k,v in params.items() if k not in ('prise', 'ecran')}, **({'prise':str(prise.pk), 'retour_prise':str(prise.pk)} if prise else {})}),
         'date_sociale': date_sociale,
         'retour_frise_origine': dossier.lire(request, prise).get('retour_dossier', '') if prise and params.get('frise_ouverte') else '',

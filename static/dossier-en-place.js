@@ -3,8 +3,11 @@
   'use strict';
   if (window.dossierEnPlace) return;
   window.dossierEnPlace = true;
+  document.documentElement.classList.add('prestations-interactives');
   let retour = location.href, occupe = false, modifie = false, boiteActive = null;
   const etat = message => { const e = document.getElementById('etat-dossier'); if (e) e.textContent = message; };
+  // Un contrôle nommé « action » peut masquer la propriété form.action.
+  const actionFormulaire = form => new URL(form.getAttribute('action') || location.href, location.href).href;
   const locale = valeur => {
     const u = new URL(valeur, location.href);
     return u.origin === location.origin ? u : null;
@@ -13,7 +16,7 @@
     main.querySelectorAll('script').forEach(e => e.remove());
     main.querySelectorAll('select[data-periode-dossier]').forEach(s => { s.dataset.periodePrecedente = s.value; });
     main.querySelectorAll('form').forEach(f => {
-      if (!f.hasAttribute('action')) f.action = url;
+      if (!f.hasAttribute('action')) f.setAttribute('action', url);
     });
     return main;
   }
@@ -47,7 +50,7 @@
         modifie = false; boiteActive = null;
         document.dispatchEvent(new Event('dossier:actualise'));
         scrollTo(0, y);
-        const selection = document.querySelector(`${new URL(retour).hash || '[data-dossier-form2]'} [aria-current="true"]`);
+        const selection = document.querySelector(`${new URL(retour).hash || '[data-dossier-form2]'} [data-prestation-url]:checked`);
         selection?.focus({preventScroll: true});
         const ancre = new URL(retour).hash;
         if (ancre.startsWith('#hebergement-prevu-')) {
@@ -75,9 +78,12 @@
         const titre = panneau.querySelector('h1');
         if (titre) { titre.tabIndex = -1; titre.focus({preventScroll: true}); }
         etat(reponse.status === 409 ? 'La saisie doit être vérifiée avant enregistrement.' : 'Action ouverte dans le dossier.');
+        document.dispatchEvent(new Event('navigation:actualise'));
       } else location.assign(reponse.url);
+      return true;
     } catch (erreur) {
       etat(options.method === 'POST' ? 'Enregistrement non confirmé. Votre saisie est conservée. Consultez le dossier avant de recommencer.' : 'Impossible d’ouvrir cette action. Votre saisie est conservée.');
+      return false;
     } finally {
       occupe = false; boite?.removeAttribute('aria-busy');
     }
@@ -92,6 +98,14 @@
     }
   });
   document.addEventListener('change', e => {
+    const radio = e.target.closest('[data-prestation-url]');
+    if (radio) {
+      const precedent = radio.closest('[data-dossier-boite]').querySelector('.selectionnee [data-prestation-url]');
+      const restaurer = () => { if (radio.isConnected) { radio.checked = false; if (precedent) precedent.checked = true; } };
+      if (modifie || occupe) { restaurer(); etat('Terminez ou annulez la saisie en cours avant de changer de sélection.'); return; }
+      charger(radio.dataset.prestationUrl, null).then(ok => { if (!ok) restaurer(); });
+      return;
+    }
     const select = e.target.closest('select[data-periode-dossier]');
     if (!select) return;
     const f = select.form, url = new URL(f.action);
@@ -125,7 +139,7 @@
     if (!form.closest('.operation-en-place')) return;
     if (form.method.toLowerCase() !== 'post') {
       e.preventDefault();
-      const url = new URL(form.action);
+      const url = new URL(actionFormulaire(form));
       for (const [cle, valeur] of new FormData(form)) { if (cle !== 'csrfmiddlewaretoken') url.searchParams.set(cle, valeur); }
       charger(url.href, form.closest('[data-dossier-boite]'));
       return;
@@ -137,7 +151,7 @@
     modifie = true;
     const controles = [...form.elements].map(controle => [controle, controle.disabled]);
     controles.forEach(([controle]) => { controle.disabled = true; });
-    charger(form.action, form.closest('[data-dossier-boite]'), {method: 'POST', body: donnees})
+    charger(actionFormulaire(form), form.closest('[data-dossier-boite]'), {method: 'POST', body: donnees})
       .finally(() => controles.forEach(([controle, disabled]) => { controle.disabled = disabled; }));
   });
   window.addEventListener('beforeunload', e => {

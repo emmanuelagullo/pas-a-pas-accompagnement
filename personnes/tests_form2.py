@@ -30,9 +30,8 @@ class Form2Tests(Donnees, TestCase):
         r = AccordRepas.objects.create(accompagnement=self.a, debut=date(2026, 1, 1), service='diner', cree_par=self.u)
         r.beneficiaires.add(self.p)
         page = self.client.get(self.detail, {'repas': str(r.pk), 'q': 'Fictif'})
-        self.assertNotContains(page, 'Afficher les actions')
-        # Le sélecteur Situation / Évolution utilise deux radios ; les
-        # prestations gardent leurs accès directs sans radio de sélection.
+        self.assertContains(page, 'data-prestation-selection-valider', count=2)
+        # NAV6 : radios de sélection distinctes des liens de consultation.
         self.assertContains(page, 'name="lecture_sociale"', count=2)
         from html.parser import HTMLParser
         class Radios(HTMLParser):
@@ -41,8 +40,8 @@ class Form2Tests(Donnees, TestCase):
                 a=dict(attrs)
                 if tag=='input' and a.get('type')=='radio':self.noms.append(a.get('name'))
         parseur=Radios();parseur.feed(page.content.decode())
-        self.assertEqual(set(parseur.noms), {'lecture_sociale'})
-        self.assertContains(page, 'data-dossier-selection')
+        self.assertEqual(set(parseur.noms), {'lecture_sociale', 'sejour', 'repas'})
+        self.assertContains(page, 'data-prestation-url')
         self.assertContains(page, 'data-dossier-action')
         selection = page.context['sejours_dossier'][0].selection_url
         suivant = self.client.get(selection)

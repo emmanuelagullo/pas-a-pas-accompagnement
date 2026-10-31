@@ -36,6 +36,9 @@ cette base. Les anciens numéros ne changent pas cette dépendance.
   ce mécanisme au volet Situation/Évolution entier ; sans choix préalable,
   volet et rubriques démarrent repliés avec JavaScript. Les ancres ouvrent leurs
   parents, un formulaire actif empêche leur repli et l’impression révèle le volet.
+  NAV6 aligne les prestations sur une colonne, avec sélection distincte de la
+  consultation native et contexte signé propre à la prestation. Les éditeurs
+  restent sur place ; les fiches spécialisées ne sont pas remplacées.
 - **Accès** : les objets sont contrôlés côté serveur avant agrégation, y compris
   dans les frises et rapports. L'activation des règles par service et la reprise
   des anciennes données sont explicites ; une migration ne les active pas.
