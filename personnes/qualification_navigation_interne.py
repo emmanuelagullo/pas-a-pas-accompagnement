@@ -23,6 +23,49 @@ class NavigationInterneNavigateur(StaticLiveServerTestCase):
             chemin.mkdir(parents=True, exist_ok=True)
             page.screenshot(path=str(chemin / (nom + '.png')))
 
+    def test_sommaire_long_suit_la_rubrique_sans_deplacer_la_page(self):
+        from playwright.sync_api import expect
+        from . import models as m
+        from django.utils import timezone
+        from datetime import timedelta
+        for numero in range(4):
+            autre = m.Personne.objects.create(designation='Personne fictive ' + str(numero), cree_par=self.u)
+            m.Appartenance.objects.create(menage=self.m, personne=autre,
+                debut=timezone.localdate()-timedelta(days=30))
+        page = self.navigateur()
+        page.set_viewport_size({'width': 1366, 'height': 760})
+        page.goto(self.url())
+        nav = page.get_by_role('navigation', name='Dans cette page', exact=True)
+        nav.locator('.condition-nav-details').first.locator('summary').click()
+        page.locator('[data-condition-volet] > summary').click()
+        page.get_by_role('button', name='Tout déplier', exact=True).click()
+        page.mouse.move(1200, 400)
+        # Utiliser la dernière rubrique disponible plutôt qu'un nombre de pixels fixe.
+        liens = nav.locator('a').filter(has_text='Liens personnels déclarés')
+        lien = liens.last
+        cible = page.locator(lien.get_attribute('href'))
+        requetes = []
+        page.on('request', lambda r: requetes.append(r.url))
+        page.mouse.wheel(0, cible.bounding_box()['y'] - 130)
+        expect(lien).to_have_attribute('aria-current', 'location')
+        page.wait_for_function("""() => {
+          const n=document.getElementById('sommaire-dossier'), a=n.querySelector('a[aria-current="location"]');
+          if(!a)return false;const r=a.getBoundingClientRect(),c=n.getBoundingClientRect();
+          return r.top>=c.top && r.bottom<=c.bottom;
+        }""")
+        self.assertGreater(nav.evaluate('n=>n.scrollTop'), 0)
+        self.assertGreaterEqual(nav.bounding_box()['y'], 0)
+        self.assertLess(nav.bounding_box()['y'], 25)
+        self.assertEqual(requetes, [])
+        self.capture(page, 'NAV05-sommaire-suivi')
+        # Une exploration manuelle au pointeur ne doit pas être annulée.
+        nav.hover()
+        page.mouse.wheel(0, -10000)
+        expect(nav).to_be_visible()
+        self.assertEqual(nav.evaluate('n=>n.scrollTop'), 0)
+        page.mouse.move(1200, 400)
+        page.wait_for_function("document.getElementById('sommaire-dossier').scrollTop > 0")
+
     def test_dispositions_ancres_clavier_et_historique(self):
         from playwright.sync_api import expect
         from . import models as m

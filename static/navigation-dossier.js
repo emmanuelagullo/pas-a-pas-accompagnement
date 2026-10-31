@@ -6,7 +6,20 @@
   let ouvert = false, observer, frame = 0, mesure = 0;
   const tailles = window.ResizeObserver ? new ResizeObserver(mesurer) : null;
   let visibles = new Set(), liens = [], barre, dernier, ancienSommaire, branches;
-  let hauteurNormale = innerHeight;
+  let hauteurNormale = innerHeight, sommaireParcouru = false;
+  function suivreSommaire() {
+    const nav = panneau();
+    if (!large.matches || !nav || nav.hidden || sommaireParcouru || nav.contains(document.activeElement)) return;
+    let repere = nav.querySelector('a[aria-current="location"]');
+    if (!repere) return;
+    for (let parent = repere.parentElement; parent && parent !== nav; parent = parent.parentElement) {
+      if (parent.matches("details:not([open])")) repere = parent.querySelector(":scope > summary");
+    }
+    const cadre = nav.getBoundingClientRect(), rect = repere.getBoundingClientRect();
+    // Déplacer uniquement le panneau, sans animation ni changement du focus.
+    if (rect.top < cadre.top + 8) nav.scrollTop += rect.top - cadre.top - 8;
+    else if (rect.bottom > cadre.bottom - 8) nav.scrollTop += rect.bottom - cadre.bottom + 8;
+  }
   let ancreInitiale = location.hash.startsWith('#evolution-') ? location.hash : '';
   const panneau = () => document.getElementById('sommaire-dossier');
   const bouton = () => document.querySelector('[data-sommaire-ouvrir]');
@@ -54,6 +67,7 @@
     const personne = element.closest('.condition-personne');
     document.querySelectorAll('[data-person-nav]').forEach(item =>
       item.classList.toggle('is-current', Boolean(personne && item.dataset.personNav === personne.id)));
+    suivreSommaire();
   }
   function observerPosition() {
     observer?.disconnect();
@@ -189,7 +203,17 @@
     if (ouvert && !event.target.closest('.condition-sommaire,.condition-acces')) fermer();
     mesurer();
   });
-  document.addEventListener('focusout', mesurer);
+  document.addEventListener('pointerover', event => {
+    const nav = panneau();
+    if (nav?.contains(event.target)) sommaireParcouru = true;
+  });
+  document.addEventListener('pointerout', event => {
+    const nav = panneau();
+    if (nav?.contains(event.target) && !nav.contains(event.relatedTarget)) {
+      sommaireParcouru = false; suivreSommaire();
+    }
+  });
+  document.addEventListener('focusout', () => { mesurer(); requestAnimationFrame(suivreSommaire); });
   ['condition:vue', 'navigation:actualise', 'dossier:actualise', 'condition:depliements'].forEach(nom =>
     document.addEventListener(nom, planifier));
   large.addEventListener('change', () => {

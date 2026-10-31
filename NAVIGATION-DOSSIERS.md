@@ -245,3 +245,13 @@ Les 19 tests ciblés sont validés (6 tests unitaires/HTML et 13 parcours Chromi
 La dernière adaptation de recette NAV2 a été rejouée seule avec succès après
 les 18 autres tests réussis. Contrôles Django, absence de migration, syntaxe JS,
 banc de recherche et `git diff --check` validés.
+
+## NAV5 — Suivre la rubrique dans un sommaire long
+
+Sur écran large, le sommaire conserve son défilement indépendant. Quand la
+rubrique courante sort de sa zone visible, seul le panneau défile du minimum
+nécessaire, sans animation ni déplacement du focus ou de la page. Une branche
+fermée est représentée par son intitulé, sans ouverture automatique. Le suivi
+est suspendu lorsque le pointeur ou le focus parcourt le menu, puis reprend à
+sa sortie. Il utilise les notifications IntersectionObserver existantes ;
+aucun gestionnaire de défilement continu ni requête serveur n'est ajouté.

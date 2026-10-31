@@ -5,7 +5,8 @@ en CHRS. Le parcours compact est **Recherche → Dossier → Prise en charge**,
 avec les prestations accessibles dans ce parcours. Le [fil d’Ariane et les retours](NAVIGATION-DOSSIERS.md)
 conservent le contexte de recherche et les sélections. Dans le dossier et la prise
 en charge, un sommaire latéral ou trois accès en bas permettent de rejoindre les
-grands blocs sans quitter la lecture en cours. Les rubriques de Situation sont
+grands blocs sans quitter la lecture en cours. Sur écran large, le sommaire
+garde la rubrique courante visible, sauf pendant son exploration manuelle. Les rubriques de Situation sont
 [repliables indépendamment](NAVIGATION-DOSSIERS.md#nav3--rubriques-repliables),
 toujours consultables intégralement. Le [volet entier](NAVIGATION-DOSSIERS.md#nav4--volet-social-repliable)
 et ses rubriques démarrent repliés avec JavaScript, puis retrouvent les choix

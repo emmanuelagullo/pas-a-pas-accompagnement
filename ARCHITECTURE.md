@@ -28,7 +28,9 @@ cette base. Les anciens numéros ne changent pas cette dépendance.
   consultation, pas des données ou éditeurs temporels supplémentaires. Voir
   [l'ergonomie](ERGONOMIE-CONDITION-SOCIALE.md) et les
   [frises](FRISES-SUR-PLACE.md). Le [sommaire et les accès internes](NAVIGATION-DOSSIERS.md#nav2--navigation-à-lintérieur-des-pages)
-  déplacent la lecture sans nouvelle requête ni changement de vue. Les rubriques
+  déplacent la lecture sans nouvelle requête ni changement de vue. NAV5 maintient
+  le repère courant visible dans le panneau latéral, en suspendant son suivi
+  pendant une exploration du menu au pointeur ou au clavier. Les rubriques
   repliables utilisent les faits déjà présentés ; seuls leurs identifiants et
   états ouvert/fermé sont mémorisés dans la session du navigateur. NAV4 étend
   ce mécanisme au volet Situation/Évolution entier ; sans choix préalable,
