@@ -30,7 +30,11 @@ dossiers réels. Les comptes professionnels sont distincts des personnes suivies
 
 Les services peuvent activer explicitement un parcours collectif compact :
 personne de référence et composition déclarée, données du ménage, hébergement
-commun et restauration calculée par période. Les services et données existants
+commun et repas calculés par période. Les mêmes groupes Hébergement et Repas
+et les mêmes commandes sur place restent utilisés entre services. Le groupe
+concerné peut être choisi sans activer un suivi individuel. Les offres des
+prestataires et leurs tarifs sont sélectionnables dans Paramétrage → Services /
+Prestataires. Les services et données existants
 restent dans leur parcours historique. Voir [COL1–4](COLLECTIF.md).
 
 | Domaine disponible selon les droits | Référence |

@@ -56,6 +56,8 @@ class PrestationCollective(ModeleControle):
 
 class VersionPrestationCollective(ModeleControle):
     prestation = models.ForeignKey(PrestationCollective, on_delete=models.PROTECT, related_name='versions')
+    offre = models.ForeignKey('acteurs.OffrePrestataire', on_delete=models.PROTECT, null=True, blank=True)
+    libelle_offre = models.CharField(max_length=160, blank=True)
     composition = models.ForeignKey(CompositionCollective, on_delete=models.PROTECT)
     numero = models.PositiveIntegerField()
     action = models.CharField(max_length=16, choices=[('creation','Création'),('correction','Correction'),('prolongation','Prolongation'),('depart','Départ'),('annulation','Annulation')])
@@ -87,6 +89,8 @@ class CouvertCollectif(ModeleControle):
     nombre = models.PositiveSmallIntegerField('Couverts par repas')
     prix = models.DecimalField('Prix par repas', max_digits=14, decimal_places=4, null=True, blank=True, validators=[MinValueValidator(0)])
     tarif = models.ForeignKey('personnes.VersionTarif', on_delete=models.PROTECT, null=True, blank=True)
+    prix_diner = models.DecimalField('Prix du dîner différent', max_digits=14, decimal_places=4, null=True, blank=True, validators=[MinValueValidator(0)])
+    tarif_diner = models.ForeignKey('personnes.VersionTarif', on_delete=models.PROTECT, null=True, blank=True, related_name='+')
     class Meta:
         default_permissions = ('view',)
         constraints = [models.UniqueConstraint(fields=['version','categorie'], name='col_couvert_unique')]

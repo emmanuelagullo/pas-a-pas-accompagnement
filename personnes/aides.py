@@ -85,6 +85,10 @@ def accorder(acteur,accompagnement,type_aide,beneficiaires,attendu,**valeurs):
     from .collectifs import profil
     configuration=profil(accompagnement)
     if configuration and type_aide.nature not in configuration.get('aides',[]):raise ValidationError('Cette famille d’aide n’est pas proposée dans ce service.')
+    if configuration:
+        from .collectifs import service_objet
+        service_cfg=service_objet(accompagnement)
+        if service_cfg.catalogue_prestations and not service_cfg.offres.filter(actif=True,nature=type_aide.nature,lieu=valeurs.get('prestataire')).exists():raise ValidationError('Choisissez un prestataire proposé par ce service pour cette aide.')
     droit(acteur,'add_accordaide')
     bd6.reserver(accompagnement,attendu)
     if set(valeurs)!=set(CHAMPS):raise ValidationError('Précisez toutes les informations de l’accord.')

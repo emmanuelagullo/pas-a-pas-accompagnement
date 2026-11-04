@@ -2,6 +2,7 @@
 from datetime import date, timedelta
 from urllib.parse import urlencode
 from django import forms
+from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.cache import never_cache
@@ -35,19 +36,22 @@ def retour_contexte(request,objet,action):
 
 def preparer(request,objet,action,pk=None,nature=None):
     acteur=request.user;jour=timezone.localdate();cfg=c.profil(objet)
-    if not cfg:raise PermissionDenied('Le parcours collectif n’est pas activé dans ce service.')
     p=None
     if pk:
         p=get_object_or_404(m.PrestationCollective,pk=pk,accompagnement=objet)
         v=p.courante;comp=v.composition;nature=p.nature
     else:comp=c.composition(objet,jour)
+    if not cfg and not p:raise PermissionDenied('Les nouvelles saisies de groupe ne sont pas activées dans ce service.')
+    if not cfg:
+        from acteurs.profils_collectifs import defaut
+        cfg=defaut()
     data=request.POST if request.method=='POST' else None
     url=reverse('dossiers:collectif_action',args=['prise' if isinstance(objet,m.Accompagnement) else 'menage',objet.pk,action])
     query={k:str(v) for k,v in {'pk':pk,'nature':nature}.items() if v}
     retour_page,token=retour_contexte(request,objet,action)
     if token:query['retour_col']=token
     url+='?'+urlencode(query)
-    titre={'composition':'Composition et situation du ménage','creation':'Nouvelle prestation collective','correction':'Corriger la prestation','prolongation':'Prolonger','depart':'Enregistrer le départ','annulation':'Annuler la prestation','lieu':'Changer de lieu','absence':'Enregistrer une absence','retour':'Enregistrer le retour d’absence','annuler_mouvement':'Annuler un mouvement erroné'}.get(action)
+    titre={'composition':'Composition et situation du ménage','creation':'Nouveau séjour' if nature=='hebergement' else 'Nouvelle période de repas','correction':'Corriger la prestation','prolongation':'Prolonger','depart':'Enregistrer le départ','annulation':'Annuler la prestation','lieu':'Changer de lieu','absence':'Enregistrer une absence','retour':'Enregistrer le retour d’absence','annuler_mouvement':'Annuler un mouvement erroné'}.get(action)
     if not titre:raise ValidationError('Action inconnue.')
     if action=='composition':
         suivi.exiger(acteur,'view_compositioncollective','add_compositioncollective')
@@ -57,7 +61,7 @@ def preparer(request,objet,action,pk=None,nature=None):
         if not isinstance(objet,m.Accompagnement) or not comp:raise ValidationError('Renseignez d’abord la composition du groupe.')
         if nature not in dict(m.PrestationCollective.NATURES):raise ValidationError('Choisissez la famille de prestation.')
         suivi.exiger(acteur,'view_prestationcollective','view_compositioncollective','view_versionprestationcollective','view_couvertcollectif','change_prestationcollective' if p else 'add_prestationcollective')
-        if cfg[nature]=='individuel':raise PermissionDenied('Utilisez le parcours individuel de cette famille.')
+        if not p and cfg[nature]=='individuel':raise PermissionDenied('Utilisez le parcours individuel de cette famille.')
         form=f.PrestationForm(data,prise=objet,nature=nature,comp=comp,acteur=acteur,prestation=p)
         if p:
             def faire(attendu,couverts,**d):return c.modifier(acteur,p,attendu,'correction',couverts=couverts,**d)
@@ -81,7 +85,7 @@ def preparer(request,objet,action,pk=None,nature=None):
         form=f.ActionForm(data,prestation=p,action=action)
         def faire(attendu,date=None,motif=''):
             return c.modifier(acteur,p,attendu,action,motif=motif,**({'fin_prevue':date} if action=='prolongation' else {'fin':date} if action=='depart' else {}))
-    return {'form':form,'titre':titre,'action_url':url,'retour':retour_page,'faire':faire}
+    return {'composition':action=='composition','form':form,'titre':titre,'action_url':url,'retour':retour_page,'faire':faire}
 
 @never_cache
 @login_required
@@ -92,6 +96,15 @@ def action(request,cible,pk,action):
     statut=200
     try:ctx=preparer(request,objet,action,request.GET.get('pk'),request.GET.get('nature'))
     except ValidationError as e:return render(request,'collectifs/erreur.html',{'erreur':' '.join(e.messages),'retour':retour(objet)},status=400)
+    if request.method=='POST' and (request.GET.get('apercu')=='1' or request.POST.get('calculer')):
+        resultat=apercu(ctx['form'],objet,request)
+        if request.GET.get('apercu')=='1':return JsonResponse(resultat)
+        ctx['calcul']=resultat['message']
+        if ctx['form'].is_valid():
+            data=ctx['form'].data.copy()
+            for ligne in ctx['form'].cleaned_data.get('couverts',[]):data['couverts_'+ligne['categorie']]=str(ligne['nombre'])
+            ctx['form'].data=data
+        return render(request,'collectifs/form.html',{'formctx':ctx})
     if request.method=='POST' and ctx['form'].is_valid():
         try:ctx['faire'](**ctx['form'].cleaned_data)
         except (ValidationError,OperationalError) as e:
@@ -114,3 +127,34 @@ def bilan(request,pk):
             v=p.courante;lignes.append({'prestation':p,'version':v,'volumes':c.bilan(v,debut,fin)})
     except (ValidationError,ValueError) as e:return render(request,'collectifs/erreur.html',{'erreur':str(e),'retour':retour(prise)},status=400)
     return render(request,'collectifs/bilan.html',{'prise':prise,'lignes':lignes,'debut':debut,'fin':fin,'retour':retour(prise)})
+
+def apercu(form,objet,request):
+    if not isinstance(form,f.PrestationForm) or form.nature!='restauration':return ({'message':''})
+    prix={}
+    try:
+        jour=forms.DateField().clean(request.POST.get('debut'))
+        if 'offre' in form.fields:
+            offre=form.fields['offre'].queryset.filter(pk=request.POST.get('offre') or None).first()
+            if offre:prix={('diner_'+code if repas=='diner' else code):str(t.montant) for (code,repas),t in c.tarifs_offre(request.user,offre,jour,request.POST.get('devise','EUR')).items()}
+        elif 'prestataire' in form.fields:
+            pr=form.fields['prestataire'].clean(request.POST.get('prestataire'))
+            prix={code:str(t.montant) for code,t in c.tarifs_proposes(request.user,getattr(pr,'pk',None),jour,form.comp.categories,request.POST.get('devise','EUR')).items()}
+    except (ValidationError,ValueError):pass
+    if not form.is_valid():return ({'prix':prix,'message':'Calcul incomplet : vérifiez les champs et les dates.'})
+    d=dict(form.cleaned_data)
+    if form.prestation:d['fin']=form.prestation.courante.fin
+    fin=d.get('fin') or d.get('fin_prevue')
+    try:
+        c.verifier_version(m.PrestationCollective(accompagnement=objet,nature='restauration'),m.VersionPrestationCollective(**{k:v for k,v in d.items() if k in c.VERSION}))
+        r=c.calcul_repas(d,d['couverts'],d['debut'],fin+timedelta(days=1)) if fin else None
+    except ValidationError as e:return ({'message':' '.join(e.messages)})
+    def cout(repas):
+        quantite=sum(x['nombre'] for x in d['couverts']);champ='prix_diner' if repas=='diner' else 'prix'
+        lignes=[(x['nombre'],x.get(champ) if x.get(champ) is not None else x.get('prix')) for x in d['couverts']]
+        if any(n and p is None for n,p in lignes):return 'prix incomplet'
+        from decimal import Decimal, ROUND_HALF_UP
+        return str(sum((n*p for n,p in lignes if p is not None),Decimal('0')).quantize(Decimal('.01'),rounding=ROUND_HALF_UP))+' '+d['devise']+' pour le groupe'
+    par=' · '.join(('Par déjeuner : '+cout('dejeuner'),) if d['dejeuner'] and not d['diner'] else ('Par dîner : '+cout('diner'),) if d['diner'] and not d['dejeuner'] else ('Par déjeuner : '+cout('dejeuner'),'par dîner : '+cout('diner')))
+    if not fin:return {'prix':prix,'message':par+' · Total de la période non calculable sans date de fin.'}
+    total='total incomplet — prix non renseigné' if r['prix_inconnus'] else 'total calculé : '+str(r['cout'])+' '+d['devise']
+    return ({'prix':prix,'message':par+' · Période : '+str(r['dejeuners'])+' déjeuners + '+str(r['diners'])+' dîners · '+str(r['repas'])+' repas · '+total+'. Montants calculés sur la période accordée, pas des distributions.'})

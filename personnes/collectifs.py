@@ -11,13 +11,13 @@ from django.utils import timezone
 from acteurs.contexte import service_metier
 from acteurs.models import Service, JournalAcces
 from acteurs import portees
-from acteurs.profils_collectifs import verifier, verifier_categories
+from acteurs.profils_collectifs import verifier, verifier_categories, defaut
 from . import models as m, suivi
 from .verrous_metier import serialiser
 
 SALT='collectif-etat-v1'
 SOCIAUX=('logement','revenu','dette','telephone','courriel','projet')
-VERSION=('debut','fin','fin_prevue','arrivee','lieu','prestataire','dejeuner','diner','premier','dernier','petits_dejeuners','devise')
+VERSION=('debut','fin','fin_prevue','arrivee','lieu','prestataire','dejeuner','diner','premier','dernier','petits_dejeuners','devise','offre','libelle_offre')
 
 def profil(objet):
     try:service=service_objet(objet)
@@ -25,7 +25,7 @@ def profil(objet):
     valeur=service.profil_collectif
     if not valeur:return None
     verifier(valeur)
-    return valeur
+    return {**defaut(),**valeur}
 
 def service_objet(objet):
     from acteurs.contexte import courant
@@ -167,7 +167,7 @@ def verifier_version(p,v):
     else:
         actifs=[x for x in ('dejeuner','diner') if getattr(v,x)]
         if not actifs or v.premier not in actifs or v.dernier not in actifs:raise ValidationError('Choisissez les repas activés et les bornes correspondantes.')
-        if v.fin and v.fin==v.debut and v.premier=='diner' and v.dernier=='dejeuner':raise ValidationError('Le dernier repas précède le premier.')
+        if (v.fin or v.fin_prevue)==v.debut and v.premier=='diner' and v.dernier=='dejeuner':raise ValidationError('Le dernier repas précède le premier.')
     if not re.fullmatch('[A-Z]{3}',v.devise):raise ValidationError('Devise sur trois lettres majuscules attendue.')
 
 def valeurs_version(v):return {k:getattr(v,k) for k in VERSION}
@@ -235,7 +235,7 @@ def tarifs_proposes(acteur,prestataire,jour,categories,devise):
 
 @service_metier
 @transaction.atomic
-def creer(acteur,accompagnement,nature,comp,attendu,couverts,selection=None,reference_selection=None,**valeurs):
+def creer(acteur,accompagnement,nature,comp,attendu,couverts,selection=None,reference_selection=None,selection_complements=None,**valeurs):
     suivi.exiger(acteur,'view_prestationcollective','add_prestationcollective','view_versionprestationcollective','view_couvertcollectif','view_compositioncollective')
     # Le jeton de création est lié à la prise, composition et configuration.
     verifier_jeton(accompagnement,attendu)
@@ -243,18 +243,22 @@ def creer(acteur,accompagnement,nature,comp,attendu,couverts,selection=None,refe
         raise ValidationError('Le ménage a changé ; rechargez.')
     cfg=profil(accompagnement)
     if nature not in dict(m.PrestationCollective.NATURES) or not cfg or cfg[nature]=='individuel':raise ValidationError('Cette famille utilise le parcours individuel.')
+    if nature not in cfg.get('prestations',['hebergement','restauration']):raise PermissionDenied('Cette prestation n’est pas proposée par ce service.')
+    verifier_offre(acteur,accompagnement,nature,valeurs)
     if comp.menage_id!=accompagnement.menage_id or comp.service_id!=service_objet(accompagnement).pk or comp.accompagnement_id not in (None,accompagnement.pk) or comp.annule_le:
         raise ValidationError('Composition étrangère ou annulée.')
     if selection is not None:
-        if cfg[nature]!='option':raise PermissionDenied('Ce service ne propose pas de sélection individuelle pour cette famille.')
         suivi.exiger(acteur,'add_compositioncollective')
         ids={p.pk for p in selection}
-        if not ids or not ids.issubset(set(comp.identifies.values_list('pk',flat=True))) or not reference_selection or reference_selection.pk not in ids:
-            raise ValidationError('Choisissez les personnes identifiées concernées et leur personne de référence.')
+        complements=selection_complements or {}
+        disponibles=effectifs_complementaires(comp)
+        if set(complements)-set(disponibles) or any(type(n) is not int or n<0 or n>disponibles[k] for k,n in complements.items()):raise ValidationError('Effectif complémentaire hors du groupe déclaré.')
+        if not ids.issubset(set(comp.identifies.values_list('pk',flat=True))) or not ids and not any(complements.values()):
+            raise ValidationError('Choisissez un groupe compris dans la composition déclarée.')
         # Photographie propre à cette prestation, sans changer le ménage ni la prise.
         sous=m.CompositionCollective.objects.create(menage=comp.menage,accompagnement=accompagnement,service=comp.service,
-            debut=valeurs.get('debut',comp.debut),reference=reference_selection,pour_prestation=True,
-            categories=deepcopy(comp.categories),complements=[],identites=[x for x in comp.identites if x['id'] in {str(pk) for pk in ids}],auteur=acteur)
+            debut=valeurs.get('debut',comp.debut),reference=comp.reference,pour_prestation=True,
+            categories=deepcopy(comp.categories),complements=[{'categorie':k,'nombre':n,'age':None,'naissance':''} for k,n in complements.items() if n],identites=[x for x in comp.identites if x['id'] in {str(pk) for pk in ids}],auteur=acteur)
         sous.identifies.set(ids);comp=sous
     p=m.PrestationCollective.objects.create(accompagnement=accompagnement,nature=nature,auteur=acteur)
     _version(acteur,p,comp,'creation',couverts,valeurs)
@@ -267,20 +271,29 @@ def _version(acteur,p,comp,action,couverts,valeurs,motif=''):
     if not isinstance(couverts,list) or len(couverts)>9:raise ValidationError('Couverts invalides.')
     categories={c['code']:c['libelle'] for c in comp.categories};categories['inconnu']='Âge non précisé';vus=set()
     for x in couverts:
-        if set(x)-{'categorie','nombre','prix','tarif'} or x['categorie'] not in categories or x['categorie'] in vus:raise ValidationError('Catégories de couverts invalides.')
+        if set(x)-{'categorie','nombre','prix','tarif','prix_diner','tarif_diner'} or x['categorie'] not in categories or x['categorie'] in vus:raise ValidationError('Catégories de couverts invalides.')
         vus.add(x['categorie']);nombre=x['nombre']
         if type(nombre) is not int or not 0<=nombre<=1000:raise ValidationError('Couverts : entier de 0 à 1000 attendu.')
         prix=x.get('prix');tarif=x.get('tarif')
-        if tarif and (prix!=tarif.montant or tarif.devise!=v.devise or tarif.categorie!=categories[x['categorie']] or tarif.prestataire_id not in (None,v.prestataire_id)):
+        if tarif and (prix!=tarif.montant or tarif.devise!=v.devise or not (v.offre_id and v.offre.tarifs.filter(categorie=x['categorie'],repas='commun',tarif_id=tarif.tarif_id).exists()) and tarif.categorie!=categories[x['categorie']] or tarif.prestataire_id not in (None,v.prestataire_id)):
             raise ValidationError('Le prix particulier doit être détaché de la référence tarifaire.')
         if tarif:
-            suivi.exiger(acteur,'view_tarifprestation','view_versiontarif')
+            if not (v.offre_id and acteur.has_perm('acteurs.view_tarifoffre')):suivi.exiger(acteur,'view_tarifprestation','view_versiontarif')
             from .financements import applicable
             precedent=p.versions.filter(numero__lt=v.numero).order_by('-numero').first()
-            conserve=action=='correction' and precedent and precedent.debut==v.debut and precedent.couverts.filter(categorie=x['categorie'],tarif=tarif,prix=prix).exists()
-            applique=applicable(tarif.tarif,v.debut)
+            conserve=action in ('correction','prolongation','depart','annulation') and precedent and precedent.debut==v.debut and precedent.couverts.filter(categorie=x['categorie'],tarif=tarif,prix=prix).exists()
+            applique=m.VersionTarif._base_manager.filter(tarif_id=tarif.tarif_id,debut__lte=v.debut).order_by('-debut','-version').first() if v.offre_id else applicable(tarif.tarif,v.debut)
             if not conserve and (not tarif.actif or not applique or applique.pk!=tarif.pk):raise ValidationError('Ce tarif n’est pas applicable à la date choisie ; saisissez un prix particulier explicite.')
-        c=m.CouvertCollectif(version=v,categorie=x['categorie'],libelle=categories[x['categorie']],nombre=nombre,prix=prix,tarif=tarif)
+        dt=x.get('tarif_diner')
+        if dt:
+            if not (v.offre_id and acteur.has_perm('acteurs.view_tarifoffre')):suivi.exiger(acteur,'view_tarifprestation','view_versiontarif')
+            from .financements import applicable
+            precedent=p.versions.filter(numero__lt=v.numero).order_by('-numero').first()
+            conserve=action in ('correction','prolongation','depart','annulation') and precedent and precedent.debut==v.debut and precedent.couverts.filter(categorie=x['categorie'],tarif_diner=dt,prix_diner=x.get('prix_diner')).exists()
+            courant=m.VersionTarif._base_manager.filter(tarif_id=dt.tarif_id,debut__lte=v.debut).order_by('-debut','-version').first() if v.offre_id else applicable(dt.tarif,v.debut)
+            if v.offre_id and not v.offre.tarifs.filter(categorie=x['categorie'],repas='diner',tarif_id=dt.tarif_id).exists():raise ValidationError('Tarif du dîner étranger à l’offre.')
+            if dt.montant!=x.get('prix_diner') or dt.devise!=v.devise or dt.prestataire_id!=v.prestataire_id or not conserve and (not courant or courant.pk!=dt.pk or not dt.actif):raise ValidationError('Tarif du dîner incompatible.')
+        c=m.CouvertCollectif(version=v,categorie=x['categorie'],libelle=categories[x['categorie']],nombre=nombre,prix=prix,tarif=tarif,prix_diner=x.get('prix_diner'),tarif_diner=x.get('tarif_diner'))
         c.full_clean();c.save()
     if p.nature=='restauration' and not any(x['nombre'] for x in couverts):raise ValidationError('Renseignez au moins un couvert.')
     p.revision+=1;p.save(update_fields=['revision'])
@@ -312,7 +325,8 @@ def modifier(acteur,p,attendu,action,couverts=None,motif='',**valeurs):
         if action=='depart' and x.nature=='absence' and x.fin is None:
             avant={'fin':None};x.fin=d['fin'];x.save(update_fields=['fin'])
             m.JournalCollectif.objects.create(prestation=p,mouvement=x,action='Absence close au départ',avant=avant,apres={'fin':str(x.fin)},auteur=acteur)
-    if couverts is None:couverts=[{'categorie':c.categorie,'nombre':c.nombre,'prix':c.prix,'tarif':c.tarif} for c in v.couverts.all()]
+    if action=='correction' and (d.get('offre')!=v.offre or any(d.get(k)!=getattr(v,k) for k in ('dejeuner','diner'))):verifier_offre(acteur,p.accompagnement,p.nature,d)
+    if couverts is None:couverts=[{'categorie':c.categorie,'nombre':c.nombre,'prix':c.prix,'tarif':c.tarif,'prix_diner':c.prix_diner,'tarif_diner':c.tarif_diner} for c in v.couverts.all()]
     return _version(acteur,p,v.composition,action,couverts,d,motif)
 
 def bilan(v,debut,fin):
@@ -334,18 +348,66 @@ def bilan(v,debut,fin):
                 if c.prix is None and c.nombre:r['prix_inconnus']=True
                 elif c.prix is not None:r['cout']+=(r['petits_dejeuners']*c.nombre*c.prix).quantize(Decimal('.01'),rounding=ROUND_HALF_UP)
         return r
-    borne=v.fin or v.fin_prevue
-    for i in jours:
+    return calcul_repas(valeurs_version(v),[{'nombre':x.nombre,'prix':x.prix,'prix_diner':x.prix_diner} for x in v.couverts.all()],debut,fin)
+
+
+
+def offres_disponibles(prise,nature):
+    service=service_objet(prise)
+    return service.offres.filter(actif=True,nature=nature)
+
+
+def verifier_offre(acteur,prise,nature,valeurs):
+    service=service_objet(prise);offre=valeurs.get('offre')
+    if not offre:
+        if service.catalogue_prestations:raise ValidationError('Choisissez une offre proposée par le service.')
+        valeurs['libelle_offre']=''
+        return
+    if not offres_disponibles(prise,nature).filter(pk=offre.pk).exists():raise PermissionDenied('Cette offre n’est pas proposée par ce service.')
+    if nature=='restauration':
+        suivi.exiger(acteur,'view_partenaire')
+        if valeurs.get('dejeuner') and not offre.dejeuner or valeurs.get('diner') and not offre.diner:raise ValidationError('Le lieu ne propose pas ce repas.')
+        valeurs['prestataire']=offre.lieu
+    valeurs['libelle_offre']=offre.libelle
+
+
+def tarifs_offre(acteur,offre,jour,devise):
+    if not acteur.has_perm('acteurs.view_tarifoffre'):return {}
+    from .financements import applicable
+    resultat={}
+    for lien in offre.tarifs.select_related('tarif'):
+        # Projection du catalogue explicitement autorisée, jamais un dossier financier.
+        # Le lien offre/tarif est fermé ; le formulaire a revalidé l’offre du service.
+        v=m.VersionTarif._base_manager.filter(tarif_id=lien.tarif_id,debut__lte=jour).order_by('-debut','-version').first()
+        if v and (v.fin is None or jour<v.fin) and v.actif and v.devise==devise and v.unite=='repas':resultat[(lien.categorie,lien.repas)]=v
+    return resultat
+
+
+def calcul_repas(valeurs,lignes,debut,fin):
+    """Calcul décimal commun au formulaire et au bilan ; aucune écriture."""
+    if fin<=debut or (fin-debut).days>3660:raise ValidationError('Période de calcul invalide (dix ans maximum).')
+    r={'nuits':0,'personnes_nuitees_declarees':0,'petits_dejeuners':0,'dejeuners':0,'diners':0,'repas':0,'cout':Decimal('0'),'prix_inconnus':False}
+    borne=valeurs.get('fin') or valeurs.get('fin_prevue')
+    for i in range((fin-debut).days):
         jour=debut+timedelta(days=i)
-        if jour<v.debut or borne and jour>borne:continue
+        if jour<valeurs['debut'] or borne and jour>borne:continue
         for repas in ('dejeuner','diner'):
-            if not getattr(v,repas):continue
-            if jour==v.debut and v.premier=='diner' and repas=='dejeuner':continue
-            if borne and jour==borne and v.dernier=='dejeuner' and repas=='diner':continue
+            if not valeurs.get(repas):continue
+            if jour==valeurs['debut'] and valeurs['premier']=='diner' and repas=='dejeuner':continue
+            if borne and jour==borne and valeurs['dernier']=='dejeuner' and repas=='diner':continue
             r['dejeuners' if repas=='dejeuner' else 'diners']+=1
-    services=r['dejeuners']+r['diners']
-    for c in v.couverts.all():
-        r['repas']+=services*c.nombre
-        if c.prix is None and c.nombre:r['prix_inconnus']=True
-        elif c.prix is not None:r['cout']+=(services*c.nombre*c.prix).quantize(Decimal('.01'),rounding=ROUND_HALF_UP)
+    for ligne in lignes:
+        nombre=ligne['nombre'];commun=ligne.get('prix');diner=ligne.get('prix_diner')
+        diner=commun if diner is None else diner
+        r['repas']+=(r['dejeuners']+r['diners'])*nombre
+        montant=Decimal('0')
+        for quantite,prix in ((r['dejeuners'],commun),(r['diners'],diner)):
+            if prix is None and quantite and nombre:r['prix_inconnus']=True
+            elif prix is not None:montant+=quantite*nombre*prix
+        r['cout']+=montant.quantize(Decimal('.01'),rounding=ROUND_HALF_UP)
     return r
+
+
+def effectifs_complementaires(comp):
+    part=m.CompositionCollective(debut=comp.debut,categories=comp.categories,identites=[],complements=comp.complements)
+    return effectifs(part)

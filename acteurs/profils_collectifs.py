@@ -1,7 +1,7 @@
 """Profils fermés, adaptés par service, sans attribution de droits."""
 from django.core.exceptions import ValidationError
 
-MODES = [('collectif','Collectif uniquement'), ('option','Collectif avec détail facultatif'), ('individuel','Individuel / parcours historique')]
+MODES = [('collectif','Collectif uniquement'), ('option','Collectif avec détail facultatif'), ('individuel','Suivi individuel')]
 IDENTIFICATIONS = [('reference','Personne de référence et composition'), ('adultes','Adultes identifiés'), ('tous','Tous les bénéficiaires identifiés')]
 
 def categories_defaut():
@@ -31,10 +31,12 @@ def verifier_categories(valeur):
 def defaut():
     return {'identification':'reference','hebergement':'collectif','restauration':'collectif',
             'petits_dejeuners':False,'categories':categories_defaut(),
-            'rubriques':['logement','revenu','dette','telephone','courriel','projet'],'aides':[]}
+            'prestations':['hebergement','restauration'],'rubriques':['logement','revenu','dette','telephone','courriel','projet'],'aides':[]}
 
 def verifier(valeur):
-    if not isinstance(valeur,dict) or set(valeur)-set(defaut()) or set(defaut())-set(valeur)-{'aides'}:raise ValidationError('Profil collectif incomplet ou champ inconnu.')
+    if not isinstance(valeur,dict) or set(valeur)-set(defaut()) or set(defaut())-set(valeur)-{'aides','prestations'}:raise ValidationError('Profil collectif incomplet ou champ inconnu.')
+    familles=valeur.get('prestations',['hebergement','restauration'])
+    if not isinstance(familles,list) or set(familles)-{'hebergement','restauration'}:raise ValidationError('Famille de prestation inconnue.')
     aides=valeur.get('aides',[])
     if not isinstance(aides,list) or any(x not in ('transport','bon_alimentaire','produits','accueil_jour') for x in aides):raise ValidationError('Famille d’aide inconnue.')
     if valeur['identification'] not in dict(IDENTIFICATIONS):raise ValidationError('Identification inconnue.')

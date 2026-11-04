@@ -1,8 +1,13 @@
 from django.urls import path
 from . import views as v
-from . import vues_collectif
+from . import vues_collectif, vues_prestataires
 app_name='acteurs'
 urlpatterns=[
+    path('prestataires/',vues_prestataires.catalogue,name='prestataires'),
+    path('prestataires/nouveau/',vues_prestataires.catalogue,{'action':'nouveau'},name='prestataire_nouveau'),
+    path('prestataires/<int:pk>/',vues_prestataires.catalogue,name='prestataire'),
+    path('prestataires/<int:pk>/modifier/',vues_prestataires.catalogue,{'action':'modifier'},name='prestataire_modifier'),
+    path('prestataires/<int:pk>/prix/',vues_prestataires.catalogue,{'action':'prix'},name='prestataire_prix'),
     path('services/<int:service_pk>/collectif/',vues_collectif.configurer,name='collectif'),
     path('a-suivre/',v.notifications,name='notifications'),
     path('a-suivre/<int:pk>/lu/',v.notification_lue,name='notification_lue'),

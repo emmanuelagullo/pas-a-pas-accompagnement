@@ -38,7 +38,9 @@ module.exports = async function verifierParcoursMetier(app) {
   const hebergement = app.locator('#hebergement');
   await hebergement.locator('form[data-prestation-dossier]').waitFor();
   await app.getByRole('heading', {name:/Prise en charge du/}).waitFor();
-  await app.locator('#repas').waitFor();
+  await app.locator('#repas').getByRole('heading', {name:'Repas', exact:true}).waitFor();
+  // COL4b conserve ce groupe et cette nomenclature entre services ;
+  // le scénario collectif complet a sa qualification Chromium dédiée.
   await hebergement.getByRole('link', {name:'Annuler la création', exact:true}).click();
   await app.locator('[data-prestation-form]').waitFor({state:'detached'});
   // Même formulaire pour l’accueil prévu, puis confirmation de l’arrivée.

@@ -39,14 +39,15 @@ def organisation(request,service_pk=None,action=None):
     if action=='creer_service':
         f=ServiceForm(request.POST if request.method=='POST' else None)
         def creer(**d):
-            x=Service(**d);x.full_clean();x.save();s.journal(request.user,x,'service',{}, {'libelle':x.libelle,'politique':x.politique})
+            from .profils_collectifs import defaut
+            x=Service(**d,profil_collectif=defaut());x.full_clean();x.save();s.journal(request.user,x,'service',{}, {'libelle':x.libelle,'politique':x.politique})
         return formulaire(request,f,'Créer un service',creer,reverse('acteurs:organisation'))
     if action=='membre':
         f=AppartenanceForm(request.POST if request.method=='POST' else None,initial={'debut':timezone.localdate()})
         # Répertoire explicite, uniquement après le contrôle gerer_organisation.
         # Configurer les membres ne nécessite aucune habilitation aux dossiers.
         f.fields['professionnel'].queryset=m.Intervenant._base_manager.all()
-        return formulaire(request,f,'Inscrire un professionnel dans ce service',lambda compte=None,**d:s.inscrire(request.user,service,cible_compte=compte,**d),retour)
+        return formulaire(request,f,'Ajouter un membre au service',lambda compte=None,**d:s.inscrire(request.user,service,cible_compte=compte,**d),retour)
     if action=='habilitation':
         f=HabilitationForm(request.POST if request.method=='POST' else None,initial={'debut':timezone.localdate()})
         return formulaire(request,f,'Accorder des tâches dans ce service',lambda compte,**d:s.habiliter(request.user,compte,service,**d),retour)
@@ -54,7 +55,7 @@ def organisation(request,service_pk=None,action=None):
         f=FormulaireMetier(request.POST if request.method=='POST' else None)
         f.fields['politique']=forms.ChoiceField(choices=Service.POLITIQUES,initial=service.politique)
         f.fields['attendu']=forms.CharField(widget=forms.HiddenInput,initial=s.jeton(service))
-        return formulaire(request,f,'Changer la politique du service',lambda **d:s.changer_politique(request.user,service,**d),retour)
+        return formulaire(request,f,'Modifier l’accès aux dossiers du service',lambda **d:s.changer_politique(request.user,service,**d),retour)
     if request.method=='POST':return HttpResponseNotAllowed(['GET'])
     return render(request,'acteurs/organisation.html',{'services':Service.objects.select_related('etablissement__organisme'),
         'service':service,'membres':AppartenanceProfessionnelle.objects.filter(service=service).select_related('professionnel'),

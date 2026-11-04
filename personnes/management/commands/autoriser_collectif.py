@@ -11,4 +11,5 @@ class Command(BaseCommand):
         noms=('compositioncollective','prestationcollective','versionprestationcollective','couvertcollectif','mouvementcollectif','journalcollectif')
         permissions=Permission.objects.filter(content_type__app_label='personnes',content_type__model__in=noms)
         u.user_permissions.add(*permissions)
+        u.user_permissions.add(*Permission.objects.filter(content_type__app_label='acteurs',codename='view_tarifoffre'))
         self.stdout.write('Permissions collectives ajoutées ; les habilitations et portées par service restent nécessaires si le contrôle est actif.')

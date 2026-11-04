@@ -11,7 +11,7 @@ const path = require('node:path');
     closest: selector => selector === '[data-prestation-form]' ? form : boite};
   const context = {
     window: {addEventListener: (nom, f) => listeners[nom] = f},
-    document: {documentElement: {classList: {add() {}}}, querySelectorAll: () => [], addEventListener: (nom, f) => listeners[nom] = f,
+    document: {querySelector: selector => selector==='[data-dossier-form2]' ? boite : null, documentElement: {classList: {add() {}}}, querySelectorAll: () => [], addEventListener: (nom, f) => listeners[nom] = f,
       getElementById: () => status,
       dispatchEvent: evenement => {
         assert.equal(evenement.type, 'condition:disponible');

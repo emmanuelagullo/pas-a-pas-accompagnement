@@ -12,3 +12,9 @@
   .collectif-table td::before {content:attr(data-label);font-weight:bold;max-width:65%}
 }
 @media print { #collectif-form, #prestations-collectives nav, form {display:none} }
+.prestations-communes table {width:100%;table-layout:fixed}
+.prestations-communes th,.prestations-communes td {overflow-wrap:anywhere}
+#collectif-form form > p {display:grid;grid-template-columns:minmax(9rem,1fr) minmax(0,1.5fr);gap:.3rem .7rem}
+#collectif-form form > p > :not(label) {grid-column:2;min-width:0}
+#collectif-form [data-collectif-calcul] {display:block;background:#f4f8f5;padding:.6rem}
+@media(max-width:650px){#collectif-form form > p {grid-template-columns:minmax(0,1fr)}#collectif-form form > p > :not(label) {grid-column:1}}

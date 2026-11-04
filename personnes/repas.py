@@ -19,6 +19,7 @@ def droit(acteur, action):
 def accorder(acteur, accompagnement, beneficiaires, debut, fin, service, prestataire="", jours_semaine=None):
     from .collectifs import profil
     configuration=profil(accompagnement)
+    if configuration and 'restauration' not in configuration['prestations']:raise ValidationError('Cette prestation n’est pas proposée par ce service.')
     if configuration and configuration['restauration']!='individuel':
         raise ValidationError('Ce service utilise la restauration par période ; créez la prestation commune depuis la prise en charge.')
     droit(acteur, "add_accordrepas")

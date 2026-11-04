@@ -56,6 +56,7 @@ def bornes(sejour, debut, fin):
 def accorder(acteur, accompagnement, beneficiaires, debut, fin):
     from .collectifs import profil
     configuration=profil(accompagnement)
+    if configuration and 'hebergement' not in configuration['prestations']:raise ValidationError('Cette prestation n’est pas proposée par ce service.')
     if configuration and configuration['hebergement']!='individuel':
         raise ValidationError('Ce service utilise l’hébergement collectif ; créez la prestation commune depuis la prise en charge.')
     droit(acteur, "add_accordhebergement")

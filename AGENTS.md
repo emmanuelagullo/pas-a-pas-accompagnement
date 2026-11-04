@@ -637,9 +637,25 @@ Les compositions collectives identifient seulement les membres choisis ; les
 effectifs complémentaires ne créent aucune personne ni appartenance. Le revenu
 du ménage ne remplit aucun revenu personnel. Préserver les versions de composition
 et de prestation, les références tarifaires et les prix particuliers explicites.
-Le suivi collectif uniquement refuse la sélection individuelle côté serveur.
+Le choix d’un sous-groupe pour une prestation commune est distinct du suivi
+individuel : il reste disponible en mode collectif uniquement. Les détails
+individuels ne doivent pas apparaître sans activation par le service.
 Les volumes calculés ne créent pas de distributions et ne sont pas des effectifs
 distincts. Les Amandiers est ajouté uniquement au jeu neuf avec acteurs. Tester
-personnes.tests_collectifs et personnes.qualification_collectifs ; conserver
+personnes.tests_collectifs, personnes.tests_reprise_collective et
+personnes.qualification_collectifs ; conserver
 les routes historiques pour les prestations anciennes. Aucune capacité ou place
 libre ne peut être déduite des seuls lieux existants (jalon ultérieur).
+
+COL4b : conserver les groupes Hébergement et Repas et le vocabulaire « Période
+de repas » commun aux services. Les prestations communes utilisent le transport,
+les hôtes et les événements NAV7, pas une deuxième navigation. Les offres sont
+un catalogue organisationnel distinct des dossiers : sélection par service,
+revalidation à la création, retrait sans réécriture des versions. La projection
+des prix d’une offre exige explicitement acteurs.view_tarifoffre ; elle est bornée
+aux liens TarifOffre et ne donne aucun accès aux dossiers financiers. Les lectures
+techniques de VersionTarif dans cette projection ne sont pas un modèle à copier
+pour des dossiers. Conserver les droits de gestion pour modifier les tarifs et
+les dates/versions existantes. Une correction ou prolongation conserve ses prix
+photographiés ; un changement de catalogue ne les remplace jamais silencieusement.
+Le calcul du formulaire et celui du bilan partagent la même fonction décimale.

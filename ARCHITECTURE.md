@@ -8,7 +8,15 @@ connues et les effectifs complémentaires sans personnes fictives. Les prestatio
 communes ont une identité et des versions ; leurs volumes calculés restent
 distincts des distributions pointées et des rapports nominatifs historiques.
 
-Cette synthèse décrit le `main` examiné au 30 octobre 2026 ; les jalons plus bas
+COL4b réintègre les prestations communes aux groupes NAV7 et ajoute un catalogue
+d’offres sélectionnées par service. TarifOffre rattache les catégories et les
+repas aux tarifs versionnés existants ; les versions de prestations photographient
+le libellé de l’offre et les prix commun/dîner. Les sous-groupes conservent une
+composition propre, sans changement du ménage. L’aperçu et le bilan partagent
+une fonction de calcul décimal sans écriture. La projection du prix catalogue
+exige une permission explicite, distincte de la lecture des dossiers financiers.
+
+Cette synthèse décrit le `main` examiné au 4 novembre 2026 ; les jalons plus bas
 expliquent son évolution. La version et les octets du socle sont fixés par
 [requirements-communs.txt](requirements-communs.txt), actuellement **0.9.0** dans
 cette base. Les anciens numéros ne changent pas cette dépendance.

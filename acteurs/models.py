@@ -45,6 +45,7 @@ class Service(ModeleOrganisation):
     politique = models.CharField(max_length=12, choices=POLITIQUES, default='collectif')
     revision = models.PositiveIntegerField(default=0, editable=False)
     actif = models.BooleanField(default=True)
+    catalogue_prestations = models.BooleanField(default=False)
     profil_collectif = models.JSONField(default=dict, blank=True,
         help_text='Vide : parcours historique. Configuration explicite sans conversion des anciennes prestations.')
     class Meta:
@@ -206,3 +207,40 @@ class Notification(ModeleOrganisation):
         default_permissions=()
         constraints=[models.UniqueConstraint(fields=['compte','dossier','cle'],name='act_notification_groupe'),models.UniqueConstraint(fields=['compte','cle'],condition=Q(nature='mention'),name='act_mention_unique'),models.CheckConstraint(condition=Q(dossier__isnull=False)|Q(nature='mention',origine__isnull=False),name='act_notification_portee')]
         indexes=[models.Index(fields=['compte','lu_le'],name='act_notification_compte_lu')]
+
+
+class OffrePrestataire(ModeleOrganisation):
+    """Une offre d'un lieu prestataire, indépendante de l'organisation des services."""
+    lieu = models.ForeignKey('personnes.Partenaire', on_delete=models.PROTECT, related_name='offres_prestataire')
+    nature = models.CharField(max_length=16, choices=[('hebergement','Hébergement'),('restauration','Repas'),('transport','Transport'),('bon_alimentaire','Bons alimentaires'),('produits','Produits alimentaires'),('accueil_jour','Accueil de jour')])
+    libelle = models.CharField(max_length=160)
+    dejeuner = models.BooleanField(default=True)
+    diner = models.BooleanField(default=True)
+    actif = models.BooleanField(default=True)
+    revision = models.PositiveIntegerField(default=0, editable=False)
+    services = models.ManyToManyField(Service, blank=True, related_name='offres')
+    class Meta:
+        ordering=['libelle','pk']
+    def __str__(self):return self.libelle
+    def clean(self):
+        super().clean()
+        if self.nature=='restauration' and not (self.dejeuner or self.diner):raise ValidationError('Choisissez au moins un repas proposé.')
+
+
+class TarifOffre(ModeleOrganisation):
+    offre = models.ForeignKey(OffrePrestataire,on_delete=models.PROTECT,related_name='tarifs')
+    categorie = models.CharField(max_length=40)
+    libelle = models.CharField(max_length=80)
+    repas = models.CharField(max_length=12,choices=[('commun','Prix commun'),('diner','Dîner différent')],default='commun')
+    tarif = models.ForeignKey('personnes.TarifPrestation',on_delete=models.PROTECT)
+    class Meta:
+        constraints=[models.UniqueConstraint(fields=['offre','categorie','repas'],name='offre_categorie_repas_unique')]
+
+
+class JournalOffre(ModeleOrganisation):
+    offre = models.ForeignKey(OffrePrestataire,on_delete=models.PROTECT,related_name='journaux')
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT)
+    avant = models.JSONField(default=dict)
+    apres = models.JSONField(default=dict)
+    cree_le = models.DateTimeField(auto_now_add=True)
+    class Meta:default_permissions=('view',)

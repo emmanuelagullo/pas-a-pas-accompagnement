@@ -1,3 +1,4 @@
+import json
 from datetime import date
 from decimal import Decimal
 from django import forms
@@ -10,7 +11,7 @@ DATE=forms.DateInput(format='%Y-%m-%d',attrs={'type':'date'})
 
 class CompositionForm(FormulaireMetier):
     debut=forms.DateField(label='Composition à la date du',widget=DATE)
-    reference=forms.ModelChoiceField(m.Personne.objects.none(),label='Personne de référence pour la collecte')
+    reference=forms.ModelChoiceField(m.Personne.objects.none(),label='Personne de référence du ménage')
     identifies=forms.ModelMultipleChoiceField(m.Personne.objects.none(),label='Personnes identifiées comprises dans le groupe',widget=forms.CheckboxSelectMultiple,required=False)
     logement=forms.CharField(label='Logement du ménage',max_length=240,required=False)
     revenu=forms.DecimalField(label='Revenu mensuel du ménage',max_digits=14,decimal_places=2,min_value=0,required=False)
@@ -94,8 +95,14 @@ class PrestationForm(FormulaireMetier):
 
     def __init__(self,*args,prise,nature,comp,acteur,prestation=None,**kwargs):
         self.comp=comp;self.nature=nature;self.prestation=prestation;self.acteur=acteur
+        if args and args[0] is not None and nature=='restauration':
+            data=args[0].copy()
+            actifs=[k for k in ('dejeuner','diner') if data.get(k)]
+            if len(actifs)==1:data['premier']=data['dernier']=actifs[0]
+            args=(data,*args[1:])
         super().__init__(*args,**kwargs)
-        cfg=c.profil(prise);v=prestation.courante if prestation else None
+        from acteurs.profils_collectifs import defaut
+        cfg=c.profil(prise) or defaut();v=prestation.courante if prestation else None
         self.initial.update(debut=prise.debut,fin_prevue=prise.fin_prevue,arrivee=min(timezone.localdate(),max(prise.debut,timezone.localdate())),attendu=c.jeton(prestation or prise))
         if v:self.initial.update(c.valeurs_version(v))
         if nature=='hebergement':
@@ -109,6 +116,20 @@ class PrestationForm(FormulaireMetier):
             self.fields['fin_prevue'].label='Dernier jour prévu — repas de fin compris'
             if acteur.has_perm('personnes.view_partenaire'):self.fields['prestataire'].queryset=m.Partenaire.objects.all()
             else:del self.fields['prestataire']
+        from acteurs.models import OffrePrestataire
+        service=c.service_objet(prise)
+        offres=c.offres_disponibles(prise,nature)
+        if v and v.offre_id:offres=OffrePrestataire.objects.filter(Q(pk__in=offres.values('pk'))|Q(pk=v.offre_id))
+        if service.catalogue_prestations or v and v.offre_id:
+            self.fields['offre']=forms.ModelChoiceField(offres,label='Lieu d’alimentation' if nature=='restauration' else 'Prestataire d’hébergement')
+            if v:self.initial['offre']=v.offre_id
+            elif offres.count()==1:self.initial['offre']=offres.first().pk
+            if nature=='restauration':self.fields.pop('prestataire',None)
+        self.offres_proposees={str(o.pk):{'dejeuner':o.dejeuner or bool(v and v.offre_id==o.pk and v.dejeuner),'diner':o.diner or bool(v and v.offre_id==o.pk and v.diner)} for o in offres}
+        if not v and nature=='restauration' and self.initial.get('offre'):
+            dispo=self.offres_proposees[str(self.initial['offre'])]
+            self.initial.update(dejeuner=dispo['dejeuner'],diner=dispo['diner'])
+            if not all(dispo.values()):self.initial['premier']=self.initial['dernier']='dejeuner' if dispo['dejeuner'] else 'diner'
         self.couverts=[];self.tarifs={}
         nombres=c.effectifs(comp,comp.debut)
         anciennes={x.categorie:x for x in v.couverts.all()} if v else {}
@@ -123,7 +144,7 @@ class PrestationForm(FormulaireMetier):
                 del self.fields[n];del self.fields[p]
             self.couverts=[]
         self.prix_proposes={}
-        if nature=='restauration' and acteur.has_perm('personnes.view_partenaire'):
+        if nature=='restauration' and 'prestataire' in self.fields and acteur.has_perm('personnes.view_partenaire'):
             prestataires=list(self.fields['prestataire'].queryset)
             if not v and len(prestataires)==1:self.initial['prestataire']=prestataires[0].pk
             jour=self.initial.get('debut') or prise.debut
@@ -135,18 +156,52 @@ class PrestationForm(FormulaireMetier):
                 for cle,_,p in self.couverts:
                     prix=self.prix_proposes.get(str(self.initial.get('prestataire','')),{}).get(cle)
                     if prix is not None:self.initial[p]=prix
+        if 'offre' in self.fields:
+            jour=self.initial.get('debut') or prise.debut
+            if isinstance(jour,str):jour=date.fromisoformat(jour)
+            for o in offres:
+                tarifs=c.tarifs_offre(acteur,o,jour,self.initial.get('devise','EUR'))
+                self.prix_proposes[str(o.pk)]={('diner_'+code if repas=='diner' else code):str(t.montant) for (code,repas),t in tarifs.items()}
+            if not v:
+                for cle,_,p in self.couverts:
+                    prix=self.prix_proposes.get(str(self.initial.get('offre','')),{}).get(cle)
+                    if prix is not None:self.initial[p]=prix
+        self.prix_diners=[]
+        if nature=='restauration':
+            for cle,n,p in self.couverts:
+                nom='prix_diner_'+cle
+                self.fields[nom]=forms.DecimalField(label='Dîner — '+self.fields[n].label,min_value=0,max_digits=14,decimal_places=4,required=False,help_text='Vide : prix commun.')
+                if cle in anciennes:self.initial[nom]=anciennes[cle].prix_diner
+                elif 'offre' in self.fields:self.initial[nom]=self.prix_proposes.get(str(self.initial.get('offre','')),{}).get('diner_'+cle)
+                self.prix_diners.append(nom)
         self.saisie_periode=('debut','fin_prevue')
+        identites={}
+        for identite in comp.identites:
+            part=type(comp)(debut=comp.debut,categories=comp.categories,identites=[identite],complements=[])
+            identites[identite['id']]=next((k for k,n in c.effectifs(part).items() if n),'inconnu')
+        self.photo_effectifs={'total':c.effectifs(comp),'identites':identites}
+        self.order_fields(['debut','fin_prevue','offre','prestataire','arrivee','lieu','dejeuner','diner','premier','dernier','petits_dejeuners','devise'])
         self.selection_champs=[]
-        if cfg[nature]=='option' and not prestation:
-            self.fields['restreindre']=forms.BooleanField(label='Cette prestation concerne certaines personnes identifiées seulement',required=False)
+        if not prestation:
+            self.fields['restreindre']=forms.BooleanField(label='Choisir un groupe pour cette prestation',required=False)
             self.fields['selection']=forms.ModelMultipleChoiceField(comp.identifies.all(),label='Personnes concernées',widget=forms.CheckboxSelectMultiple,required=False)
-            self.fields['reference_selection']=forms.ModelChoiceField(comp.identifies.all(),label='Personne de référence de cette sélection',required=False)
-            self.selection_champs=['restreindre','selection','reference_selection']
+            self.selection_champs=['restreindre','selection']
+            for cat in [*comp.categories,{'code':'inconnu','libelle':'Âge non précisé'}]:
+                nom='selection_'+cat['code']
+                self.fields[nom]=forms.IntegerField(label=cat['libelle']+' — personnes non identifiées concernées',min_value=0,max_value=c.effectifs_complementaires(comp).get(cat['code'],0),initial=0,required=False)
+                self.selection_champs.append(nom)
 
     @property
     def champs_principaux(self):
-        exclus={n for _,a,b in self.couverts for n in (a,b)}|set(self.selection_champs)
+        exclus={n for _,a,b in self.couverts for n in (a,b)}|set(self.selection_champs)|set(self.prix_diners)
         return [x for x in self if x.name not in exclus]
+
+    @property
+    def prix_proposes_json(self):return json.dumps(self.prix_proposes)
+    @property
+    def offres_proposees_json(self):return json.dumps(self.offres_proposees)
+    @property
+    def photo_effectifs_json(self):return json.dumps(self.photo_effectifs)
 
     @property
     def lignes_couverts(self):return [(cle,self[n],self[p]) for cle,n,p in self.couverts]
@@ -156,18 +211,34 @@ class PrestationForm(FormulaireMetier):
 
     def clean(self):
         d=super().clean();lignes=[]
+        offre=d.get('offre')
+        offres_tarifs=c.tarifs_offre(self.acteur,offre,d.get('debut') or self.comp.debut,d.get('devise','EUR')) if offre else {}
         proposes=c.tarifs_proposes(self.acteur,getattr(d.get('prestataire'),'pk',None),d.get('debut') or self.comp.debut,self.comp.categories,d.get('devise','EUR')) if self.nature=='restauration' else {}
         for cle,n,p in self.couverts:
             nombre=d.pop(n,0);prix=d.pop(p,None)
-            tarif=proposes.get(cle)
-            lignes.append({'categorie':cle,'nombre':nombre,'prix':prix,'tarif':tarif if tarif and tarif.montant==prix else None})
+            tarif=offres_tarifs.get((cle,'commun')) if offre else proposes.get(cle)
+            pd=d.pop('prix_diner_'+cle,None);td=offres_tarifs.get((cle,'diner'))
+            if self.prestation:
+                v=self.prestation.courante;ancienne=v.couverts.filter(categorie=cle).first()
+                meme=d.get('debut')==v.debut and d.get('devise')==v.devise and (d.get('offre')==v.offre if offre else getattr(d.get('prestataire'),'pk',None)==v.prestataire_id)
+                if meme and ancienne:
+                    if prix==ancienne.prix:tarif=ancienne.tarif
+                    if pd==ancienne.prix_diner:td=ancienne.tarif_diner
+            lignes.append({'categorie':cle,'nombre':nombre,'prix':prix,'tarif':tarif if tarif and tarif.montant==prix else None,'prix_diner':pd,'tarif_diner':td if td and td.montant==pd else None})
         d['couverts']=lignes
         if self.selection_champs:
             restreindre=d.pop('restreindre',False)
-            if not restreindre:
-                d.pop('selection',None);d.pop('reference_selection',None)
-            elif not d.get('selection') or not d.get('reference_selection'):
-                self.add_error('selection','Choisissez les personnes et leur personne de référence.')
+            complements={k[10:]:(d.pop(k,0) or 0) for k in self.selection_champs if k.startswith('selection_')}
+            if not restreindre:d.pop('selection',None)
+            else:
+                d['selection_complements']=complements
+                groupes={k:n for k,n in complements.items()}
+                for identite in self.comp.identites:
+                    if identite['id'] in {str(p.pk) for p in d.get('selection',[])}:
+                        code=self.photo_effectifs['identites'][identite['id']];groupes[code]=groupes.get(code,0)+1
+                for ligne in lignes:
+                    if ligne['nombre']==c.effectifs(self.comp).get(ligne['categorie'],0):ligne['nombre']=groupes.get(ligne['categorie'],0)
+                if not d.get('selection') and not any(complements.values()):self.add_error('selection','Choisissez au moins une personne ou un effectif complémentaire.')
         if self.nature=='restauration':
             actifs=[x for x in ('dejeuner','diner') if d.get(x)]
             if len(actifs)==1:d['premier']=d['dernier']=actifs[0]

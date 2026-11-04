@@ -95,7 +95,7 @@ class CollectifsTests(Donnees,TestCase):
         url=reverse('dossiers:collectif_action',args=['prise',self.a.pk,'creation'])+'?nature=restauration'
         self.assertContains(self.client.get(url),'Couverts par repas')
         page=reverse('dossiers:prise',args=['menage',self.m.pk,self.a.pk])
-        self.assertContains(self.client.get(page),'Nouvelle restauration')
+        self.assertContains(self.client.get(page),'Nouvelle période de repas')
         self.assertContains(self.client.get(page+'?col_action=creation&col_nature=restauration'),'collectif-form')
         self.u.user_permissions.clear();self.u=type(self.u).objects.get(pk=self.u.pk)
         with self.assertRaises(PermissionDenied):self.restaurer()
@@ -120,9 +120,12 @@ class CollectifsTests(Donnees,TestCase):
         comp=c.renseigner(self.u,self.a,**form.cleaned_data)
         self.assertEqual(comp.identifies.count(),1)
 
-    def test_selection_individuelle_refusee_en_mode_collectif(self):
+    def test_sous_groupe_possible_en_mode_collectif(self):
         self.a=m.Accompagnement.objects.select_related('menage').get(pk=self.a.pk)
-        with self.assertRaises(PermissionDenied):c.creer(self.u,self.a,'hebergement',self.comp,c.jeton(self.a),[],selection=[self.p],reference_selection=self.p,debut=date(2026,1,10))
+        p=c.creer(self.u,self.a,'hebergement',self.comp,c.jeton(self.a),[],selection=[],selection_complements={'enfant':1},debut=date(2026,1,10))
+        self.assertEqual(sum(c.effectifs(p.courante.composition).values()),1)
+        self.assertEqual(p.courante.composition.reference,self.p)
+        self.assertEqual(p.courante.composition.identifies.count(),0)
 
     def test_selection_facultative_ne_change_pas_la_composition_courante(self):
         self.service.profil_collectif['hebergement']='option';self.service.save()

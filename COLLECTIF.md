@@ -23,9 +23,11 @@ Les versions datées du ménage et de prise restent distinctes. Reprendre la
 composition de la prise au ménage exige confirmation et preuve que le ménage
 n'a pas changé. Une saisie ancienne ne remplace pas la dernière déclaration.
 
-Le suivi collectif uniquement ne propose aucune mutation individuelle. Le mode
-facultatif permet une prestation distincte pour une autre sélection, sans
-réécriture de l'histoire. Le mode historique individuel reste disponible.
+Le choix d’un sous-groupe est disponible dans tout mode collectif. Il comprend
+les personnes identifiées choisies et les effectifs complémentaires déclarés,
+sans modifier le ménage. La personne de référence du ménage n’est pas
+nécessairement bénéficiaire. Ce choix n’active pas un suivi individuel. Le mode
+historique individuel reste disponible.
 
 Les nuits et repas calculés ne sont pas des présences ou distributions pointées.
 Les volumes des groupes partiellement identifiés ne sont pas des effectifs de
@@ -90,3 +92,30 @@ L'impression utilise le navigateur ; ce bilan n'est pas une facture émise.
 Limites explicites de cette livraison : pas de garantie capacitaire, pas de
 statistiques AHI ni d'intégration des populations collectives dans le compositeur
 historique. Les données physiques restent dans les sauvegardes SQLite complètes.
+
+
+## COL4b — mêmes gestes entre services
+
+Les prestations communes apparaissent dans Hébergement et Repas : Nouveau séjour,
+Nouvelle période de repas, Ouvrir, Corriger, Prolonger, Annuler et Refermer.
+Le transport NAV7 maintient la page et ses autres rubriques en place. Sans
+JavaScript, les mêmes vues métier et validations restent utilisables.
+Le formulaire alimentaire présente un calcul serveur, sans mutation ; Calculer
+est disponible sans JavaScript. Les totaux sont ceux de la période accordée,
+jamais des preuves de distributions ni des factures.
+
+Paramétrage réunit Services et Prestataires, avec édition sur place. Une offre
+associe un lieu partenaire, une famille et, pour les repas, déjeuner/dîner
+(les deux par défaut). Le service peut limiter ses nouvelles attributions aux
+offres sélectionnées. Les anciens profils gardent leurs choix historiques tant
+que cette limitation n’est pas activée. Retirer une offre ou désactiver les
+nouvelles saisies ne supprime pas l’histoire et ne bloque pas les rectifications
+autorisées. Les noms d’offres sont photographiés dans les versions.
+
+Les prix réutilisent les tarifs datés : prix commun par catégorie, avec dîner
+différent facultatif. Les valeurs particulières restent éditables. Le droit
+acteurs.view_tarifoffre ouvre uniquement la projection des prix des offres ;
+il est ajouté par la commande volontaire autoriser_collectif et dans le jeu
+neuf, jamais par migration sur les comptes existants. Modifier les prix conserve
+les permissions financières explicites existantes. Le catalogue ne représente
+ni un stock de chambres/lits ni une disponibilité garantie.

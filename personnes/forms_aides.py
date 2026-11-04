@@ -32,6 +32,13 @@ class AccordForm(FormulaireModeleMetier):
         self.fields['beneficiaires'].queryset=accompagnement.beneficiaires.all()
         self.fields['type_aide'].queryset=m.TypeAide.objects.filter(actif=True)
         if nature:self.fields['type_aide'].queryset=self.fields['type_aide'].queryset.filter(nature=nature)
+        if not self.instance.pk:
+            from .collectifs import profil,service_objet
+            if profil(accompagnement):
+                service=service_objet(accompagnement)
+                if service.catalogue_prestations:
+                    self.fields['prestataire'].queryset=m.Partenaire.objects.filter(pk__in=service.offres.filter(actif=True,nature=nature).values('lieu_id'))
+                    self.fields['prestataire'].required=True
     def clean(self):
         d=super().clean()
         if d.get('type_aide'):self.instance.nature=d['type_aide'].nature
