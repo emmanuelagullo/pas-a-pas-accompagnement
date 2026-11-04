@@ -299,6 +299,9 @@ def page(request, nature, pk, prise_pk):
                 donnees['operations_sejour']=[x for x in donnees.get('operations',[]) if x.sejour_id == objet.pk]
             donnees['operations_accord']=[x for x in donnees.get('operations',[]) if x.sejour_id is None] if genre in ('sejour','hebergement') else []
             if genre == 'sejour': donnees['sejours'] = [objet]
+            elif genre == 'hebergement':
+                donnees['sejours'] = [s for s in context['sejours_dossier'] if s.accord_id == objet.pk]
+                donnees['arrivee_prevue_disponible'] = any(a.pk==objet.pk for a in context['hebergements_prevus'])
             gabarit = 'dossiers/_prestation_hebergement.html' if genre in ('sejour','hebergement') else 'dossiers/_prestation_repas.html' if genre == 'repas' else 'dossiers/_prestation_aide.html'
         elif match.view_name == 'suivi:cahier': gabarit = 'liaisons/panneau.html'
         else: gabarit = resultat.template_name

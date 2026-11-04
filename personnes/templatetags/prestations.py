@@ -53,3 +53,11 @@ def prestation_frise(context, url):
         return {'url':nav.adresse(context,cle),'local':True}
     except (Resolver404,nav.Http404,ValueError,LookupError,ObjectDoesNotExist,StopIteration):
         return {'url':url,'local':False}
+
+
+@register.simple_tag(takes_context=True)
+def hebergement_individuels_ouverts(context, groupe):
+    cle=context.get('prestation_ouverte','')
+    if cle.startswith('hebergement:'):return False
+    identifiant=cle[7:] if cle.startswith('sejour:') else context['request'].GET.get('sejour','')
+    return any(str(s.pk)==identifiant for s in groupe['sejours'])

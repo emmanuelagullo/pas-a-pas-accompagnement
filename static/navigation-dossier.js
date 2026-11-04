@@ -47,7 +47,7 @@
     const social = element.closest('#condition-sociale');
     document.querySelectorAll('[data-navigation-bloc]').forEach(link => {
       const bloc = cible(link.hash);
-      const rubrique = bloc?.id === 'titre-prestations' ? bloc.parentElement : bloc;
+      const rubrique = bloc?.id === 'titre-prestations' ? bloc.closest('section') : bloc;
       const courant = social ? bloc?.id === 'condition-sociale' :
         Boolean(rubrique && (rubrique === element || rubrique.contains(element)));
       if (courant) link.setAttribute('aria-current', 'location');

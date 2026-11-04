@@ -43,6 +43,10 @@ cette base. Les anciens numéros ne changent pas cette dépendance.
   une liste fermée de routes et un contrôle de rattachement, y compris pour les
   sous-objets. Le même GET Form3 fonctionne sans JavaScript ; les POST gardent
   droits, CSRF et preuves d’état. Voir [NAV7](NAVIGATION-DOSSIERS.md#nav7--prestations-ouvertes-dans-form3).
+  NAV9 regroupe visuellement les séjours visibles de plusieurs personnes sous
+  leur accord, avec détails individuels dépliables. Cette projection utilise les
+  lectures déjà autorisées ; aucune migration ni fusion de faits. Les opérations
+  collectives réutilisent la sélection et le CAS existants.
 - **Accès** : les objets sont contrôlés côté serveur avant agrégation, y compris
   dans les frises et rapports. L'activation des règles par service et la reprise
   des anciennes données sont explicites ; une migration ne les active pas.

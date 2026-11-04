@@ -8,7 +8,8 @@
 {% else %}<p>Cette autorisation ne prouve pas une arrivée ni une présence réalisée.</p>{% endif %}
 {% if prestation_genre == 'sejour' and accord.fin %}{% if prestation.fin and prestation.fin > accord.fin or not prestation.fin and aujourdhui >= accord.fin %}<p role="status">Ce séjour dépasse la fin de l’accord. Les faits enregistrés ne prolongent pas l’autorisation d’hébergement.</p>{% endif %}{% endif %}
 {% include 'suivi/_decisions_accord.html' with nature_accord='hebergement' %}
-{% if prestation_genre == 'hebergement' and not accord.annule_le and perms.personnes.add_sejour %}<p><a href="{% dossier_url 'suivi:arrivee_prevue' accord.pk %}">Enregistrer l’arrivée</a></p>{% endif %}
+{% if prestation_genre == 'hebergement' and arrivee_prevue_disponible and not accord.annule_le and perms.personnes.add_sejour %}<p><a href="{% dossier_url 'suivi:arrivee_prevue' accord.pk %}">Enregistrer l’arrivée</a></p>{% endif %}
+{% if prestation_genre == 'hebergement' and sejours %}<h5>Séjours de cet hébergement</h5><ul>{% for enfant in sejours %}<li>{% for p in enfant.beneficiaires.all %}{{ p }}{% if not forloop.last %} ; {% endif %}{% endfor %} · {{ enfant.debut|date:'d/m/Y' }} → {{ enfant.fin|date:'d/m/Y'|default:'en cours' }} · <a data-prestation-lien href="{% load prestations %}{% prestation_ouvrir 'sejour' enfant.pk %}">Ouvrir ce séjour</a></li>{% endfor %}</ul>{% endif %}
 {% for s in sejours %}
 {% if prestation_genre == 'sejour' %}
 {% if s.annule_le %}<p>Annulé le {{ s.annule_le }} par {{ s.annule_par }} : {{ s.motif_annulation }}.</p>{% endif %}

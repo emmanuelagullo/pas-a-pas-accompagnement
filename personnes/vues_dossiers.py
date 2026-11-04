@@ -353,6 +353,10 @@ def detail(request, nature, pk, prise_pk=None):
     frises_actives = frises.preference(request)
     frises_objets = frises.charger(request.user, [objet], nature, prise=prise,
         navigations={a.pk: a.navigation for a in periodes}) if frises_actives else {}
+    from .hebergements_groupes import presenter
+    groupes_h, accords_collectifs, selection_collective = presenter(sejours,selection_h)
+    from .hebergement_collectif import ACTIONS
+    actions_collectives_h=any(request.user.has_perms(['personnes.'+d for d in droits]) for _,droits in ACTIONS.values())
     aides_visibles = []
     if prise:
         from . import aides as metier_aides, models as modeles
@@ -389,7 +393,7 @@ def detail(request, nature, pk, prise_pk=None):
         'retour_exploration':retour_exploration,'navigation_personne': dossier.pour_personne(pk, params) if nature == 'personne' else {}, 'origine_url': origine_url, 'origine': origine, 'retour': retour, 'navigation_query': urlencode(params), 'recherche': params['q'], 'mode_recherche': params['mode'], 'page_recherche': params['page'], 'origine_sejour': params.get('origine_sejour', ''), 'origine_repas': params.get('origine_repas', ''),
         'periode_actuelle': actuelle, 'information_actuelle': informations_actuelles[0] if informations_actuelles else None,
         'notes_actuelles': notes_actuelles, 'periodes': periodes, 'aujourdhui': jour, 'lecture_hebergement': h, 'lecture_repas': r, 'lecture_lieux': lieux,
-        'accords_realises_prestations': list({s.accord_id:s.accord for s in sejours if s.accord_id not in {a.pk for a in prevus}}.values()), 'accords_annules_sans_sejour': [x for x in accords_h if x.annule_le], 'hebergements_prevus': prevus, 'selection_prevision': params['prevision'], 'sejours_dossier': sejours, 'accords_sans_sejour': accords_h, 'accords_repas': accords_r,
+        'actions_collectives_hebergement':actions_collectives_h, 'groupes_hebergement': groupes_h, 'selection_hebergement_collective':selection_collective, 'accords_realises_prestations': list({s.accord_id:s.accord for s in sejours if s.accord_id not in accords_collectifs and s.accord_id not in {a.pk for a in prevus}}.values()), 'accords_annules_sans_sejour': [x for x in accords_h if x.annule_le], 'hebergements_prevus': prevus, 'selection_prevision': params['prevision'], 'sejours_dossier': sejours, 'accords_sans_sejour': accords_h, 'accords_repas': accords_r,
         'selection_sejour': selection_h, 'selection_repas': selection_r, 'navigation_h': nav_h, 'navigation_r': nav_r})
 
 

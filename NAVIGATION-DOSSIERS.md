@@ -382,3 +382,43 @@ interne passent. Le même ensemble de 15 tests a été exécuté avec succès ; 
 10 tests HTTP ont ensuite été rejoués après factorisation du retrait du préfixe.
 Contrôles Django, absence de migration, syntaxe JavaScript et diff vérifiés.
 La CI PWA signalée n’a pas été rejouée dans son vrai runtime ici.
+
+
+## NAV9 — Hébergements communs et détails individuels
+
+Dépend de NAV8 (`bcbc98df`), lui-même basé sur le main NAV7
+`9dee5bd8e28ca6e9a7ca8c7b5ecb5f6a925c77b3`.
+Une carte regroupe les séjours visibles de plusieurs personnes sous leur même
+accord. Elle conserve un aperçu factuel, les détails individuels dépliables,
+les liens exacts vers les séjours et les commandes de portée explicite. Deux
+accords distincts ne fusionnent jamais sur l’égalité de leurs dates ou lieux.
+
+Le titre et Ouvrir rejoignent l’accord ici ; un titre individuel rejoint le
+séjour ici. Les actions individuelles annoncent la sélection dans leur titre.
+« Agir sur les personnes… » réutilise le formulaire collectif existant avec
+choix explicite des séjours : aucune application implicite à tous les membres.
+Les liens directs ouvrent les détails nécessaires sans JavaScript aussi.
+La synchronisation des lectures préserve les détails ouverts et les autres
+cartes ; elle actualise les résumés et les commandes après une écriture.
+
+La lecture groupée utilise seulement les séjours/bénéficiaires déjà chargés
+et autorisés. Les données, périodes, droits, traces, calculs et migrations
+restent inchangés. Voir [l’audit Solenne](AUDIT-PRESTATIONS-COLLECTIVES.md).
+
+Qualification NAV9 (4 novembre 2026) : 34 tests ciblés réussis, dont 23
+HTTP/métier et 11 Chromium/Linux ; 11 tests d’intégration ont ensuite été
+rejoués avec succès après les derniers ajustements de prévision et de rubrique
+active. Captures à 390 et 1 366 px inspectées, liens directs, repli sans JS et
+sortie ciblée d’un seul membre exercés. Le banc réel de l’éditeur passe aussi.
+
+Suite générale : 1 048 tests, 38 ignorés et un échec du test concurrent
+`personnes.tests_meta_c.MetaCTransactions.test_concurrence_deux_remises_ne_depassent_pas_autorisation`
+(résultats `[False, False]`). Ce test repasse isolément. Aucun code de remise,
+de verrouillage ou de calcul n’est modifié par ces lots ; la suite générale
+n’est donc pas annoncée entièrement verte.
+
+Dans une vraie PWA construite en profil test, Pyodide 314.0.7 / Python 3.14.2
+et Chromium 134/Linux avec OPFS, le parcours franchit les distributions de
+repas qui bloquaient GitHub, puis le parcours métier BD6/CHRS5–7 et l’isolation
+des espaces Les Passerelles réussissent. Ce constat ne vaut pas résultat des
+CI distantes ni qualification des autres navigateurs ou du clavier virtuel.

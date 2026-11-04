@@ -22,6 +22,10 @@
         let actuelle=[...ancienne.children].find(e=>e.dataset.prestationCarte===carte.dataset.prestationCarte);
         if(!actuelle){ancienne.append(carte.cloneNode(true));return;}
         actuelle.className=carte.className;
+        const commandes=actuelle.querySelector(':scope > [data-hebergement-actions]'), recentes=carte.querySelector(':scope > [data-hebergement-actions]');
+        if(commandes && recentes)commandes.replaceWith(recentes.cloneNode(true));
+        const detail=actuelle.querySelector(':scope > .hebergement-individuels > summary'), nouveauDetail=carte.querySelector(':scope > .hebergement-individuels > summary');
+        if(detail && nouveauDetail)detail.replaceChildren(...[...nouveauDetail.childNodes].map(e=>e.cloneNode(true)));
         const frise=actuelle.querySelector(':scope > .frise-slot'), fraiche=carte.querySelector(':scope > .frise-slot');
         if(frise && fraiche){const deplies=[...frise.querySelectorAll('details[open]')].map(e=>e.id);frise.replaceChildren(...[...fraiche.childNodes].map(e=>e.cloneNode(true)));deplies.forEach(id=>{const e=document.getElementById(id);if(e)e.open=true;});}
         const resume=actuelle.querySelector(':scope > a.prestation-consulter'), nouveau=carte.querySelector(':scope > a.prestation-consulter');
@@ -37,6 +41,8 @@
     doc.querySelectorAll('[data-dossier-boite]').forEach(section=>{
       const actuelle=[...document.querySelectorAll('[data-dossier-boite]')].find(e=>e.dataset.dossierBoite===section.dataset.dossierBoite);
       if(!actuelle)return;
+      const choix=actuelle.querySelector('[data-hebergement-commandes]'), nouveauChoix=section.querySelector('[data-hebergement-commandes]');
+      if(choix && nouveauChoix){const ouvert=choix.querySelector('details')?.open;const frais=nouveauChoix.cloneNode(true);if(ouvert && frais.querySelector('details'))frais.querySelector('details').open=true;choix.replaceWith(frais);return;}
       const actions=actuelle.querySelector('.actions-directes'), nouvelles=section.querySelector('.actions-directes');
       if(actions && nouvelles)actions.replaceWith(nouvelles.cloneNode(true));
       else if(actions)actions.remove();

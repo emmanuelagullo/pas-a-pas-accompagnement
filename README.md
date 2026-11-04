@@ -15,6 +15,9 @@ de la session ; sans JavaScript, ils restent ouverts initialement. Les
 occupent une colonne : sélection des actions par bouton rond, consultation
 par le titre ou « Ouvrir », dans la carte concernée. Les actions, notes et
 financements restent dans cette prise en charge ; « Refermer » revient à la liste.
+Les séjours de plusieurs personnes sous un même accord sont présentés dans une
+carte commune, avec leurs détails individuels dépliables et des actions à portée
+explicite. Les faits et calculs individuels restent conservés.
 
 **Le prototype reste réservé aux données fictives.** Les profils serveur,
 programmes Linux/Windows et PWA ne constituent pas une qualification pour des

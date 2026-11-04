@@ -69,3 +69,15 @@ le retour au séjour exact, les saisies actives, les frises et les PDF.
 Cette recommandation porte sur la présentation. Aucun regroupement de données,
 aucune migration et aucun changement de calcul ne sont implémentés dans le lot
 correctif NAV8. La réalisation de cette présentation collective reste à décider.
+
+## Suite après accord de principe : NAV9
+
+NAV9 applique le regroupement visuel aux accords qui ont plusieurs séjours
+visibles et plusieurs personnes distinctes. Les cas déjà compacts (un séjour
+collectif ancien, ou les séjours d’une seule personne) gardent leur présentation.
+Les détails individuels sont repliés au premier affichage ; un lien direct vers
+un séjour ouvre ses parents, avec et sans JavaScript. La carte annonce les
+divergences de début ou de fin et ne présente un lieu commun que si toutes les
+affectations ouvertes visibles ont ce lieu. L’aperçu des noms est borné à trois
+personnes, les autres restent accessibles dans le détail. Les cartes de repas
+et aides ne sont pas multipliées. Aucun changement de modèle ni de calcul.
