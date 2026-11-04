@@ -113,13 +113,16 @@ def exercer(mode, delai_demarrage=180, render=False):
             if mode == 'ephemere':
                 code += (
                     "from acteurs.models import ConfigurationAcces,Habilitation; "
-                    "assert Personne.objects.count()==36; "
+                    "assert Personne.objects.count()==37, 'Jeu public : 37 personnes attendues'; "
                     "assert set(get_user_model().objects.values_list('username',flat=True))=={'essai','nadia','remi','camille','coordination'}; "
                     "assert not get_user_model().objects.filter(is_staff=True).exists(); "
                     "assert not get_user_model().objects.filter(is_superuser=True).exists(); "
                     "assert ConfigurationAcces.objects.get(pk=1).active; "
-                    "assert dict(Habilitation.objects.values_list('compte__username','tache'))=="
-                    "{'essai':'social','nadia':'social','remi':'accueil','camille':'gestion','coordination':'coordination'}; "
+                    "assert set(Habilitation.objects.values_list('service__libelle','compte__username','tache'))=="
+                    "{('Accompagnement','essai','social'),('Accompagnement','nadia','social'),"
+                    "('Accompagnement','remi','accueil'),('Accompagnement','camille','gestion'),"
+                    "('Accompagnement','coordination','coordination'),('Les Amandiers','essai','social')}, "
+                    "'Habilitations du jeu public inattendues'; "
                     "assert Habilitation.objects.get(compte__username='coordination').statistiques_service"
                 )
             elif tour == 0:

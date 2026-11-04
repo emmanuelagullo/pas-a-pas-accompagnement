@@ -6,7 +6,7 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import TestCase, override_settings
 from django.urls import reverse
-from .models import ConfigurationAcces, DossierService
+from .models import ConfigurationAcces, DossierService, Habilitation
 from personnes.models import Personne
 
 
@@ -29,6 +29,11 @@ class DemonstrationActeursTests(TestCase):
         self.assertContains(page, 'class="choix-dossiers"')
         self.assertContains(page, 'Mon service')
         self.assertEqual(Personne.objects.count(),37)
+        self.assertEqual(set(Habilitation.objects.values_list('service__libelle', 'compte__username', 'tache')), {
+            ('Accompagnement', 'essai', 'social'), ('Accompagnement', 'nadia', 'social'),
+            ('Accompagnement', 'remi', 'accueil'), ('Accompagnement', 'camille', 'gestion'),
+            ('Accompagnement', 'coordination', 'coordination'), ('Les Amandiers', 'essai', 'social'),
+        })
         page = self.client.get(reverse('accueil'), {'filtre': 'attente'})
         self.assertContains(page, 'Noor')
         self.assertNotContains(page, 'Alex')
