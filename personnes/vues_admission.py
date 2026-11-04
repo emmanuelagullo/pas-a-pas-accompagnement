@@ -13,6 +13,9 @@ from .forms_hebergement import AccordForm, AdmissionForm, date_champ
 from . import admission, hebergement as h, dossier, accords
 
 
+
+from .prestation_navigation import rendre as render
+
 class AdmissionGuideeForm(AccordForm):
     arrivee_effectuee = forms.BooleanField(label='Arrivée déjà effectuée', required=False, initial=True,
         help_text='Décochez pour un accueil prévu. La date d’arrivée et le lieu s’appliquent seulement à une arrivée effectuée.',

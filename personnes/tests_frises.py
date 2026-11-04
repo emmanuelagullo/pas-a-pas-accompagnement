@@ -73,7 +73,7 @@ class FrisesTests(Donnees,TestCase):
         prise = self.client.get(reverse('dossiers:prise',args=['personne',self.p.pk,self.a.pk]))
         self.assertContains(prise, 'class="frise-mini')
         self.assertContains(prise, 'Élargir')
-        self.assertContains(prise, '#sejour-'+str(self.s.pk))
+        self.assertContains(prise, '#prestation-sejour-'+str(self.s.pk))
         self.assertEqual(self.client.post(reverse('dossiers:frises_preference'), {'retour_frise':prise.context['frise_retour']}).status_code,302)
         self.assertNotContains(self.client.get(self.url), 'class="frise-mini')
 

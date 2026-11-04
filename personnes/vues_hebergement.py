@@ -14,6 +14,9 @@ from . import dossier
 from datetime import date
 
 
+
+from .prestation_navigation import rendre as render
+
 def jour_hebergement(request, accompagnement=None):
     retour = request.POST.get('retour') or request.GET.get('retour')
     valeur = date_service(request.POST.get('date_service') or request.GET.get('date_service')) if retour == 'jour' else ''

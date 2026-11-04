@@ -1,4 +1,4 @@
-{% extends "base.html" %}{% load static %}{% block contenu %}<h1>{{ titre }}</h1>
+{% extends base_prestation|default:"base.html" %}{% load static %}{% block contenu %}<h1>{{ titre }}</h1>
 <p>Dossier : <strong>{{ objet }}</strong>.</p>
 {% if unique and periode %}<p>Prise en charge : {% include "suivi/periode.html" with periode=periode %} — {{ periode.menage }}.</p>{% endif %}
 {% if periode.fin %}<p>Cette prise en charge est close au {{ periode.fin|date:"d/m/Y" }} exclu. Une saisie historique exige des dates explicitement comprises dans sa période ; aucune admission n’est antidatée automatiquement.</p>{% endif %}{% if periode %}<p class="cible-operation">Bénéficiaires possibles : {% for p in periode.beneficiaires.all %}{{ p }}{% if not forloop.last %} ; {% endif %}{% endfor %}. Confirmez les bénéficiaires ci-dessous.</p>{% endif %}

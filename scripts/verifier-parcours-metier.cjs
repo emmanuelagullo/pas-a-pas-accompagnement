@@ -39,17 +39,17 @@ module.exports = async function verifierParcoursMetier(app) {
   await hebergement.locator('form[data-prestation-dossier]').waitFor();
   await app.getByRole('heading', {name:/Prise en charge du/}).waitFor();
   await app.locator('#repas').waitFor();
-  await hebergement.getByRole('button', {name:'← Revenir à la liste', exact:true}).click();
-  await app.getByText('Dossier actualisé.', {exact:true}).waitFor();
+  await hebergement.getByRole('link', {name:'Annuler la création', exact:true}).click();
+  await app.locator('[data-prestation-form]').waitFor({state:'detached'});
   // Même formulaire pour l’accueil prévu, puis confirmation de l’arrivée.
   await app.getByRole('link', {name:'Nouveau séjour', exact:true}).click();
   await hebergement.getByLabel('Arrivée déjà effectuée', {exact:false}).uncheck();
   await hebergement.getByRole('button', {name:'Enregistrer le séjour', exact:true}).click();
-  await app.getByText('Dossier actualisé.', {exact:true}).waitFor();
+  await app.locator('[data-prestation-form]').waitFor({state:'detached'});
   await app.getByText('Prévu — arrivée à confirmer', {exact:true}).waitFor();
-  await app.getByRole('link', {name:'Enregistrer l’arrivée', exact:true}).click();
+  await app.getByRole('link', {name:'Enregistrer l’arrivée', exact:true}).first().click();
   await hebergement.getByRole('button', {name:'Enregistrer l’arrivée', exact:true}).click();
-  await app.getByText('Dossier actualisé.', {exact:true}).waitFor();
+  await app.locator('[data-prestation-form]').waitFor({state:'detached'});
   await app.getByText('Prévu — arrivée à confirmer', {exact:true}).waitFor({state:'hidden'});
   const historique = app.locator('.bd-dossier');
   await cliquerLienPwa(historique.getByRole('link', {name:'Informations conservées des anciens suivis', exact:true}));

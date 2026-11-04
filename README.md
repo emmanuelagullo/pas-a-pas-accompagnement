@@ -11,9 +11,10 @@ garde la rubrique courante visible, sauf pendant son exploration manuelle. Les r
 toujours consultables intégralement. Le [volet entier](NAVIGATION-DOSSIERS.md#nav4--volet-social-repliable)
 et ses rubriques démarrent repliés avec JavaScript, puis retrouvent les choix
 de la session ; sans JavaScript, ils restent ouverts initialement. Les
-[prestations](NAVIGATION-DOSSIERS.md#nav6--prestations-en-une-colonne-et-interactions-cohérentes)
+[prestations](NAVIGATION-DOSSIERS.md#nav7--prestations-ouvertes-dans-form3)
 occupent une colonne : sélection des actions par bouton rond, consultation
-par le titre et saisie courante sur place.
+par le titre ou « Ouvrir », dans la carte concernée. Les actions, notes et
+financements restent dans cette prise en charge ; « Refermer » revient à la liste.
 
 **Le prototype reste réservé aux données fictives.** Les profils serveur,
 programmes Linux/Windows et PWA ne constituent pas une qualification pour des

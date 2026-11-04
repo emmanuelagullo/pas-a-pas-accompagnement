@@ -20,6 +20,8 @@ from .forms_repas import AccordForm, ServicesForm
 from .vues_dossiers import parametres
 
 
+from .prestation_navigation import rendre as render
+
 @never_cache
 @require_http_methods(['GET', 'POST'])
 @login_required

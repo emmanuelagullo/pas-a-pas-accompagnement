@@ -42,7 +42,7 @@ class Form2Tests(Donnees, TestCase):
         parseur=Radios();parseur.feed(page.content.decode())
         self.assertEqual(set(parseur.noms), {'lecture_sociale', 'sejour', 'repas'})
         self.assertContains(page, 'data-prestation-url')
-        self.assertContains(page, 'data-dossier-action')
+        self.assertContains(page, 'data-prestation-lien')
         selection = page.context['sejours_dossier'][0].selection_url
         suivant = self.client.get(selection)
         self.assertEqual(suivant.context['selection_repas'].pk, r.pk)

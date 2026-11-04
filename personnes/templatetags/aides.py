@@ -6,8 +6,8 @@ register=template.Library()
 @register.inclusion_tag('aides/_direct.html',takes_context=True)
 def aides_directes(context,prise):
     if not context['request'].user.has_perms(service.LECTURE):return {}
-    qs=m.AccordAide.objects.filter(accompagnement=prise).prefetch_related('beneficiaires')
-    groupes=[(n,t,list(qs.filter(nature=n))) for n,t in m.TypeAide.NATURES]
+    accords_visibles=context['prestations_aides_visibles']
+    groupes=[(n,t,[a for a in accords_visibles if a.nature == n]) for n,t in m.TypeAide.NATURES]
     from django.utils import timezone
     from urllib.parse import parse_qsl, urlencode
     from django.urls import reverse
@@ -22,7 +22,7 @@ def aides_directes(context,prise):
             valeurs = {**params, cle: str(a.pk)}
             a.selection_url = reverse('dossiers:prise', args=[context['nature'], context['objet'].pk, prise.pk]) + '?' + urlencode(valeurs) + '#aides-' + code
             a.navigation = dossier.pour_vue_params(prise, context['nature'], context['objet'].pk, valeurs, prise.navigation['dossier_valeurs'])
-    return {'peut_remettre': context['request'].user.has_perm('personnes.add_remiseaide'), 'peut_corriger': context['request'].user.has_perm('personnes.change_accordaide'), 'parametres_navigation': params, 'frises_actives': context.get('frises_actives'), 'frises_objets':context.get('frises_objets', {}), 'peut_ajouter':context['request'].user.has_perm('personnes.add_accordaide'),'groupes':groupes,'prise':prise,'request':context['request'],'query': 'contexte_dossier='+__import__('urllib.parse',fromlist=['quote']).quote(prise.navigation.get('contexte_dossier',''))}
+    return {**{k: context.get(k) for k in ('nature','objet','prestations_aides_visibles','parametres_prestations','prestation_ouverte','prestation_panneau')}, 'peut_remettre': context['request'].user.has_perm('personnes.add_remiseaide'), 'peut_corriger': context['request'].user.has_perm('personnes.change_accordaide'), 'parametres_navigation': params, 'frises_actives': context.get('frises_actives'), 'frises_objets':context.get('frises_objets', {}), 'peut_ajouter':context['request'].user.has_perm('personnes.add_accordaide'),'groupes':groupes,'prise':prise,'request':context['request'],'query': 'contexte_dossier='+__import__('urllib.parse',fromlist=['quote']).quote(prise.navigation.get('contexte_dossier',''))}
 
 
 @register.inclusion_tag('aides/_jour.html',takes_context=True)

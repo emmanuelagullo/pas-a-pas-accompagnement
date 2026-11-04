@@ -7,11 +7,11 @@ const path = require('node:path');
   const listeners = {}, pending = [], status = {textContent: ''};
   let disponible = false;
   const boite = {setAttribute() {}, removeAttribute() {}};
-  const form = {elements: [{disabled: false}], method: 'post', action: 'https://exemple.invalid/chrs/sortie/',
-    closest: selector => selector === '.operation-en-place' ? {} : boite};
+  const form = {matches: s => s === '[data-prestation-form]', getAttribute: () => 'https://exemple.invalid/chrs/dossiers/menage/fictif/?prestation=sejour:fictif', elements: [{disabled: false}], method: 'post', action: 'https://exemple.invalid/chrs/sortie/',
+    closest: selector => selector === '[data-prestation-form]' ? form : boite};
   const context = {
     window: {addEventListener: (nom, f) => listeners[nom] = f},
-    document: {addEventListener: (nom, f) => listeners[nom] = f,
+    document: {documentElement: {classList: {add() {}}}, querySelectorAll: () => [], addEventListener: (nom, f) => listeners[nom] = f,
       getElementById: () => status,
       dispatchEvent: evenement => {
         assert.equal(evenement.type, 'condition:disponible');
@@ -36,7 +36,7 @@ const path = require('node:path');
   listeners.submit(evenement);
   assert.equal(pending.length, 1, 'Un double clic ne doit produire qu’un POST');
   assert.equal(pending[0].options.method, 'POST');
-  assert.equal(form.elements[0].disabled, true);
+  assert.equal(form.elements[0].disabled, false, 'La saisie reste dans le DOM pendant la requête');
   pending[0].reject(new TypeError('Network error'));
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(form.elements[0].disabled, false);
@@ -49,5 +49,5 @@ const path = require('node:path');
   const initial = listeners.submit;
   vm.runInNewContext(code, context);
   assert.equal(listeners.submit, initial, 'Pas de double gestionnaire au retour du dossier');
-  console.log('Form2 : double POST, panne sans rejeu, saisie conservée et initialisation unique : OK');
+  console.log('NAV7 : double POST, panne sans rejeu, saisie conservée et initialisation unique : OK');
 })();

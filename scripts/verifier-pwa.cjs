@@ -113,8 +113,8 @@ const server=(tls?require('node:https'):http).createServer(options,(req,res)=>{
   await df.getByRole('heading',{name:/Prise en charge du/}).waitFor();
   // La consultation des repas s'ouvre dans la case de prestation : aucun
   // nouveau document d'iframe n'est attendu pour cette action en place.
-  await df.locator('#repas').getByRole('link',{name:'Consulter les repas',exact:true}).click();
-  await df.getByRole('heading',{name:'Réalisation effective : 2 repas distribués'}).waitFor();
+  await df.locator('#repas').getByRole('link',{name:'Ouvrir',exact:true}).click();
+  await df.getByRole('heading',{name:'Distributions enregistrées : 2 repas'}).waitFor();
   await require('./verifier-parcours-metier.cjs')(df);
   await rechercherPersonnes(df);
   await cliquerLienPwa(df.getByRole('button',{name:'Nouveau dossier',exact:true}));

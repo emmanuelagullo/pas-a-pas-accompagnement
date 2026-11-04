@@ -295,3 +295,64 @@ la recette NAV2 couvre aussi 320 px et le texte doublé. Le vrai runtime PWA,
 Firefox/Safari, le zoom natif et le clavier virtuel ne sont pas qualifiés ici.
 La recette commune PWA ne comporte pas de sélecteur de carte devenu obsolète ;
 la qualification navigateur CI inclut désormais le parcours NAV6.
+
+
+## NAV7 — Prestations ouvertes dans Form3
+
+Base du patch : `16353937b026c6cb9f0f56a15f735ad760f3521a` (#NAV6).
+NAV6 laissait le titre ouvrir une fiche historique et certaines actions
+remplacer la catégorie entière. NAV7 corrige ce contrat : le titre et
+« Ouvrir » rejoignent le même détail sous la carte, dans la prise en charge.
+« Refermer » rend le focus au déclencheur. La sélection par bouton rond reste
+distincte et les prestations restent sur une colonne.
+
+Les six familles sont concernées : hébergement, repas, transport, bons
+alimentaires, produits et accueil de jour. Les actions spécialisées gardent
+leur sens : enregistrer une arrivée, une sortie, une distribution, une remise
+ou un usage n’est pas une simple modification. « Prolonger » agit sur
+l’autorisation ; le séjour n’est pas prolongé artificiellement. Un accord
+partagé est identifié comme tel. Les corrections, annulations, notes,
+historiques et financements restent accessibles selon leurs droits.
+« Imprimer / PDF » ouvre une restitution de la prestation sélectionnée,
+distincte des documents financiers émis. Les sorties vers un catalogue ou un
+rapport sont explicitement signalées « hors prise en charge ».
+
+`prestation_navigation.py` adapte la présentation des vues existantes ; il
+n’ajoute aucun modèle ni droit. Chaque opération est bornée par une liste
+fermée de routes et par l’appartenance de sa cible à la prestation visible.
+Les vues métier décorées gardent leurs autorisations et preuves périmées.
+Les fragments de consultation sont des gabarits explicites, sans extraction
+d’une page complète. Les formulaires de sélection GET sont séparés des
+formulaires POST pour éviter des formulaires HTML imbriqués. Les textes riches
+ne sont pas réinterprétés comme commandes.
+
+L’URL canonique conserve Form3, son contexte signé et la prestation. Sans
+JavaScript, les GET et POST rendent la page complète avec le panneau au même
+endroit. Avec JavaScript, seules la carte ouverte et les lectures de prestations
+réactualisées sont adaptées ; le fil d’Ariane, le volet social et les autres
+cartes restent en place. `replaceState` évite une entrée d’historique par action.
+Une saisie active bloque le passage à une autre prestation et la saisie sociale ;
+Annuler demande confirmation si nécessaire. Un échec de persistance ne rejoue
+jamais automatiquement un POST. Les messages du cahier conservent leur jeton
+d’envoi et leurs contrôles de partage.
+
+Les recettes `qualification_prestations_navigation` couvrent sélection, titre,
+fermeture, saisie invalide puis enregistrée, annulation, six familles, notes,
+repli sans JavaScript et impression. Les recettes existantes ouvrent désormais
+les rubriques nécessaires avant interaction. Aucune qualification Pyodide/OPFS,
+Windows, Firefox/Safari, clavier virtuel ou vrai zoom natif n’est déduite de ces
+recettes Chromium/Linux. Ce lot n’annonce aucun gain de performance serveur.
+
+
+Qualification exécutée le 4 novembre 2026 : 34 tests dans Chromium
+134.0.6998.35/Linux (390, 640, 1 280, 1 366 et 1 920 px, ainsi que 320 px
+pour la navigation interne), dont les classes EntreeBD, BD6, SejourUnifie,
+ConditionSociale, NavigationInterne, RubriquesSociales et PrestationsNavigation.
+Les 22 tests HTTP/modèles ciblés prestations et frises passent également.
+Les bancs Node du dossier sur place, des durées civiles, de la recherche et de
+la création du ménage passent. `check`, `makemigrations --check --dry-run` et
+`git diff --check` passent. Les captures étroite, large, édition et impression
+ont été inspectées ; le texte du PDF ciblé a été contrôlé. Ces résultats locaux
+ne constituent pas un résultat des CI distantes. Le banc isolé Node de
+l’éditeur n’a pas pu démarrer son Chromium dans cet environnement ; la saisie
+par son éditeur réel a été exercée dans les recettes Django/Chromium.

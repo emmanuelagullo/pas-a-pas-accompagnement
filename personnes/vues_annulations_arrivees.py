@@ -15,6 +15,9 @@ from . import models as m,annulations_arrivees as s,dossier
 from .champs_saisie import FormulaireMetier
 
 
+
+from .prestation_navigation import rendre as render
+
 class RetraitForm(FormulaireMetier):
     recherche=forms.CharField(label='Rechercher le ménage ou un bénéficiaire du bon accord',max_length=160,required=False)
     attendu=forms.CharField(widget=forms.HiddenInput)

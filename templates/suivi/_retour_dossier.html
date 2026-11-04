@@ -1,1 +1,2 @@
-{% if retour_dossier %}<p><a href="{{ retour_dossier }}">Retour au dossier — sélection conservée</a></p>{% endif %}
+{% if not base_prestation %}{% if retour_dossier %}<p><a href="{{ retour_dossier }}">Retour au dossier — sélection conservée</a></p>{% endif %}
+{% endif %}

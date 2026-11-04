@@ -39,7 +39,8 @@ class SejourUnifieTests(Donnees, TestCase):
         self.assertEqual(list(accord.operations.values_list('action', flat=True)), ['Hébergement accordé'])
         page = self.client.get(self.prise)
         self.assertContains(page, 'Prévu — arrivée à confirmer')
-        self.assertContains(page, reverse('suivi:arrivee_prevue', args=[accord.pk]))
+        from urllib.parse import quote
+        self.assertContains(page, 'operation=' + quote(reverse('suivi:arrivee_prevue', args=[accord.pk]), safe=''))
         self.assertNotContains(page, 'Autorisation sans admission')
         self.assertNotContains(page, 'Accorder un hébergement sans admission')
 

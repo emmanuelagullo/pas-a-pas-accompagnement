@@ -10,6 +10,9 @@ from .vues_suivi import traiter
 from . import repas, dossier, preparation_repas
 
 
+
+from .prestation_navigation import rendre as render
+
 @require_http_methods(["GET", "POST"])
 @login_required
 def accorder(request, pk):

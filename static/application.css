@@ -383,3 +383,22 @@ header > nav .menu-utilisateur { position: relative; }
 .operation-en-place form { max-width:48rem; }
 
 .visuellement-cache { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+/* NAV7 : seul le contenu de la prestation choisie se développe. */
+.prestation-hote { grid-column:1/-1; min-width:0; }
+.prestation-hote:empty { display:none; }
+.prestation-panneau { padding:1rem; border-top:1px solid #b8ccbf; background:white; overflow-wrap:anywhere; }
+.prestation-commandes { display:flex; flex-wrap:wrap; gap:.75rem; margin-bottom:1rem; }
+.prestation-contenu h4 { font-size:1.15rem; margin:.8rem 0; }
+.prestation-contenu h5 { font-size:1rem; }
+.prestation-contenu a { display:inline; padding:.15rem; border:0; text-decoration:underline; color:#175c50; }
+.prestation-selection input { accent-color:#175c50; }
+@media print {
+  body:has(.prestation-impression) > header, body:has(.prestation-impression) > footer { display:none !important; }
+  body:has(.prestation-impression) main :not(.prestation-impression):not(.prestation-impression *):not(:has(.prestation-impression)) { display:none !important; }
+  body:has(.prestation-impression) main :has(.prestation-impression) { display:block !important; margin:0; padding:0; border:0; box-shadow:none; }
+  .prestation-impression { position:static; border:0; }
+  .prestation-impression .prestation-commandes, .prestation-impression button,
+  .prestation-impression [data-prestation-lien], .prestation-impression [data-prestation-externe] { display:none !important; }
+  .prestation-impression details::details-content { display:block !important; content-visibility:visible !important; }
+  .prestation-impression details > :not(summary) { display:block; }
+}

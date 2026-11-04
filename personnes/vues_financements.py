@@ -25,6 +25,9 @@ from .vues_bd6 import traiter
 from .exports import cellule_csv
 
 
+
+from .prestation_navigation import rendre as render
+
 def cible(request,nature,pk):
     if nature not in s.CIBLES:raise Http404
     a=get_object_or_404(s.CIBLES[nature],pk=pk);s.droit(request.user,a)

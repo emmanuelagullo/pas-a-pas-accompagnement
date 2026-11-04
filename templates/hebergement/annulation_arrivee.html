@@ -1,4 +1,4 @@
-{% extends 'base.html' %}{% load saisie %}{% block contenu %}
+{% extends base_prestation|default:"base.html" %}{% load saisie %}{% block contenu %}
 <p><a href="{{ retour }}">← Revenir au dossier ou au séjour choisi</a></p>
 <h1>{% if origine.annule_le %}Arrivée annulée et reprises{% else %}Reprendre une arrivée saisie par erreur{% endif %}</h1>
 <p>Accord du {{ origine.accord.debut }} · prise en charge du {{ origine.accord.accompagnement.debut }} · {{ origine.accord.accompagnement.menage }}.</p>

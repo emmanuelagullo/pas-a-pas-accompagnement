@@ -158,10 +158,11 @@
       details.addEventListener('toggle', open); open();
     });
   }
-  document.addEventListener('input', e => { const f = e.target.closest('[data-liaisons-message]'); if (f) f.dataset.dirty = '1'; });
+  document.addEventListener('input', e => { const f = e.target.closest('[data-liaisons-message]'); if (f && !f.closest('[data-prestation-hote]')) f.dataset.dirty = '1'; });
   window.addEventListener('beforeunload', e => { if (document.querySelector('[data-liaisons-message][data-dirty="1"]') || [...vivants].some(s => [...s.drafts.values()].some(d => d.valeurs.some(([n,v]) => n==='contenu' && v)))) {e.preventDefault(); e.returnValue = ''; } });
   document.addEventListener('submit', e => {
     const form = e.target;
+    if (form.closest('[data-prestation-hote]')) return;
     if (!form.matches('[data-liaisons-filtres],[data-liaisons-message]')) return;
     if (e.defaultPrevented) return;
     e.preventDefault();
@@ -186,6 +187,11 @@
     if (form) form.requestSubmit();
   });
   document.addEventListener('click', e => {
+    if(e.target.closest('[data-prestation-hote]') && !e.target.closest('[data-mention-retirer]')) {
+      const bouton=e.target.closest('[data-liaison-ecrire]');
+      if(bouton){const d=bouton.closest('[data-prestation-hote]').querySelector('.liaison-rediger');if(d){d.open=true;d.querySelector('.ProseMirror,textarea')?.focus();}}
+      return;
+    }
     const annuler=e.target.closest('[data-liaison-annuler]');
     if(annuler && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey){
       e.preventDefault();

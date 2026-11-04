@@ -15,6 +15,9 @@ from .retour_service import date_service
 from . import dossier
 
 
+
+from .prestation_navigation import rendre as render
+
 @require_safe
 @login_required
 @permission_required(("personnes.view_menage", "personnes.view_personne"), raise_exception=True)

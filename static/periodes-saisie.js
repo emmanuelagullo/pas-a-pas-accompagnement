@@ -40,5 +40,6 @@
   }
   };
   document.addEventListener('condition:form', initialiser);
+  document.addEventListener('navigation:actualise', initialiser);
   initialiser();
 })();

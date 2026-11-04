@@ -3,6 +3,7 @@ from urllib.parse import urlencode
 from datetime import timedelta
 from collections import defaultdict
 
+
 from django import forms
 from .champs_saisie import FormulaireMetier
 from django.contrib.auth.decorators import login_required, permission_required
@@ -21,6 +22,8 @@ from .forms import PersonneForm
 from .models import Personne, Menage, Appartenance, Accompagnement, Sejour, AccordRepas, AccordHebergement, Affectation, Absence, InformationsAccompagnement
 from .lecture_dossier import choisir
 
+
+from .prestation_navigation import rendre as render
 
 def recherche(request):
     """Appelé après connexion et vérification de l'installation par l'accueil."""
@@ -175,10 +178,16 @@ def creer(request, nature):
 
 
 @never_cache
-@require_safe
+@require_http_methods(['GET','POST'])
 @login_required
 @permission_required('personnes.view_personne', raise_exception=True)
 def detail(request, nature, pk, prise_pk=None):
+    if request.GET.get('prestation') and not getattr(request, '_prestation_interne', False):
+        from .prestation_navigation import page
+        return page(request,nature,pk,prise_pk)
+    if request.method != 'GET':
+        from django.http import HttpResponseNotAllowed
+        return HttpResponseNotAllowed(['GET'])
     if nature == 'menage':
         suivi.exiger(request.user, 'view_menage')
         objet = get_object_or_404(Menage, pk=pk)
@@ -344,6 +353,13 @@ def detail(request, nature, pk, prise_pk=None):
     frises_actives = frises.preference(request)
     frises_objets = frises.charger(request.user, [objet], nature, prise=prise,
         navigations={a.pk: a.navigation for a in periodes}) if frises_actives else {}
+    aides_visibles = []
+    if prise:
+        from . import aides as metier_aides, models as modeles
+        if request.user.has_perms(metier_aides.LECTURE):
+            qs = modeles.AccordAide.objects.filter(accompagnement=prise).prefetch_related('beneficiaires')
+            if nature == 'personne': qs = qs.filter(beneficiaires=objet)
+            aides_visibles = list(qs)
     return render(request, 'dossiers/prise.html' if prise else 'dossiers/detail.html', {
         'frise_ouverte': params.get('frise_ouverte', ''), 'frise_axe': next(iter(frises_objets.values()), None), 'frises_actives': frises_actives, 'frise_retour': frises.commande(request), 'frises_objets': frises_objets,
         'condition_personnes': condition_personnes, 'condition_projets': condition_projets,
@@ -359,7 +375,7 @@ def detail(request, nature, pk, prise_pk=None):
         'lecture_chronologie': droits_suivi,
         'url_chronologie': chronologie.lien(nature, pk, {**params, 'chrono_prise': str(prise.pk) if prise else '', 'chrono_type': params.get('chrono_type') or ('' if prise else 'prise')}),
         'retour_chronologie': chronologie.lien(nature, pk, params) + '#chrono-' + params.get('chrono_ancre', '') if params.get('chrono_origine') else '',
-        'prise': prise, 'demande_origine':demande_origine, 'lecture_interventions': lecture_interventions, 'interventions_courantes': interventions_courantes,
+        'prestations_aides_visibles': aides_visibles, 'prise': prise, 'demande_origine':demande_origine, 'lecture_interventions': lecture_interventions, 'interventions_courantes': interventions_courantes,
         'parametres_prestations': params, 'parametres_navigation': {k: v for k, v in params.items() if k not in ('prise', 'ecran', 'accompagnement', *dossier.CLES_SOCIALES)}, 'selection_prise': selection_prise, 'commentaires': commentaires, 'commentaire': commentaires[0] if commentaires else None,
         'url_trajectoire': reverse('dossiers:trajectoire', args=[nature, pk]) + '?' + urlencode({**{k:v for k,v in params.items() if k not in ('prise', 'ecran')}, **({'prise':str(prise.pk), 'retour_prise':str(prise.pk)} if prise else {})}),
         'date_sociale': date_sociale,
@@ -373,7 +389,7 @@ def detail(request, nature, pk, prise_pk=None):
         'retour_exploration':retour_exploration,'navigation_personne': dossier.pour_personne(pk, params) if nature == 'personne' else {}, 'origine_url': origine_url, 'origine': origine, 'retour': retour, 'navigation_query': urlencode(params), 'recherche': params['q'], 'mode_recherche': params['mode'], 'page_recherche': params['page'], 'origine_sejour': params.get('origine_sejour', ''), 'origine_repas': params.get('origine_repas', ''),
         'periode_actuelle': actuelle, 'information_actuelle': informations_actuelles[0] if informations_actuelles else None,
         'notes_actuelles': notes_actuelles, 'periodes': periodes, 'aujourdhui': jour, 'lecture_hebergement': h, 'lecture_repas': r, 'lecture_lieux': lieux,
-        'accords_annules_sans_sejour': [x for x in accords_h if x.annule_le], 'hebergements_prevus': prevus, 'selection_prevision': params['prevision'], 'sejours_dossier': sejours, 'accords_sans_sejour': accords_h, 'accords_repas': accords_r,
+        'accords_realises_prestations': list({s.accord_id:s.accord for s in sejours if s.accord_id not in {a.pk for a in prevus}}.values()), 'accords_annules_sans_sejour': [x for x in accords_h if x.annule_le], 'hebergements_prevus': prevus, 'selection_prevision': params['prevision'], 'sejours_dossier': sejours, 'accords_sans_sejour': accords_h, 'accords_repas': accords_r,
         'selection_sejour': selection_h, 'selection_repas': selection_r, 'navigation_h': nav_h, 'navigation_r': nav_r})
 
 

@@ -1,4 +1,4 @@
-{% extends "base.html" %}{% load saisie %}{% load textes %}{% load dossier %}
+{% extends base_prestation|default:"base.html" %}{% load saisie %}{% load textes %}{% load dossier %}
 {% block titre %}{{ titre }} — Pas à Pas{% endblock %}
 {% block contenu %}{% include "suivi/_retour_dossier.html" %}
 <h1>{{ titre }}</h1>{% if nature == "transmission" %}<p><a href="{% url 'dossiers:releve_recherche' %}">Rechercher par date/auteur et imprimer la relève</a></p>{% endif %}{% include "suivi/_cible_note.html" %}

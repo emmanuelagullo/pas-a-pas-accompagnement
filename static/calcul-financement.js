@@ -1,7 +1,10 @@
 /* Aperçu indicatif ; le montant conservé est recalculé en Decimal côté serveur. */
 (() => {
+  const initialises = new WeakSet();
+  function initialiser() {
   const form = document.getElementById('calcul-financement');
-  if (!form) return;
+  if (!form || initialises.has(form)) return;
+  initialises.add(form);
   function actualiser() {
     const devise = form.querySelector('[name=devise]').value;
     form.querySelectorAll('.total-ligne').forEach(sortie => {
@@ -14,4 +17,7 @@
   }
   form.addEventListener('input', actualiser);
   actualiser();
+  }
+  document.addEventListener('navigation:actualise', initialiser);
+  initialiser();
 })();

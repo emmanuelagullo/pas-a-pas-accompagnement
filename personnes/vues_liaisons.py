@@ -14,6 +14,7 @@ from .vues_transmissions import TexteForm
 from . import mentions_liaisons as mentions,fils_liaisons as fils
 from urllib.parse import urlsplit
 
+from .prestation_navigation import rendre as render
 
 @never_cache
 @login_required

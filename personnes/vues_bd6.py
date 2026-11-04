@@ -20,6 +20,9 @@ from .forms_suivi import AccompagnementForm
 from .forms_hebergement import date_champ
 
 
+
+from .prestation_navigation import rendre as render
+
 class EtatForm(FormulaireMetier):
     attendu = forms.CharField(widget=forms.HiddenInput)
 

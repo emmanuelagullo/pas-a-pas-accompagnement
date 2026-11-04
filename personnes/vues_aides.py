@@ -23,6 +23,9 @@ from .vues_bd6 import traiter
 from .exports import cellule_csv
 
 
+
+from .prestation_navigation import rendre as render
+
 def nav(request,a):
     ctx=dossier.lire(request,a) or dossier.creer(request,a,None,None)
     p={k:request.GET[k][:6000] for k in ('contexte_dossier','date_service','retour','retour_exploration') if k in request.GET}

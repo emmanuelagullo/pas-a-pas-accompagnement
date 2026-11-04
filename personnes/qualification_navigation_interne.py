@@ -257,9 +257,9 @@ class NavigationInterneNavigateur(StaticLiveServerTestCase):
         page.get_by_role('link', name='Nouveau séjour', exact=True).tap()
         hebergement = page.locator('#hebergement')
         expect(hebergement.locator('form[data-prestation-dossier]')).to_be_visible()
-        # Le retour aux listes remplace réellement le contenu du dossier.
-        hebergement.get_by_role('button', name='← Revenir à la liste', exact=True).tap()
-        expect(page.get_by_text('Dossier actualisé.', exact=True)).to_be_visible()
+        # Annuler la création conserve le cadre et le sommaire du dossier.
+        hebergement.get_by_role('link', name='Annuler la création', exact=True).tap()
+        expect(page.locator('[data-prestation-form]')).to_have_count(0)
         barre.get_by_role('button', name='Sommaire', exact=True).tap()
         expect(menu).to_be_visible()
         expect(menu.locator('.condition-nav-details').first).to_have_attribute('open', '')

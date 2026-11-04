@@ -13,6 +13,9 @@ from . import transmissions, dossier, releve
 from .retour_service import date_service, url_jour, contexte_jour, suffixe_jour
 
 
+
+from .prestation_navigation import rendre as render
+
 class TexteForm(FormulaireMetier):
     date_fait=forms.DateField(label="Date de la contribution (si connue)",required=False,widget=forms.DateInput(attrs={"type":"date"}),help_text="Distincte de l’horodatage de saisie. Les anciennes contributions sans date déclarée restent identifiées comme telles.")
     contenu = tr.ChampTexte(label="Texte", widget=tr.WidgetTexte(attrs={"rows": 4}))

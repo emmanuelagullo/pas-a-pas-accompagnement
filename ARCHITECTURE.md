@@ -37,8 +37,12 @@ cette base. Les anciens numéros ne changent pas cette dépendance.
   volet et rubriques démarrent repliés avec JavaScript. Les ancres ouvrent leurs
   parents, un formulaire actif empêche leur repli et l’impression révèle le volet.
   NAV6 aligne les prestations sur une colonne, avec sélection distincte de la
-  consultation native et contexte signé propre à la prestation. Les éditeurs
-  restent sur place ; les fiches spécialisées ne sont pas remplacées.
+  consultation et contexte signé propre à la prestation. NAV7 corrige les sorties
+  de parcours : titre et « Ouvrir » affichent le même détail sous la carte,
+  sans remplacer sa catégorie. Les actions réutilisent les vues métier derrière
+  une liste fermée de routes et un contrôle de rattachement, y compris pour les
+  sous-objets. Le même GET Form3 fonctionne sans JavaScript ; les POST gardent
+  droits, CSRF et preuves d’état. Voir [NAV7](NAVIGATION-DOSSIERS.md#nav7--prestations-ouvertes-dans-form3).
 - **Accès** : les objets sont contrôlés côté serveur avant agrégation, y compris
   dans les frises et rapports. L'activation des règles par service et la reprise
   des anciennes données sont explicites ; une migration ne les active pas.

@@ -1,4 +1,4 @@
-"""NAV6 : sélection explicite, consultation et édition dans une colonne."""
+"""NAV7 : une prestation ouverte dans Form3, sans remplacement de sa catégorie."""
 import os
 from pathlib import Path
 from datetime import timedelta
@@ -27,6 +27,11 @@ class PrestationsNavigationNavigateur(StaticLiveServerTestCase):
                 libelle=('Titre-très-long-' + 'Voyage'*20) if numero == 0 else 'Transport fictif 1', unite=t.unite, debut=self.entree,
                 quantite=10, source='Recette fictive', cree_par=self.u)
             a.beneficiaires.add(self.p); self.aides.append(a)
+        self.autres_aides=[]
+        for code,libelle in m.TypeAide.NATURES[1:]:
+            type_aide=m.TypeAide.objects.create(nature=code,libelle=libelle+' fictif',unite='unité',cree_par=self.u)
+            aide=m.AccordAide.objects.create(accompagnement=self.a,type_aide=type_aide,nature=code,libelle=type_aide.libelle,unite='unité',debut=self.entree,source='Recette fictive',cree_par=self.u)
+            aide.beneficiaires.add(self.p);self.autres_aides.append(aide)
         self.url = self.live_server_url + reverse('dossiers:prise', args=['menage', self.m.pk, self.a.pk])
 
     def capture(self, page, nom):
@@ -45,8 +50,9 @@ class PrestationsNavigationNavigateur(StaticLiveServerTestCase):
             self.assertGreater(rbox.bounding_box()['y'], hbox.bounding_box()['y'] + hbox.bounding_box()['height'] - 2)
             self.assertTrue(page.evaluate('document.documentElement.scrollWidth <= innerWidth'))
             if largeur in (390, 1366):
-                hbox.scroll_into_view_if_needed(); self.capture(page, 'NAV06-prestations-' + str(largeur))
-        for code, valeur in [('hebergement',str(self.s.pk)), ('repas',str(self.r.pk)), ('aides-transport',str(self.aides[1].pk))]:
+                hbox.scroll_into_view_if_needed(); self.capture(page, 'NAV07-prestations-' + str(largeur))
+        cadre=page.locator('#hebergement').element_handle()
+        for code, valeur in [('hebergement',str(self.s.pk)), ('repas',str(self.r.pk)), ('aides-transport',str(self.aides[1].pk))]+[('aides-'+a.nature,str(a.pk)) for a in self.autres_aides]:
             boite = page.locator('#' + code)
             radio = boite.locator('[data-prestation-url][value="' + valeur + '"]')
             radio.check()
@@ -58,9 +64,27 @@ class PrestationsNavigationNavigateur(StaticLiveServerTestCase):
             expect(page.locator('.operation-en-place')).to_have_count(0)
             expect(page.locator('h1')).to_be_visible()
             self.assertIn(destination.split('?')[0], page.url)
-            retour = page.locator('a').filter(has_text='Revenir à la prise en charge').first
-            if not retour.count(): retour = page.get_by_role('link', name='Retour au dossier — sélection conservée', exact=True)
+            self.assertTrue(cadre.evaluate('e=>e.isConnected'))
+            expect(page.get_by_role('navigation', name='Fil d’Ariane')).to_be_visible()
+            if code == 'hebergement':
+                for largeur in [390,1366]:
+                    page.set_viewport_size({'width':largeur,'height':900})
+                    page.locator('[data-prestation-panneau]').scroll_into_view_if_needed()
+                    self.capture(page,'NAV07-sejour-ouvert-'+str(largeur))
+                panneau=page.locator('[data-prestation-panneau]')
+                with page.expect_popup() as impression:
+                    panneau.get_by_role('link',name='Imprimer / PDF',exact=True).click()
+                imprime=impression.value;imprime.wait_for_load_state()
+                imprime.emulate_media(media='print')
+                expect(imprime.locator('.prestation-impression')).to_be_visible()
+                expect(imprime.locator('#repas')).to_be_hidden()
+                self.capture(imprime,'NAV07-impression-prestation')
+                if os.environ.get('PRESTATIONS_CAPTURES'): imprime.pdf(path=str(Path(os.environ['PRESTATIONS_CAPTURES'])/'NAV07-impression-prestation.pdf'))
+                imprime.close()
+            expect(page.locator('#hebergement')).to_be_visible()
+            retour = page.get_by_role('link', name='Refermer', exact=True)
             retour.click()
+            expect(page.locator('[data-prestation-panneau]')).to_have_count(0)
             expect(page.locator('#' + code + ' [data-prestation-url][value="' + valeur + '"]')).to_be_checked()
         self.assertIn('page=2', page.get_by_role('link', name='Dossiers', exact=True).first.get_attribute('href'))
 
@@ -68,19 +92,19 @@ class PrestationsNavigationNavigateur(StaticLiveServerTestCase):
         from playwright.sync_api import expect
         page = self.navigateur(); page.set_viewport_size({'width':1366,'height':900}); page.goto(self.url + '#repas')
         boite = page.locator('#repas')
-        boite.get_by_role('link', name='Enregistrer une distribution', exact=True).click()
+        boite.get_by_role('link', name='Enregistrer une distribution', exact=True).first.click()
         panneau = boite.locator('.operation-en-place')
         expect(panneau).to_be_visible()
         expect(page.get_by_role('navigation', name='Dans cette page', exact=True).get_by_role('link', name='Prestations', exact=True)).to_have_attribute('aria-current', 'location')
         self.assertGreater(panneau.bounding_box()['width'], 700)
-        panneau.get_by_role('button', name='← Revenir à la liste', exact=True).click()
+        boite.get_by_role('link', name='Annuler et revenir à la prestation', exact=True).click()
         expect(panneau).to_have_count(0)
-        boite.get_by_role('link', name='Enregistrer une distribution', exact=True).click()
+        boite.get_by_role('link', name='Enregistrer une distribution', exact=True).first.click()
         form = boite.locator('.operation-en-place form').last
         expect(form).to_be_visible()
         expect(page.get_by_role('navigation', name='Dans cette page', exact=True).get_by_role('link', name='Prestations', exact=True)).to_have_attribute('aria-current', 'location')
         # Contrôler le formulaire réel sans forcer un champ masqué.
-        self.capture(page, 'NAV06-edition-sur-place')
+        self.capture(page, 'NAV07-edition-sur-place')
         form.locator('[name=quantite]').fill('2')
         form.locator('[name=date]').fill(self.entree.isoformat())
         form.locator('[name=beneficiaire]').select_option(str(self.p.pk))
@@ -95,7 +119,7 @@ class PrestationsNavigationNavigateur(StaticLiveServerTestCase):
         form.locator('[name=date]').fill(self.entree.isoformat())
         form.get_by_role('button', name='Enregistrer', exact=True).click()
         expect(boite.locator('.operation-en-place')).to_have_count(0)
-        expect(page.get_by_text('Dossier actualisé.', exact=True)).to_be_visible()
+        expect(page.get_by_text('Modification enregistrée.', exact=True)).to_be_visible()
 
     def test_sans_javascript_selection_et_consultation(self):
         from playwright.sync_api import expect
@@ -103,7 +127,7 @@ class PrestationsNavigationNavigateur(StaticLiveServerTestCase):
         contexte=original.context.browser.new_context(storage_state=original.context.storage_state(), java_script_enabled=False,
             viewport={'width':390,'height':844})
         self.addCleanup(contexte.close); page=contexte.new_page(); page.goto(self.url)
-        for code, valeur in [('hebergement',str(self.s.pk)),('repas',str(self.r.pk)),('aides-transport',str(self.aides[1].pk))]:
+        for code, valeur in [('hebergement',str(self.s.pk)),('repas',str(self.r.pk)),('aides-transport',str(self.aides[1].pk))]+[('aides-'+a.nature,str(a.pk)) for a in self.autres_aides]:
             boite=page.locator('#'+code)
             radio=boite.locator('[data-prestation-url][value="'+valeur+'"]')
             radio.check(); boite.locator('[data-prestation-selection-valider]').click()
@@ -111,3 +135,19 @@ class PrestationsNavigationNavigateur(StaticLiveServerTestCase):
             self.assertEqual(page.locator('#hebergement input:checked').input_value(), str(self.s.pk))
         page.locator('#aides-transport .selectionnee a.prestation-consulter').click()
         expect(page.get_by_role('heading', name='Transport — Transport fictif 1', exact=True)).to_be_visible()
+        expect(page.get_by_role('navigation', name='Fil d’Ariane')).to_be_visible()
+
+    def test_notes_de_prestation_publication_sur_place(self):
+        from playwright.sync_api import expect
+        page=self.navigateur()
+        page.goto(self.url+'?prestation=repas:'+str(self.r.pk))
+        panneau=page.locator('[data-prestation-panneau]')
+        panneau.get_by_role('link',name='Notes de la prestation').click()
+        panneau.get_by_role('button',name='Écrire un message',exact=True).click()
+        editeur=panneau.locator('.ProseMirror')
+        expect(editeur).to_be_visible()
+        editeur.fill('Message fictif de recette NAV7')
+        panneau.get_by_role('button',name='Publier le message').click()
+        expect(panneau.locator('.liaisons-fil').get_by_text('Message fictif de recette NAV7',exact=True)).to_be_visible()
+        expect(page.get_by_role('navigation',name='Fil d’Ariane')).to_be_visible()
+        self.assertIn('/prises/',page.url)
