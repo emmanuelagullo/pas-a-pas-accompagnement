@@ -1,7 +1,9 @@
 from django.urls import path
 from . import views as v
+from . import vues_collectif
 app_name='acteurs'
 urlpatterns=[
+    path('services/<int:service_pk>/collectif/',vues_collectif.configurer,name='collectif'),
     path('a-suivre/',v.notifications,name='notifications'),
     path('a-suivre/<int:pk>/lu/',v.notification_lue,name='notification_lue'),
     path('services/<int:service_pk>/reperage/',v.reperage_politique,name='reperage_politique'),

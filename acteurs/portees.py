@@ -14,7 +14,7 @@ def existante(objet):
 def parent(objet):
     # Ordre du plus précis au plus général ; les journaux suivent le fait exact.
     priorites=('menage',) if objet._meta.model_name=='appartenance' else ()
-    priorites+=('fait', 'piece', 'element', 'declaration', 'situation', 'coordonnees', 'complement', 'relation', 'designation', 'affectation', 'transmission', 'note', 'action_relais',
+    priorites+=('prestation', 'mouvement', 'composition', 'fait', 'piece', 'element', 'declaration', 'situation', 'coordonnees', 'complement', 'relation', 'designation', 'affectation', 'transmission', 'note', 'action_relais',
                 'document', 'version', 'financement', 'accord_hebergement', 'accord_repas',
                 'accord_aide', 'accord', 'sejour', 'accompagnement', 'personne', 'menage')
     autres=tuple(f.name for f in objet._meta.fields if f.is_relation and f.remote_field.model._meta.app_label=='personnes' and f.remote_field.model._meta.model_name not in p.REPERTOIRES)

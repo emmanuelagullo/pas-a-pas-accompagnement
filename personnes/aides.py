@@ -82,6 +82,9 @@ def beneficiaires_valides(selection,parents):
 @service_metier
 @serialiser('accompagnement')
 def accorder(acteur,accompagnement,type_aide,beneficiaires,attendu,**valeurs):
+    from .collectifs import profil
+    configuration=profil(accompagnement)
+    if configuration and type_aide.nature not in configuration.get('aides',[]):raise ValidationError('Cette famille d’aide n’est pas proposée dans ce service.')
     droit(acteur,'add_accordaide')
     bd6.reserver(accompagnement,attendu)
     if set(valeurs)!=set(CHAMPS):raise ValidationError('Précisez toutes les informations de l’accord.')

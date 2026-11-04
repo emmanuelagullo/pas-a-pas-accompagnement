@@ -17,6 +17,10 @@ def droit(acteur, action):
 @serialiser("accompagnement")
 @transaction.atomic
 def accorder(acteur, accompagnement, beneficiaires, debut, fin, service, prestataire="", jours_semaine=None):
+    from .collectifs import profil
+    configuration=profil(accompagnement)
+    if configuration and configuration['restauration']!='individuel':
+        raise ValidationError('Ce service utilise la restauration par période ; créez la prestation commune depuis la prise en charge.')
     droit(acteur, "add_accordrepas")
     accompagnement = Accompagnement.objects.get(pk=accompagnement.pk)
     ids = {p.pk for p in beneficiaires}

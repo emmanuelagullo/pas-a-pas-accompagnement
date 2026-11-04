@@ -45,6 +45,8 @@ class Service(ModeleOrganisation):
     politique = models.CharField(max_length=12, choices=POLITIQUES, default='collectif')
     revision = models.PositiveIntegerField(default=0, editable=False)
     actif = models.BooleanField(default=True)
+    profil_collectif = models.JSONField(default=dict, blank=True,
+        help_text='Vide : parcours historique. Configuration explicite sans conversion des anciennes prestations.')
     class Meta:
         permissions = [('gerer_organisation', 'Configurer les services et leurs accès explicites')]
         constraints = [models.UniqueConstraint(fields=['etablissement', 'libelle'], name='act_service_nom_unique')]

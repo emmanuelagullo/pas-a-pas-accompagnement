@@ -89,5 +89,7 @@ def preparer():
             if modele==m.Menage:valeur=valeur.replace(' — Établissement Les Passerelles','')
             modele._base_manager.filter(pk=objet.pk).update(**{champ:valeur})
     ConfigurationAcces.objects.update_or_create(pk=1,defaults={'active':True})
+    from personnes.demonstration_collective import completer
+    completer(auteur,etab,pros['essai'])
     services.journal(auteur,service,'demonstration_acteurs',{}, {'controle_actif':True,'jeu':'Les Passerelles'})
     return service

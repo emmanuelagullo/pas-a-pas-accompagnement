@@ -28,6 +28,11 @@ dossiers réels. Les comptes professionnels sont distincts des personnes suivies
 
 ## État courant et repères de lecture
 
+Les services peuvent activer explicitement un parcours collectif compact :
+personne de référence et composition déclarée, données du ménage, hébergement
+commun et restauration calculée par période. Les services et données existants
+restent dans leur parcours historique. Voir [COL1–4](COLLECTIF.md).
+
 | Domaine disponible selon les droits | Référence |
 | --- | --- |
 | Dossiers personne/ménage, appartenances datées, prises en charge et prestations d'hébergement, repas et aides | [Parcours de démonstration](DEMONSTRATION.md) et [architecture actuelle](ARCHITECTURE.md#état-courant) |

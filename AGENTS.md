@@ -630,3 +630,16 @@ d'un changement de faits, sans effacement silencieux. La compatibilité des
 dimensions est commune au calcul et au formulaire ; les contrôles de droits
 restent serveur. Tester personnes.tests_compositeur et les parcours existants
 personnes.qualification_analyses / RapportsNavigateur, y compris sans JavaScript.
+
+
+COL1–4 : lire COLLECTIF.md. Le profil vide conserve le parcours historique.
+Les compositions collectives identifient seulement les membres choisis ; les
+effectifs complémentaires ne créent aucune personne ni appartenance. Le revenu
+du ménage ne remplit aucun revenu personnel. Préserver les versions de composition
+et de prestation, les références tarifaires et les prix particuliers explicites.
+Le suivi collectif uniquement refuse la sélection individuelle côté serveur.
+Les volumes calculés ne créent pas de distributions et ne sont pas des effectifs
+distincts. Les Amandiers est ajouté uniquement au jeu neuf avec acteurs. Tester
+personnes.tests_collectifs et personnes.qualification_collectifs ; conserver
+les routes historiques pour les prestations anciennes. Aucune capacité ou place
+libre ne peut être déduite des seuls lieux existants (jalon ultérieur).

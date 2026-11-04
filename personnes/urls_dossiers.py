@@ -14,6 +14,7 @@ from . import vues_trajectoire
 from . import vues_retraits_chronologiques
 from . import vues_dossiers as vues
 from . import vues_prestations_dossier as prestations
+from . import vues_collectifs
 
 from . import vues_bd6 as bd6
 from . import vues_famille as famille
@@ -37,6 +38,8 @@ app_name = 'dossiers'
 from . import vues_pieces_dossier as pieces
 
 urlpatterns = [
+    path('collectif/<str:cible>/<uuid:pk>/<str:action>/',vues_collectifs.action,name='collectif_action'),
+    path('collectif/<uuid:pk>/bilan/',vues_collectifs.bilan,name='collectif_bilan'),
     path('analyses/assembler/',vues_assemblages.assemblage,name='assemblage'),
     path('analyses/',vues_analyses.analyse,name='analyse'),
     path('analyses/justificatifs/',vues_analyses.justificatifs,name='analyse_preuves'),

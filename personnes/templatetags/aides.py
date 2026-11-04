@@ -8,6 +8,9 @@ def aides_directes(context,prise):
     if not context['request'].user.has_perms(service.LECTURE):return {}
     accords_visibles=context['prestations_aides_visibles']
     groupes=[(n,t,[a for a in accords_visibles if a.nature == n]) for n,t in m.TypeAide.NATURES]
+    from personnes.collectifs import profil
+    configuration=profil(prise)
+    if configuration:groupes=[(n,t,accords) for n,t,accords in groupes if accords or n in configuration.get('aides',[])]
     from django.utils import timezone
     from urllib.parse import parse_qsl, urlencode
     from django.urls import reverse

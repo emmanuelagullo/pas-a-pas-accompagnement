@@ -78,6 +78,15 @@ def clore(acteur, objet, fin):
         raise ValidationError("Cette période est déjà close.")
     if accompagnement:
         from .models import RepasDistribue, Sejour, SituationSociale, EvenementSocial, BilanSocial
+        from .models import PrestationCollective
+        # Garde d'intégrité sur les enfants du parent déjà autorisé : existence
+        # seulement, jamais une lecture de contenu ni une ouverture de droits.
+        if PrestationCollective._base_manager.filter(accompagnement=objet).exists():
+            exiger(acteur,'view_prestationcollective','view_versionprestationcollective')
+        for prestation in PrestationCollective.objects.filter(accompagnement=objet):
+            version=prestation.courante
+            if version and version.action!='annulation' and (version.fin is None or version.fin>fin or prestation.nature=='restauration' and version.fin>=fin):
+                raise ValidationError('Terminez ou annulez les prestations collectives avant de clôturer la prise en charge ; la restauration doit finir avant la date exclue.')
         if objet.interventions.filter(annule_le__isnull=True).filter(models.Q(debut__gte=fin) | models.Q(fin__gt=fin)).exists():
             raise ValidationError('Des missions professionnelles datées seraient exclues de la prise en charge.')
         if (SituationSociale.objects.filter(accompagnement=objet, debut__gte=fin).exists()

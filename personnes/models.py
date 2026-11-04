@@ -1942,3 +1942,7 @@ class ImportParametrage(ModeleControle):
         default_permissions=('view','add')
         permissions=[('exporter_parametrage','Exporter les répertoires et catalogues sans dossiers')]
         ordering=['-enregistre_le']
+
+
+from .models_collectifs import (CompositionCollective, PrestationCollective,
+    VersionPrestationCollective, CouvertCollectif, MouvementCollectif, JournalCollectif)

@@ -2,6 +2,12 @@
 
 ## État courant
 
+COL1–4 ajoute un parcours collectif volontaire par service, décrit dans
+[COLLECTIF.md](COLLECTIF.md). Les compositions datées conservent les identités
+connues et les effectifs complémentaires sans personnes fictives. Les prestations
+communes ont une identité et des versions ; leurs volumes calculés restent
+distincts des distributions pointées et des rapports nominatifs historiques.
+
 Cette synthèse décrit le `main` examiné au 30 octobre 2026 ; les jalons plus bas
 expliquent son évolution. La version et les octets du socle sont fixés par
 [requirements-communs.txt](requirements-communs.txt), actuellement **0.9.0** dans

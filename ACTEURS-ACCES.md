@@ -115,8 +115,9 @@ essais locaux SQLite ne la remplacent pas.
 ## Découverte par le lancement habituel
 
 `start-render.sh` prépare le jeu Les Passerelles existant, enrichi avec
-les appartenances, habilitations et responsabilités. Les 36 personnes, 51 prises
-en charge, prestations et histoires métier sont conservées. Noor attend une
+les appartenances, habilitations et responsabilités. Les 36 personnes et 51 prises
+en charge du jeu historique sont conservées. COL2–4 ajoute une personne, une
+prise et le service Les Amandiers, soit 37 personnes et 52 prises dans ce scénario. Noor attend une
 attribution ; essai suit Alex et Samira, Nadia suit les autres ménages.
 Les comptes remi, camille et coordination ont respectivement les tâches d’accueil,
 de gestion et de coordination. Le mot de passe public figure à la connexion.

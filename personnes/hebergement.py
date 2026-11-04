@@ -54,6 +54,10 @@ def bornes(sejour, debut, fin):
 @serialiser("accompagnement")
 @transaction.atomic
 def accorder(acteur, accompagnement, beneficiaires, debut, fin):
+    from .collectifs import profil
+    configuration=profil(accompagnement)
+    if configuration and configuration['hebergement']!='individuel':
+        raise ValidationError('Ce service utilise l’hébergement collectif ; créez la prestation commune depuis la prise en charge.')
     droit(acteur, "add_accordhebergement")
     accompagnement.refresh_from_db()
     verifier_periode(debut, fin)

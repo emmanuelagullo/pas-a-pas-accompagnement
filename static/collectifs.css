@@ -1,0 +1,14 @@
+#collectif-form input, #collectif-form select, #collectif-form textarea {max-width:100%;box-sizing:border-box}
+#collectif-form table {width:100%;table-layout:fixed}
+#collectif-form table input {width:100%;min-width:0}
+#collectif-form table th, #collectif-form table td {overflow-wrap:anywhere}
+#collectif-form .errorlist {color:#9b1822}
+.collectif-table {max-width:100%;overflow-x:auto}
+@media screen and (max-width:40rem) {
+  .collectif-table table, .collectif-table tbody {display:block;width:100%}
+  .collectif-table thead {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+  .collectif-table tbody tr {display:block;border-block:1px solid #9caeab;padding:.5rem 0}
+  .collectif-table td {display:flex;justify-content:space-between;gap:1rem;padding:.3rem 0;overflow-wrap:anywhere}
+  .collectif-table td::before {content:attr(data-label);font-weight:bold;max-width:65%}
+}
+@media print { #collectif-form, #prestations-collectives nav, form {display:none} }

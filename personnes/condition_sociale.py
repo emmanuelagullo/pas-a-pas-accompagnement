@@ -276,6 +276,16 @@ def presentation(request, personnes, jour, objet, nature, prise, params):
             'nouveau': url('dossiers:parcours_nouveau', nature, objet.pk, code)
                 if acteur.has_perm('personnes.add_' + r.racine._meta.model_name) else '',
             'url': url('dossiers:parcours', nature, objet.pk) + '&rubrique=' + code})
+    from . import collectifs
+    cible=prise or objet
+    if isinstance(cible,(m.Menage,m.Accompagnement)):
+        cfg=collectifs.profil(cible)
+        if cfg:
+            comp=collectifs.composition(cible,jour) if acteur.has_perm('personnes.view_compositioncollective') else None
+            retenus={comp.reference_id} if comp and cfg['identification']=='reference' else set(comp.identifies.values_list('pk',flat=True)) if comp else set()
+            # Le profil règle ce qui est demandé, pas les droits historiques.
+            # Les anciennes données restent accessibles par leur dossier et leurs routes.
+            resultats={pk:v for pk,v in resultats.items() if pk in retenus}
     return list(resultats.values()), projets
 
 
