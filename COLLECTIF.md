@@ -119,3 +119,24 @@ il est ajouté par la commande volontaire autoriser_collectif et dans le jeu
 neuf, jamais par migration sur les comptes existants. Modifier les prix conserve
 les permissions financières explicites existantes. Le catalogue ne représente
 ni un stock de chambres/lits ni une disponibilité garantie.
+
+
+COL4c : la liste des prestations communes est une liste de résumés pleine largeur,
+sans barre de boutons par ligne. Le titre ouvre directement l’éditeur autorisé ;
+les dates, dont le départ effectif, se modifient dans ce même formulaire. Annulation
+et mouvements restent dans Autres actions de la prestation ouverte. Ne pas
+réutiliser prestation-ligne sans son emplacement de sélection : sa première
+colonne ne mesure que 2,75 rem. Qualifier aussi le résumé et l’éditeur ouverts,
+pas seulement le formulaire de création.
+
+Limite de collecte encore présente : le profil règle globalement les identités
+à enregistrer et les informations collectives du ménage. Il ne définit pas encore,
+rubrique par rubrique, référents / adultes / tous / catégories particulières,
+ni plusieurs personnes désignées pour cette collecte. Ces règles ne doivent pas
+être présentées comme livrées ni remplacées par de simples masques visuels.
+
+L’édition des services et des offres est ancrée dans chaque bloc de réglages :
+les formulaires apparaissent sous leur commande et la réponse réactualise ce
+seul bloc. Ne pas ajouter d’éditeur générique au bas de la fiche. Conserver le
+focus et les autres blocs ; vérifier l’emplacement réel dans la qualification
+navigateur, y compris le retour après enregistrement et annulation.

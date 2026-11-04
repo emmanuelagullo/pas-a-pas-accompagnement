@@ -322,7 +322,7 @@ def modifier(acteur,p,attendu,action,couverts=None,motif='',**valeurs):
     for x in p.mouvements.filter(annule_le__isnull=True):
         if d['arrivee'] and x.debut<d['arrivee'] or d['fin'] and (x.debut>=d['fin'] or x.fin and x.fin>d['fin']):
             raise ValidationError('La période exclurait un mouvement enregistré ; corrigez ce mouvement d’abord.')
-        if action=='depart' and x.nature=='absence' and x.fin is None:
+        if d['fin'] and not v.fin and x.nature=='absence' and x.fin is None:
             avant={'fin':None};x.fin=d['fin'];x.save(update_fields=['fin'])
             m.JournalCollectif.objects.create(prestation=p,mouvement=x,action='Absence close au départ',avant=avant,apres={'fin':str(x.fin)},auteur=acteur)
     if action=='correction' and (d.get('offre')!=v.offre or any(d.get(k)!=getattr(v,k) for k in ('dejeuner','diner'))):verifier_offre(acteur,p.accompagnement,p.nature,d)

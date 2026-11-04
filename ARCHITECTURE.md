@@ -8,6 +8,11 @@ connues et les effectifs complémentaires sans personnes fictives. Les prestatio
 communes ont une identité et des versions ; leurs volumes calculés restent
 distincts des distributions pointées et des rapports nominatifs historiques.
 
+COL4c simplifie les listes communes et ancre les formulaires de paramétrage
+dans leur rubrique, avec réactualisation de ce seul bloc après écriture. Le
+réglage social par rubrique/population et les désignations multiples ne sont
+pas encore implémentés.
+
 COL4b réintègre les prestations communes aux groupes NAV7 et ajoute un catalogue
 d’offres sélectionnées par service. TarifOffre rattache les catégories et les
 repas aux tarifs versionnés existants ; les versions de prestations photographient

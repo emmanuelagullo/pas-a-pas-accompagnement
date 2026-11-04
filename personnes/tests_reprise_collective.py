@@ -110,3 +110,22 @@ class RepriseCollectiveTests(CollectifsTests):
         form=PrestationForm(self.donnees(offre=str(offre.pk),prix_adulte='8'),prise=self.a,nature='restauration',comp=self.comp,acteur=self.u,prestation=p)
         self.assertTrue(form.is_valid(),form.errors)
         self.assertEqual(form.cleaned_data['couverts'][0]['tarif'],t)
+
+
+    def test_liste_sans_barre_actions_et_depart_dans_editeur(self):
+        p=self.restaurer();self.client.force_login(self.u)
+        url=reverse('dossiers:prise',args=['menage',self.m.pk,self.a.pk])
+        page=self.client.get(url)
+        self.assertNotContains(page,'Enregistrer le départ')
+        self.assertNotContains(page,'>Corriger</a>')
+        self.assertContains(page,'class="hebergement-groupe')
+        page=self.client.get(url,{'col_action':'correction','col_pk':p.pk})
+        self.assertContains(page,'Modifier la période de repas')
+        self.assertContains(page,'name="fin"')
+
+    def test_fin_constatee_depuis_editeur_unique(self):
+        p=self.restaurer();self.client.force_login(self.u)
+        url=reverse('dossiers:collectif_action',args=['prise',self.a.pk,'correction'])+'?pk='+str(p.pk)
+        r=self.client.post(url,self.donnees(attendu=c.jeton(p),fin='2026-01-11'))
+        self.assertEqual(r.status_code,302)
+        self.assertEqual(p.courante.fin,date(2026,1,11))

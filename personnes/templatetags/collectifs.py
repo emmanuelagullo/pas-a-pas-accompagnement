@@ -61,10 +61,8 @@ def prestations_collectives(context,nature):
         if not v:continue
         actions=[]
         if v.action!='annulation' and request.user.has_perm('personnes.change_prestationcollective'):
-            actions=[('correction','Corriger'),('prolongation','Prolonger'),('annulation','Annuler')]
-            if p.nature=='restauration' and not v.fin:actions.insert(1,('depart','Terminer'))
+            actions=[('annulation','Annuler cette prestation')]
             if p.nature=='hebergement' and v.arrivee and not v.fin:
-                actions.insert(1,('depart','Enregistrer le départ'))
                 if request.user.has_perm('personnes.add_mouvementcollectif'):actions.extend([('lieu','Changer de lieu'),('absence','Absence')])
                 if request.user.has_perm('personnes.change_mouvementcollectif'):actions.extend([('retour','Retour d’absence'),('annuler_mouvement','Annuler un mouvement')])
         total=None
@@ -75,7 +73,7 @@ def prestations_collectives(context,nature):
                 cout=c.bilan(v,v.debut,borne+timedelta(days=1))
                 if not cout['prix_inconnus']:total=cout['cout']
             except ValidationError:pass
-        cartes.append({'total':total,'ouvrir':lien(request,'consultation',p.pk),'ouverte':request.GET.get('col_pk')==str(p.pk),'p':p,'v':v,'nombre':sum(c.effectifs(v.composition,v.composition.debut).values()),'actions':[(l,lien(request,a,p.pk)) for a,l in actions],
+        cartes.append({'total':total,'ouvrir':lien(request,'correction' if v.action!='annulation' and request.user.has_perm('personnes.change_prestationcollective') else 'consultation',p.pk),'ouverte':request.GET.get('col_pk')==str(p.pk),'p':p,'v':v,'nombre':sum(c.effectifs(v.composition,v.composition.debut).values()),'actions':[(l,lien(request,a,p.pk)) for a,l in actions],
             'mouvements':p.mouvements.all() if request.user.has_perm('personnes.view_mouvementcollectif') else [],
             'versions':p.versions.all()})
     if not actif and not cartes:return {}

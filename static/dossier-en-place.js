@@ -55,7 +55,7 @@
     if(url.origin!==location.origin)return;
     if(!document.dispatchEvent(new Event('condition:disponible',{cancelable:true}))){etat('Terminez ou annulez la saisie sociale en cours.');return;}
     occupe=true;etat('Chargement…');
-    const cle=cibleUrl(url), ancien=ouverts()[0], ancienneCle=ancien?.dataset.prestationHote;
+    const ancien=ouverts()[0], ancienneCle=ancien?.dataset.prestationHote, cle=cibleUrl(url) || (options.method==='POST' ? ancienneCle : '') || '';
     (ancien || hote(cle))?.setAttribute('aria-busy','true');
     try {
       const reponse=await fetch(url,{credentials:'same-origin',cache:'no-store',...options});
@@ -64,8 +64,8 @@
       if(cle.startsWith('commun:') && !doc.querySelector('[data-dossier-form2]') && doc.querySelector('#collectif-form')) {
         const destination=hote(cle);if(!destination)throw new Error();
         destination.replaceChildren(doc.querySelector('#collectif-form'));ouvrirParents(destination);modifie=true;
-        destination.querySelector('.errorlist,input,select')?.focus();
-        document.dispatchEvent(new Event('navigation:actualise'));return;
+        const erreur=destination.querySelector('.errorlist,input,select');if(erreur){erreur.tabIndex=-1;erreur.focus({preventScroll:true});erreur.scrollIntoView({block:'nearest'});}
+        etat('Vérifiez les champs indiqués.');document.dispatchEvent(new Event('navigation:actualise'));return;
       }
       if(!doc.querySelector('[data-dossier-form2]') || (!reponse.ok && reponse.status!==409))throw new Error();
       const ouverte=cibleUrl(reponse.url), source=ouverte && hote(ouverte,doc);

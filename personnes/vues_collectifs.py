@@ -51,7 +51,7 @@ def preparer(request,objet,action,pk=None,nature=None):
     retour_page,token=retour_contexte(request,objet,action)
     if token:query['retour_col']=token
     url+='?'+urlencode(query)
-    titre={'composition':'Composition et situation du ménage','creation':'Nouveau séjour' if nature=='hebergement' else 'Nouvelle période de repas','correction':'Corriger la prestation','prolongation':'Prolonger','depart':'Enregistrer le départ','annulation':'Annuler la prestation','lieu':'Changer de lieu','absence':'Enregistrer une absence','retour':'Enregistrer le retour d’absence','annuler_mouvement':'Annuler un mouvement erroné'}.get(action)
+    titre={'composition':'Composition et situation du ménage','creation':'Nouveau séjour' if nature=='hebergement' else 'Nouvelle période de repas','correction':'Modifier le séjour' if nature=='hebergement' else 'Modifier la période de repas','prolongation':'Prolonger','depart':'Enregistrer le départ','annulation':'Annuler la prestation','lieu':'Changer de lieu','absence':'Enregistrer une absence','retour':'Enregistrer le retour d’absence','annuler_mouvement':'Annuler un mouvement erroné'}.get(action)
     if not titre:raise ValidationError('Action inconnue.')
     if action=='composition':
         suivi.exiger(acteur,'view_compositioncollective','add_compositioncollective')
@@ -142,7 +142,7 @@ def apercu(form,objet,request):
     except (ValidationError,ValueError):pass
     if not form.is_valid():return ({'prix':prix,'message':'Calcul incomplet : vérifiez les champs et les dates.'})
     d=dict(form.cleaned_data)
-    if form.prestation:d['fin']=form.prestation.courante.fin
+    if form.prestation and 'fin' not in form.fields:d['fin']=form.prestation.courante.fin
     fin=d.get('fin') or d.get('fin_prevue')
     try:
         c.verifier_version(m.PrestationCollective(accompagnement=objet,nature='restauration'),m.VersionPrestationCollective(**{k:v for k,v in d.items() if k in c.VERSION}))

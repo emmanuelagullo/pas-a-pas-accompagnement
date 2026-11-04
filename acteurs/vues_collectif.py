@@ -41,6 +41,14 @@ class ProfilForm(FormulaireMetier):
     @property
     def champs_principaux(self):return [x for x in self if not x.name.startswith('categorie_')]
     @property
+    def groupes_champs(self):
+        groupes=[('Fonctionnement',['actif']),
+                 ('Informations du ménage',['identification','rubriques']),
+                 ('Prestations proposées',['prestations','aides']),
+                 ('Suivi des prestations',['hebergement','restauration','petits_dejeuners']),
+                 ('Prestataires',['catalogue','offres'])]
+        return [(titre,[self[nom] for nom in noms]) for titre,noms in groupes]
+    @property
     def categories_lignes(self):return [[self[n] for n in noms] for noms in self.lignes]
     def clean(self):
         d=super().clean()

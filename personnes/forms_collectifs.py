@@ -82,6 +82,7 @@ class CompositionForm(FormulaireMetier):
 class PrestationForm(FormulaireMetier):
     debut=forms.DateField(label='Début',widget=DATE)
     fin_prevue=forms.DateField(label='Fin prévue — facultative',widget=DATE,required=False)
+    fin=forms.DateField(label='Départ effectif — facultatif',widget=DATE,required=False)
     arrivee=forms.DateField(label='Arrivée effective — vide si seulement prévu',widget=DATE,required=False)
     lieu=forms.ModelChoiceField(m.LieuHebergement.objects.none(),label='Chambre ou logement commun',required=False)
     petits_dejeuners=forms.BooleanField(label='Petits déjeuners associés',required=False)
@@ -114,6 +115,7 @@ class PrestationForm(FormulaireMetier):
         else:
             for k in ('arrivee','lieu','petits_dejeuners'):del self.fields[k]
             self.fields['fin_prevue'].label='Dernier jour prévu — repas de fin compris'
+            self.fields['fin'].label='Fin constatée de la période — facultative'
             if acteur.has_perm('personnes.view_partenaire'):self.fields['prestataire'].queryset=m.Partenaire.objects.all()
             else:del self.fields['prestataire']
         from acteurs.models import OffrePrestataire
@@ -180,7 +182,7 @@ class PrestationForm(FormulaireMetier):
             part=type(comp)(debut=comp.debut,categories=comp.categories,identites=[identite],complements=[])
             identites[identite['id']]=next((k for k,n in c.effectifs(part).items() if n),'inconnu')
         self.photo_effectifs={'total':c.effectifs(comp),'identites':identites}
-        self.order_fields(['debut','fin_prevue','offre','prestataire','arrivee','lieu','dejeuner','diner','premier','dernier','petits_dejeuners','devise'])
+        self.order_fields(['debut','fin_prevue','fin','offre','prestataire','arrivee','lieu','dejeuner','diner','premier','dernier','petits_dejeuners','devise'])
         self.selection_champs=[]
         if not prestation:
             self.fields['restreindre']=forms.BooleanField(label='Choisir un groupe pour cette prestation',required=False)

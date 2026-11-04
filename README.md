@@ -31,7 +31,9 @@ dossiers réels. Les comptes professionnels sont distincts des personnes suivies
 Les services peuvent activer explicitement un parcours collectif compact :
 personne de référence et composition déclarée, données du ménage, hébergement
 commun et repas calculés par période. Les mêmes groupes Hébergement et Repas
-et les mêmes commandes sur place restent utilisés entre services. Le groupe
+et l’édition sur place restent utilisés entre services. Les résumés des
+prestations communes s’ouvrent directement en édition, sans barre de boutons
+par ligne. Les réglages d’un service s’éditent dans leur propre bloc. Le groupe
 concerné peut être choisi sans activer un suivi individuel. Les offres des
 prestataires et leurs tarifs sont sélectionnables dans Paramétrage → Services /
 Prestataires. Les services et données existants

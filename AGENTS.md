@@ -659,3 +659,11 @@ pour des dossiers. Conserver les droits de gestion pour modifier les tarifs et
 les dates/versions existantes. Une correction ou prolongation conserve ses prix
 photographiés ; un changement de catalogue ne les remplace jamais silencieusement.
 Le calcul du formulaire et celui du bilan partagent la même fonction décimale.
+
+COL4c : les listes communes n’affichent pas une barre d’actions par prestation.
+Le résumé ouvre l’éditeur autorisé, sur toute la largeur ; les dates se modifient
+dans ce même éditeur. Qualifier la liste et les prestations déjà enregistrées,
+pas seulement la création. Dans Paramétrage, chaque bloc contient son propre
+hôte d’édition. Un formulaire ajouté au bas de la fiche n’est pas une édition
+sur place. Après sauvegarde, ne remplacer que le bloc concerné. La collecte
+sociale par rubrique/population et les désignations multiples restent à réaliser.

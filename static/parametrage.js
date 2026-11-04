@@ -1,8 +1,10 @@
-/* Paramétrage sur place, repli HTML normal sans JavaScript. */
+/* Même emplacement de lecture et d'édition ; repli HTML sans JavaScript. */
 (() => {
   if(window.PasParametrage)return;window.PasParametrage=true;
-  let occupe=false,modifie=false;
-  async function charger(url,options={}) {
+  let occupe=false,modifie=false,blocActif='';
+  function dire(texte){const e=document.getElementById('etat-parametrage');if(e)e.textContent=texte;}
+  function liberer(){blocActif='';modifie=false;}
+  async function charger(url,options={},bloc=null) {
     if(occupe)return;occupe=true;
     const ancien=document.getElementById('parametrage');ancien?.setAttribute('aria-busy','true');
     try {
@@ -10,28 +12,49 @@
       const doc=new DOMParser().parseFromString(await r.text(),'text/html');
       if(doc.querySelector('[name=password]')){location.assign(r.url);return;}
       const frais=doc.getElementById('parametrage');
-      if(!frais || !r.ok && ![400,409].includes(r.status))throw Error();
-      const ouverts=[...ancien.querySelectorAll('details[open][id]')].map(x=>x.id);
+      if(!frais){if(r.redirected && r.ok){location.assign(r.url);return;}throw Error();}
+      if(!r.ok && ![400,409].includes(r.status))throw Error();
       const formulaire=frais.querySelector('form');
-      let racine=frais;
-      if(formulaire && ancien.querySelector('h2')) {
-        let hote=ancien.querySelector('#parametrage-editeur');
-        if(!hote){hote=document.createElement('section');hote.id='parametrage-editeur';hote.className='carte operation-en-place';ancien.append(hote);}
-        const titre=frais.querySelector('h1');hote.replaceChildren(...(titre?[titre]:[]),formulaire);
-        formulaire.action=r.url;racine=ancien;hote.scrollIntoView({block:'nearest'});
-      } else {ancien.replaceWith(frais);frais.querySelectorAll('form').forEach(f=>f.action=r.url);}
-      ouverts.forEach(id=>{const d=document.getElementById(id);if(d)d.open=true;});
-      modifie=options.method==='POST' && Boolean(racine.querySelector('form'));history.replaceState(history.state,'',r.url);
-      const cible=racine.querySelector('.errorlist,h1');if(cible){cible.tabIndex=-1;cible.focus({preventScroll:true});}
+      const actuel=bloc || (blocActif && document.getElementById(blocActif));
+      let cible;
+      if(formulaire && actuel){
+        blocActif=actuel.id;
+        const hote=actuel.querySelector('[data-parametrage-hote]');if(!hote)throw Error();
+        const titre=frais.querySelector('h1'), rubrique=actuel.querySelector('h2')?.textContent.trim();if(titre && (!rubrique || !titre.textContent.trim().startsWith(rubrique))){const h=document.createElement('h3');h.textContent=titre.textContent;hote.replaceChildren(h,formulaire);}else hote.replaceChildren(formulaire);
+        formulaire.action=r.url;hote.id='parametrage-editeur';hote.classList.add('operation-en-place');
+        actuel.querySelectorAll('[data-parametrage-modifier]').forEach(e=>e.hidden=true);
+        actuel.querySelectorAll('[data-parametrage-hote] a').forEach(e=>e.dataset.parametrageAnnuler='');
+        modifie=options.method==='POST';
+        cible=hote.querySelector('.errorlist,input:not([type=hidden]),select,textarea,h3');
+      }else{
+        const remplace=actuel && doc.getElementById(actuel.id);
+        if(remplace){
+          actuel.replaceWith(remplace);
+          cible=remplace.querySelector('[data-parametrage-modifier],h2');
+        }else{ancien.replaceWith(frais);cible=frais.querySelector('h1');}
+        liberer();
+      }
+      history.replaceState(history.state,'',r.url+(blocActif?'#'+blocActif:''));
+      if(cible){if(!cible.matches('input,select,textarea,a,button'))cible.tabIndex=-1;cible.focus({preventScroll:true});cible.scrollIntoView({block:'nearest'});}
       document.dispatchEvent(new Event('navigation:actualise'));
-    } catch(_) {const e=document.getElementById('etat-parametrage');if(e)e.textContent='Opération non confirmée. Votre saisie est conservée ; vérifiez avant de recommencer.';}
+      dire(options.method==='POST' && !modifie ? 'Modification enregistrée.' : '');
+    }catch(_){dire('Opération non confirmée. Votre saisie est conservée ; vérifiez avant de recommencer.');}
     finally{occupe=false;document.getElementById('parametrage')?.removeAttribute('aria-busy');}
   }
   document.addEventListener('click',e=>{
     const a=e.target.closest('#parametrage a');if(!a || a.target || e.button!==0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || new URL(a.href).origin!==location.origin)return;
-    e.preventDefault();if(modifie && !confirm('Abandonner les modifications non enregistrées ?'))return;charger(a.href);
+    if(occupe){e.preventDefault();return;}
+    const bloc=a.matches('[data-parametrage-modifier]')?a.closest('[data-parametrage-bloc]'):null;
+    if(a.matches('[data-parametrage-modifier]') && !bloc)return; // Repli complet pour les autres vues.
+    e.preventDefault();if(modifie && !confirm('Abandonner les modifications non enregistrées ?'))return;
+    if(blocActif && bloc && bloc.id!==blocActif){dire('Terminez ou annulez la modification en cours avant de changer de rubrique.');return;}
+    charger(a.href,{},bloc);
   });
-  document.addEventListener('input',e=>{if(e.target.closest('#parametrage form'))modifie=true;});
-  document.addEventListener('submit',e=>{const f=e.target.closest('#parametrage form');if(!f)return;e.preventDefault();charger(f.action || location.href,{method:'POST',body:new FormData(f)});});
+  document.addEventListener('input',e=>{if(e.target.closest('#parametrage-editeur form'))modifie=true;});
+  document.addEventListener('change',e=>{if(e.target.closest('#parametrage-editeur form'))modifie=true;});
+  document.addEventListener('submit',e=>{
+    const f=e.target.closest('#parametrage-editeur form');if(!f)return;
+    e.preventDefault();charger(f.action || location.href,{method:'POST',body:new FormData(f)});
+  });
   window.addEventListener('beforeunload',e=>{if(modifie || occupe){e.preventDefault();e.returnValue='';}});
 })();
