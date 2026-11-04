@@ -422,3 +422,56 @@ et Chromium 134/Linux avec OPFS, le parcours franchit les distributions de
 repas qui bloquaient GitHub, puis le parcours métier BD6/CHRS5–7 et l’isolation
 des espaces Les Passerelles réussissent. Ce constat ne vaut pas résultat des
 CI distantes ni qualification des autres navigateurs ou du clavier virtuel.
+
+## NAV10 — Repères de contenu du volet social replié
+
+Base publique : `fee0f0f670f6b4d5ed7c17a00e9a66c56ee0d263` (#NAV9).
+L’aperçu du volet indique la date de Situation, les rubriques personnelles
+avec des informations et les familles de Projet et parcours avec des éléments.
+Le nombre de personnes consultables est explicite pour un ménage ou dès que
+la prise présente plusieurs bénéficiaires. Chaque personne a aussi son bilan
+au début de ses informations personnelles.
+
+Le dénominateur est le nombre de rubriques effectivement proposées et autorisées,
+comptées pour chaque personne. Il n’est pas fixé à 18 dans le code. Plusieurs
+éléments d’une collection ne multiplient pas le compteur. Une rubrique mixte
+compte une fois parmi celles qui contiennent des informations. Les rubriques
+uniquement « Non connu déclaré » sont indiquées séparément ; les anciennes
+valeurs « Non renseigné » ne deviennent pas des déclarations « Non connu ».
+Une absence explicitement déclarée est une information ; zéro et Non ne sont
+pas des valeurs vides. Aucun seuil de complétude, diagnostic, jauge ou couleur
+de réussite n’est introduit. Des champs facultatifs ou alternatifs ne deviennent
+pas des obligations.
+
+Le calcul réutilise les groupes déjà présentés : mêmes droits, même date, mêmes
+faits hérités applicables, mêmes règles de retrait et mêmes limites de contexte.
+L’identité principale garde sa lecture actuelle. Les versions des anciens suivis,
+la composition et les missions ne sont pas additionnées aux rubriques personnelles.
+Projet et parcours ont leur propre compteur de familles, sans somme d’objectifs
+ni interprétation de leur avancement. Complet et Informations renseignées ont
+les mêmes compteurs.
+
+Le serveur rend les repères sans JavaScript ; une fermeture native du volet
+les rend visibles. Après une écriture sociale, le rafraîchissement existant les
+recalcule ; Annuler ne modifie pas le bilan. Le passage en Évolution remplace
+l’aperçu par ses dates de comparaison et masque les compteurs de Situation.
+La période suit les options d’Évolution ; une période invalide invite à la préciser.
+Le retour à Situation rétablit son aperçu. Les mémoires de dépliage ne stockent
+aucun compteur ni contenu social supplémentaire. Aucun modèle, droit ou format
+de copie n’est modifié.
+
+Le calcul sur les données déjà chargées est vérifié sans requête SQL. Cela ne
+constitue pas une mesure de la durée d’ouverture du dossier ni une promesse de
+gain de performance serveur.
+
+Qualification ciblée NAV10 : 23 tests de calcul et HTTP réussis, puis 13
+tests Chromium 134/Linux réussis (nouveaux repères, rubriques et édition sociale
+existantes). La recette exerce le clavier, 390 et 1 366 px, le texte agrandi à
+200 % à 640 px, le repli sans JavaScript, Annuler, Enregistrer et Retirer ainsi
+que Situation/Évolution. Les captures personne, ménage et Évolution ont été
+inspectées. Le grossissement du texte ne constitue pas un test de zoom natif.
+Le vrai runtime PWA, Firefox/Safari et le clavier virtuel ne sont pas rejoués
+pour ce lot. Environnement : Python 3.12.14, Django 5.2.18, SQLite 3.53.1,
+pas-communs 0.9.0. Contrôles Django, absence de migration, syntaxe JavaScript
+et `git diff --check` vérifiés. Ces résultats locaux ne sont pas des résultats
+des CI distantes.

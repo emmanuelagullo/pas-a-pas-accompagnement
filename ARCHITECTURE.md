@@ -47,6 +47,10 @@ cette base. Les anciens numéros ne changent pas cette dépendance.
   leur accord, avec détails individuels dépliables. Cette projection utilise les
   lectures déjà autorisées ; aucune migration ni fusion de faits. Les opérations
   collectives réutilisent la sélection et le CAS existants.
+  NAV10 calcule les repères du volet replié sur les seuls groupes déjà chargés
+  et autorisés. Le bilan distingue informations, rubriques uniquement non connues
+  déclarées et éléments de projet ; il n’introduit pas de notion de complétude.
+  L’aperçu d’Évolution expose ses dates, sans réutiliser le compteur de Situation.
 - **Accès** : les objets sont contrôlés côté serveur avant agrégation, y compris
   dans les frises et rapports. L'activation des règles par service et la reprise
   des anciennes données sont explicites ; une migration ne les active pas.

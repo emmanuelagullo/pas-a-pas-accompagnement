@@ -33,6 +33,9 @@
   });
   function choisirMode(mode) {
     actualiserOptions(mode);
+    const situation=root.querySelector('[data-condition-reperes-situation]'), evolution=root.querySelector('[data-condition-reperes-evolution]');
+    if(situation)situation.hidden=mode!=='situation';
+    if(evolution){evolution.hidden=mode!=='evolution';evolution.textContent=root.querySelector('[data-condition-repere-periode]')?.textContent || 'Évolution';}
     root.querySelector('[data-condition-revenir]').checked=mode==='situation';
     root.querySelector('[data-condition-evolution]').checked=mode==='evolution';
     document.dispatchEvent(new Event('condition:vue'));

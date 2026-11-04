@@ -165,3 +165,8 @@ body:has(.condition-acces) { padding-bottom: calc(var(--navigation-hauteur, 7rem
   [data-condition-volet] > summary::-webkit-details-marker { display:none; }
   .condition-volet-apercu { display:none !important; }
 }
+
+/* NAV10 : repères de contenu, sans jauge ni couleur de complétude. */
+.condition-reperes-ligne {display:block;margin-top:.15rem}
+.condition-reperes-personne {font-size:.9rem;color:#526d63;overflow-wrap:anywhere}
+.condition-volet-apercu {overflow-wrap:anywhere}

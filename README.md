@@ -8,7 +8,10 @@ en charge, un sommaire latéral ou trois accès en bas permettent de rejoindre l
 grands blocs sans quitter la lecture en cours. Sur écran large, le sommaire
 garde la rubrique courante visible, sauf pendant son exploration manuelle. Les rubriques de Situation sont
 [repliables indépendamment](NAVIGATION-DOSSIERS.md#nav3--rubriques-repliables),
-toujours consultables intégralement. Le [volet entier](NAVIGATION-DOSSIERS.md#nav4--volet-social-repliable)
+toujours consultables intégralement. Le volet replié présente des
+[repères de contenu](NAVIGATION-DOSSIERS.md#nav10--repères-de-contenu-du-volet-social-replié)
+à la date consultée, avec un bilan personnel et un bilan Projet et parcours
+distincts ; ce ne sont pas des scores de complétude. Le [volet entier](NAVIGATION-DOSSIERS.md#nav4--volet-social-repliable)
 et ses rubriques démarrent repliés avec JavaScript, puis retrouvent les choix
 de la session ; sans JavaScript, ils restent ouverts initialement. Les
 [prestations](NAVIGATION-DOSSIERS.md#nav7--prestations-ouvertes-dans-form3)

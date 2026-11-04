@@ -334,6 +334,8 @@ def detail(request, nature, pk, prise_pk=None):
     personnes_sociales = list(prise.beneficiaires.all()) if prise else [objet] if nature == 'personne' else list({l.personne_id: l.personne for l in liens if l.debut <= condition_jour and (l.fin is None or l.fin > condition_jour)}.values())
     condition_personnes, condition_projets = condition_sociale.presentation(
         request, personnes_sociales, condition_jour, objet, nature, prise, params)
+    from .reperes_sociaux import bilan
+    condition_reperes = bilan(condition_personnes, condition_projets)
     date_sociale = prise.fin if prise and prise.fin else jour
     # La clôture est exclue : restituer le dernier jour de la prise.
     if prise and prise.fin:
@@ -366,7 +368,7 @@ def detail(request, nature, pk, prise_pk=None):
             aides_visibles = list(qs)
     return render(request, 'dossiers/prise.html' if prise else 'dossiers/detail.html', {
         'frise_ouverte': params.get('frise_ouverte', ''), 'frise_axe': next(iter(frises_objets.values()), None), 'frises_actives': frises_actives, 'frise_retour': frises.commande(request), 'frises_objets': frises_objets,
-        'condition_personnes': condition_personnes, 'condition_projets': condition_projets,
+        'condition_personnes': condition_personnes, 'condition_projets': condition_projets, 'condition_reperes': condition_reperes,
         'condition_lecture': bd6.etat(request.user, personnes_sociales, condition_jour),
         'condition_documents': condition_sociale.documents(request.user, prise or objet),
         'condition_contextes': condition_sociale.contextes(request.user, personnes_sociales, objet),

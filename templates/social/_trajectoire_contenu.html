@@ -1,5 +1,6 @@
 {% load saisie textes %}
 <div data-condition-trajectoire>
+<span hidden data-condition-repere-periode>{% if date_initiale and date_finale %}Évolution du {{ date_initiale|date:'d/m/Y' }} au {{ date_finale|date:'d/m/Y' }}{% else %}Évolution · période à préciser{% endif %}</span>
 {% if not evolution_integree %}<p><a href="{{ retour_trajectoire }}">← Revenir au dossier{% if prise_retour %} / à la prise en charge{% endif %}</a></p>{% endif %}
 {% if evolution_integree %}<h3>Évolution de la situation et du parcours</h3>{% else %}<h1>Trajectoire d’accompagnement — {{ objet }}</h1>{% endif %}
 <details class="condition-options" id="options-evolution" data-condition-options="evolution"{% if form.errors %} open{% endif %}><summary>Options</summary><div class="condition-options-contenu">
