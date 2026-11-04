@@ -8,7 +8,7 @@ from django.utils.datastructures import MultiValueDict
 from django.shortcuts import render as django_render, get_object_or_404
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
-from django.urls import resolve, reverse, Resolver404
+from django.urls import resolve, reverse, Resolver404, get_script_prefix
 from django.utils.safestring import mark_safe
 from . import models as m, dossier
 
@@ -56,6 +56,17 @@ def consultation(genre, objet):
     return reverse('dossiers:aide', args=[objet.pk])
 
 
+def chemin_interne(chemin):
+    # reverse() inclut SCRIPT_NAME, resolve() attend le seul PATH_INFO.
+    prefixe = get_script_prefix().rstrip('/')
+    if prefixe and chemin.startswith(prefixe+'/'): chemin = chemin[len(prefixe):]
+    return chemin
+
+
+def resoudre(chemin):
+    return resolve(chemin_interne(chemin))
+
+
 def autoriser_operation(context, cle, valeur):
     """Liste fermée, avec contrôle d'appartenance de chaque cible et sous-objet.
 
@@ -64,7 +75,7 @@ def autoriser_operation(context, cle, valeur):
     genre, objet = cible(context, cle)
     url = urlsplit(valeur)
     if url.scheme or url.netloc: raise Http404
-    try: match = resolve(url.path)
+    try: match = resoudre(url.path)
     except Resolver404: raise Http404
     nom, kw = match.view_name, match.kwargs
     pk = str(kw.get('pk', ''))
@@ -239,7 +250,7 @@ def page(request, nature, pk, prise_pk):
         interne._post = request.POST.copy()
         interne._post['contexte_dossier'] = context['prise'].navigation['contexte_dossier']
     interne._prestation_capture = True
-    interne.path = urlsplit(operation).path; interne.path_info = interne.path; interne.resolver_match = match
+    interne.path = urlsplit(operation).path; interne.path_info = chemin_interne(interne.path); interne.resolver_match = match
     resultat = match.func(interne, *match.args, **match.kwargs)
     if 300 <= resultat.status_code < 400:
         if request.method != 'POST': raise Http404
@@ -256,7 +267,7 @@ def page(request, nature, pk, prise_pk):
             if objet == 'hebergement': cle = 'hebergement:'+params['prevision'] if params.get('prevision') else 'sejour:'+params.get('sejour','')
             elif objet in ('repas','services_repas'): cle = 'repas:'+params.get('repas','')
             else:
-                try: ident = resolve(location.path).kwargs['pk']
+                try: ident = resoudre(location.path).kwargs['pk']
                 except (Resolver404,KeyError): raise Http404
                 cle = 'aide_'+objet+':'+str(ident)
         elif genre == 'hebergement' and match.view_name in ('suivi:arrivee_prevue','suivi:admettre') and params.get('sejour'):

@@ -356,3 +356,29 @@ ont été inspectées ; le texte du PDF ciblé a été contrôlé. Ces résultat
 ne constituent pas un résultat des CI distantes. Le banc isolé Node de
 l’éditeur n’a pas pu démarrer son Chromium dans cet environnement ; la saisie
 par son éditeur réel a été exercée dans les recettes Django/Chromium.
+
+## NAV8 — Préfixes PWA et stabilité du repère courant
+
+Base : `9dee5bd8e28ca6e9a7ca8c7b5ecb5f6a925c77b3` (#NAV7).
+Les opérations locales produites par reverse incluent le préfixe de déploiement,
+alors que resolve attend PATH_INFO. Leur résolution retire désormais le seul
+préfixe Django connu ; les contrôles de cible et les vues métier restent les mêmes.
+Cela traite notamment le préfixe `/chrs/app/` du pont PWA. Le test HTTP sous
+SCRIPT_NAME ne constitue pas, à lui seul, une qualification du vrai runtime PWA.
+
+Après une navigation explicite, le repère choisi reste courant tant que sa
+cible est visible et qu’aucun défilement manuel de la page ne reprend. Le suivi
+du sommaire est suspendu pendant son exploration au pointeur ; le déplacement
+de son contenu ne doit pas être interprété comme une sortie du pointeur.
+La recette attend la position réellement obtenue après la molette, sans délai
+fixe ni allongement du timeout.
+
+Voir aussi [l’audit des prestations collectives](AUDIT-PRESTATIONS-COLLECTIVES.md).
+Le regroupement visuel proposé n’est pas inclus dans ce correctif.
+
+Qualification NAV8 : 10 tests HTTP/métier prestations passent, dont les six
+familles sous SCRIPT_NAME, et les cinq tests Chromium/Linux de navigation
+interne passent. Le même ensemble de 15 tests a été exécuté avec succès ; les
+10 tests HTTP ont ensuite été rejoués après factorisation du retrait du préfixe.
+Contrôles Django, absence de migration, syntaxe JavaScript et diff vérifiés.
+La CI PWA signalée n’a pas été rejouée dans son vrai runtime ici.

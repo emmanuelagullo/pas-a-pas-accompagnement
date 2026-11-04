@@ -6,7 +6,7 @@
   let ouvert = false, observer, frame = 0, mesure = 0;
   const tailles = window.ResizeObserver ? new ResizeObserver(mesurer) : null;
   let visibles = new Set(), liens = [], barre, dernier, ancienSommaire, branches;
-  let hauteurNormale = innerHeight, sommaireParcouru = false;
+  let hauteurNormale = innerHeight, sommaireParcouru = false, destinationExplicite;
   function suivreSommaire() {
     const nav = panneau();
     if (!large.matches || !nav || nav.hidden || sommaireParcouru || nav.contains(document.activeElement)) return;
@@ -83,6 +83,11 @@
         if (entry.isIntersecting) visibles.add(entry.target);
         else visibles.delete(entry.target);
       });
+      if (destinationExplicite && visible(destinationExplicite)) {
+        const r=destinationExplicite.getBoundingClientRect();
+        if(r.top>=0 && r.top<innerHeight){position(destinationExplicite);return;}
+      }
+      destinationExplicite=null;
       const courants = [...visibles].filter(visible);
       courants.sort((a, b) => {
         // Favoriser la sous-rubrique plutôt que son conteneur.
@@ -152,6 +157,7 @@
     if (!titre.hasAttribute('tabindex')) titre.tabIndex = -1;
     titre.focus({preventScroll: true});
     element.scrollIntoView({block: 'start', behavior: 'instant'});
+    destinationExplicite=element;
     position(element);
   }
   function assurerFocus() {
@@ -205,15 +211,19 @@
     if (ouvert && !event.target.closest('.condition-sommaire,.condition-acces')) fermer();
     mesurer();
   });
-  document.addEventListener('pointerover', event => {
-    const nav = panneau();
-    if (nav?.contains(event.target)) sommaireParcouru = true;
-  });
-  document.addEventListener('pointerout', event => {
-    const nav = panneau();
-    if (nav?.contains(event.target) && !nav.contains(event.relatedTarget)) {
-      sommaireParcouru = false; suivreSommaire();
-    }
+  document.addEventListener('pointermove', event => {
+    const nav=panneau();
+    const dedans=Boolean(nav && !nav.hidden && nav.contains(event.target));
+    const quittait=sommaireParcouru;
+    sommaireParcouru=dedans;
+    if(quittait && !dedans)suivreSommaire();
+  }, {passive:true});
+  ['wheel','touchmove'].forEach(nom=>document.addEventListener(nom,event=>{
+    if(panneau()?.contains(event.target))sommaireParcouru=true;
+    else destinationExplicite=null;
+  }, {passive:true}));
+  document.addEventListener('keydown',event=>{
+    if(['ArrowDown','ArrowUp','PageDown','PageUp','Home','End',' '].includes(event.key))destinationExplicite=null;
   });
   document.addEventListener('focusout', () => { mesurer(); requestAnimationFrame(suivreSommaire); });
   ['condition:vue', 'navigation:actualise', 'dossier:actualise', 'condition:depliements'].forEach(nom =>

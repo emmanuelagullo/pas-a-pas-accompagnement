@@ -153,3 +153,15 @@ class PrestationsLocalesTests(TestCase):
         self.assertEqual(m.NotePartagee.objects.filter(accord_repas=self.r).count(),1)
         autre=operation.replace(str(self.r.pk),str(self.s.pk))
         self.assertEqual(self.client.post(self.url(cle,autre),f.jetons).status_code,404)
+
+    def test_operations_sous_prefixe_serveur_et_pwa(self):
+        from django.urls import get_script_prefix, set_script_prefix
+        prefixe=get_script_prefix()
+        try:
+            set_script_prefix('/chrs/app/')
+            for cle in ['sejour:'+str(self.s.pk),'repas:'+str(self.r.pk)]+['aide_'+a.nature+':'+str(a.pk) for a in self.aides]:
+                page=self.client.get(self.url(cle),SCRIPT_NAME='/chrs/app/')
+                self.assertEqual(page.status_code,200)
+                self.assertContains(page,'data-prestation-panneau',count=1)
+                self.assertContains(page,'/chrs/app/dossiers/')
+        finally:set_script_prefix(prefixe)

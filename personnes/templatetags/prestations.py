@@ -35,7 +35,7 @@ def prestation_frise(context, url):
     from django.urls import resolve, Resolver404
     from django.core.exceptions import ObjectDoesNotExist
     try:
-        cible=resolve(urlsplit(url).path); nom=cible.view_name; pk=cible.kwargs.get('pk')
+        cible=nav.resoudre(urlsplit(url).path); nom=cible.view_name; pk=cible.kwargs.get('pk')
         if nom == 'suivi:accord_hebergement':
             fragment=urlsplit(url).fragment
             if fragment.startswith('sejour-'):cle='sejour:'+fragment[7:]

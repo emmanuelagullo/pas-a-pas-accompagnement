@@ -62,7 +62,7 @@ class NavigationInterneNavigateur(StaticLiveServerTestCase):
         nav.hover()
         page.mouse.wheel(0, -10000)
         expect(nav).to_be_visible()
-        self.assertEqual(nav.evaluate('n=>n.scrollTop'), 0)
+        page.wait_for_function("document.getElementById('sommaire-dossier').scrollTop === 0")
         page.mouse.move(1200, 400)
         page.wait_for_function("document.getElementById('sommaire-dossier').scrollTop > 0")
 
