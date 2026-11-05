@@ -60,21 +60,24 @@ def organisation(request,service_pk=None,action=None):
     if request.method=='POST':return HttpResponseNotAllowed(['GET'])
     resume = {}
     if service:
-        from .collecte import POPULATIONS, PORTEES, RUBRIQUES
+        from .collecte import POPULATIONS, RUBRIQUES
         from .profils_collectifs import IDENTIFICATIONS, MODES, categories_defaut
         profil = service.profil_collectif
         populations = dict(POPULATIONS)
         populations.update(('categorie:' + c['code'], c['libelle']) for c in profil.get('categories', categories_defaut()))
-        portees = dict(PORTEES)
         regles = []
         for code, (titre, _) in RUBRIQUES.items():
             if code not in service.collecte_rubriques:
                 continue
             regle = service.collecte_rubriques[code]
             portee = regle['portee']
-            libelle = portees[portee]
-            if portee in ('personne', 'deux'):
-                libelle += ' · ' + populations.get(regle['population'], 'Catégorie à vérifier')
+            population = populations.get(regle['population'], 'Catégorie à vérifier')
+            libelle = {
+                'non': 'Non demandée',
+                'menage': 'Ménage',
+                'personne': population,
+                'deux': f'Ménage et {population[:1].lower() + population[1:]}, séparément',
+            }[portee]
             regles.append((titre, libelle))
         prestations = [
             libelle + ' · ' + dict(MODES)[profil[code]]

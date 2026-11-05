@@ -12,7 +12,7 @@ RUBRIQUES={
  'besoins':('Besoins pratiques et adaptations',()),'antecedents':('Antécédents institutionnels',()),
  'territoires':('Ancrage territorial',()),'evolutions':('Évolutions déclarées',()),
  'relations':('Liens personnels',()),'projet':('Projet du ménage',('projet',))}
-PORTEES=[('personne','Personne'),('menage','Ménage'),('deux','Personne et ménage — valeurs distinctes'),('non','Non demandée')]
+PORTEES=[('personne','Pour chaque personne concernée'),('menage','Pour le ménage'),('deux','Pour le ménage et chaque personne concernée, séparément'),('non','Non demandée')]
 POPULATIONS=[('tous','Toutes les personnes identifiées'),('reference','Personne de référence du ménage'),('adultes','Adultes (18 ans et plus)')]
 
 def verifier(valeur,categories=()):
@@ -20,10 +20,13 @@ def verifier(valeur,categories=()):
     if not isinstance(valeur,dict) or set(valeur)!=set(RUBRIQUES):raise ValidationError('Définissez une règle par rubrique connue.')
     populations={x[0] for x in POPULATIONS}|{'categorie:'+x['code'] for x in categories}
     for code,r in valeur.items():
-        if not isinstance(r,dict) or set(r)!={'portee','population'} or r['portee'] not in dict(PORTEES) or r['population'] not in populations:
+        if not isinstance(r,dict) or set(r)-{'portee_preferee'}!={'portee','population'} or r['portee'] not in dict(PORTEES) or r['population'] not in populations:
             raise ValidationError('Règle de collecte inconnue.')
-        if r['portee'] in ('menage','deux') and not RUBRIQUES[code][1]:raise ValidationError('Cette rubrique ne peut pas être attribuée au ménage.')
-        if code=='projet' and r['portee'] not in ('menage','non'):raise ValidationError('Le projet du ménage reste distinct des objectifs et projets personnels de parcours.')
+        portee = r.get('portee_preferee', r['portee'])
+        if 'portee_preferee' in r and (r['portee'] != 'non' or portee not in ('personne','menage','deux')):
+            raise ValidationError('Rattachement préféré inconnu.')
+        if portee in ('menage','deux') and not RUBRIQUES[code][1]:raise ValidationError('Cette rubrique ne peut pas être attribuée au ménage.')
+        if code=='projet' and portee not in ('menage','non'):raise ValidationError('Le projet du ménage reste distinct des objectifs et projets personnels de parcours.')
         if code=='identite' and (r['portee']!='personne' or r['population']!='tous'):raise ValidationError('L’identité des personnes identifiées reste personnelle.')
 
 def profil(nom):

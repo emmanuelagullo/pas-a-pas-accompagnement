@@ -8,4 +8,22 @@
 <section class="carte"><h2>Ce qui sera transmis</h2><ul>{% for x in lignes_relais %}<li>{{ x.cible }} · {{ x.get_role_display }}</li>{% empty %}<li>Aucune responsabilité à transmettre avec cette sélection.</li>{% endfor %}</ul></section>{% endif %}
 <form method="post" class="carte">{% csrf_token %}{% adapter_saisie form request.user %}{% if form.lignes_collecte %}{{ form.non_field_errors }}{{ form.attendu }}<p>{{ form.profil.label_tag }} {{ form.profil }} <button class="secondaire" name="appliquer_profil" value="1" formnovalidate>Charger ce profil</button></p>
 {% if profil_charge %}<p role="status" data-profil-charge>Profil chargé. Modifications à enregistrer.</p>{% endif %}
-<div class="collecte-table"><table><thead><tr><th>Rubrique</th><th>Information portée par</th><th>Informations personnelles demandées à</th></tr></thead><tbody>{% for titre,portee,population in form.lignes_collecte %}<tr><th>{{ titre }}</th><td><label class="visuellement-cache" for="{{ portee.id_for_label }}">{{ portee.label }}</label>{{ portee }}{{ portee.errors }}</td><td><label class="visuellement-cache" for="{{ population.id_for_label }}">{{ population.label }}</label>{{ population }}{{ population.errors }}</td></tr>{% endfor %}</tbody></table></div>{% elif form.categories_lignes %}{{ form.non_field_errors }}{{ form.attendu }}{% for titre,champs in form.groupes_champs %}<fieldset><legend>{{ titre }}</legend>{% for champ in champs %}<p>{{ champ.label_tag }} {{ champ }}{{ champ.errors }}{% if champ.help_text %}<span class="helptext">{{ champ.help_text }}</span>{% endif %}</p>{% endfor %}</fieldset>{% endfor %}{% if form.afficher_categories %}<details><summary>Adapter les catégories d’âge</summary><p>Bornes inclusives sans recouvrement. Laisser les lignes inutilisées vides ; les âges inconnus restent distincts.</p>{% for ligne in form.categories_lignes %}<fieldset><legend>Catégorie {{ forloop.counter }}</legend>{% for champ in ligne %}<p>{{ champ.label_tag }} {{ champ }}{{ champ.errors }}</p>{% endfor %}</fieldset>{% endfor %}</details>{% endif %}{% else %}{{ form.as_p }}{% endif %}<button type="submit">{% if proposition_relais %}Confirmer le relais{% else %}Enregistrer{% endif %}</button> <a class="bouton secondaire" href="{{ retour }}">Annuler</a></form></div><script src="{% static 'parametrage.js' %}" defer></script>{% endblock %}
+<div class="collecte-table">
+  <table>
+    <thead><tr><th>Rubrique</th><th>Demander</th><th>Où enregistrer l’information ?</th><th>Quelles personnes sont concernées ?</th></tr></thead>
+    <tbody>
+      {% for titre,active,portee,population,identite in form.lignes_collecte %}
+      <tr>
+        <th scope="row">{{ titre }}</th>
+        {% if identite %}
+        <td>Toujours</td><td>Pour chaque personne identifiée</td><td>—</td>
+        {% else %}
+        <td><label class="visuellement-cache" for="{{ active.id_for_label }}">{{ active.label }}</label>{{ active }}{{ active.errors }} <span data-collecte-inactive hidden>Non demandée</span></td>
+        <td><span data-collecte-choix><label class="visuellement-cache" for="{{ portee.id_for_label }}">{{ portee.label }}</label>{{ portee }}</span><span data-collecte-tiret hidden>—</span>{{ portee.errors }}</td>
+        <td><span data-collecte-choix><label class="visuellement-cache" for="{{ population.id_for_label }}">{{ population.label }}</label>{{ population }}</span><span data-collecte-tiret hidden>—</span>{{ population.errors }}</td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>{% elif form.categories_lignes %}{{ form.non_field_errors }}{{ form.attendu }}{% for titre,champs in form.groupes_champs %}<fieldset><legend>{{ titre }}</legend>{% for champ in champs %}<p>{{ champ.label_tag }} {{ champ }}{{ champ.errors }}{% if champ.help_text %}<span class="helptext">{{ champ.help_text }}</span>{% endif %}</p>{% endfor %}</fieldset>{% endfor %}{% if form.afficher_categories %}<details><summary>Adapter les catégories d’âge</summary><p>Bornes inclusives sans recouvrement. Laisser les lignes inutilisées vides ; les âges inconnus restent distincts.</p>{% for ligne in form.categories_lignes %}<fieldset><legend>Catégorie {{ forloop.counter }}</legend>{% for champ in ligne %}<p>{{ champ.label_tag }} {{ champ }}{{ champ.errors }}</p>{% endfor %}</fieldset>{% endfor %}</details>{% endif %}{% else %}{{ form.as_p }}{% endif %}<button type="submit">{% if proposition_relais %}Confirmer le relais{% else %}Enregistrer{% endif %}</button> <a class="bouton secondaire" href="{{ retour }}">Annuler</a></form></div><script src="{% static 'parametrage.js' %}" defer></script>{% endblock %}

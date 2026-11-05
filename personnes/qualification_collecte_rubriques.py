@@ -32,7 +32,13 @@ class CollecteNavigateur(Donnees,StaticLiveServerTestCase):
                     page.get_by_role('navigation', name='Dans cette page', exact=True).get_by_role('link', name='Informations sociales', exact=True).click()
                 bloc=page.locator('#service-'+str(self.service.pk)+'-rubriques')
                 page.get_by_role('link',name='Modifier les rubriques sociales',exact=True).click()
-                if js:expect(bloc.locator('[data-parametrage-hote] form')).to_be_visible()
+                if js:
+                    expect(bloc.locator('[data-parametrage-hote] form')).to_be_visible()
+                    page.get_by_role('link', name='Modifier l’accès aux dossiers', exact=True).click()
+                    expect(page.locator('#parametrage-editeur [name=politique]')).to_be_visible()
+                    expect(bloc.locator('form')).to_have_count(0)
+                    page.get_by_role('link', name='Modifier les rubriques sociales', exact=True).click()
+                    expect(bloc.locator('form')).to_be_visible()
                 form=page.locator('#parametrage form')
                 form.locator('[name=profil]').select_option('menage')
                 form.get_by_role('button',name='Charger ce profil',exact=True).click()
@@ -41,7 +47,13 @@ class CollecteNavigateur(Donnees,StaticLiveServerTestCase):
                 expect(form.locator('[data-profil-charge]')).to_be_visible()
                 form.locator('[name=logement_portee]').select_option('deux')
                 form.locator('[name=logement_population]').select_option('adultes')
-                form.locator('[name=couvertures_portee]').select_option('non')
+                form.locator('[name=couvertures_active]').uncheck()
+                if js:
+                    expect(form.locator('[name=couvertures_portee]')).to_be_hidden()
+                    page.get_by_role('link', name='Modifier l’accès aux dossiers', exact=True).click()
+                    expect(bloc.locator('h2, h3').first).to_be_focused()
+                    expect(bloc.locator('[data-etat-parametrage]')).to_contain_text('avant de changer de rubrique')
+                    expect(form.locator('[name=logement_portee]')).to_have_value('deux')
                 self.assertLessEqual(page.evaluate('document.documentElement.scrollWidth'),largeur+1)
                 if os.environ.get('COL6_CAPTURES'):
                     out=Path(os.environ['COL6_CAPTURES']);out.mkdir(parents=True,exist_ok=True)
@@ -66,6 +78,9 @@ class CollecteNavigateur(Donnees,StaticLiveServerTestCase):
         self.service.refresh_from_db()
         self.assertEqual(self.service.collecte_rubriques['logement'],{'portee':'deux','population':'adultes'})
         self.assertEqual(self.service.collecte_rubriques['ressources']['portee'],'menage')
+        self.assertEqual(self.service.collecte_rubriques['couvertures'], {
+            'portee': 'non', 'population': 'reference', 'portee_preferee': 'personne',
+        })
         self.assertEqual(self.service.politique, 'lecture')
     def test_grand_ecran_js(self):self.parcourir(True,1366)
     def test_mobile_js(self):self.parcourir(True,390)

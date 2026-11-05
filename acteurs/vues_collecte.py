@@ -23,18 +23,46 @@ class CollecteForm(FormulaireMetier):
         populations=c.POPULATIONS+ [('categorie:'+x['code'],x['libelle']) for x in service.profil_collectif.get('categories',categories_defaut())]
         self.lignes=[]
         for code,(titre,champs) in c.RUBRIQUES.items():
-            portees=c.PORTEES if champs else [v for v in c.PORTEES if v[0] in ('personne','non')]
-            if code=='identite':portees=[('personne','Personne identifiée')]
-            if code=='projet':portees=[v for v in c.PORTEES if v[0] in ('menage','non')]
-            self.fields[code+'_portee']=forms.ChoiceField(label=titre+' — rattachement',choices=portees,initial=regles[code]['portee'])
-            self.fields[code+'_population']=forms.ChoiceField(label=titre+' — personnes concernées',choices=c.POPULATIONS[:1] if code=='identite' else populations,initial=regles[code]['population'],required=False)
-            self.lignes.append((titre,code+'_portee',code+'_population'))
+            regle = regles[code]
+            possibles = ('menage',) if code == 'projet' else (
+                ('personne', 'menage', 'deux') if champs else ('personne',)
+            )
+            portees = [(valeur, libelle) for valeur, libelle in c.PORTEES if valeur in possibles]
+            self.fields[code+'_active'] = forms.BooleanField(
+                label=titre+' — demander cette information', required=False,
+                initial=regle['portee'] != 'non', disabled=code == 'identite',
+            )
+            self.fields[code+'_portee'] = forms.ChoiceField(
+                label=titre+' — où enregistrer l’information ?', choices=portees,
+                initial=regle.get('portee_preferee', possibles[0]) if regle['portee'] == 'non' else regle['portee'],
+                disabled=code == 'identite',
+            )
+            self.fields[code+'_population'] = forms.ChoiceField(
+                label=titre+' — quelles personnes sont concernées ?',
+                choices=c.POPULATIONS[:1] if code == 'identite' else populations,
+                initial=regle['population'], required=False, disabled=code == 'identite',
+            )
+            self.lignes.append((titre, code))
+
     @property
-    def lignes_collecte(self):return [(titre,self[a],self[b]) for titre,a,b in self.lignes]
+    def lignes_collecte(self):
+        return [
+            (titre, self[code+'_active'], self[code+'_portee'], self[code+'_population'], code == 'identite')
+            for titre, code in self.lignes
+        ]
+
     def clean(self):
-        d=super().clean()
-        if self.errors:return d
-        regles={code:{'portee':d.pop(code+'_portee'),'population':d.pop(code+'_population') or 'tous'} for code in c.RUBRIQUES}
+        d = super().clean()
+        if self.errors:
+            return d
+        regles = {}
+        for code in c.RUBRIQUES:
+            active = d.pop(code+'_active')
+            portee = d.pop(code+'_portee')
+            regle = {'portee': portee if active else 'non', 'population': d.pop(code+'_population') or 'tous'}
+            if not active:
+                regle['portee_preferee'] = portee
+            regles[code] = regle
         c.verifier(regles,self.service.profil_collectif.get('categories',categories_defaut()))
         d.pop('profil',None);d['regles']=regles
         return d

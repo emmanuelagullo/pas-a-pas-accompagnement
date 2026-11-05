@@ -51,6 +51,7 @@ class CollecteRubriquesTests(Donnees,TestCase):
         d={'attendu':organisation.jeton(self.service),'profil':'detail'}
         for code,r in profil('detail').items():
             for cle,v in r.items():d[code+'_'+cle]=v
+            d[code+'_active']='on'
         f=CollecteForm(d,service=self.service)
         self.assertTrue(f.is_valid(),f.errors)
         self.assertEqual(f.cleaned_data['regles'],profil('detail'))
