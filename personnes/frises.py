@@ -2,7 +2,7 @@
 from collections import defaultdict
 from datetime import timedelta
 from math import log1p
-from urllib.parse import urlencode, urlsplit
+from urllib.parse import urlencode, urlsplit, parse_qsl
 
 from django.core import signing
 from django.db.models import Prefetch
@@ -204,6 +204,29 @@ def _charger(acteur, objets, nature, *, prise=None, navigations=None, retour_rec
     if acteur.has_perms(aides.LECTURE):
         for x in m.AccordAide.objects.filter(accompagnement_id__in=prises).prefetch_related(Prefetch('beneficiaires', to_attr='frise_beneficiaires')):
             ajouter(x, x.accompagnement_id, 'aide', x.libelle+' (autorisation)', reverse('dossiers:aide', args=[x.pk]), {p.pk for p in x.frise_beneficiaires}, 3, bool(x.annule_le))
+    droits_communs=['personnes.view_prestationcollective','personnes.view_versionprestationcollective','personnes.view_compositioncollective','personnes.view_couvertcollectif']
+    if acteur.has_perms(droits_communs):
+        from types import SimpleNamespace
+        for p in m.PrestationCollective.objects.filter(accompagnement_id__in=prises).prefetch_related('versions__composition__identifies','mouvements'):
+            v=max(p.versions.all(),key=lambda v:v.numero,default=None)
+            if not v:continue
+            personnes=set(v.composition.identifies.values_list('pk',flat=True))
+            url=reverse('dossiers:collectif_action',args=['prise',p.accompagnement_id,'consultation'])+'?'+urlencode({'pk':p.pk})
+            annule=v.action=='annulation'
+            fin=v.fin or v.fin_prevue
+            # A food end is inclusive, while the common timeline uses [start,end[.
+            if p.nature=='restauration' and fin:fin+=timedelta(days=1)
+            x=SimpleNamespace(pk=p.pk,debut=v.debut,fin=fin)
+            ajouter(x,p.accompagnement_id,'autorisation' if p.nature=='hebergement' else 'repas','Hébergement autorisé' if p.nature=='hebergement' else 'Repas accordés (quantités calculées)',url,personnes,1 if p.nature=='hebergement' else 2,annule)
+            faits[-1]['modele']='prestationcollective';faits[-1]['prestation_collective_id']=str(p.pk)
+            if p.nature=='hebergement' and v.arrivee:
+                x=SimpleNamespace(pk=p.pk,debut=v.arrivee,fin=v.fin)
+                ajouter(x,p.accompagnement_id,'sejour','Séjour enregistré pour le groupe',url,personnes,0,annule)
+                faits[-1]['modele']='prestationcollective';faits[-1]['prestation_collective_id']=str(p.pk)
+            if acteur.has_perm('personnes.view_mouvementcollectif'):
+                for mouvement in p.mouvements.filter(annule_le__isnull=True):
+                    ajouter(mouvement,p.accompagnement_id,'absence' if mouvement.nature=='absence' else 'lieu','Absence du groupe' if mouvement.nature=='absence' else 'Affectation du groupe',url,personnes,0,annule)
+                    faits[-1]['prestation_collective_id']=str(p.pk)
     if nature == 'personne':
         faits = [f for f in faits if f['personnes'] & ids]
     if not prises:
@@ -232,7 +255,7 @@ def _charger(acteur, objets, nature, *, prise=None, navigations=None, retour_rec
                 valeurs['vue'] = {**valeurs['vue'], 'frise_ouverte':cle}
                 token = signing.dumps(valeurs, salt=dossier.SEL, compress=True)
                 cible = urlsplit(url)
-                return cible.path + '?' + urlencode({'contexte_dossier':token}) + ('#'+cible.fragment if cible.fragment else '')
+                return cible.path + '?' + urlencode({**dict(parse_qsl(cible.query)),'contexte_dossier':token}) + ('#'+cible.fragment if cible.fragment else '')
             for f in b['details']:
                 f['url'] = lien(f['url'], f['prise_id'])
             if cle.startswith(nature+'-'):
@@ -256,8 +279,8 @@ def _charger(acteur, objets, nature, *, prise=None, navigations=None, retour_rec
             resultat[('accompagnement', str(p.pk))] = enrichir(bande(echelle, [p], fs), 'accompagnement-'+str(p.pk))
         for f in ff:
             # Les noms de modèles distinguent les UUID éventuellement semblables.
-            cle = {'sejour':'sejour', 'autorisation':'accordhebergement', 'repas':'accordrepas', 'aide':'accordaide'}.get(f['type'])
+            cle = f.get('modele') or {'sejour':'sejour', 'autorisation':'accordhebergement', 'repas':'accordrepas', 'aide':'accordaide'}.get(f['type'])
             if cle:
-                fils = [f] + [x for x in ff if x['sejour_id'] == f['id'] and x['type'] in ('lieu', 'absence') and f['type']=='sejour']
+                fils = [x for x in ff if x.get('prestation_collective_id')==f['id']] if cle=='prestationcollective' else [f] + [x for x in ff if x['sejour_id'] == f['id'] and x['type'] in ('lieu', 'absence') and f['type']=='sejour']
                 resultat[(cle, f['id'])] = enrichir(bande(echelle, [], fils), cle+'-'+f['id'])
     return resultat

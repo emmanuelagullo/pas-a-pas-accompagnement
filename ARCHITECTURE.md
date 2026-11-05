@@ -2,13 +2,16 @@
 
 ## État courant
 
-COL1–4 ajoute un parcours collectif volontaire par service, décrit dans
+COL1–4 ajoute des options de suivi configurables par service, décrites dans
 [COLLECTIF.md](COLLECTIF.md). Les compositions datées conservent les identités
 connues et les effectifs complémentaires sans personnes fictives. Les prestations
 communes ont une identité et des versions ; leurs volumes calculés restent
 distincts des distributions pointées et des rapports nominatifs historiques.
 
-COL4c simplifie les listes communes et ancre les formulaires de paramétrage
+COL4d unifie les prestations dans les composants NAV existants : mêmes groupes,
+entêtes, sélections, actions, frises et panneaux sur place, quelles que soient
+les options activées par le service. Les adaptateurs conservent les objets réels
+et leurs permissions. COL4c ancre les formulaires de paramétrage
 dans leur rubrique, avec réactualisation de ce seul bloc après écriture. Le
 réglage social par rubrique/population et les désignations multiples ne sont
 pas encore implémentés.
@@ -878,3 +881,12 @@ Les frises sur place réutilisent les modèles et les contrôles acteurs :
 `templates/frises` et `static/frises.*` les présentent dans les trois formulaires.
 La préférence est en session et les retours restent signés ; aucune migration.
 Voir [FRISES-SUR-PLACE.md](FRISES-SUR-PLACE.md).
+
+COL4d : une seule présentation NAV des prestations pour tous les services. Le
+paramétrage restreint les options des formulaires, sans créer un autre parcours.
+Les entêtes, lignes, sélection, actions, frises et panneaux sur place sont
+partagés ; les projections conservent les modèles et droits réels. Le résumé
+ouvre la consultation NAV, puis ses commandes autorisées. Cette règle remplace
+l’ouverture directe de l’éditeur des prestations introduite par COL4c ; les
+éditeurs de paramétrage restent ancrés dans leur propre bloc. Les populations
+de collecte par rubrique restent à réaliser.

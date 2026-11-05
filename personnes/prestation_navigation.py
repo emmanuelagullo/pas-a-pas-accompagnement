@@ -35,8 +35,14 @@ def cible(context, cle):
     genre, sep, identifiant = cle.partition(':')
     if not sep: raise Http404
     if genre == 'nouveau':
-        if identifiant not in ('hebergement', 'repas', 'services_repas', *[x[0] for x in m.TypeAide.NATURES]): raise Http404
+        if identifiant not in ('commun_hebergement','commun_restauration','hebergement', 'repas', 'services_repas', *[x[0] for x in m.TypeAide.NATURES]): raise Http404
         return genre, identifiant
+    if genre == 'commun':
+        from .prestations_presentation import initialiser
+        initialiser(context)
+        objet=context['prestations_nav'].get(identifiant)
+        if not objet:raise Http404
+        return genre,objet
     if genre == 'sejour': objets = context['sejours_dossier'] + list(context['arrivees_annulees'])
     elif genre == 'hebergement': objets = context['hebergements_prevus'] + context['accords_annules_sans_sejour'] + [s.accord for s in context['sejours_dossier']]
     elif genre == 'repas': objets = context['accords_repas']
@@ -50,6 +56,7 @@ def cible(context, cle):
 
 
 def consultation(genre, objet):
+    if genre=='commun':return reverse('dossiers:collectif_action',args=['prise',objet.accompagnement_id,'consultation'])+'?'+urlencode({'pk':objet.pk})
     if genre == 'sejour': return reverse('suivi:accord_hebergement', args=[objet.accord_id])
     if genre == 'hebergement': return reverse('suivi:accord_hebergement', args=[objet.pk])
     if genre == 'repas': return reverse('suivi:accord_repas', args=[objet.pk])
@@ -79,6 +86,13 @@ def autoriser_operation(context, cle, valeur):
     except Resolver404: raise Http404
     nom, kw = match.view_name, match.kwargs
     pk = str(kw.get('pk', ''))
+    if genre=='commun' or genre=='nouveau' and objet.startswith('commun_'):
+        query=dict(parse_qsl(url.query))
+        if nom!='dossiers:collectif_action' or kw.get('cible')!='prise' or str(kw.get('pk'))!=str(context['prise'].pk):raise Http404
+        if genre=='commun':
+            if query.get('pk')!=str(objet.pk) or kw.get('action') not in ('consultation','correction','prolongation','depart','annulation','lieu','absence','retour','annuler_mouvement'):raise Http404
+        elif kw.get('action')!='creation' or query.get('pk') or query.get('nature')!=objet[7:]:raise Http404
+        return match,query
     if genre == 'nouveau':
         if objet in ('hebergement','repas','services_repas'):
             ok = nom == 'dossiers:nouveau' and str(kw.get('pk')) == str(context['objet'].pk) and kw.get('nature') == context['nature'] and kw.get('prestation') == objet
@@ -221,6 +235,11 @@ def page(request, nature, pk, prise_pk):
     affichage = copy(request); affichage.method = 'GET'; affichage.GET = request.GET.copy()
     affichage._post = QueryDict(''); affichage._files = MultiValueDict()
     for nom in ('prestation','operation','imprimer'): affichage.GET.pop(nom,None)
+    if genre=='commun':
+        from .prestations_presentation import LECTURE
+        if not request.user.has_perms(LECTURE):raise Http404
+        p=get_object_or_404(m.PrestationCollective,pk=identifiant,accompagnement_id=prise_pk)
+        affichage.GET['sejour' if p.nature=='hebergement' else 'repas']=identifiant
     if genre in ('sejour','repas',*dossier.CLES_AIDES): affichage.GET[genre] = identifiant
     if genre == 'hebergement': affichage.GET['prevision'] = identifiant
     affichage._prestation_interne = True; affichage._prestation_capture = True
@@ -232,7 +251,8 @@ def page(request, nature, pk, prise_pk):
     if not operation:
         if request.method != 'GET' and genre != 'nouveau': raise Http404
         if genre == 'nouveau':
-            operation = reverse('dossiers:nouveau',args=[nature,pk,objet]) if objet in ('hebergement','repas','services_repas') else reverse('dossiers:aide_accorder',args=[prise_pk,objet])
+            if objet.startswith('commun_'):operation=reverse('dossiers:collectif_action',args=['prise',prise_pk,'creation'])+'?'+urlencode({'nature':objet[7:]})
+            else:operation = reverse('dossiers:nouveau',args=[nature,pk,objet]) if objet in ('hebergement','repas','services_repas') else reverse('dossiers:aide_accorder',args=[prise_pk,objet])
         else: operation = consultation(genre,objet)
     match, query = autoriser_operation(context,cle,operation)
     if match.view_name == 'suivi:notes':
@@ -264,7 +284,11 @@ def page(request, nature, pk, prise_pk):
                 params.update({k:v for k,v in vue.items() if k in params or k in ('sejour','repas','prevision',*dossier.CLES_AIDES)})
             except signing.BadSignature: pass
         if genre == 'nouveau':
-            if objet == 'hebergement': cle = 'hebergement:'+params['prevision'] if params.get('prevision') else 'sejour:'+params.get('sejour','')
+            if objet.startswith('commun_'):
+                ident=resultat.get('X-Prestation-Collective','')
+                if not ident:raise Http404
+                cle='commun:'+ident
+            elif objet == 'hebergement': cle = 'hebergement:'+params['prevision'] if params.get('prevision') else 'sejour:'+params.get('sejour','')
             elif objet in ('repas','services_repas'): cle = 'repas:'+params.get('repas','')
             else:
                 try: ident = resoudre(location.path).kwargs['pk']
@@ -286,12 +310,13 @@ def page(request, nature, pk, prise_pk):
             form=repli.context_data['form']; form.data=request.POST; form.files=request.FILES; form.is_bound=True; form._errors=None
             form.add_error(None,resultat.content.decode())
             repli.status_code=409; resultat=repli
-    consulter = genre != 'nouveau' and urlsplit(operation).path == consultation(genre,objet)
+    consulter = genre != 'nouveau' and urlsplit(operation).path == urlsplit(consultation(genre,objet)).path
+    if genre in ('commun','nouveau') and match.view_name=='dossiers:collectif_action' and resultat.get('Content-Type','').startswith('application/json'):return resultat
     if resultat.get('Content-Type','').startswith('application/pdf') or 'attachment' in resultat.get('Content-Disposition',''):
         return resultat
     if isinstance(resultat, TemplateResponse):
         donnees = {**resultat.context_data,'base_prestation':'dossiers/_prestation_base.html'}
-        consulter = genre != 'nouveau' and urlsplit(operation).path == consultation(genre,objet)
+        consulter = genre != 'nouveau' and urlsplit(operation).path == urlsplit(consultation(genre,objet)).path
         if consulter:
             from .financements import LECTURE
             donnees.update(prestation=objet, prestation_genre=genre, prestation_cadre=context, prestation_finance_autorisee=request.user.has_perms(['personnes.'+d for d in LECTURE]))
@@ -302,7 +327,7 @@ def page(request, nature, pk, prise_pk):
             elif genre == 'hebergement':
                 donnees['sejours'] = [s for s in context['sejours_dossier'] if s.accord_id == objet.pk]
                 donnees['arrivee_prevue_disponible'] = any(a.pk==objet.pk for a in context['hebergements_prevus'])
-            gabarit = 'dossiers/_prestation_hebergement.html' if genre in ('sejour','hebergement') else 'dossiers/_prestation_repas.html' if genre == 'repas' else 'dossiers/_prestation_aide.html'
+            gabarit = 'dossiers/_prestation_groupe.html' if genre=='commun' else 'dossiers/_prestation_hebergement.html' if genre in ('sejour','hebergement') else 'dossiers/_prestation_repas.html' if genre == 'repas' else 'dossiers/_prestation_aide.html'
         elif match.view_name == 'suivi:cahier': gabarit = 'liaisons/panneau.html'
         else: gabarit = resultat.template_name
         contenu = render_to_string(gabarit,donnees,request=interne)
@@ -311,7 +336,7 @@ def page(request, nature, pk, prise_pk):
     contenu = localiser(contenu,context,cle,'' if consulter else adresse(context,cle,operation),True,operation)
     panneau = render_to_string('dossiers/_prestation_panneau.html',{
         'dossier':context['objet'],'prise':context['prise'],'contenu':contenu,'fermer_url':adresse(context)+'#prestation-'+cle.replace(':','-'),'retour_consultation':adresse(context)+'#'+('hebergement' if objet == 'hebergement' else 'repas' if objet in ('repas','services_repas') else 'aides-'+objet) if genre == 'nouveau' else adresse(context,cle),'en_creation':genre == 'nouveau',
-        'en_action':urlsplit(operation).path != (consultation(genre,objet) if genre != 'nouveau' else ''),
+        'en_action':urlsplit(operation).path != (urlsplit(consultation(genre,objet)).path if genre != 'nouveau' else ''),
         'imprimer_url':adresse(context,cle,impression=True),'impression':request.GET.get('imprimer')=='1',
     },request=request)
     context.update(prestation_ouverte=cle,prestation_panneau=mark_safe(panneau),prestation_annulee=genre == 'sejour' and bool(objet.annule_le),prestation_accord_annule=genre == 'hebergement' and bool(objet.annule_le))

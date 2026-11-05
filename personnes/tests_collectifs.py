@@ -96,7 +96,7 @@ class CollectifsTests(Donnees,TestCase):
         self.assertContains(self.client.get(url),'Couverts par repas')
         page=reverse('dossiers:prise',args=['menage',self.m.pk,self.a.pk])
         self.assertContains(self.client.get(page),'Nouvelle période de repas')
-        self.assertContains(self.client.get(page+'?col_action=creation&col_nature=restauration'),'collectif-form')
+        self.assertContains(self.client.get(page+'?prestation=nouveau:commun_restauration'),'id="collectif-form"')
         self.u.user_permissions.clear();self.u=type(self.u).objects.get(pk=self.u.pk)
         with self.assertRaises(PermissionDenied):self.restaurer()
 

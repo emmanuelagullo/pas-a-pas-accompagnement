@@ -1,1 +1,1 @@
-{% extends 'base.html' %}{% load static %}{% block contenu %}{% include 'collectifs/_form.html' %}<script src="{% static 'collectifs.js' %}" defer></script>{% endblock %}
+{% extends base_prestation|default:'base.html' %}{% load static %}{% block contenu %}{% include 'collectifs/_form.html' %}<script src="{% static 'collectifs.js' %}" defer></script>{% endblock %}

@@ -40,7 +40,8 @@ module.exports = async function verifierParcoursMetier(app) {
   await app.getByRole('heading', {name:/Prise en charge du/}).waitFor();
   await app.locator('#repas').getByRole('heading', {name:'Repas', exact:true}).waitFor();
   // COL4b conserve ce groupe et cette nomenclature entre services ;
-  // le scénario collectif complet a sa qualification Chromium dédiée.
+  // COL4d compare les deux services dans le même composant NAV
+  // (qualification_prestations_unifiees), en complément de ce parcours.
   await hebergement.getByRole('link', {name:'Annuler la création', exact:true}).click();
   await app.locator('[data-prestation-form]').waitFor({state:'detached'});
   // Même formulaire pour l’accueil prévu, puis confirmation de l’arrivée.

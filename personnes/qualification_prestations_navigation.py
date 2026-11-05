@@ -151,3 +151,28 @@ class PrestationsNavigationNavigateur(StaticLiveServerTestCase):
         expect(panneau.locator('.liaisons-fil').get_by_text('Message fictif de recette NAV7',exact=True)).to_be_visible()
         expect(page.get_by_role('navigation',name='Fil d’Ariane')).to_be_visible()
         self.assertIn('/prises/',page.url)
+
+
+    def test_creation_prevision_et_arrivee_dans_nav(self):
+        from playwright.sync_api import expect
+        page=self.navigateur();page.set_viewport_size({'width':390,'height':900})
+        page.goto(self.url+'?q=Martin&page=2')
+        boite=page.locator('#hebergement')
+        cadre=boite.element_handle()
+        boite.locator(':scope > .boite-entete').get_by_role('link',name='Nouveau séjour',exact=True).click()
+        form=boite.locator('[data-prestation-form]')
+        expect(form).to_be_visible()
+        form.get_by_label('Arrivée déjà effectuée',exact=False).uncheck()
+        form.get_by_role('button',name='Enregistrer le séjour',exact=True).click()
+        expect(boite.locator('[data-prestation-form]')).to_have_count(0)
+        expect(boite).to_contain_text('Prévu — arrivée à confirmer')
+        page.get_by_role('link',name='Refermer',exact=True).click()
+        boite.get_by_role('link',name='Enregistrer l’arrivée',exact=True).click()
+        form=boite.locator('[data-prestation-form]')
+        expect(form).to_be_visible()
+        form.get_by_role('button',name='Enregistrer l’arrivée',exact=True).click()
+        expect(boite.locator('[data-prestation-form]')).to_have_count(0)
+        expect(boite.get_by_text('Prévu — arrivée à confirmer',exact=True)).to_have_count(0)
+        self.assertTrue(cadre.evaluate('(e)=>e.isConnected'))
+        self.assertIn('page=2',page.url)
+        self.assertLessEqual(page.evaluate('document.documentElement.scrollWidth'),390)

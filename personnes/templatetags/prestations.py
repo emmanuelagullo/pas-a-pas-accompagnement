@@ -48,6 +48,9 @@ def prestation_frise(context, url):
         elif nom == 'suivi:accord_repas':cle='repas:'+str(pk)
         elif nom == 'dossiers:aide':
             aide=next(a for a in context['prestations_aides_visibles'] if str(a.pk)==str(pk));cle='aide_'+aide.nature+':'+str(pk)
+        elif nom=='dossiers:collectif_action':
+            from urllib.parse import parse_qsl
+            cle='commun:'+dict(parse_qsl(urlsplit(url).query)).get('pk','')
         else:return {'url':url,'local':False}
         nav.cible(context,cle)
         return {'url':nav.adresse(context,cle),'local':True}
@@ -61,3 +64,24 @@ def hebergement_individuels_ouverts(context, groupe):
     if cle.startswith('hebergement:'):return False
     identifiant=cle[7:] if cle.startswith('sejour:') else context['request'].GET.get('sejour','')
     return any(str(s.pk)==identifiant for s in groupe['sejours'])
+
+@register.simple_tag(takes_context=True)
+def preparer_prestations(context):
+    from personnes.prestations_presentation import initialiser
+    initialiser(context)
+    return ''
+
+@register.simple_tag(takes_context=True)
+def creation_prestation(context,famille):
+    from personnes.prestations_presentation import creation
+    return creation(context,famille)
+
+@register.inclusion_tag('dossiers/_prestation_ligne.html',takes_context=True)
+def ligne_prestation(context,objet,genre):
+    from personnes.prestations_presentation import ligne
+    return {**context.flatten(),'ligne':ligne(context,objet,genre)}
+
+@register.inclusion_tag('dossiers/_prestation_actions.html',takes_context=True)
+def actions_prestation(context,famille):
+    from personnes.prestations_presentation import actions
+    return {**context.flatten(),'actions':actions(context,famille)}

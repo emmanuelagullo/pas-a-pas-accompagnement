@@ -7,7 +7,7 @@
   const etat = texte => { const e=document.getElementById('etat-dossier'); if(e)e.textContent=texte; };
   const hote = (cle, racine=document) => [...racine.querySelectorAll('[data-prestation-hote]')].find(e=>e.dataset.prestationHote===cle);
   const ouverts = () => [...document.querySelectorAll('[data-prestation-hote]')].filter(e=>e.childElementCount);
-  const cibleUrl = url => {const p=new URL(url,location.href).searchParams;return p.has('col_action') && p.get('col_action')!=='composition' ? 'commun:'+(p.get('col_pk') || 'nouveau-'+p.get('col_nature')) : p.get('prestation') || '';};
+  const cibleUrl = url => new URL(url,location.href).searchParams.get('prestation') || '';
   const actionFormulaire = f => new URL(f.getAttribute('action') || location.href,location.href).href;
   function ouvrirParents(e) { for(let p=e?.parentElement;p;p=p.parentElement)if(p.tagName==='DETAILS')p.open=true; }
   function synchroniser(doc) {
@@ -55,19 +55,13 @@
     if(url.origin!==location.origin)return;
     if(!document.dispatchEvent(new Event('condition:disponible',{cancelable:true}))){etat('Terminez ou annulez la saisie sociale en cours.');return;}
     occupe=true;etat('Chargement…');
-    const ancien=ouverts()[0], ancienneCle=ancien?.dataset.prestationHote, cle=cibleUrl(url) || (options.method==='POST' ? ancienneCle : '') || '';
+    const cle=cibleUrl(url), ancien=ouverts()[0], ancienneCle=ancien?.dataset.prestationHote;
     (ancien || hote(cle))?.setAttribute('aria-busy','true');
     try {
       const reponse=await fetch(url,{credentials:'same-origin',cache:'no-store',...options});
       const doc=new DOMParser().parseFromString(await reponse.text(),'text/html');
       if(doc.querySelector('input[name=password]')){location.assign(reponse.url);return;}
-      if(cle.startsWith('commun:') && !doc.querySelector('[data-dossier-form2]') && doc.querySelector('#collectif-form')) {
-        const destination=hote(cle);if(!destination)throw new Error();
-        destination.replaceChildren(doc.querySelector('#collectif-form'));ouvrirParents(destination);modifie=true;
-        const erreur=destination.querySelector('.errorlist,input,select');if(erreur){erreur.tabIndex=-1;erreur.focus({preventScroll:true});erreur.scrollIntoView({block:'nearest'});}
-        etat('Vérifiez les champs indiqués.');document.dispatchEvent(new Event('navigation:actualise'));return;
-      }
-      if(!doc.querySelector('[data-dossier-form2]') || (!reponse.ok && reponse.status!==409))throw new Error();
+      if(!doc.querySelector('[data-dossier-form2]') || (!reponse.ok && ![400,409].includes(reponse.status)))throw new Error();
       const ouverte=cibleUrl(reponse.url), source=ouverte && hote(ouverte,doc);
       synchroniser(doc);
       let destination=source && hote(ouverte);
@@ -123,7 +117,7 @@
     charger(radio.dataset.prestationUrl);
   });
   document.addEventListener('submit',e=>{
-    const form=e.target;if(!form.matches('[data-prestation-form]') || !document.querySelector('[data-dossier-form2]'))return;
+    const form=e.target;if(!form.matches('[data-prestation-form]'))return;
     e.preventDefault();if(occupe)return;
     if(form.method.toLowerCase()!=='post' && modifie){etat('Terminez ou annulez la saisie en cours avant de rechercher.');return;}
     const url=new URL(actionFormulaire(form)), data=new FormData(form);

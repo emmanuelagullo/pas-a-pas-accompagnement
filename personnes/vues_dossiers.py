@@ -287,11 +287,16 @@ def detail(request, nature, pk, prise_pk=None):
         sejours_par_prise[s.accord.accompagnement_id].append(s)
     for r_accord in accords_r:
         repas_par_prise[r_accord.accompagnement_id].append(r_accord)
+    from .prestations_presentation import sources, resume_sources
+    sources_nav = sources(request.user, periodes, objet if nature == 'personne' else None)
     for a in periodes:
         a.navigation = signer(request, a, nature, pk, params)
         a.url_prise = reverse('dossiers:prise', args=[nature, pk, a.pk]) + '?' + urlencode({k: v for k, v in params.items() if prise or k not in dossier.CLES_SOCIALES})
         a.url_prolonger = reverse('dossiers:prolonger_prise', args=[nature, pk, a.pk]) + '?' + urlencode(params)
         a.resume_prestations = bd6.resume_prestations(a, sejours_par_prise[a.pk], repas_par_prise[a.pk], jour, lieux)
+        complement = resume_sources([p for p in sources_nav if p.accompagnement_id == a.pk])
+        if complement:
+            a.resume_prestations = (a.resume_prestations + ' · ' if a.resume_prestations != 'Aucune prestation consultable' else '') + complement
         attendus = [x for x in prevus if x.accompagnement_id == a.pk]
         if attendus:
             libelle = 'Héberg. prévu — arrivée à confirmer' if any(x.fin is None or x.fin > jour for x in attendus) else 'Héberg. — arrivée non enregistrée'
@@ -366,7 +371,7 @@ def detail(request, nature, pk, prise_pk=None):
             qs = modeles.AccordAide.objects.filter(accompagnement=prise).prefetch_related('beneficiaires')
             if nature == 'personne': qs = qs.filter(beneficiaires=objet)
             aides_visibles = list(qs)
-    return render(request, 'dossiers/prise.html' if prise else 'dossiers/detail.html', {
+    contexte = {'sources_prestations_nav': sources_nav, 'request':request,
         'frise_ouverte': params.get('frise_ouverte', ''), 'frise_axe': next(iter(frises_objets.values()), None), 'frises_actives': frises_actives, 'frise_retour': frises.commande(request), 'frises_objets': frises_objets,
         'condition_personnes': condition_personnes, 'condition_projets': condition_projets, 'condition_reperes': condition_reperes,
         'condition_lecture': bd6.etat(request.user, personnes_sociales, condition_jour),
@@ -396,7 +401,10 @@ def detail(request, nature, pk, prise_pk=None):
         'periode_actuelle': actuelle, 'information_actuelle': informations_actuelles[0] if informations_actuelles else None,
         'notes_actuelles': notes_actuelles, 'periodes': periodes, 'aujourdhui': jour, 'lecture_hebergement': h, 'lecture_repas': r, 'lecture_lieux': lieux,
         'actions_collectives_hebergement':actions_collectives_h, 'groupes_hebergement': groupes_h, 'selection_hebergement_collective':selection_collective, 'accords_realises_prestations': list({s.accord_id:s.accord for s in sejours if s.accord_id not in accords_collectifs and s.accord_id not in {a.pk for a in prevus}}.values()), 'accords_annules_sans_sejour': [x for x in accords_h if x.annule_le], 'hebergements_prevus': prevus, 'selection_prevision': params['prevision'], 'sejours_dossier': sejours, 'accords_sans_sejour': accords_h, 'accords_repas': accords_r,
-        'selection_sejour': selection_h, 'selection_repas': selection_r, 'navigation_h': nav_h, 'navigation_r': nav_r})
+        'selection_sejour': selection_h, 'selection_repas': selection_r, 'navigation_h': nav_h, 'navigation_r': nav_r}
+    from .prestations_presentation import initialiser
+    initialiser(contexte)
+    return render(request, 'dossiers/prise.html' if prise else 'dossiers/detail.html', contexte)
 
 
 def suivi_uuid(valeur):

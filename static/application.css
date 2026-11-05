@@ -409,9 +409,6 @@ header > nav .menu-utilisateur { position: relative; }
 .hebergement-individuels {margin-top:.75rem}
 .hebergement-individuels > summary,.hebergement-actions-individuelles > summary {padding:.5rem;min-height:2.75rem;cursor:pointer}
 .hebergement-individuels .episodes-compacts {margin-top:.5rem}
-/* Une prestation commune est une ligne entière, sans colonne de sélection. */
-.prestations-communes .hebergement-groupe > .prestation-consulter {display:flex;flex-wrap:wrap;align-items:baseline;gap:.25rem .8rem}
-.prestations-communes .hebergement-groupe > .prestation-consulter > * {min-width:0;overflow-wrap:anywhere}
 /* Les éditeurs de réglages restent dans la largeur de leur rubrique. */
 #parametrage [data-parametrage-hote] {min-width:0;max-width:100%}
 #parametrage [data-parametrage-modifier][hidden] {display:none}

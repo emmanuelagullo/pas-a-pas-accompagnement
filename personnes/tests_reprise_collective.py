@@ -118,8 +118,9 @@ class RepriseCollectiveTests(CollectifsTests):
         page=self.client.get(url)
         self.assertNotContains(page,'Enregistrer le départ')
         self.assertNotContains(page,'>Corriger</a>')
-        self.assertContains(page,'class="hebergement-groupe')
-        page=self.client.get(url,{'col_action':'correction','col_pk':p.pk})
+        self.assertContains(page,'data-prestation-carte="commun:')
+        operation=reverse('dossiers:collectif_action',args=['prise',self.a.pk,'correction'])+'?pk='+str(p.pk)
+        page=self.client.get(url,{'prestation':'commun:'+str(p.pk),'operation':operation})
         self.assertContains(page,'Modifier la période de repas')
         self.assertContains(page,'name="fin"')
 

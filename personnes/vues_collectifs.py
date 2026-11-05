@@ -13,6 +13,7 @@ from django.core.exceptions import ValidationError, PermissionDenied
 from django.db import OperationalError
 from django.utils import timezone
 from . import models as m, collectifs as c, forms_collectifs as f, suivi
+from .prestation_navigation import rendre as render
 
 def retour(objet):
     if isinstance(objet,m.Accompagnement):return reverse('dossiers:prise',args=['menage',objet.menage_id,objet.pk])
@@ -52,6 +53,14 @@ def preparer(request,objet,action,pk=None,nature=None):
     if token:query['retour_col']=token
     url+='?'+urlencode(query)
     titre={'composition':'Composition et situation du ménage','creation':'Nouveau séjour' if nature=='hebergement' else 'Nouvelle période de repas','correction':'Modifier le séjour' if nature=='hebergement' else 'Modifier la période de repas','prolongation':'Prolonger','depart':'Enregistrer le départ','annulation':'Annuler la prestation','lieu':'Changer de lieu','absence':'Enregistrer une absence','retour':'Enregistrer le retour d’absence','annuler_mouvement':'Annuler un mouvement erroné'}.get(action)
+    if action=='consultation':
+        if not p:raise ValidationError('Choisissez une prestation.')
+        suivi.exiger(acteur,'view_prestationcollective','view_versionprestationcollective','view_couvertcollectif','view_compositioncollective')
+        calcul=None
+        if nature=='restauration' and (v.fin or v.fin_prevue):
+            try:calcul=c.bilan(v,v.debut,(v.fin or v.fin_prevue)+timedelta(days=1))
+            except ValidationError:pass
+        return {'prestation':p,'version':v,'composition':comp,'calcul':calcul,'titre':'Séjour' if nature=='hebergement' else 'Période de repas','retour':retour_page,'mouvements':p.mouvements.all() if acteur.has_perm('personnes.view_mouvementcollectif') else []}
     if not titre:raise ValidationError('Action inconnue.')
     if action=='composition':
         suivi.exiger(acteur,'view_compositioncollective','add_compositioncollective')
@@ -96,6 +105,9 @@ def action(request,cible,pk,action):
     statut=200
     try:ctx=preparer(request,objet,action,request.GET.get('pk'),request.GET.get('nature'))
     except ValidationError as e:return render(request,'collectifs/erreur.html',{'erreur':' '.join(e.messages),'retour':retour(objet)},status=400)
+    if action=='consultation':
+        if request.method!='GET':raise PermissionDenied
+        return render(request,'collectifs/consultation.html',ctx)
     if request.method=='POST' and (request.GET.get('apercu')=='1' or request.POST.get('calculer')):
         resultat=apercu(ctx['form'],objet,request)
         if request.GET.get('apercu')=='1':return JsonResponse(resultat)
@@ -106,10 +118,13 @@ def action(request,cible,pk,action):
             ctx['form'].data=data
         return render(request,'collectifs/form.html',{'formctx':ctx})
     if request.method=='POST' and ctx['form'].is_valid():
-        try:ctx['faire'](**ctx['form'].cleaned_data)
+        try:resultat=ctx['faire'](**ctx['form'].cleaned_data)
         except (ValidationError,OperationalError) as e:
             ctx['form'].add_error(None,' '.join(e.messages) if isinstance(e,ValidationError) else 'Écriture non confirmée. Rechargez avant de réessayer.');statut=409
-        else:return redirect(ctx['retour'])
+        else:
+            reponse=redirect(ctx['retour'])
+            if isinstance(resultat,m.PrestationCollective):reponse['X-Prestation-Collective']=str(resultat.pk)
+            return reponse
     elif request.method=='POST':statut=400
     return render(request,'collectifs/form.html',{'formctx':ctx},status=statut)
 

@@ -1604,3 +1604,12 @@ La checkbox **Frise** affiche des bandes compactes sous les noms des dossiers,
 sous les périodes des prises et dans les prestations. Son état est commun à la
 session. **Élargir** ouvre les détails sur place. Voir [la représentation,
 les échelles et la recette](FRISES-SUR-PLACE.md).
+
+COL4d : une seule présentation NAV des prestations pour tous les services. Le
+paramétrage restreint les options des formulaires, sans créer un autre parcours.
+Les entêtes, lignes, sélection, actions, frises et panneaux sur place sont
+partagés ; les projections conservent les modèles et droits réels. Le résumé
+ouvre la consultation NAV, puis ses commandes autorisées. Cette règle remplace
+l’ouverture directe de l’éditeur des prestations introduite par COL4c ; les
+éditeurs de paramétrage restent ancrés dans leur propre bloc. Les populations
+de collecte par rubrique restent à réaliser.
