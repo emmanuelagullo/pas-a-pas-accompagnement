@@ -16,8 +16,7 @@ def completer(auteur, etablissement, professionnel):
     sortie = entree + timedelta(days=210)
     regles = profil('adultes')
     regles['coordonnees'] = {'portee': 'menage', 'population': 'tous'}
-    for code in ('administration', 'couvertures'):
-        regles[code]['population'] = 'reference'
+    regles['couvertures']['population'] = 'reference'
     service = Service.objects.create(
         etablissement=etablissement, libelle='La Traverse',
         sous_titre='Hébergement et accompagnement vers le logement',
@@ -44,7 +43,8 @@ def completer(auteur, etablissement, professionnel):
         hebergement.sortir(auteur, sejour, sortie)
         donnees = dict.fromkeys(informations_suivi.CHAMPS, '')
         donnees.update(motif_entree='Orientation vers un logement', motif_sortie='Fin de prise en charge',
-                       destination_sortie='Logement social')
+                       destination_sortie='Logement social', dispositif_logement='iml', type_logement='t1',
+                       situation_logement_entree='urgence', categorie_sortie='logement_social')
         informations_suivi.enregistrer(auteur, prise, informations_suivi.jeton(prise, None), '', **donnees)
         suivi.clore(auteur, prise, sortie)
     return service

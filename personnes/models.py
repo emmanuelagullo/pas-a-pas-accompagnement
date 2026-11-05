@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.core.validators import RegexValidator, MinValueValidator
+from . import parcours_logement
 
 
 class TraceSaisie(ModeleControle):
@@ -636,6 +637,11 @@ class InformationsAccompagnement(TraceSaisie):
     orientation_sortie = models.CharField('Orientation à la sortie', max_length=160, blank=True)
     motif_sortie = models.CharField('Motif de sortie', max_length=160, blank=True)
     destination_sortie = models.CharField('Destination à la sortie', max_length=160, blank=True)
+    dispositif_logement = models.CharField('Dispositif de logement', max_length=24, blank=True, choices=parcours_logement.DISPOSITIFS)
+    type_logement = models.CharField('Type de logement fourni', max_length=8, blank=True, choices=parcours_logement.TYPES_LOGEMENT)
+    situation_logement_entree = models.CharField('Situation de logement à l’entrée — motif principal', max_length=24, blank=True, choices=parcours_logement.SITUATIONS_ENTREE)
+    motifs_secondaires = models.JSONField('Motifs secondaires à l’entrée', default=list, blank=True)
+    categorie_sortie = models.CharField('Catégorie de destination à la sortie', max_length=24, blank=True, choices=parcours_logement.DESTINATIONS)
     objectifs_courts = models.TextField('Objectifs à court terme', max_length=1000, blank=True)
     objectifs_courts_document = models.JSONField(null=True, blank=True, editable=False)
     objectifs_longs = models.TextField('Objectifs à plus long terme', max_length=1000, blank=True)
@@ -645,6 +651,21 @@ class InformationsAccompagnement(TraceSaisie):
     motif = models.CharField('Motif de mise à jour', max_length=240, blank=True)
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     enregistre_le = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def libelles_motifs_secondaires(self):
+        libelles = dict(parcours_logement.MOTIFS_SECONDAIRES)
+        return [libelles[code] for code in self.motifs_secondaires]
+
+    def clean(self):
+        super().clean()
+        if not isinstance(self.motifs_secondaires, list) or any(
+            not isinstance(code, str) or code not in dict(parcours_logement.MOTIFS_SECONDAIRES)
+            for code in self.motifs_secondaires
+        ):
+            raise ValidationError({'motifs_secondaires': 'Motif secondaire inconnu.'})
+        if len(set(self.motifs_secondaires)) != len(self.motifs_secondaires):
+            raise ValidationError({'motifs_secondaires': 'Un motif secondaire ne peut être sélectionné qu’une fois.'})
 
     class Meta:
         ordering = ['-version']

@@ -14,7 +14,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods, require_safe
-from . import models as m, parcours as s, bd6, textes_riches as tr
+from . import models as m, parcours as s, bd6, textes_riches as tr, parcours_logement
 from .forms_parcours import FORMULAIRES, LiaisonForm
 from .champs_saisie import FormulaireMetier
 from .forms_hebergement import date_champ
@@ -290,7 +290,11 @@ def rapport(request):
     inutiles=set()
     if code=='prises':
         f.fields['depuis'].label='Début de prise en charge depuis le';f.fields['jusqua'].label='Début de prise en charge jusqu’au'
-        champs=['activite','provenance','motif_entree','orientation_sortie','motif_sortie','destination_sortie','referent','animaux']
+        for champ in parcours_logement.CHAMPS_CODES:
+            definition = m.InformationsAccompagnement._meta.get_field(champ)
+            f.fields[champ] = forms.ChoiceField(label=definition.verbose_name, required=False,
+                                                choices=[('', 'Toutes'), *definition.choices])
+        champs=['activite','provenance','motif_entree','orientation_sortie','motif_sortie','destination_sortie','referent','animaux', *parcours_logement.CHAMPS_CODES]
         f.fields['etat'].choices=[('','Toutes'),('ouverte','Ouvertes'),('close','Closes')]
         inutiles|={'demandeur','admission','horizon','echeance_avant','organisme','professionnel'}
     else:
@@ -338,11 +342,13 @@ def rapport(request):
             filtre=Q()
             modele=m.InformationsAccompagnement if code=='prises' else r.version
             for c in champs:
-                if modele._meta.get_field(c).get_internal_type() in ('CharField','TextField'):filtre|=Q(**{c+'__icontains':d['texte']})
+                if c not in parcours_logement.CHAMPS_CODES and modele._meta.get_field(c).get_internal_type() in ('CharField','TextField'):filtre|=Q(**{c+'__icontains':d['texte']})
             qs=qs.filter(filtre)
         for c in ('groupe_demande','dernier_hebergement_duree','motif_demande','motif_decision','provenance','dernier_hebergement_type','type_destination','theme','motif_entree','motif_sortie','orientation_sortie','destination_sortie'):
             if d.get(c):qs=qs.filter(**{c+'__iexact':d[c]})
         for c in ('activite','demandeur','horizon'):
+            if d.get(c):qs=qs.filter(**{c:d[c]})
+        for c in parcours_logement.CHAMPS_CODES:
             if d.get(c):qs=qs.filter(**{c:d[c]})
         if d.get('echeance_avant'):
             champ={'demandes':'accueil_prevu','orientations':'date_prevue','objectifs':'echeance'}[code];qs=qs.filter(**{champ+'__lte':d['echeance_avant']})

@@ -199,13 +199,14 @@ class ParcoursTests(TestCase):
     def test_rapport_anciennes_informations_activite_et_motifs_exacts(self):
         from . import informations_suivi as infos
         e=self.creer(etat='acceptee');a=self.ouvrir(e)
-        d={c:'' for c in infos.CHAMPS};d.update(activite='chrs',motif_entree='Motif fictif exact',provenance='Ville fictive')
+        d={c:'' for c in infos.CHAMPS};d.update(activite='chrs',motif_entree='Motif fictif exact',provenance='Ville fictive', dispositif_logement='iml')
         v=infos.enregistrer(self.u,a,infos.jeton(a,None),'Fictif',**d)
         d['activite']='urgence';infos.enregistrer(self.u,a,infos.jeton(a,v),'Changement fictif',**d)
-        url=reverse('dossiers:rapport_parcours');params={'rubrique':'prises','date':'2026-01-20','activite':'urgence','motif_entree':'Motif fictif exact'}
+        url=reverse('dossiers:rapport_parcours');params={'rubrique':'prises','date':'2026-01-20','activite':'urgence','motif_entree':'Motif fictif exact','dispositif_logement':'iml'}
         page=self.client.get(url,params);self.assertEqual(page.status_code,200);self.assertEqual(page.context['nombre'],1)
         rows=list(csv.DictReader(StringIO(self.client.get(url,{**params,'format':'csv'}).content.decode()),delimiter=';'))
-        self.assertEqual(len(rows),1);self.assertEqual(rows[0]['activite'],'urgence')
+        self.assertEqual(len(rows),1);self.assertEqual(rows[0]['activite'],'urgence');self.assertEqual(rows[0]['dispositif_logement'],'iml')
+        self.assertEqual(self.client.get(url,{**params,'dispositif_logement':'maison_relais'}).context['nombre'],0)
         self.assertEqual(self.client.get(url,{**params,'activite':'chrs'}).context['nombre'],0)
         self.assertEqual(self.client.get(url,{**params,'motif_entree':'Motif fictif'}).context['nombre'],0)
         self.assertEqual(a.informations.count(),2)

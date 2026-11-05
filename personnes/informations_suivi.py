@@ -1,6 +1,6 @@
 from acteurs.contexte import service_metier
 """Informations facultatives : une nouvelle version, jamais d’écrasement."""
-from . import textes_riches as tr
+from . import textes_riches as tr, parcours_logement
 from django.core import signing
 from django.core.exceptions import ValidationError
 from .models import InformationsAccompagnement
@@ -34,7 +34,14 @@ def enregistrer(acteur, accompagnement, attendu, motif, **donnees):
     valeurs = {champ: (donnees.get(champ, getattr(derniere, champ, '')) if champ == 'activite' else donnees[champ]).strip() for champ in CHAMPS}
     for champ in ('objectifs_courts', 'objectifs_longs'):
         valeurs.update(tr.colonnes(champ, donnees[champ], max_length=1000))
-    if valeurs == {champ: getattr(derniere, champ) if derniere else (None if champ.endswith('_document') else '') for champ in valeurs}:
+    defauts = dict.fromkeys(parcours_logement.CHAMPS_CODES, '')
+    defauts['motifs_secondaires'] = []
+    for champ, defaut in defauts.items():
+        valeurs[champ] = donnees.get(champ, getattr(derniere, champ, defaut))
+    if valeurs == {
+        champ: getattr(derniere, champ) if derniere else defauts.get(champ, None if champ.endswith('_document') else '')
+        for champ in valeurs
+    }:
         raise ValidationError('Aucune modification.')
     information = InformationsAccompagnement(accompagnement=a, version=derniere.version + 1 if derniere else 1,
         auteur=acteur, motif=motif, **valeurs)

@@ -1,4 +1,4 @@
-from . import textes_riches as tr
+from . import textes_riches as tr, parcours_logement
 from django import forms
 from .champs_saisie import FormulaireModeleMetier
 from django.contrib.auth.decorators import login_required
@@ -27,11 +27,15 @@ class SaisieSuggeree(forms.TextInput):
 class InformationsForm(FormulaireModeleMetier):
     objectifs_courts = tr.ChampTexte(label='Objectifs à court terme', max_length=1000, required=False)
     objectifs_longs = tr.ChampTexte(label='Objectifs à plus long terme', max_length=1000, required=False)
+    motifs_secondaires = forms.MultipleChoiceField(
+        label='Motifs secondaires à l’entrée', choices=parcours_logement.MOTIFS_SECONDAIRES,
+        required=False, widget=forms.CheckboxSelectMultiple,
+    )
     attendu = forms.CharField(widget=forms.HiddenInput)
 
     class Meta:
         model = InformationsAccompagnement
-        fields = [*service.CHAMPS, 'motif']
+        fields = [*service.CHAMPS, *parcours_logement.CHAMPS_CODES, 'motifs_secondaires', 'motif']
         widgets = {champ: forms.Textarea(attrs={'rows': 3}) for champ in ('objectifs_courts', 'objectifs_longs', 'animaux')}
         help_texts = {'referent': 'Nom ou fonction du professionnel, y compris extérieur. Ce n’est pas l’auteur de saisie.',
             'provenance': 'D’où vient la personne ou le ménage à l’entrée ; à distinguer du motif d’admission.',
@@ -49,6 +53,9 @@ def modifier(request, pk):
     initial = {champ: getattr(precedente, champ) if precedente else '' for champ in service.CHAMPS}
     for champ in ('objectifs_courts', 'objectifs_longs'):
         initial[champ] = tr.lire_objet(precedente, champ) if precedente else ''
+    if precedente:
+        for champ in (*parcours_logement.CHAMPS_CODES, 'motifs_secondaires'):
+            initial[champ] = getattr(precedente, champ)
     initial['attendu'] = service.jeton(a, precedente)
     form = InformationsForm(request.POST if request.method == 'POST' else None, initial=initial)
     from acteurs.listes_saisie import LISTES, choix

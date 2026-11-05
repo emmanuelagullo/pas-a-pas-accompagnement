@@ -38,6 +38,20 @@ class InformationsTests(TestCase):
         self.assertIsNone(self.a.fin)
         self.assertEqual(self.a.beneficiaires.count(), 1)
 
+    def test_parcours_logement_code_et_motifs_multiples(self):
+        motifs = ['violences_conjugales', 'traite']
+        premiere = self.enregistrer(dispositif_logement='iml', type_logement='t1',
+                                   situation_logement_entree='urgence', motifs_secondaires=motifs,
+                                   categorie_sortie='logement_social')
+        seconde = self.enregistrer(referent='Relais fictif')
+        self.assertEqual(seconde.motifs_secondaires, motifs)
+        self.assertEqual(seconde.categorie_sortie, premiere.categorie_sortie)
+        self.assertContains(self.client.get(reverse('suivi:accompagnement', args=[self.a.pk])),
+                            'Violences conjugales')
+        with self.assertRaises(ValidationError):
+            self.enregistrer(motifs_secondaires=['inconnu'])
+        self.assertEqual(self.a.informations.count(), 2)
+
     def test_perime_aucun_changement_et_rollback(self):
         attendu = service.jeton(self.a, None)
         self.enregistrer()
