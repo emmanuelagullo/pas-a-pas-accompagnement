@@ -29,7 +29,7 @@ class CollecteNavigateur(Donnees,StaticLiveServerTestCase):
                 if js and largeur < 1280:
                     page.get_by_role('button', name='Sommaire', exact=True).click()
                     expect(page.get_by_role('navigation', name='Dans cette page', exact=True)).to_be_visible()
-                    page.get_by_role('navigation', name='Dans cette page', exact=True).get_by_role('link', name='Informations sociales', exact=True).click()
+                    page.get_by_role('navigation', name='Dans cette page', exact=True).get_by_role('link', name='Situation sociale et projet', exact=True).click()
                 bloc=page.locator('#service-'+str(self.service.pk)+'-rubriques')
                 page.get_by_role('link',name='Modifier les rubriques sociales',exact=True).click()
                 if js:

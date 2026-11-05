@@ -33,6 +33,17 @@ def defaut():
             'petits_dejeuners':False,'categories':categories_defaut(),
             'prestations':['hebergement','restauration'],'rubriques':['logement','revenu','dette','telephone','courriel','projet'],'aides':[]}
 
+def defaut_individuel(*, collecte_configuree=False):
+    return {
+        **defaut(),
+        'identification': 'tous',
+        'hebergement': 'individuel',
+        'restauration': 'individuel',
+        'rubriques': [],
+        'aides': [] if collecte_configuree else ['transport', 'bon_alimentaire', 'produits', 'accueil_jour'],
+    }
+
+
 def verifier(valeur):
     if not isinstance(valeur,dict) or set(valeur)-set(defaut()) or set(defaut())-set(valeur)-{'aides','prestations'}:raise ValidationError('Profil collectif incomplet ou champ inconnu.')
     familles=valeur.get('prestations',['hebergement','restauration'])

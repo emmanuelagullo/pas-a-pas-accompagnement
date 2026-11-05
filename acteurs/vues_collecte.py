@@ -86,6 +86,6 @@ def configurer(request,service_pk):
         avant=deepcopy(service.collecte_rubriques)
         service.collecte_rubriques=regles;service.save(update_fields=['collecte_rubriques'])
         s.journal(request.user,service,'collecte_rubriques',avant,regles)
-    return formulaire(request, f, 'Informations sociales', sauver,
+    return formulaire(request, f, 'Situation sociale et projet', sauver,
                       reverse('acteurs:service', args=[service.pk]) + f'#service-{service.pk}-rubriques',
                       service=service, profil_charge=profil_charge)

@@ -61,8 +61,8 @@ def organisation(request,service_pk=None,action=None):
     resume = {}
     if service:
         from .collecte import POPULATIONS, RUBRIQUES
-        from .profils_collectifs import IDENTIFICATIONS, MODES, categories_defaut
-        profil = service.profil_collectif
+        from .profils_collectifs import IDENTIFICATIONS, MODES, categories_defaut, defaut_individuel
+        profil = service.profil_collectif or defaut_individuel(collecte_configuree=bool(service.collecte_rubriques))
         populations = dict(POPULATIONS)
         populations.update(('categorie:' + c['code'], c['libelle']) for c in profil.get('categories', categories_defaut()))
         regles = []
@@ -248,13 +248,13 @@ def reperage_politique(request,service_pk):
     s.exiger_gestion(request.user)
     service=get_object_or_404(Service.objects.select_related('etablissement'),pk=service_pk)
     f=FormulaireMetier(request.POST if request.method=='POST' else None)
-    f.fields['activer']=forms.BooleanField(required=False,initial=service.etablissement.reperage_identites,label='Permettre de repérer les identités dans cet établissement',help_text='Les professionnels habilités voient les noms et les équipes des dossiers de cet établissement. Le contenu social, les documents et les statistiques gardent leurs propres accès. Les prestations restent limitées aux services autorisés.')
+    f.fields['activer']=forms.BooleanField(required=False,initial=service.etablissement.reperage_identites,label='Afficher dans la recherche les noms des dossiers des autres services',help_text='Ce réglage concerne tout l’établissement. Les comptes habilités au suivi social, à l’accueil ou à la gestion peuvent retrouver un nom et voir quel service suit le dossier. L’ouverture du dossier et l’accès à son contenu restent soumis à leurs droits habituels.')
     f.fields['attendu']=forms.CharField(widget=forms.HiddenInput,initial=s.jeton(service.etablissement))
     def faire(activer,attendu):
         s.exiger_gestion(request.user);e=service.etablissement;s.reserver(e,attendu)
         avant=e.reperage_identites;e.reperage_identites=activer;e.save(update_fields=['reperage_identites'])
         s.journal(request.user,service,'reperage_identites',{'actif':avant},{'etablissement':e.pk,'actif':activer})
-    return formulaire(request,f,'Repérage des identités · '+str(service.etablissement),faire,reverse('acteurs:service',args=[service.pk]), service=service)
+    return formulaire(request,f,'Recherche entre services · '+str(service.etablissement),faire,reverse('acteurs:service',args=[service.pk])+f'#service-{service.pk}-recherche', service=service)
 
 
 @never_cache

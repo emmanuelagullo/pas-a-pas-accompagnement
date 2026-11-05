@@ -4,12 +4,11 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.cache import never_cache
 from django.shortcuts import get_object_or_404
-from django.http import Http404
 from django.db.models import Q
 from django.urls import reverse
 from . import services as s
 from .models import Service, OffrePrestataire
-from .profils_collectifs import defaut, verifier, MODES, IDENTIFICATIONS
+from .profils_collectifs import defaut, defaut_individuel, verifier, MODES, IDENTIFICATIONS
 from .views import formulaire
 from personnes.champs_saisie import FormulaireMetier
 
@@ -29,6 +28,7 @@ class ProfilForm(FormulaireMetier):
     def __init__(self,*args,volet=None,**kwargs):
         super().__init__(*args,**kwargs)
         self.volet = volet
+        self.fields['actif'].disabled = volet is not None
         self.fields['offres'].queryset = OffrePrestataire.objects.filter(actif=True)
         if volet == 'composition':
             self.fields['offres'].queryset = OffrePrestataire.objects.filter(
@@ -65,7 +65,7 @@ class ProfilForm(FormulaireMetier):
         if self.volet == 'composition':
             groupes = groupes[1:2]
         elif self.volet == 'prestations':
-            groupes = groupes[:1] + groupes[2:]
+            groupes = groupes[2:]
         return [(titre,[self[nom] for nom in noms]) for titre,noms in groupes]
     @property
     def afficher_categories(self):
@@ -95,11 +95,10 @@ class ProfilForm(FormulaireMetier):
 def configurer(request,service_pk,volet=None):
     s.exiger_gestion(request.user)
     service=get_object_or_404(Service,pk=service_pk)
-    if volet == 'composition' and not service.profil_collectif:
-        raise Http404
     initial = {
-        **defaut(), **service.profil_collectif,
-        'actif': bool(service.profil_collectif),
+        **defaut(), **(service.profil_collectif or defaut_individuel(
+            collecte_configuree=bool(service.collecte_rubriques))),
+        'actif': volet is not None or bool(service.profil_collectif),
         'attendu': s.jeton(service),
         'catalogue': service.catalogue_prestations,
         'offres': list(service.offres.values_list('pk', flat=True)),
@@ -119,7 +118,7 @@ def configurer(request,service_pk,volet=None):
         if volet != 'composition':
             service.offres.set(offres)
         s.journal(request.user,service,'profil_collectif',avant,{**service.profil_collectif,'catalogue':catalogue,'offres':list(service.offres.values_list('pk',flat=True))})
-    titre = {'composition': 'Composition du ménage', 'prestations': 'Prestations du service'}.get(volet, 'Composition et prestations')
+    titre = {'composition': 'Composition du ménage', 'prestations': 'Prestations'}.get(volet, 'Composition et prestations')
     retour = reverse('acteurs:service', args=[service.pk])
     if volet:
         retour += f'#service-{service.pk}-{volet}'

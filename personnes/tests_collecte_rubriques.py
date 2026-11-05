@@ -56,6 +56,35 @@ class CollecteRubriquesTests(Donnees,TestCase):
         self.assertTrue(f.is_valid(),f.errors)
         self.assertEqual(f.cleaned_data['regles'],profil('detail'))
 
+    def test_composition_configurable_sans_changer_les_prestations_individuelles(self):
+        from django.contrib.auth.models import Permission
+
+        self.service.profil_collectif = {}
+        self.service.save(update_fields=['profil_collectif'])
+        self.u.user_permissions.add(Permission.objects.get(
+            content_type__app_label='acteurs', codename='gerer_organisation',
+        ))
+        self.client.force_login(self.u)
+        url = reverse('acteurs:composition', args=[self.service.pk])
+        page = self.client.get(reverse('acteurs:service', args=[self.service.pk]))
+        self.assertContains(page, url)
+        form = self.client.get(url).context['form']
+        self.assertEqual(form.initial['identification'], 'tous')
+        donnees = {
+            nom: form.initial[nom]
+            for nom, champ in form.fields.items()
+            if not champ.disabled and form.initial.get(nom) is not None
+        }
+        donnees['identification'] = 'adultes'
+        self.assertEqual(self.client.post(url, donnees).status_code, 302)
+        self.service.refresh_from_db()
+        regles = self.service.profil_collectif
+        self.assertEqual(regles['identification'], 'adultes')
+        self.assertEqual(regles['hebergement'], 'individuel')
+        self.assertEqual(regles['restauration'], 'individuel')
+        self.assertIn('transport', regles['aides'])
+        self.assertEqual(regles['rubriques'], [])
+
     def test_deux_portees_ne_copient_pas_et_histoire_reste_lisible(self):
         # Un fait personnel antérieur reste présent après désactivation.
         from . import coordonnees

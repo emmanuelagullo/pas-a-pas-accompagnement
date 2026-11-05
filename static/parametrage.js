@@ -80,12 +80,6 @@
         const remplace=actuel && doc.getElementById(actuel.id);
         if(remplace){
           actuel.replaceWith(remplace);
-          const composition = ancien.querySelector('[data-parametrage-composition]');
-          const compositionFraiche = frais.querySelector('[data-parametrage-composition]');
-          if (composition && compositionFraiche &&
-              composition.dataset.parametrageComposition !== compositionFraiche.dataset.parametrageComposition) {
-            composition.replaceWith(compositionFraiche);
-          }
           cible=remplace.querySelector('[data-parametrage-modifier],h2,h3');
         }else{ancien.replaceWith(frais);cible=frais.querySelector('h1');}
         liberer();

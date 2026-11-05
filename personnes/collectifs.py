@@ -11,7 +11,7 @@ from django.utils import timezone
 from acteurs.contexte import service_metier
 from acteurs.models import Service, JournalAcces
 from acteurs import portees
-from acteurs.profils_collectifs import verifier, verifier_categories, defaut
+from acteurs.profils_collectifs import verifier, verifier_categories, defaut, defaut_individuel
 from . import models as m, suivi
 from .verrous_metier import serialiser
 
@@ -25,7 +25,7 @@ def profil(objet):
     valeur=service.profil_collectif
     if not valeur:
         if not service.collecte_rubriques:return None
-        valeur={**defaut(),'identification':'tous','hebergement':'individuel','restauration':'individuel'}
+        valeur=defaut_individuel(collecte_configuree=True)
     verifier(valeur)
     cfg={**defaut(),**valeur}
     if service.collecte_rubriques:
