@@ -1,0 +1,5 @@
+<a href="#{{ ancre }}" data-navigation-bloc="{{ ancre }}"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+{% if icone == 'livre' %}<path d="M3 4h7l2 2 2-2h7v16h-7l-2 2-2-2H3zM12 6v16"/>
+{% elif icone == 'mallette' %}<path d="M4 7h16v14H4zM8 7V3h8v4M4 12h16M10 12v3h4v-3"/>
+{% else %}<path d="M3 5h7l2 3h9v13H3zM7 13h10M7 17h7"/>{% endif %}
+</svg><span>{{ libelle }}</span></a>

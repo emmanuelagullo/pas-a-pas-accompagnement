@@ -1,0 +1,12 @@
+{% load static %}<link rel="stylesheet" href="{% static 'condition-sociale.css' %}">
+<nav class="condition-sommaire condition-menu-mobile" id="sommaire-dossier" aria-label="Dans cette page">
+<div class="condition-sommaire-entete"><strong id="titre-sommaire" tabindex="-1">Dans cette page</strong><button type="button" class="secondaire" data-sommaire-fermer hidden>Fermer</button></div>
+<a class="retour-haut" href="#haut-de-page">↑ Haut de page</a>{% include liens_sommaire %}
+</nav>
+<nav class="condition-acces" aria-label="Accès rapides dans cette page">
+{% include 'commun/_acces_section.html' with ancre=ancre_1 libelle=libelle_1 icone='livre' only %}
+{% include 'commun/_acces_section.html' with ancre=ancre_2 libelle=libelle_2 icone=icone_2 only %}
+<a href="#sommaire-dossier" data-sommaire-repli><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1"/></svg><span>Sommaire</span></a>
+<button type="button" data-sommaire-ouvrir aria-expanded="false" aria-controls="sommaire-dossier" hidden><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1"/></svg><span>Sommaire</span></button>
+</nav>
+<script src="{% static 'navigation-dossier.js' %}" defer></script>

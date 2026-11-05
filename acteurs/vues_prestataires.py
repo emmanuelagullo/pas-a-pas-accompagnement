@@ -72,7 +72,8 @@ def catalogue(request,pk=None,action=None):
                     debut=debut,fin=None,libelle=offre.libelle+' — '+label+' — '+repas,unite='repas',categorie=label,montant=montant or 0,devise=devise,prestataire=offre.lieu,actif=montant is not None,source='Catalogue des prestataires')
                 if not lien:TarifOffre.objects.create(offre=offre,categorie=categorie,libelle=label,repas=repas,tarif=version)
             JournalOffre.objects.create(offre=offre,auteur=request.user,apres={'categorie':categorie,'debut':str(debut),'prix':str(prix),'prix_diner':str(prix_diner),'devise':devise})
-        return formulaire(request,f,'Tarifs — '+offre.libelle,sauver,reverse('acteurs:prestataire',args=[offre.pk]))
+        return formulaire(request,f,'Tarifs — '+offre.libelle,sauver,reverse('acteurs:prestataire',args=[offre.pk]),
+                          prestataires_page=True, offre=offre)
     if action=='modifier' or action=='nouveau':
         f=OffreForm(request.POST if request.method=='POST' else None,initial={k:getattr(offre,k) for k in ('libelle','lieu','nature','dejeuner','diner','actif')}|{'attendu':s.jeton(offre)} if offre else {})
         def sauver(attendu,nouveau_lieu,**d):
@@ -89,5 +90,6 @@ def catalogue(request,pk=None,action=None):
             else:offre=OffrePrestataire(**d)
             offre.full_clean();offre.save()
             JournalOffre.objects.create(offre=offre,auteur=request.user,avant=avant,apres={k:str(v) for k,v in d.items()})
-        return formulaire(request,f,'Modifier l’offre' if offre else 'Nouvelle offre de prestation',sauver,lambda:reverse('acteurs:prestataire',args=[offre.pk]) if offre else reverse('acteurs:prestataires'))
+        return formulaire(request,f,'Modifier l’offre' if offre else 'Nouvelle offre de prestation',sauver,lambda:reverse('acteurs:prestataire',args=[offre.pk]) if offre else reverse('acteurs:prestataires'),
+                          prestataires_page=True, offre=offre)
     return render(request,'acteurs/prestataires.html',{'offre':offre,'offres':OffrePrestataire.objects.select_related('lieu'),'tarifs':offre.tarifs.select_related('tarif') if offre else []})

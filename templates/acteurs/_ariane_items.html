@@ -1,0 +1,34 @@
+{% url 'acteurs:organisation' as accueil_parametrage %}
+{% if service or prestataires_page or page_actuelle %}
+  {% include 'commun/_ariane_item.html' with libelle='Paramétrage' url=accueil_parametrage premier=True only %}
+  {% if service %}
+    {% include 'commun/_ariane_item.html' with libelle='Services' url=accueil_parametrage ancre='services-liste' only %}
+    {% if page_actuelle %}
+      {% url 'acteurs:service' service.pk as fiche %}
+      {% include 'commun/_ariane_item.html' with libelle=service.libelle url=fiche only %}
+      {% include 'commun/_ariane_item.html' with libelle=page_actuelle only %}
+    {% else %}
+      {% include 'commun/_ariane_item.html' with libelle=service.libelle only %}
+    {% endif %}
+  {% elif prestataires_page %}
+    {% url 'acteurs:prestataires' as liste_offres %}
+    {% if offre or page_actuelle %}
+      {% include 'commun/_ariane_item.html' with libelle='Prestataires' url=liste_offres only %}
+      {% if offre and page_actuelle %}
+        {% url 'acteurs:prestataire' offre.pk as fiche_offre %}
+        {% include 'commun/_ariane_item.html' with libelle=offre.libelle url=fiche_offre only %}
+      {% endif %}
+      {% if page_actuelle %}
+        {% include 'commun/_ariane_item.html' with libelle=page_actuelle only %}
+      {% else %}
+        {% include 'commun/_ariane_item.html' with libelle=offre.libelle only %}
+      {% endif %}
+    {% else %}
+      {% include 'commun/_ariane_item.html' with libelle='Prestataires' only %}
+    {% endif %}
+  {% else %}
+    {% include 'commun/_ariane_item.html' with libelle=page_actuelle only %}
+  {% endif %}
+{% else %}
+  {% include 'commun/_ariane_item.html' with libelle='Paramétrage' premier=True only %}
+{% endif %}

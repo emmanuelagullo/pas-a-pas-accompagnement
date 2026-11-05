@@ -4,6 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.cache import never_cache
 from django.shortcuts import get_object_or_404
+from django.http import Http404
+from django.db.models import Q
 from django.urls import reverse
 from . import services as s
 from .models import Service, OffrePrestataire
@@ -24,9 +26,18 @@ class ProfilForm(FormulaireMetier):
     rubriques=forms.MultipleChoiceField(label='Informations demandées au ménage',choices=[('logement','Logement'),('revenu','Revenu mensuel du ménage'),('dette','Total de dettes du ménage'),('telephone','Téléphone commun'),('courriel','Courriel commun'),('projet','Projet collectif')],widget=forms.CheckboxSelectMultiple,required=False)
     categories=forms.JSONField(label='Catégories d’âge',help_text='Liste : code, libelle, min et max inclusifs. Catégories sans chevauchement, couvrant 0 à 120 ans. Les personnes d’âge inconnu restent distinctes.')
     attendu=forms.CharField(widget=forms.HiddenInput)
-    def __init__(self,*args,**kwargs):
+    def __init__(self,*args,volet=None,**kwargs):
         super().__init__(*args,**kwargs)
-        self.fields['offres'].queryset=OffrePrestataire.objects.filter(actif=True)
+        self.volet = volet
+        self.fields['offres'].queryset = OffrePrestataire.objects.filter(actif=True)
+        if volet == 'composition':
+            self.fields['offres'].queryset = OffrePrestataire.objects.filter(
+                Q(actif=True) | Q(pk__in=self.initial['offres']))
+            for nom in ('actif', 'prestations', 'aides', 'hebergement', 'restauration',
+                        'petits_dejeuners', 'catalogue', 'offres'):
+                self.fields[nom].disabled = True
+        elif volet == 'prestations':
+            self.fields['identification'].disabled = True
         # Les anciens choix restent conservés tant que les rubriques sociales
         # ne sont pas configurées dans leur écran dédié.
         self.fields['rubriques'].disabled = True
@@ -40,6 +51,7 @@ class ProfilForm(FormulaireMetier):
                 nom=f'categorie_{i}_{cle}';noms.append(nom)
                 self.fields[nom]=forms.CharField(label=label,max_length=80,required=False) if cle=='libelle' else forms.IntegerField(label=label,min_value=0,max_value=120,required=False)
                 self.initial[nom]=cat.get(cle)
+                self.fields[nom].disabled = volet == 'prestations'
             self.lignes.append(noms)
     @property
     def champs_principaux(self):return [x for x in self if not x.name.startswith('categorie_')]
@@ -50,7 +62,15 @@ class ProfilForm(FormulaireMetier):
                  ('Prestations proposées',['prestations','aides']),
                  ('Suivi des prestations',['hebergement','restauration','petits_dejeuners']),
                  ('Prestataires',['catalogue','offres'])]
+        if self.volet == 'composition':
+            groupes = groupes[1:2]
+        elif self.volet == 'prestations':
+            groupes = groupes[:1] + groupes[2:]
         return [(titre,[self[nom] for nom in noms]) for titre,noms in groupes]
+    @property
+    def afficher_categories(self):
+        return self.volet != 'prestations'
+
     @property
     def categories_lignes(self):return [[self[n] for n in noms] for noms in self.lignes]
     def clean(self):
@@ -62,7 +82,7 @@ class ProfilForm(FormulaireMetier):
             code=self.categories_initiales[i]['code'] if i<len(self.categories_initiales) else f'categorie_{i+1}'
             categories.append(dict(zip(('libelle','min','max'),valeurs),code=code))
         d['categories']=categories
-        if d.get('actif') and d.get('catalogue'):
+        if self.volet != 'composition' and d.get('actif') and d.get('catalogue'):
             familles=set(d.get('prestations',[]))|set(d.get('aides',[]))
             disponibles={o.nature for o in d.get('offres',[])}
             if familles-disponibles:self.add_error('offres','Choisissez une offre pour chaque prestation proposée, ou décochez les prestations non proposées.')
@@ -72,10 +92,21 @@ class ProfilForm(FormulaireMetier):
 @never_cache
 @login_required
 @require_http_methods(['GET','POST'])
-def configurer(request,service_pk):
+def configurer(request,service_pk,volet=None):
     s.exiger_gestion(request.user)
     service=get_object_or_404(Service,pk=service_pk)
-    f=ProfilForm(request.POST if request.method=='POST' else None,initial={**defaut(),**service.profil_collectif,'actif':bool(service.profil_collectif),'attendu':s.jeton(service),'catalogue':service.catalogue_prestations,'offres':list(service.offres.values_list('pk',flat=True))})
+    if volet == 'composition' and not service.profil_collectif:
+        raise Http404
+    initial = {
+        **defaut(), **service.profil_collectif,
+        'actif': bool(service.profil_collectif),
+        'attendu': s.jeton(service),
+        'catalogue': service.catalogue_prestations,
+        'offres': list(service.offres.values_list('pk', flat=True)),
+    }
+    f = ProfilForm(request.POST if request.method == 'POST' else None,
+                   volet=volet, initial=initial)
+
     def sauver(attendu,actif,catalogue,offres,**valeurs):
         s.reserver(service,attendu);avant=deepcopy(service.profil_collectif)
         from .collecte import verifier as verifier_collecte
@@ -85,6 +116,11 @@ def configurer(request,service_pk):
         if actif:verifier(valeurs)
         service.catalogue_prestations=catalogue
         service.save(update_fields=['profil_collectif','catalogue_prestations'])
-        service.offres.set(offres)
+        if volet != 'composition':
+            service.offres.set(offres)
         s.journal(request.user,service,'profil_collectif',avant,{**service.profil_collectif,'catalogue':catalogue,'offres':list(service.offres.values_list('pk',flat=True))})
-    return formulaire(request,f,'Composition et prestations — '+service.libelle,sauver,reverse('acteurs:service',args=[service.pk]))
+    titre = {'composition': 'Composition du ménage', 'prestations': 'Prestations du service'}.get(volet, 'Composition et prestations')
+    retour = reverse('acteurs:service', args=[service.pk])
+    if volet:
+        retour += f'#service-{service.pk}-{volet}'
+    return formulaire(request, f, titre, sauver, retour, service=service)

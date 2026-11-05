@@ -1,1 +1,2 @@
-<nav aria-label="Paramétrage"><a href="{% url 'acteurs:organisation' %}">Services</a> · <a href="{% url 'acteurs:prestataires' %}">Prestataires</a></nav><p id="etat-parametrage" role="status"></p>
+{% include 'commun/_ariane.html' with ariane_items='acteurs/_ariane_items.html' %}
+<p id="etat-parametrage" role="status"></p>

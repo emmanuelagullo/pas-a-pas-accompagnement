@@ -1,1 +1,2 @@
-{% load prestations %}{% creation_prestation famille as creation %}<div class="boite-entete"><h3>{{ titre }}</h3>{% if creation %}<a class="bouton" data-prestation-lien href="{{ creation.url }}">{{ creation.label }}</a>{% endif %}</div>
+{% load prestations %}{% creation_prestation famille as creation %}
+{% include 'commun/_boite_entete.html' with titre=titre action_url=creation.url action_libelle=creation.label action_type='prestation' only %}

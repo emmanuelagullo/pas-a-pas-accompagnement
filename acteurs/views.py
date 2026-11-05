@@ -47,21 +47,54 @@ def organisation(request,service_pk=None,action=None):
         # Répertoire explicite, uniquement après le contrôle gerer_organisation.
         # Configurer les membres ne nécessite aucune habilitation aux dossiers.
         f.fields['professionnel'].queryset=m.Intervenant._base_manager.all()
-        return formulaire(request,f,'Ajouter un membre au service',lambda compte=None,**d:s.inscrire(request.user,service,cible_compte=compte,**d),retour)
+        return formulaire(request,f,'Ajouter un membre au service',lambda compte=None,**d:s.inscrire(request.user,service,cible_compte=compte,**d),retour,service=service)
     if action=='habilitation':
         f=HabilitationForm(request.POST if request.method=='POST' else None,initial={'debut':timezone.localdate()})
-        return formulaire(request,f,'Accorder des tâches dans ce service',lambda compte,**d:s.habiliter(request.user,compte,service,**d),retour)
+        return formulaire(request,f,'Accorder des tâches dans ce service',lambda compte,**d:s.habiliter(request.user,compte,service,**d),retour,service=service)
     if action=='politique':
         f=FormulaireMetier(request.POST if request.method=='POST' else None)
-        f.fields['politique']=forms.ChoiceField(choices=Service.POLITIQUES,initial=service.politique)
+        f.fields['politique']=forms.ChoiceField(label='Règle d’accès', choices=Service.POLITIQUES, initial=service.politique)
         f.fields['attendu']=forms.CharField(widget=forms.HiddenInput,initial=s.jeton(service))
-        return formulaire(request,f,'Modifier l’accès aux dossiers du service',lambda **d:s.changer_politique(request.user,service,**d),retour)
+        return formulaire(request,f,'Modifier l’accès aux dossiers du service',lambda **d:s.changer_politique(request.user,service,**d),
+                          retour + f'#service-{service.pk}-acces', service=service)
     if request.method=='POST':return HttpResponseNotAllowed(['GET'])
+    resume = {}
+    if service:
+        from .collecte import POPULATIONS, PORTEES, RUBRIQUES
+        from .profils_collectifs import IDENTIFICATIONS, MODES, categories_defaut
+        profil = service.profil_collectif
+        populations = dict(POPULATIONS)
+        populations.update(('categorie:' + c['code'], c['libelle']) for c in profil.get('categories', categories_defaut()))
+        portees = dict(PORTEES)
+        regles = []
+        for code, (titre, _) in RUBRIQUES.items():
+            if code not in service.collecte_rubriques:
+                continue
+            regle = service.collecte_rubriques[code]
+            portee = regle['portee']
+            libelle = portees[portee]
+            if portee in ('personne', 'deux'):
+                libelle += ' · ' + populations.get(regle['population'], 'Catégorie à vérifier')
+            regles.append((titre, libelle))
+        prestations = [
+            libelle + ' · ' + dict(MODES)[profil[code]]
+            for code, libelle in (('hebergement', 'Hébergement'), ('restauration', 'Repas'))
+            if profil and code in profil.get('prestations', ('hebergement', 'restauration'))
+        ]
+        aides = {
+            'transport': 'Transport', 'bon_alimentaire': 'Bons alimentaires',
+            'produits': 'Produits alimentaires', 'accueil_jour': 'Accueil de jour',
+        }
+        prestations.extend(aides[code] for code in profil.get('aides', ()))
+        resume = {
+            'identification_service': dict(IDENTIFICATIONS).get(profil.get('identification'), 'Toutes les personnes identifiées'),
+            'regles_sociales': regles, 'prestations_service': prestations,
+        }
     return render(request,'acteurs/organisation.html',{'services':Service.objects.select_related('etablissement__organisme'),
         'service':service,'membres':AppartenanceProfessionnelle.objects.filter(service=service).select_related('professionnel'),
         'habilitations':Habilitation.objects.filter(service=service).select_related('compte'),
         'journaux':JournalAcces.objects.filter(service=service).select_related('auteur').order_by('-pk')[:50] if service else [],
-        'controle_actif':p.active()})
+        'controle_actif':p.active(), **resume})
 
 
 @never_cache
@@ -71,7 +104,7 @@ def revocation(request,pk):
     s.exiger_gestion(request.user);h=get_object_or_404(Habilitation,pk=pk)
     f=FormulaireMetier(request.POST if request.method=='POST' else None)
     f.fields['attendu']=forms.CharField(widget=forms.HiddenInput,initial=s.jeton(h))
-    return formulaire(request,f,'Révoquer cet accès maintenant',lambda **d:s.revoquer(request.user,h,**d),reverse('acteurs:service',args=[h.service_id]))
+    return formulaire(request,f,'Révoquer cet accès maintenant',lambda **d:s.revoquer(request.user,h,**d),reverse('acteurs:service',args=[h.service_id]), service=h.service)
 
 
 @login_required
@@ -189,7 +222,7 @@ def exploitation(request,service_pk):
     f.fields['interlocuteur']=forms.ModelChoiceField(m.Intervenant._base_manager.all(),required=False,label='Interlocuteur (facultatif)')
     f.fields['debut']=forms.DateField(label='Depuis le',initial=timezone.localdate(),widget=forms.DateInput(attrs={'type':'date'}))
     f.fields['attendu']=forms.CharField(widget=forms.HiddenInput,initial=s.jeton(service))
-    return formulaire(request,f,'Déclarer un changement d’exploitant',lambda **d:s.changer_exploitation(request.user,service,**d),reverse('acteurs:service',args=[service.pk]))
+    return formulaire(request,f,'Déclarer un changement d’exploitant',lambda **d:s.changer_exploitation(request.user,service,**d),reverse('acteurs:service',args=[service.pk]), service=service)
 
 
 @never_cache
@@ -218,7 +251,7 @@ def reperage_politique(request,service_pk):
         s.exiger_gestion(request.user);e=service.etablissement;s.reserver(e,attendu)
         avant=e.reperage_identites;e.reperage_identites=activer;e.save(update_fields=['reperage_identites'])
         s.journal(request.user,service,'reperage_identites',{'actif':avant},{'etablissement':e.pk,'actif':activer})
-    return formulaire(request,f,'Repérage des identités · '+str(service.etablissement),faire,reverse('acteurs:service',args=[service.pk]))
+    return formulaire(request,f,'Repérage des identités · '+str(service.etablissement),faire,reverse('acteurs:service',args=[service.pk]), service=service)
 
 
 @never_cache

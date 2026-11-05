@@ -1,12 +1,94 @@
-{% extends 'base.html' %}{% load static %}{% block contenu %}<div id="parametrage">{% include 'acteurs/_parametrage_nav.html' %}
-{% if not service %}<header class="bd-titre"><h1>Services</h1></header>
-<section class="dossier-boite carte" id="services-liste" data-parametrage-bloc><div class="boite-entete"><h2>Services de l’établissement</h2><a class="bouton" data-parametrage-modifier href="{% url 'acteurs:creer_service' %}">Créer un service</a></div><div data-parametrage-hote></div><ul class="episodes-compacts">{% for s in services %}<li><a href="{% url 'acteurs:service' s.pk %}">{{ s }} — {{ s.etablissement }}</a></li>{% empty %}<li>Aucun service configuré.</li>{% endfor %}</ul></section>
-{% else %}<p><a href="{% url 'acteurs:organisation' %}">← Services</a></p><header class="bd-titre"><p class="surtitre">{{ service.etablissement }}</p><h1>{{ service }}</h1></header>
-<section class="dossier-boite carte" id="service-{{ service.pk }}-rubriques" data-parametrage-bloc><div class="boite-entete"><h2>Rubriques sociales</h2><a class="bouton secondaire" data-parametrage-modifier href="{% url 'acteurs:collecte' service.pk %}">Choisir les rubriques du ménage et des personnes</a></div><p>{% if service.collecte_rubriques %}Réglages par rubrique appliqués aux nouvelles saisies. Les informations antérieures sont conservées.{% else %}Choisissez pour chaque rubrique si elle concerne le ménage, les personnes, ou les deux lorsque ce choix existe.{% endif %}</p><div data-parametrage-hote></div></section>
-<section class="dossier-boite carte" id="service-{{ service.pk }}-collecte" data-parametrage-bloc><div class="boite-entete"><h2>Composition et prestations</h2><a class="bouton secondaire" data-parametrage-modifier href="{% url 'acteurs:collectif' service.pk %}">Modifier la composition et les prestations</a></div>
-<p>{% if service.profil_collectif %}{% if service.profil_collectif.identification == 'reference' %}Personne de référence du ménage et composition déclarée.{% elif service.profil_collectif.identification == 'adultes' %}Adultes identifiés.{% else %}Toutes les personnes identifiées.{% endif %}{% else %}Informations personnelles et suivi individuel.{% endif %}</p><p>{% if service.catalogue_prestations %}La saisie propose les offres choisies pour ce service.{% else %}La saisie propose les lieux accessibles à votre compte.{% endif %}</p><div data-parametrage-hote></div></section>
-<section class="dossier-boite carte" id="service-{{ service.pk }}-membres" data-parametrage-bloc><div class="boite-entete"><h2>Membres du service</h2><a class="bouton secondaire" data-parametrage-modifier href="{% url 'acteurs:membre' service.pk %}">Ajouter un membre</a></div><div data-parametrage-hote></div><ul>{% for x in membres %}<li>{{ x.professionnel }} · {{ x.fonction }} · {{ x.debut }} → {{ x.fin|default:'sans fin renseignée' }}</li>{% empty %}<li>Aucun membre.</li>{% endfor %}</ul></section>
-<section class="dossier-boite carte" id="service-{{ service.pk }}-acces" data-parametrage-bloc><div class="boite-entete"><h2>Accès aux dossiers</h2><a class="bouton secondaire" data-parametrage-modifier href="{% url 'acteurs:politique' service.pk %}">Modifier l’accès aux dossiers</a></div><p>{{ service.get_politique_display }}.</p><p>Être membre du service ne donne pas automatiquement accès à ses dossiers.</p><div data-parametrage-hote></div></section>
-<section class="dossier-boite carte" id="service-{{ service.pk }}-habilitations" data-parametrage-bloc><div class="boite-entete"><h2>Habilitations</h2><a class="bouton secondaire" data-parametrage-modifier href="{% url 'acteurs:habilitation' service.pk %}">Configurer les accès d’un compte</a></div><div data-parametrage-hote></div><ul>{% for h in habilitations %}<li>{{ h.compte }} · {{ h.get_tache_display }} · {{ h.debut }} → {{ h.fin|default:'sans fin renseignée' }}{% if h.revoque_le %} · Révoquée le {{ h.revoque_le }}{% else %} · <a data-parametrage-modifier href="{% url 'acteurs:revoquer' h.pk %}">Révoquer</a>{% endif %}</li>{% empty %}<li>Aucune habilitation.</li>{% endfor %}</ul></section>
-<section class="dossier-boite carte" id="service-{{ service.pk }}-etablissement" data-parametrage-bloc><h2>Établissement et lieux</h2><p>Repérage des identités dans {{ service.etablissement }} : {{ service.etablissement.reperage_identites|yesno:'activé,désactivé' }} · <a data-parametrage-modifier href="{% url 'acteurs:reperage_politique' service.pk %}">Configurer</a></p><p><a data-parametrage-modifier href="{% url 'acteurs:exploitation' service.pk %}">Déclarer l’exploitant d’un lieu d’hébergement</a></p><div data-parametrage-hote></div></section>
-{% endif %}<details id="historique-parametrage"><summary>Historique de l’organisation et des accès</summary><p>{% if controle_actif %}Le contrôle par service est actif.{% else %}Les accès historiques ne sont pas cloisonnés. Préparez l’organisation avant son activation.{% endif %}</p>{% for j in journaux %}<p>{{ j.cree_le }} · {{ j.auteur }} · {{ j.action }} · {{ j.avant }} → {{ j.apres }}</p>{% endfor %}</details></div><script src="{% static 'parametrage.js' %}" defer></script>{% endblock %}
+{% extends 'base.html' %}
+{% load static %}
+{% block contenu %}
+<div id="parametrage"{% if service %} class="bd-dossier condition-page"{% endif %}>
+  {% if service %}
+    {% include 'commun/_sommaire.html' with liens_sommaire='acteurs/_service_sommaire.html' ancre_1='rubriques' libelle_1='Rubriques' ancre_2='autorisations' libelle_2='Autorisations' icone_2='dossier' %}
+  {% endif %}
+  {% include 'acteurs/_parametrage_nav.html' %}
+  {% if not service %}
+    <header class="bd-titre"><h1>Paramétrage</h1></header>
+    <section class="dossier-boite carte" id="services-liste" data-parametrage-bloc>
+      {% url 'acteurs:creer_service' as creer %}
+      {% include 'commun/_boite_entete.html' with titre='Services' action_url=creer action_libelle='Créer un service' action_type='parametrage' only %}
+      <div data-parametrage-hote></div>
+      <ul class="episodes-compacts">
+        {% for s in services %}<li><a href="{% url 'acteurs:service' s.pk %}">{{ s }} — {{ s.etablissement }}</a></li>
+        {% empty %}<li>Aucun service configuré.</li>{% endfor %}
+      </ul>
+    </section>
+    <section class="dossier-boite carte">
+      {% url 'acteurs:prestataires' as offres %}
+      {% include 'commun/_boite_entete.html' with titre='Prestataires' action_url=offres action_libelle='Voir les prestataires' only %}
+    </section>
+  {% else %}
+    <header class="bd-titre"><p class="surtitre">{{ service.etablissement }}</p><h1>{{ service }}</h1></header>
+    <section id="rubriques">
+      <h2>Rubriques</h2>
+      <section class="dossier-boite carte" id="service-{{ service.pk }}-composition" data-dossier-boite data-parametrage-bloc data-parametrage-composition="{{ service.profil_collectif|yesno:'oui,non' }}">
+        {% if service.profil_collectif %}{% url 'acteurs:composition' service.pk as composition %}{% endif %}
+        {% include 'commun/_boite_entete.html' with titre='Composition du ménage' action_url=composition action_libelle='Modifier la composition' action_type='parametrage' secondaire=True only %}
+        <p>{{ identification_service }}</p>
+        <div data-parametrage-hote></div>
+      </section>
+      <section class="dossier-boite carte" id="service-{{ service.pk }}-rubriques" data-dossier-boite data-parametrage-bloc>
+        {% url 'acteurs:collecte' service.pk as collecte %}
+        {% include 'commun/_boite_entete.html' with titre='Informations sociales' action_url=collecte action_libelle='Modifier les rubriques sociales' action_type='parametrage' secondaire=True only %}
+        {% if regles_sociales %}
+          <details><summary>Voir les règles en vigueur</summary>
+            <ul class="episodes-compacts">{% for rubrique, regle in regles_sociales %}<li class="episode-encadre">{{ rubrique }} · {{ regle }}</li>{% endfor %}</ul>
+          </details>
+        {% else %}<p>Aucune règle définie par rubrique.</p>{% endif %}
+        <div data-parametrage-hote></div>
+      </section>
+      <section class="dossier-boite carte" id="service-{{ service.pk }}-prestations" data-dossier-boite data-parametrage-bloc>
+        {% if service.profil_collectif %}
+          {% url 'acteurs:prestations' service.pk as prestations %}
+          {% include 'commun/_boite_entete.html' with titre='Prestations du service' action_url=prestations action_libelle='Modifier les prestations' action_type='parametrage' secondaire=True only %}
+        {% else %}
+          {% url 'acteurs:collectif' service.pk as prestations %}
+          {% include 'commun/_boite_entete.html' with titre='Prestations du service' action_url=prestations action_libelle='Configurer le service' action_type='parametrage' secondaire=True only %}
+        {% endif %}
+        {% if service.profil_collectif %}
+          <ul class="episodes-compacts">{% for libelle in prestations_service %}<li class="episode-encadre">{{ libelle }}</li>{% empty %}<li>Aucune prestation proposée.</li>{% endfor %}</ul>
+        {% else %}<p>Suivi individuel.</p>{% endif %}
+        {% if service.catalogue_prestations %}<p>Offres choisies pour ce service.</p>{% endif %}
+        <div data-parametrage-hote></div>
+      </section>
+    </section>
+    <section id="autorisations">
+      <h2>Autorisations</h2>
+      <section class="dossier-boite carte" id="service-{{ service.pk }}-acces" data-dossier-boite data-parametrage-bloc>
+        {% url 'acteurs:politique' service.pk as acces %}
+        {% include 'commun/_boite_entete.html' with titre='Accès aux dossiers' action_url=acces action_libelle='Modifier l’accès aux dossiers' action_type='parametrage' secondaire=True only %}
+        <p>{{ service.get_politique_display }}.</p>
+        <div data-parametrage-hote></div>
+      </section>
+      <section class="dossier-boite carte" id="service-{{ service.pk }}-membres" data-dossier-boite data-parametrage-bloc>
+        {% url 'acteurs:membre' service.pk as membre %}
+        {% include 'commun/_boite_entete.html' with titre='Membres' action_url=membre action_libelle='Ajouter un membre' action_type='parametrage' secondaire=True only %}
+        <div data-parametrage-hote></div>
+        <ul class="episodes-compacts">{% for x in membres %}<li>{{ x.professionnel }} · {{ x.fonction }} · {{ x.debut }} → {{ x.fin|default:'sans fin renseignée' }}</li>{% empty %}<li>Aucun membre.</li>{% endfor %}</ul>
+      </section>
+      <section class="dossier-boite carte" id="service-{{ service.pk }}-habilitations" data-dossier-boite data-parametrage-bloc>
+        {% url 'acteurs:habilitation' service.pk as habilitation %}
+        {% include 'commun/_boite_entete.html' with titre='Habilitations' action_url=habilitation action_libelle='Configurer les accès d’un compte' action_type='parametrage' secondaire=True only %}
+        <div data-parametrage-hote></div>
+        <ul class="episodes-compacts">{% for h in habilitations %}<li>{{ h.compte }} · {{ h.get_tache_display }} · {{ h.debut }} → {{ h.fin|default:'sans fin renseignée' }}{% if h.revoque_le %} · Révoquée le {{ h.revoque_le }}{% else %} · <a data-parametrage-modifier href="{% url 'acteurs:revoquer' h.pk %}">Révoquer</a>{% endif %}</li>{% empty %}<li>Aucune habilitation.</li>{% endfor %}</ul>
+      </section>
+    </section>
+    <section class="dossier-boite carte" id="service-{{ service.pk }}-etablissement" data-parametrage-bloc>
+      <h2>Établissement et lieux</h2>
+      <p>Repérage des identités {{ service.etablissement.reperage_identites|yesno:'activé,désactivé' }} · <a data-parametrage-modifier href="{% url 'acteurs:reperage_politique' service.pk %}">Configurer</a></p>
+      <p><a data-parametrage-modifier href="{% url 'acteurs:exploitation' service.pk %}">Déclarer l’exploitant d’un lieu d’hébergement</a></p>
+      <div data-parametrage-hote></div>
+    </section>
+    <details id="historique-parametrage">
+      <summary>Historique de l’organisation et des accès</summary>
+      <p>Contrôle des accès par service {{ controle_actif|yesno:'actif,inactif' }}.</p>
+      {% for j in journaux %}<p>{{ j.cree_le }} · {{ j.auteur }} · {{ j.action }} · {{ j.avant }} → {{ j.apres }}</p>{% endfor %}
+    </details>
+  {% endif %}
+</div>
+<script src="{% static 'parametrage.js' %}" defer></script>
+{% endblock %}

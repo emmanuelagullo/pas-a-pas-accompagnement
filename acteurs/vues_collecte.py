@@ -45,7 +45,8 @@ class CollecteForm(FormulaireMetier):
 def configurer(request,service_pk):
     s.exiger_gestion(request.user)
     service=get_object_or_404(Service,pk=service_pk)
-    if request.method=='POST' and 'appliquer_profil' in request.POST:
+    profil_charge = request.method == 'POST' and 'appliquer_profil' in request.POST
+    if profil_charge:
         choix=request.POST.get('profil','detail')
         choix=choix if choix in ('menage','adultes','detail') else 'detail'
         f=CollecteForm(service=service,regles=c.profil(choix))
@@ -57,4 +58,6 @@ def configurer(request,service_pk):
         avant=deepcopy(service.collecte_rubriques)
         service.collecte_rubriques=regles;service.save(update_fields=['collecte_rubriques'])
         s.journal(request.user,service,'collecte_rubriques',avant,regles)
-    return formulaire(request,f,'Rubriques sociales — '+service.libelle,sauver,reverse('acteurs:service',args=[service.pk]))
+    return formulaire(request, f, 'Informations sociales', sauver,
+                      reverse('acteurs:service', args=[service.pk]) + f'#service-{service.pk}-rubriques',
+                      service=service, profil_charge=profil_charge)

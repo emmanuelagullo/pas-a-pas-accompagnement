@@ -403,7 +403,7 @@ header > nav .menu-utilisateur { position: relative; }
   .prestation-impression details > :not(summary) { display:block; }
 }
 /* NAV9 : une carte commune, détails individuels conservés et dépliables. */
-.episodes-compacts > .hebergement-groupe {display:block;border:1px solid var(--bordure,#cdded8);border-radius:.5rem;padding:.75rem;min-width:0}
+.episodes-compacts > :is(.hebergement-groupe, .episode-encadre) {display:block;border:1px solid var(--bordure,#cdded8);border-radius:.5rem;padding:.75rem;min-width:0}
 .hebergement-groupe > .prestation-consulter {display:grid;gap:.35rem;padding:.25rem;overflow-wrap:anywhere}
 .hebergement-groupe > nav {display:flex;flex-wrap:wrap;gap:.75rem;align-items:center;margin:.65rem 0}
 .hebergement-individuels {margin-top:.75rem}
@@ -424,9 +424,8 @@ header > nav .menu-utilisateur { position: relative; }
 .collecte-table { overflow-x:auto; margin-block:.75rem; }
 .collecte-table table { width:100%; }
 .collecte-table select { min-width:10rem; max-width:100%; }
-.collecte-reglages > summary { cursor:pointer; font-weight:600; margin-block:.75rem; }
 
-#parametrage form:has(.collecte-reglages), .collecte-reglages, .collecte-table { min-width:0; max-width:100%; }
+#parametrage form:has(.collecte-table), .collecte-table { min-width:0; max-width:100%; }
 .collecte-table table { table-layout:fixed; }
 .collecte-table select { min-width:0; width:100%; box-sizing:border-box; }
 @media(max-width:600px) {

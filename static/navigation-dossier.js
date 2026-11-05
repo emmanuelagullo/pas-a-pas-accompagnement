@@ -118,8 +118,10 @@
     document.querySelector('[data-sommaire-repli]').hidden = true;
     const evolution = document.querySelector('[data-condition-evolution-panel]');
     const enEvolution = evolution && !evolution.hidden;
-    nav.querySelector('[data-navigation-situation]').hidden = Boolean(enEvolution);
-    nav.querySelector('[data-navigation-evolution]').hidden = !enEvolution;
+    const situation = nav.querySelector('[data-navigation-situation]');
+    const historique = nav.querySelector('[data-navigation-evolution]');
+    if (situation) situation.hidden = Boolean(enEvolution);
+    if (historique) historique.hidden = !enEvolution;
     nav.querySelectorAll('[data-navigation-evolution] a').forEach(link => {
       link.closest('li').hidden = !cible(link.hash);
     });

@@ -1,0 +1,1 @@
+<li>{% if not premier %}<span aria-hidden="true" class="separateur">›</span>{% endif %}{% if url %}<a href="{{ url }}{% if ancre %}#{{ ancre }}{% endif %}">{{ libelle }}</a>{% else %}<span aria-current="page">{{ libelle }}{% if date %} {{ date|date:'d/m/Y' }}{% endif %}</span>{% endif %}</li>

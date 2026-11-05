@@ -129,10 +129,13 @@ réutiliser prestation-ligne sans son emplacement de sélection : sa première
 colonne ne mesure que 2,75 rem. Qualifier aussi le résumé et l’éditeur ouverts,
 pas seulement le formulaire de création.
 
-Depuis COL6, le bloc Rubriques sociales de la fiche du service règle le
-rattachement au ménage ou aux personnes, ainsi que les personnes concernées.
-Le bloc Composition et prestations règle les identités à enregistrer et le
-suivi des prestations. Les anciennes options de collecte du ménage restent
+Dans Paramétrage → Services, le volet Rubriques sépare la composition du
+ménage, les informations sociales et les prestations du service. Le volet
+Autorisations regroupe les accès aux dossiers, les membres et les habilitations.
+Le formulaire Informations sociales règle le rattachement au ménage ou aux
+personnes, ainsi que les personnes concernées. Charger un profil remplit
+le tableau. Enregistrer applique les choix au service.
+Les anciennes options de collecte du ménage restent
 appliquées aux services qui n’ont pas encore enregistré de règles par rubrique.
 La composition datée désigne toujours une seule personne de référence. Les
 désignations multiples et les dérogations individuelles datées restent ouvertes.

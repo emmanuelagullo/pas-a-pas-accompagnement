@@ -59,7 +59,7 @@ class DemonstrationActeursTests(TestCase):
         self.preparer()
         self.client.force_login(get_user_model().objects.get(username='essai'))
         page=self.client.get(reverse('accueil'))
-        self.assertContains(page, '>Établissement</a>')
+        self.assertContains(page, '>Paramétrage</a>')
         self.assertContains(page, '<summary>Compte : essai</summary>')
         self.assertContains(page, '<summary>En chantier</summary>')
         self.assertNotContains(page, 'Service pour les nouvelles saisies')
