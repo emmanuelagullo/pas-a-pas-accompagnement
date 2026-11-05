@@ -435,3 +435,11 @@ header > nav .menu-utilisateur { position: relative; }
  .collecte-table td { padding:.25rem 0; }
  .collecte-table .visuellement-cache { position:static; width:auto; height:auto; margin:0; clip-path:none; white-space:normal; }
 }
+
+.attention-parametrage {
+  border-inline-start: .25rem solid #a34d00;
+  background: #fff3df;
+  color: #623100;
+  padding: .55rem .8rem;
+  margin-block-end: .75rem;
+}

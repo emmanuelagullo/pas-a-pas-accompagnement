@@ -26,6 +26,11 @@ explicite. Les faits et calculs individuels restent conservés.
 programmes Linux/Windows et PWA ne constituent pas une qualification pour des
 dossiers réels. Les comptes professionnels sont distincts des personnes suivies.
 
+Le paramétrage de l’établissement et du service propose des listes de
+suggestions pour les motifs d’entrée et de sortie et la destination. Un service
+peut reprendre la liste commune ou proposer ses propres choix. La démonstration
+La Traverse illustre un ménage fictif de l’entrée à la sortie.
+
 ## État courant et repères de lecture
 
 Les réglages de service proposent désormais **Rubriques sociales** : trois

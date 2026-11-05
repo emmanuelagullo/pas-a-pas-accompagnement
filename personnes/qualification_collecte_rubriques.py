@@ -72,6 +72,8 @@ class CollecteNavigateur(Donnees,StaticLiveServerTestCase):
                 if os.environ.get('COL6_CAPTURES'):
                     out=Path(os.environ['COL6_CAPTURES']);out.mkdir(parents=True,exist_ok=True)
                     page.screenshot(path=str(out/('rubriques-'+str(largeur)+'.png')),full_page=True)
+                form.get_by_text('Attention · Changer la collecte', exact=True).click()
+                form.get_by_label('Confirmer le changement de collecte').check()
                 form.get_by_role('button',name='Enregistrer',exact=True).click()
                 expect(page.get_by_role('link',name='Modifier les rubriques sociales',exact=True)).to_be_visible()
                 if js and largeur < 1280:

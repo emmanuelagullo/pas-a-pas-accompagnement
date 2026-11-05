@@ -29,6 +29,7 @@ class OrganismeGestionnaire(ModeleOrganisation):
 
 
 class Etablissement(ModeleOrganisation):
+    listes_saisie = models.JSONField(default=dict, blank=True)
     reperage_identites=models.BooleanField(default=False)
     revision=models.PositiveIntegerField(default=0,editable=False)
     organisme = models.ForeignKey(OrganismeGestionnaire, on_delete=models.PROTECT)
@@ -46,6 +47,7 @@ class Service(ModeleOrganisation):
     politique = models.CharField(max_length=12, choices=POLITIQUES, default='collectif')
     revision = models.PositiveIntegerField(default=0, editable=False)
     actif = models.BooleanField(default=True)
+    listes_saisie = models.JSONField(default=dict, blank=True)
     collecte_rubriques = models.JSONField(default=dict, blank=True)
     catalogue_prestations = models.BooleanField(default=False)
     profil_collectif = models.JSONField(default=dict, blank=True,

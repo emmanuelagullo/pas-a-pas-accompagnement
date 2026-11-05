@@ -2,6 +2,14 @@
 
 ## État courant
 
+Les suggestions de saisie des motifs d’entrée et de sortie et de la
+destination se résolvent dans cet ordre : service, établissement, Pas à Pas.
+Une liste explicitement vide supprime les suggestions. Les suggestions
+complètent les champs textuels sans réécrire les valeurs historiques.
+Le jeu fictif La Traverse exerce une composition nominative et une sortie
+vers le logement. Il ne constitue pas une restitution AHI complète.
+
+
 COL6 introduit Service.collecte_rubriques, une politique fermée de collecte
 indépendante des droits et des modes de prestations. Vide conserve l’existant.
 Les schémas personnels restent typés ; seules coordonnées communes, logement,

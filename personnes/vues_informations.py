@@ -11,6 +11,19 @@ from .social import droit
 from .vues_hebergement import traiter_hebergement
 
 
+class SaisieSuggeree(forms.TextInput):
+    template_name = 'dossiers/widgets/saisie_suggeree.html'
+
+    def __init__(self, suggestions, champ):
+        super().__init__(attrs={'list': 'suggestions-' + champ})
+        self.suggestions = suggestions
+
+    def get_context(self, name, value, attrs):
+        contexte = super().get_context(name, value, attrs)
+        contexte['suggestions'] = self.suggestions
+        return contexte
+
+
 class InformationsForm(FormulaireModeleMetier):
     objectifs_courts = tr.ChampTexte(label='Objectifs à court terme', max_length=1000, required=False)
     objectifs_longs = tr.ChampTexte(label='Objectifs à plus long terme', max_length=1000, required=False)
@@ -38,6 +51,15 @@ def modifier(request, pk):
         initial[champ] = tr.lire_objet(precedente, champ) if precedente else ''
     initial['attendu'] = service.jeton(a, precedente)
     form = InformationsForm(request.POST if request.method == 'POST' else None, initial=initial)
+    from acteurs.listes_saisie import LISTES, choix
+    from acteurs.portees import existante
+    origine = existante(a)
+    if origine:
+        service_actuel = origine.service
+        for champ in LISTES:
+            propositions = choix(champ, etablissement=service_actuel.etablissement, service=service_actuel)
+            if propositions:
+                form.fields[champ].widget = SaisieSuggeree(propositions, champ)
     return traiter_hebergement(request, form, 'Informations pratiques et projet d’accompagnement',
         lambda **d: service.enregistrer(request.user, a, **d), a.menage, accompagnement=a,
         retour=reverse('suivi:accompagnement', args=[a.pk]))

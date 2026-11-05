@@ -48,10 +48,13 @@ class CollecteRubriquesTests(Donnees,TestCase):
         self.assertEqual(self.client.post(url,{}).status_code,403)
     def test_formulaire_configuration_valide_sans_modifier_prestations(self):
         self.politique()
-        d={'attendu':organisation.jeton(self.service),'profil':'detail'}
+        d={'attendu':organisation.jeton(self.service),'profil':'detail','confirmer_collecte':'on'}
         for code,r in profil('detail').items():
             for cle,v in r.items():d[code+'_'+cle]=v
             d[code+'_active']='on'
+        sans_confirmation = CollecteForm({k: v for k, v in d.items() if k != 'confirmer_collecte'}, service=self.service)
+        self.assertFalse(sans_confirmation.is_valid())
+        self.assertIn('confirmer_collecte', sans_confirmation.errors)
         f=CollecteForm(d,service=self.service)
         self.assertTrue(f.is_valid(),f.errors)
         self.assertEqual(f.cleaned_data['regles'],profil('detail'))

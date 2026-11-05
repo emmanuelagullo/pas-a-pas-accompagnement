@@ -28,11 +28,11 @@ class DemonstrationActeursTests(TestCase):
         page = self.client.get(reverse('accueil'))
         self.assertContains(page, 'class="choix-dossiers"')
         self.assertContains(page, 'Mon service')
-        self.assertEqual(Personne.objects.count(),37)
+        self.assertEqual(Personne.objects.count(),39)
         self.assertEqual(set(Habilitation.objects.values_list('service__libelle', 'compte__username', 'tache')), {
             ('Les Tisserands', 'essai', 'social'), ('Les Tisserands', 'nadia', 'social'),
             ('Les Tisserands', 'remi', 'accueil'), ('Les Tisserands', 'camille', 'gestion'),
-            ('Les Tisserands', 'coordination', 'coordination'), ('Les Amandiers', 'essai', 'social'),
+            ('Les Tisserands', 'coordination', 'coordination'), ('Les Amandiers', 'essai', 'social'), ('La Traverse', 'essai', 'social'),
         })
         page = self.client.get(reverse('accueil'), {'filtre': 'attente'})
         self.assertContains(page, 'Noor')

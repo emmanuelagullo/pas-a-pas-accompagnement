@@ -13,6 +13,7 @@ from .views import formulaire
 
 class CollecteForm(FormulaireMetier):
     attendu=forms.CharField(widget=forms.HiddenInput)
+    confirmer_collecte = forms.BooleanField(label="Confirmer le changement de collecte", required=False)
     profil=forms.ChoiceField(label='Partir d’un profil',choices=[('detail','Suivi personnel détaillé'),('menage','Informations communes au ménage'),('adultes','Informations personnelles des adultes')],required=False)
     def __init__(self,*args,service,regles=None,**kw):
         super().__init__(*args,**kw)
@@ -64,6 +65,15 @@ class CollecteForm(FormulaireMetier):
                 regle['portee_preferee'] = portee
             regles[code] = regle
         c.verifier(regles,self.service.profil_collectif.get('categories',categories_defaut()))
+        avant = self.service.collecte_rubriques or c.profil('detail')
+        impacts = [
+            c.RUBRIQUES[code][0] for code, regle in regles.items()
+            if (regle['portee'], regle['population'] if regle['portee'] in ('personne', 'deux') else None)
+            != (avant[code]['portee'], avant[code]['population'] if avant[code]['portee'] in ('personne', 'deux') else None)
+        ]
+        confirmation = d.pop('confirmer_collecte')
+        if impacts and not confirmation:
+            self.add_error('confirmer_collecte', 'Confirmez les changements pour ' + ', '.join(impacts) + '.')
         d.pop('profil',None);d['regles']=regles
         return d
 

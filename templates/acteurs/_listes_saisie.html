@@ -1,0 +1,6 @@
+<section class="dossier-boite carte" id="listes-saisie" data-parametrage-bloc>
+  {% if service %}{% url 'acteurs:listes_service' service.pk as url %}{% else %}{% url 'acteurs:listes_etablissement' etablissement.pk as url %}{% endif %}
+  {% include 'commun/_boite_entete.html' with titre='Choix proposés à la saisie' action_url=url action_libelle='Modifier les choix' action_type='parametrage' secondaire=True only %}
+  <p>Motif d’entrée, motif de sortie et destination. Les choix proposés laissent la saisie libre.</p>
+  <div data-parametrage-hote></div>
+</section>

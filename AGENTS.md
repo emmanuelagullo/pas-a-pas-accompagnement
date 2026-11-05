@@ -102,10 +102,31 @@ sans Signed-off-by.
 ## Réception des patches et travail local
 
 L'utilisateur place les patches dans `/tmp/patches-pas-a-pas/`. Fournir des liens
-de téléchargement cliquables vers chaque fichier, sans ZIP pour une poignée de
+de téléchargement direct vers chaque fichier (pas une page d’ouverture), sans ZIP pour une poignée de
 patches, puis un seul bloc copiable d'application et de validations adaptées au
 lot. Employer `python3`. Les noms des fichiers et leur ordre doivent correspondre
 exactement aux patches livrés ; expliciter leur base et leurs dépendances.
+
+### Présentation et opérations sensibles
+
+- Reprendre les templates communs du fil d’Ariane, des boîtes et du sommaire
+  latéral et mobile. Employer des intitulés courts et les styles de boutons
+  existants. Les sous-titres des listes sont dans la même carte cliquable que
+  leur titre, comme pour une prise en charge.
+- Éditer sur place avec le mécanisme commun. Si un autre formulaire est
+  demandé, fermer le formulaire intact. Si la saisie a changé, conserver
+  le formulaire et y ramener le focus. Préserver le parcours sans JavaScript.
+- Distinguer choix proposés, collecte et droits. Résoudre les réglages
+  communs puis les dérogations du service. Préserver les données historiques
+  et appliquer les droits aux routes, résumés, exports et rapports.
+- Garder les opérations rares sous « Réglages avancés », repliés par défaut.
+  Pour une action avec effet étendu ou difficile à corriger, expliquer son
+  effet au point de confirmation et signaler l’attention par un libellé et
+  l’orange. Réserver le rouge aux actions majeures, par exemple une perte
+  irréversible de données ou un changement des droits d’administration.
+  Une opération rouge requiert une confirmation serveur adaptée au mode
+  d’authentification et une trace. Le changement d’un libellé sans changement
+  de sens ni de droits reste une action ordinaire.
 
 Pour un lot applicatif nécessitant la suite générale, le bloc suit ce modèle.
 Les étapes préalables sont synchrones ; seule la suite de tests part en arrière-

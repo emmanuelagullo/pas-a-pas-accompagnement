@@ -22,6 +22,7 @@
         {% empty %}<li class="bd-vide">Aucun service configuré.</li>{% endfor %}
       </ul>
     </section>
+    {% include 'acteurs/_listes_saisie.html' %}
     <section class="dossier-boite carte" id="recherche" data-parametrage-bloc>
       {% url 'acteurs:recherche_etablissement' etablissement.pk as recherche %}
       {% include 'commun/_boite_entete.html' with titre='Recherche entre services' action_url=recherche action_libelle='Modifier la recherche entre services' action_type='parametrage' secondaire=True only %}
@@ -89,6 +90,7 @@
         <div data-parametrage-hote></div>
       </section>
     </section>
+    {% include 'acteurs/_listes_saisie.html' %}
     <section id="autorisations">
       <h2>Autorisations</h2>
       <section class="dossier-boite carte" id="service-{{ service.pk }}-acces" data-dossier-boite data-parametrage-bloc>

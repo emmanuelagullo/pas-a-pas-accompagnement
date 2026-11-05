@@ -16,6 +16,8 @@ def completer(auteur,etablissement,professionnel):
     auteur=type(auteur).objects.get(pk=auteur.pk)
     jour=timezone.localdate();entree=jour-timedelta(days=14)
     service=Service.objects.create(etablissement=etablissement,libelle='Les Amandiers',sous_titre='Accueil et hébergement des familles',profil_collectif=defaut(),collecte_rubriques=profil_collecte('menage'))
+    service.listes_saisie = {'motif_entree': ['Mise à l’abri', 'Accueil d’une famille']}
+    service.save(update_fields=['listes_saisie'])
     AppartenanceProfessionnelle.objects.create(service=service,professionnel=professionnel,debut=entree)
     services.habiliter(auteur,auteur,service,'social',entree,statistiques_service=True,exporter=True,corriger_autrui=True)
     lieu_repas=m.Partenaire.objects.create(libelle='La Table des Amandiers — fictive',cree_par=auteur)

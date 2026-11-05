@@ -6,8 +6,14 @@
 <h1>{{ titre }}</h1>
 {% if proposition_relais %}<p>Le relais conserve les autres intervenants et l’histoire des éléments terminés. L’accès restant suit la politique du service.</p>
 <section class="carte"><h2>Ce qui sera transmis</h2><ul>{% for x in lignes_relais %}<li>{{ x.cible }} · {{ x.get_role_display }}</li>{% empty %}<li>Aucune responsabilité à transmettre avec cette sélection.</li>{% endfor %}</ul></section>{% endif %}
-<form method="post" class="carte">{% csrf_token %}{% adapter_saisie form request.user %}{% if form.lignes_collecte %}{{ form.non_field_errors }}{{ form.attendu }}<p>{{ form.profil.label_tag }} {{ form.profil }} <button class="secondaire" name="appliquer_profil" value="1" formnovalidate>Charger ce profil</button></p>
+<form method="post" class="carte">{% csrf_token %}
+{% if attention_listes %}<details class="attention-parametrage"><summary>Attention · Effet sur les services</summary><p>Les services qui reprennent ces listes verront les nouveaux choix. Les données déjà enregistrées sont conservées.</p></details>{% endif %}{% adapter_saisie form request.user %}{% if form.lignes_collecte %}{{ form.non_field_errors }}{{ form.attendu }}<p>{{ form.profil.label_tag }} {{ form.profil }} <button class="secondaire" name="appliquer_profil" value="1" formnovalidate>Charger ce profil</button></p>
 {% if profil_charge %}<p role="status" data-profil-charge>Profil chargé. Modifications à enregistrer.</p>{% endif %}
+<details class="attention-parametrage"{% if form.confirmer_collecte.errors %} open{% endif %}>
+  <summary>Attention · Changer la collecte</summary>
+  <p>Le changement s’applique aux prochaines saisies. Les données existantes restent à leur place.</p>
+  {{ form.confirmer_collecte.as_field_group }}
+</details>
 <div class="collecte-table">
   <table>
     <thead><tr><th>Rubrique</th><th>Demander</th><th>Où enregistrer l’information ?</th><th>Quelles personnes sont concernées ?</th></tr></thead>

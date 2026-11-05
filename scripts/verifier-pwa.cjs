@@ -154,7 +154,7 @@ with zipfile.ZipFile(sys.argv[1]) as z,tempfile.TemporaryDirectory() as t:
   # Scénario enrichi : 36 personnes, puis le dossier créé par cette recette.
   personnes=db.execute('SELECT count(*) FROM personnes_personne').fetchone()[0]
   comptes=db.execute('SELECT count(*) FROM identites_utilisateur').fetchone()[0]
-  assert personnes==37, f'Copie essai : 37 personnes attendues, {personnes} obtenues'
+  assert personnes==39, f'Copie essai : 39 personnes attendues, {personnes} obtenues'
   assert comptes==4, f'Copie essai : 4 comptes attendus, {comptes} obtenus'
   assert db.execute('SELECT count(*) FROM personnes_personne WHERE designation=?',('Essai séparé conservé',)).fetchone()[0]==1
   assert db.execute('SELECT count(*) FROM personnes_personne WHERE designation=?',('Personne fictive conservée',)).fetchone()[0]==0

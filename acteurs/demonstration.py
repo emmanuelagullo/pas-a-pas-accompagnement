@@ -91,5 +91,7 @@ def preparer():
     ConfigurationAcces.objects.update_or_create(pk=1,defaults={'active':True})
     from personnes.demonstration_collective import completer
     completer(auteur,etab,pros['essai'])
+    from personnes import demonstration_traverse
+    demonstration_traverse.completer(auteur, etab, pros['essai'])
     services.journal(auteur,service,'demonstration_acteurs',{}, {'controle_actif':True,'jeu':'Les Passerelles'})
     return service
