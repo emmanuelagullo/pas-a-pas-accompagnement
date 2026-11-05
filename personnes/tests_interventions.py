@@ -133,7 +133,8 @@ class MissionsTests(Donnees, TestCase):
     def test_bd_csv_resume_et_legacy_non_converti(self):
         self.affecter()
         page = self.client.get(reverse('dossiers:prise', args=['menage', self.m.pk, self.a.pk]))
-        self.assertContains(page, 'Professionnels et organismes')
+        self.assertContains(page, 'Missions et partenaires')
+        self.assertContains(page, 'href="#condition-missions"')
         self.assertContains(page, 'Professionnelle fictive')
         self.assertContains(self.client.get(reverse('suivi:resume', args=[self.a.pk])), 'Professionnelle fictive')
         csv = self.client.get(reverse('dossiers:interventions', args=[self.a.pk]), {'date':'2026-01-02','format':'csv'})
@@ -155,7 +156,7 @@ class MissionsTests(Donnees, TestCase):
     def test_droits_distincts(self):
         self.u.user_permissions.remove(Permission.objects.get(codename='view_affectationintervenant'))
         self.assertEqual(self.client.get(reverse('dossiers:interventions', args=[self.a.pk])).status_code,403)
-        self.assertNotContains(self.client.get(reverse('dossiers:prise', args=['menage',self.m.pk,self.a.pk])), 'Professionnels et organismes de cette prise')
+        self.assertNotContains(self.client.get(reverse('dossiers:prise', args=['menage',self.m.pk,self.a.pk])), 'id="condition-missions"')
 
     def test_annuaire_professionnel_organisme_et_coordonnees_restituees_a_date(self):
         from .tests_partenaires import valeurs as valeurs_organisme
