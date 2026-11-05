@@ -22,16 +22,20 @@ def modifier(request, service_pk=None, etablissement_pk=None):
     cible = service or etablissement
     form = FormulaireMetier(request.POST if request.method == 'POST' else None)
     form.fields['attendu'] = forms.CharField(widget=forms.HiddenInput, initial=s.jeton(cible))
-    for code, (titre, _) in LISTES.items():
+    lignes = []
+    for code, (titre, defaut) in LISTES.items():
         source = 'la liste de l’établissement' if service else 'la liste Pas à Pas'
         form.fields[code + '_commun'] = forms.BooleanField(
-            label=f'{titre} — reprendre {source}', required=False, initial=code not in cible.listes_saisie,
+            label=f'Reprendre {source}', required=False, initial=code not in cible.listes_saisie,
         )
         form.fields[code] = forms.CharField(
-            label=titre, required=False, max_length=8000, widget=forms.Textarea(attrs={'rows': 4}),
+            label='Choix personnalisés', required=False, max_length=8000, widget=forms.Textarea(attrs={'rows': 4}),
             initial='\n'.join(choix(code, etablissement=etablissement, service=service)),
             help_text='Un choix par ligne, dans l’ordre voulu.',
         )
+
+        commun = choix(code, etablissement=etablissement) if service else defaut
+        lignes.append((titre, form[code + '_commun'], form[code], commun))
 
     def sauver(attendu, **donnees):
         s.reserver(cible, attendu)
@@ -54,4 +58,4 @@ def modifier(request, service_pk=None, etablissement_pk=None):
     return formulaire(request, form, 'Choix proposés à la saisie', sauver,
                       reverse(f'acteurs:{nom}', args=[cible.pk]) + '#listes-saisie',
                       service=service, etablissement=None if service else etablissement,
-                      attention_listes=not service)
+                      attention_listes=not service, lignes_listes=lignes)

@@ -2,7 +2,12 @@
 (() => {
   if(window.PasParametrage)return;window.PasParametrage=true;
   let occupe=false,modifie=false,blocActif='',restaurerLecture=null;
-  function collecte() {
+  function actualiserChamps() {
+    document.querySelectorAll('[data-liste-saisie]').forEach(ligne => {
+      const reprise = ligne.querySelector('input[type="checkbox"]');
+      ligne.querySelector('textarea').disabled = reprise.checked;
+      ligne.querySelector('[data-liste-commune]').hidden = !reprise.checked;
+    });
     document.querySelectorAll('.collecte-table tbody tr').forEach(ligne => {
       const active = ligne.querySelector('[name$="_active"]');
       if (!active) return;
@@ -16,7 +21,7 @@
       });
     });
   }
-  collecte();
+  actualiserChamps();
   function dire(texte, bloc) {
     const hote = bloc?.querySelector('[data-parametrage-hote]');
     if (!hote) {
@@ -96,7 +101,7 @@
         if (actuel && doc.getElementById(actuel.id)) destination.hash = actuel.id;
         history.replaceState(history.state, '', destination);
       }
-      collecte();
+      actualiserChamps();
       if(cible){if(!cible.matches('input,select,textarea,a,button'))cible.tabIndex=-1;cible.focus({preventScroll:true});cible.scrollIntoView({block:'nearest'});}
       document.dispatchEvent(new Event('navigation:actualise'));
       dire(options.method==='POST' && !modifie ? 'Modification enregistrée.' : '');
@@ -126,7 +131,7 @@
     charger(a.href,{},bloc);
   });
   document.addEventListener('input',e=>{if(e.target.closest('#parametrage-editeur form'))modifie=true;});
-  document.addEventListener('change',e=>{if(e.target.closest('#parametrage-editeur form'))modifie=true;collecte();});
+  document.addEventListener('change',e=>{if(e.target.closest('#parametrage-editeur form'))modifie=true;actualiserChamps();});
   document.addEventListener('submit',e=>{
     const f=e.target.closest('#parametrage-editeur form');if(!f)return;
     e.preventDefault();const body=new FormData(f);

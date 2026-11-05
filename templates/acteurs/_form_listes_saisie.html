@@ -1,0 +1,14 @@
+{{ form.non_field_errors }}{{ form.attendu }}
+{% for titre, reprendre, liste, commun in lignes_listes %}
+  <fieldset data-liste-saisie>
+    <legend>{{ titre }}</legend>
+    <p><label>{{ reprendre }} {{ reprendre.label }}</label>{{ reprendre.errors }}</p>
+    <div data-liste-commune>
+      <p>Choix de la liste commune</p>
+      <ul>{% for valeur in commun %}<li>{{ valeur }}</li>{% empty %}<li>Aucun choix proposé.</li>{% endfor %}</ul>
+    </div>
+    <p>{{ liste.label_tag }} {{ liste }}{{ liste.errors }}
+      <span class="helptext">{{ liste.help_text }}</span>
+    </p>
+  </fieldset>
+{% endfor %}

@@ -112,6 +112,16 @@ def organisation(request,service_pk=None,action=None,etablissement_pk=None):
             'identification_service': dict(IDENTIFICATIONS).get(profil.get('identification'), 'Toutes les personnes identifiées'),
             'regles_sociales': regles, 'prestations_service': prestations,
         }
+    if service or etablissement:
+        from .listes_saisie import LISTES, choix
+        parent = service.etablissement if service else etablissement
+        cible = service or etablissement
+        resume['listes_effectives'] = [
+            (titre, choix(code, etablissement=parent, service=service),
+             'Liste personnalisée' if code in cible.listes_saisie else
+             'Liste de l’établissement' if service else 'Liste Pas à Pas')
+            for code, (titre, _) in LISTES.items()
+        ]
     return render(request,'acteurs/organisation.html',{'services':Service.objects.filter(etablissement=etablissement).order_by('libelle') if etablissement else [],
         'etablissements':Etablissement.objects.select_related('fiche').order_by('fiche__libelle'),
         'etablissement':etablissement,
