@@ -12,10 +12,10 @@ from .views import formulaire
 from personnes.champs_saisie import FormulaireMetier
 
 class ProfilForm(FormulaireMetier):
-    actif=forms.BooleanField(label='Adapter les informations demandées et les prestations du service',required=False)
+    actif=forms.BooleanField(label='Utiliser les réglages de ce service pour la composition et les prestations',required=False)
     prestations=forms.MultipleChoiceField(label='Prestations proposées',choices=[('hebergement','Hébergement'),('restauration','Repas')],required=False,widget=forms.CheckboxSelectMultiple)
-    catalogue=forms.BooleanField(label='Choisir les offres des prestataires utilisables',required=False,help_text='Désactivé : conserver les choix de lieux historiques. Activé : seules les offres sélectionnées sont proposées.')
-    offres=forms.ModelMultipleChoiceField(OffrePrestataire.objects.none(),label='Offres utilisables',required=False,widget=forms.CheckboxSelectMultiple)
+    catalogue=forms.BooleanField(label='Limiter le choix aux offres sélectionnées',required=False,help_text='Cochez cette case pour choisir les offres proposées lors de la saisie.')
+    offres=forms.ModelMultipleChoiceField(OffrePrestataire.objects.none(),label='Offres proposées à la saisie',required=False,widget=forms.CheckboxSelectMultiple)
     identification=forms.ChoiceField(label='Personnes à identifier',choices=IDENTIFICATIONS)
     hebergement=forms.ChoiceField(label='Suivi de l’hébergement',choices=MODES)
     restauration=forms.ChoiceField(label='Suivi de la restauration',choices=MODES)
@@ -27,6 +27,9 @@ class ProfilForm(FormulaireMetier):
     def __init__(self,*args,**kwargs):
         super().__init__(*args,**kwargs)
         self.fields['offres'].queryset=OffrePrestataire.objects.filter(actif=True)
+        # Les anciens choix restent conservés tant que les rubriques sociales
+        # ne sont pas configurées dans leur écran dédié.
+        self.fields['rubriques'].disabled = True
         categories=self.initial.get('categories',defaut()['categories'])
         del self.fields['categories']
         self.categories_initiales=categories;self.lignes=[]
@@ -42,8 +45,8 @@ class ProfilForm(FormulaireMetier):
     def champs_principaux(self):return [x for x in self if not x.name.startswith('categorie_')]
     @property
     def groupes_champs(self):
-        groupes=[('Fonctionnement',['actif']),
-                 ('Informations du ménage',['identification','rubriques']),
+        groupes=[('Réglages du service',['actif']),
+                 ('Composition du ménage',['identification']),
                  ('Prestations proposées',['prestations','aides']),
                  ('Suivi des prestations',['hebergement','restauration','petits_dejeuners']),
                  ('Prestataires',['catalogue','offres'])]
@@ -84,4 +87,4 @@ def configurer(request,service_pk):
         service.save(update_fields=['profil_collectif','catalogue_prestations'])
         service.offres.set(offres)
         s.journal(request.user,service,'profil_collectif',avant,{**service.profil_collectif,'catalogue':catalogue,'offres':list(service.offres.values_list('pk',flat=True))})
-    return formulaire(request,f,'Informations demandées et prestations proposées — '+service.libelle,sauver,reverse('acteurs:service',args=[service.pk]))
+    return formulaire(request,f,'Composition et prestations — '+service.libelle,sauver,reverse('acteurs:service',args=[service.pk]))

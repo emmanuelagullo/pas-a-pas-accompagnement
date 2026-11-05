@@ -19,11 +19,15 @@ async function charger(){
   self.postMessage({kind:'progress',text:'Chargement du moteur local…'});
   const {loadPyodide,version}=await import('./runtime/pyodide.mjs');
   if(version!==config.pyodide)throw new Error('Moteur incohérent');
+  self.postMessage({kind:'progress',text:'Démarrage de Python dans le navigateur…'});
   python=await loadPyodide({indexURL:new URL('./runtime/',location.href).href});
+  self.postMessage({kind:'progress',text:'Chargement des bibliothèques Python…'});
   await python.loadPackage(['micropip','pycryptodome','pillow']);
+  self.postMessage({kind:'progress',text:'Installation des dépendances de l’application…'});
   const micropip=python.pyimport('micropip');
   try{await micropip.install(config.wheels.map(n=>new URL('./wheels/'+n,location.href).href));}
   finally{micropip.destroy();}
+  self.postMessage({kind:'progress',text:'Chargement de l’application…'});
   python.unpackArchive(new Uint8Array(await(await fetch('./application.zip')).arrayBuffer()),'zip',{extractDir:'/application'});
   python.runPython("import sys;sys.path.insert(0,'/application')");
   pont=python.pyimport('pwa.bridge');
@@ -43,7 +47,9 @@ async function traiter(message){
   else if((message.essai===true)!==ESSAI)throw new Error('Changement d’espace dans un moteur ouvert interdit');
   if(message.kind==='init'){
     if(python)throw new Error('Moteur déjà ouvert');
-    await charger();const etat=await lireEtat();
+    await charger();
+    self.postMessage({kind:'progress',text:'Ouverture des données locales…'});
+    const etat=await lireEtat();
     appel('initialize',location.origin,BASE,ESSAI,ESSAI&&!etat);
     await conserver();initialise=true;return {ready:true};
   }

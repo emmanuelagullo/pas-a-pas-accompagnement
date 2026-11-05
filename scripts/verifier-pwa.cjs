@@ -27,11 +27,18 @@ const server=(tls?require('node:https'):http).createServer(options,(req,res)=>{
 });
 (async()=>{
  let browser,page;
+ const journalReseau=[];
  try{
   await new Promise(r=>server.listen(0,'127.0.0.1',r));
   const url=`${tls?'https':'http'}://127.0.0.1:${server.address().port}${base}`;
   browser=await chromium.launch({headless:true,...(process.env.PWA_CHROMIUM?{executablePath:process.env.PWA_CHROMIUM}:{}),args:['--no-sandbox','--disable-dev-shm-usage',...(tls?['--ignore-certificate-errors']:[])]});
   const context=await browser.newContext({ignoreHTTPSErrors:tls});page=await context.newPage();
+  function noterReseau(message){
+   journalReseau.push(message);
+   if(journalReseau.length>20)journalReseau.shift();
+  }
+  context.on('requestfailed',r=>noterReseau(`${new URL(r.url()).pathname} : ${r.failure()?.errorText}`));
+  context.on('response',r=>{if(r.status()>=400)noterReseau(`${new URL(r.url()).pathname} : HTTP ${r.status()}`);});
   page.on('pageerror',e=>console.error('PAGE',String(e)));
   page.on('console',m=>{if(m.type()==='error')console.error('CONSOLE',m.text());});
   async function changerEspace(essai){
@@ -339,5 +346,5 @@ for mode in ['etranger','altere','future']:
   await require('./verifier-stockage-pwa.cjs')(page,url);
   assert(!sorties.some(p=>p.startsWith(base+'app/')),'Requête métier sortie vers le serveur statique');
   console.log('Chromium CHRS : création → second onglet refusé → relance hors ligne → reconnexion et persistance : OK');
- }catch(e){console.error('Échec du parcours PWA :',e);if(page){console.error('État du moteur :',await page.locator('#status').textContent().catch(()=>''),await page.locator('#notice').textContent().catch(()=>''));}throw e;}finally{await browser?.close();server.closeAllConnections();await new Promise(r=>server.close(r));if(certificat)fs.rmSync(certificat,{recursive:true,force:true});}
+ }catch(e){console.error('Échec du parcours PWA :',e);if(journalReseau.length)console.error('Derniers échecs réseau :',journalReseau.join('\n'));if(page){console.error('État du moteur :',await page.locator('#status').textContent().catch(()=>''),await page.locator('#notice').textContent().catch(()=>''));}throw e;}finally{await browser?.close();server.closeAllConnections();await new Promise(r=>server.close(r));if(certificat)fs.rmSync(certificat,{recursive:true,force:true});}
 })().catch(e=>{console.error(e);process.exitCode=1;});

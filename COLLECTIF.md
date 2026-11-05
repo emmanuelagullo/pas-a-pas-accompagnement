@@ -129,11 +129,13 @@ réutiliser prestation-ligne sans son emplacement de sélection : sa première
 colonne ne mesure que 2,75 rem. Qualifier aussi le résumé et l’éditeur ouverts,
 pas seulement le formulaire de création.
 
-Limite de collecte encore présente : le profil règle globalement les identités
-à enregistrer et les informations collectives du ménage. Il ne définit pas encore,
-rubrique par rubrique, référents / adultes / tous / catégories particulières,
-ni plusieurs personnes désignées pour cette collecte. Ces règles ne doivent pas
-être présentées comme livrées ni remplacées par de simples masques visuels.
+Depuis COL6, le bloc Rubriques sociales de la fiche du service règle le
+rattachement au ménage ou aux personnes, ainsi que les personnes concernées.
+Le bloc Composition et prestations règle les identités à enregistrer et le
+suivi des prestations. Les anciennes options de collecte du ménage restent
+appliquées aux services qui n’ont pas encore enregistré de règles par rubrique.
+La composition datée désigne toujours une seule personne de référence. Les
+désignations multiples et les dérogations individuelles datées restent ouvertes.
 
 L’édition des services et des offres est ancrée dans chaque bloc de réglages :
 les formulaires apparaissent sous leur commande et la réponse réactualise ce
