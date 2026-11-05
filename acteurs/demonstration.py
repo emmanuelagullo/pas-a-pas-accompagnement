@@ -32,7 +32,7 @@ def preparer():
     fiche=m.Partenaire.objects.get(libelle='Établissement Les Passerelles (fictive)')
     org=OrganismeGestionnaire.objects.create(organisme=organisme)
     etab=Etablissement.objects.create(organisme=org,fiche=fiche,reperage_identites=True)
-    service=Service.objects.create(etablissement=etab,libelle='Accompagnement')
+    service=Service.objects.create(etablissement=etab,libelle='Les Tisserands', sous_titre='Accompagnement social et accès aux droits')
     debut=timezone.localdate()-timedelta(days=3650)
     pros={}
     for nom,libelle,tache,options in (

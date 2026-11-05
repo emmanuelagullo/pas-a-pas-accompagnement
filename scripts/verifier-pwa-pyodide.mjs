@@ -90,7 +90,7 @@ from personnes.models import NotePartagee
 from acteurs.contexte import perimetre
 from urllib.parse import urlencode
 social=get_user_model().objects.get(username='acteurs-social-wasm-fictif')
-service=Service.objects.get(libelle='Accompagnement')
+service=Service.objects.get(libelle='Les Tisserands')
 with perimetre(social,service):
     message=NotePartagee.objects.get(contenu='Réponse conservée du cahier WASM')
     assert message.fil_cle

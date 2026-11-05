@@ -59,7 +59,21 @@ const server=(tls?require('node:https'):http).createServer(options,(req,res)=>{
    await app.getByLabel('Personnes',{exact:true}).check();
    await cliquerLienPwa(app.getByRole('button',{name:'Rechercher',exact:true}));
   }
-  async function ouvrir(){await page.goto(url);await page.frameLocator('#app').locator('h1').waitFor({timeout:120000});}
+  async function ouvrir(){
+   await page.goto(url);
+   try{
+    await page.frameLocator('#app').locator('h1').waitFor({timeout:120000});
+   }catch(erreur){
+    const iframe=page.locator('#app');
+    const etat=await iframe.evaluate(element=>({
+     source:element.getAttribute('src'),masquee:element.hidden,
+    })).catch(()=>null);
+    console.error('Ouverture de l’iframe :',etat);
+    console.error('Documents chargés :',page.frames().map(f=>f.url().split('?')[0]));
+    console.error('Service worker :',await page.evaluate(()=>navigator.serviceWorker.controller?.state).catch(()=>null));
+    throw erreur;
+   }
+  }
   console.log('PWA : démarrage du parcours navigateur');
   await ouvrir();const frame=page.frameLocator('#app');
   await frame.locator('[name=username]').fill('essai-pwa');

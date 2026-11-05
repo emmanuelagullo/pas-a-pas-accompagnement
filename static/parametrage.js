@@ -80,6 +80,11 @@
         const remplace=actuel && doc.getElementById(actuel.id);
         if(remplace){
           actuel.replaceWith(remplace);
+          if (actuel.id === 'nom-service') {
+            const ariane = 'nav[aria-label="Fil d’Ariane"]';
+            const nouveauFil = frais.querySelector(ariane);
+            if (nouveauFil) ancien.querySelector(ariane)?.replaceWith(nouveauFil);
+          }
           cible=remplace.querySelector('[data-parametrage-modifier],h2,h3');
         }else{ancien.replaceWith(frais);cible=frais.querySelector('h1');}
         liberer();

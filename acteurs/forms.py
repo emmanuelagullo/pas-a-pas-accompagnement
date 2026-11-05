@@ -8,7 +8,7 @@ from .models import Service, Etablissement, Habilitation
 class ServiceForm(FormulaireModeleMetier):
     class Meta:
         model=Service
-        fields=['etablissement','libelle','politique']
+        fields=['etablissement','libelle','sous_titre','politique']
 
 
 class AppartenanceForm(FormulaireMetier):

@@ -1,0 +1,12 @@
+{% load dossier %}
+<details class="carte" id="historique-prise">
+  <summary>Historique de la prise en charge</summary>
+  {% with contexte_dossier=prise.navigation.contexte_dossier %}
+    <ul>
+      {% if perms.personnes.view_situationsociale %}<li><a href="{% dossier_url 'suivi:social' prise.pk %}">Anciens suivis</a></li>{% endif %}
+      {% if perms.personnes.view_correctionperiode %}<li><a href="{% dossier_url 'suivi:corrections' prise.pk %}">Corrections</a></li>{% endif %}
+      <li><a href="{% dossier_url 'suivi:accompagnement' prise.pk %}">Détail de la période et des bénéficiaires</a></li>
+    </ul>
+  {% endwith %}
+  {% for evolution in evolutions %}<p>{{ evolution.get_action_display }} · {{ evolution.enregistre_le|date:'d/m/Y H:i' }} · {{ evolution.motif }}</p>{% endfor %}
+</details>

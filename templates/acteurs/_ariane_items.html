@@ -1,14 +1,23 @@
 {% url 'acteurs:organisation' as accueil_parametrage %}
-{% if service or prestataires_page or page_actuelle %}
+{% if service or etablissement or prestataires_page or page_actuelle %}
   {% include 'commun/_ariane_item.html' with libelle='Paramétrage' url=accueil_parametrage premier=True only %}
   {% if service %}
-    {% include 'commun/_ariane_item.html' with libelle='Services' url=accueil_parametrage ancre='services-liste' only %}
+    {% url 'acteurs:etablissement' service.etablissement_id as fiche_etablissement %}
+    {% include 'commun/_ariane_item.html' with libelle=service.etablissement url=fiche_etablissement only %}
     {% if page_actuelle %}
       {% url 'acteurs:service' service.pk as fiche %}
       {% include 'commun/_ariane_item.html' with libelle=service.libelle url=fiche only %}
       {% include 'commun/_ariane_item.html' with libelle=page_actuelle only %}
     {% else %}
       {% include 'commun/_ariane_item.html' with libelle=service.libelle only %}
+    {% endif %}
+  {% elif etablissement %}
+    {% if page_actuelle %}
+      {% url 'acteurs:etablissement' etablissement.pk as fiche %}
+      {% include 'commun/_ariane_item.html' with libelle=etablissement url=fiche only %}
+      {% include 'commun/_ariane_item.html' with libelle=page_actuelle only %}
+    {% else %}
+      {% include 'commun/_ariane_item.html' with libelle=etablissement only %}
     {% endif %}
   {% elif prestataires_page %}
     {% url 'acteurs:prestataires' as liste_offres %}

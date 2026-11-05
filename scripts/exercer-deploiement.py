@@ -119,9 +119,9 @@ def exercer(mode, delai_demarrage=180, render=False):
                     "assert not get_user_model().objects.filter(is_superuser=True).exists(); "
                     "assert ConfigurationAcces.objects.get(pk=1).active; "
                     "assert set(Habilitation.objects.values_list('service__libelle','compte__username','tache'))=="
-                    "{('Accompagnement','essai','social'),('Accompagnement','nadia','social'),"
-                    "('Accompagnement','remi','accueil'),('Accompagnement','camille','gestion'),"
-                    "('Accompagnement','coordination','coordination'),('Les Amandiers','essai','social')}, "
+                    "{('Les Tisserands','essai','social'),('Les Tisserands','nadia','social'),"
+                    "('Les Tisserands','remi','accueil'),('Les Tisserands','camille','gestion'),"
+                    "('Les Tisserands','coordination','coordination'),('Les Amandiers','essai','social')}, "
                     "'Habilitations du jeu public inattendues'; "
                     "assert Habilitation.objects.get(compte__username='coordination').statistiques_service"
                 )

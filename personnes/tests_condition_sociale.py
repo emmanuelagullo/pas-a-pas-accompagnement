@@ -43,7 +43,13 @@ class ConditionSocialeTests(TestCase):
             self.assertNotContains(page, '>Trajectoire d’accompagnement</a>')
             self.assertContains(page, '<details class="condition-nav-details">', count=2)
             self.assertNotContains(page, '<details class="condition-nav-details" open')
-            self.assertContains(page, 'id="appels-115"', count=1)
+            if url == self.url:
+                self.assertNotContains(page, 'id="appels-115"')
+                self.assertNotContains(page, 'Accès spécialisés')
+                self.assertContains(page, 'href="#historique-prise"')
+            else:
+                self.assertContains(page, 'id="appels-115"', count=1)
+                self.assertContains(page, 'href="#appels-115"')
             self.assertNotContains(page, 'Changer à cette date')
             self.assertContains(page, 'Corriger l’information héritée')
         url = page.context['url_trajectoire']

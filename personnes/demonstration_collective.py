@@ -15,7 +15,7 @@ def completer(auteur,etablissement,professionnel):
     call_command('autoriser_collectif',auteur.username,stdout=StringIO())
     auteur=type(auteur).objects.get(pk=auteur.pk)
     jour=timezone.localdate();entree=jour-timedelta(days=14)
-    service=Service.objects.create(etablissement=etablissement,libelle='Les Amandiers',profil_collectif=defaut(),collecte_rubriques=profil_collecte('menage'))
+    service=Service.objects.create(etablissement=etablissement,libelle='Les Amandiers',sous_titre='Accueil et hébergement des familles',profil_collectif=defaut(),collecte_rubriques=profil_collecte('menage'))
     AppartenanceProfessionnelle.objects.create(service=service,professionnel=professionnel,debut=entree)
     services.habiliter(auteur,auteur,service,'social',entree,statistiques_service=True,exporter=True,corriger_autrui=True)
     lieu_repas=m.Partenaire.objects.create(libelle='La Table des Amandiers — fictive',cree_par=auteur)

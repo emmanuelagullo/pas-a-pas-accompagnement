@@ -1,28 +1,61 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block contenu %}
-<div id="parametrage"{% if service %} class="bd-dossier condition-page"{% endif %}>
-  {% if service %}
+<div id="parametrage"{% if service or etablissement %} class="bd-dossier condition-page"{% endif %}>
+  {% if etablissement %}
+    {% include "commun/_sommaire.html" with liens_sommaire="acteurs/_etablissement_sommaire.html" ancre_1="services-liste" libelle_1="Services" ancre_2="recherche" libelle_2="Recherche" %}
+  {% elif service %}
     {% include 'commun/_sommaire.html' with liens_sommaire='acteurs/_service_sommaire.html' ancre_1='rubriques' libelle_1='Rubriques' ancre_2='autorisations' libelle_2='Autorisations' icone_2='dossier' %}
   {% endif %}
   {% include 'acteurs/_parametrage_nav.html' %}
   {% if not service %}
-    <header class="bd-titre"><h1>Paramétrage</h1></header>
+    <header class="bd-titre"><h1>{% if etablissement %}{{ etablissement }}{% else %}Paramétrage{% endif %}</h1></header>
+    {% if etablissement %}
     <section class="dossier-boite carte" id="services-liste" data-parametrage-bloc>
-      {% url 'acteurs:creer_service' as creer %}
+      {% url 'acteurs:creer_service_etablissement' etablissement.pk as creer %}
       {% include 'commun/_boite_entete.html' with titre='Services' action_url=creer action_libelle='Créer un service' action_type='parametrage' only %}
       <div data-parametrage-hote></div>
       <ul class="episodes-compacts">
-        {% for s in services %}<li><a href="{% url 'acteurs:service' s.pk %}">{{ s }} — {{ s.etablissement }}</a></li>
+        {% for s in services %}<li><a href="{% url 'acteurs:service' s.pk %}">{{ s }}</a>{% if s.sous_titre %} · {{ s.sous_titre }}{% endif %}</li>
         {% empty %}<li>Aucun service configuré.</li>{% endfor %}
       </ul>
+    </section>
+    <section class="dossier-boite carte" id="recherche" data-parametrage-bloc>
+      {% url 'acteurs:recherche_etablissement' etablissement.pk as recherche %}
+      {% include 'commun/_boite_entete.html' with titre='Recherche entre services' action_url=recherche action_libelle='Modifier la recherche entre services' action_type='parametrage' secondaire=True only %}
+      <p>{% if etablissement.reperage_identites %}La recherche peut afficher les noms et les services qui suivent les dossiers de l’établissement.{% else %}La recherche affiche les dossiers accessibles selon les droits du compte.{% endif %}</p>
+      <div data-parametrage-hote></div>
+      {% if journal_recherche %}<details><summary>Historique du réglage</summary>
+        {% for j in journal_recherche %}<p>{{ j.cree_le }} · {{ j.auteur }} · {{ j.apres.actif|yesno:'Activée,Désactivée' }}</p>{% endfor %}
+      </details>{% endif %}
+    </section>
+    {% else %}
+    <section class="dossier-boite carte">
+      <h2>Établissements</h2>
+      <ul class="episodes-compacts">{% for e in etablissements %}<li><a href="{% url 'acteurs:etablissement' e.pk %}">{{ e }}</a></li>{% empty %}<li>Aucun établissement configuré.</li>{% endfor %}</ul>
     </section>
     <section class="dossier-boite carte">
       {% url 'acteurs:prestataires' as offres %}
       {% include 'commun/_boite_entete.html' with titre='Prestataires' action_url=offres action_libelle='Voir les prestataires' only %}
     </section>
+    <section class="dossier-boite carte" id="lieux-hebergement" data-parametrage-bloc>
+      {% url 'acteurs:exploitation_lieu' as exploitation %}
+      {% include 'commun/_boite_entete.html' with titre='Lieux d’hébergement' action_url=exploitation action_libelle='Déclarer un exploitant' action_type='parametrage' only %}
+      <div data-parametrage-hote></div>
+      {% if exploitations %}<details><summary>Voir les exploitants et leurs périodes</summary>
+        <ul class="episodes-compacts">{% for x in exploitations %}
+          <li>{{ x.lieu }} · {% firstof x.etablissement x.organisme_exterieur %} · depuis le {{ x.debut }}{% if x.fin %}, jusqu’au {{ x.fin }} exclu{% endif %}</li>
+        {% endfor %}</ul>
+      </details>{% endif %}
+    </section>
+    {% endif %}
   {% else %}
-    <header class="bd-titre"><p class="surtitre">{{ service.etablissement }}</p><h1>{{ service }}</h1></header>
+    <header class="bd-titre" id="nom-service" data-parametrage-bloc>
+      <p class="surtitre">{{ service.etablissement }}</p><h1>{{ service }}</h1>
+      {% if service.sous_titre %}<p>{{ service.sous_titre }}</p>{% endif %}
+      <a data-parametrage-modifier href="{% url 'acteurs:identite_service' service.pk %}">Modifier le nom et le sous-titre</a>
+      <div data-parametrage-hote></div>
+    </header>
     <section id="rubriques">
       <h2>Rubriques</h2>
       <section class="dossier-boite carte" id="service-{{ service.pk }}-composition" data-dossier-boite data-parametrage-bloc>
@@ -69,17 +102,6 @@
         <div data-parametrage-hote></div>
         <ul class="episodes-compacts">{% for h in habilitations %}<li>{{ h.compte }} · {{ h.get_tache_display }} · {{ h.debut }} → {{ h.fin|default:'sans fin renseignée' }}{% if h.revoque_le %} · Révoquée le {{ h.revoque_le }}{% else %} · <a data-parametrage-modifier href="{% url 'acteurs:revoquer' h.pk %}">Révoquer</a>{% endif %}</li>{% empty %}<li>Aucune habilitation.</li>{% endfor %}</ul>
       </section>
-      <section class="dossier-boite carte" id="service-{{ service.pk }}-recherche" data-parametrage-bloc>
-        {% url 'acteurs:reperage_politique' service.pk as recherche %}
-        {% include 'commun/_boite_entete.html' with titre='Recherche entre services' action_url=recherche action_libelle='Modifier la recherche entre services' action_type='parametrage' secondaire=True only %}
-        <p>{% if service.etablissement.reperage_identites %}La recherche peut afficher les noms et les services qui suivent les dossiers de l’établissement.{% else %}La recherche affiche les dossiers accessibles selon les droits du compte.{% endif %}</p>
-        <div data-parametrage-hote></div>
-      </section>
-    </section>
-    <section class="dossier-boite carte" id="service-{{ service.pk }}-etablissement" data-parametrage-bloc>
-      <h2>Lieux d’hébergement</h2>
-      <p><a data-parametrage-modifier href="{% url 'acteurs:exploitation' service.pk %}">Déclarer l’exploitant d’un lieu d’hébergement</a></p>
-      <div data-parametrage-hote></div>
     </section>
     <details id="historique-parametrage">
       <summary>Historique de l’organisation et des accès</summary>

@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.core import signing
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction, OperationalError
+from django.db.models import Q
 from django.http import Http404, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
@@ -31,17 +32,35 @@ def formulaire(request,form,titre,faire,retour,**contexte):
 @never_cache
 @login_required
 @require_http_methods(['GET','POST'])
-def organisation(request,service_pk=None,action=None):
+def organisation(request,service_pk=None,action=None,etablissement_pk=None):
     s.exiger_gestion(request.user)
     service=get_object_or_404(Service,pk=service_pk) if service_pk else None
-    retour=reverse('acteurs:organisation')
+    etablissement = get_object_or_404(Etablissement, pk=etablissement_pk) if etablissement_pk else None
+    retour = reverse('acteurs:etablissement', args=[etablissement.pk]) if etablissement else reverse('acteurs:organisation')
     if service:retour=reverse('acteurs:service',args=[service.pk])
     if action=='creer_service':
-        f=ServiceForm(request.POST if request.method=='POST' else None)
+        f=ServiceForm(request.POST if request.method=='POST' else None, initial={'etablissement': etablissement})
+        if etablissement:
+            f.fields['etablissement'].disabled = True
+            f.fields['etablissement'].widget = forms.HiddenInput()
         def creer(**d):
             from .profils_collectifs import defaut
             x=Service(**d,profil_collectif=defaut());x.full_clean();x.save();s.journal(request.user,x,'service',{}, {'libelle':x.libelle,'politique':x.politique})
-        return formulaire(request,f,'Créer un service',creer,reverse('acteurs:organisation'))
+        return formulaire(request,f,'Créer un service',creer,retour,etablissement=etablissement)
+    if action=='identite':
+        f = FormulaireMetier(request.POST if request.method=='POST' else None)
+        for nom, label in [('libelle', 'Nom du service'), ('sous_titre', 'Sous-titre')]:
+            f.fields[nom] = forms.CharField(label=label, max_length=160, required=nom=='libelle', initial=getattr(service, nom))
+        f.fields['attendu'] = forms.CharField(widget=forms.HiddenInput, initial=s.jeton(service))
+        def renommer(attendu, **valeurs):
+            s.reserver(service, attendu)
+            avant = {nom: getattr(service, nom) for nom in valeurs}
+            for nom, valeur in valeurs.items():
+                setattr(service, nom, valeur)
+            service.full_clean()
+            service.save(update_fields=list(valeurs))
+            s.journal(request.user, service, 'identite_service', avant, valeurs)
+        return formulaire(request, f, 'Nom du service', renommer, retour, service=service)
     if action=='membre':
         f=AppartenanceForm(request.POST if request.method=='POST' else None,initial={'debut':timezone.localdate()})
         # Répertoire explicite, uniquement après le contrôle gerer_organisation.
@@ -93,10 +112,14 @@ def organisation(request,service_pk=None,action=None):
             'identification_service': dict(IDENTIFICATIONS).get(profil.get('identification'), 'Toutes les personnes identifiées'),
             'regles_sociales': regles, 'prestations_service': prestations,
         }
-    return render(request,'acteurs/organisation.html',{'services':Service.objects.select_related('etablissement__organisme'),
+    return render(request,'acteurs/organisation.html',{'services':Service.objects.filter(etablissement=etablissement).order_by('libelle') if etablissement else [],
+        'etablissements':Etablissement.objects.select_related('fiche').order_by('fiche__libelle'),
+        'etablissement':etablissement,
+        'exploitations':ExploitationLieu.objects.select_related('lieu', 'etablissement__fiche', 'organisme_exterieur').order_by('lieu__libelle', '-debut') if not service and not etablissement else [],
+        'journal_recherche':JournalAcces.objects.filter(Q(etablissement=etablissement) | Q(service__etablissement=etablissement), action='reperage_identites').select_related('auteur').order_by('-pk')[:50] if etablissement else [],
         'service':service,'membres':AppartenanceProfessionnelle.objects.filter(service=service).select_related('professionnel'),
         'habilitations':Habilitation.objects.filter(service=service).select_related('compte'),
-        'journaux':JournalAcces.objects.filter(service=service).select_related('auteur').order_by('-pk')[:50] if service else [],
+        'journaux':JournalAcces.objects.filter(service=service).exclude(action='reperage_identites').select_related('auteur').order_by('-pk')[:50] if service else [],
         'controle_actif':p.active(), **resume})
 
 
@@ -215,17 +238,18 @@ def attribuer(request,pk,niveau='dossier',objet_pk=None):
 @never_cache
 @login_required
 @require_http_methods(['GET','POST'])
-def exploitation(request,service_pk):
+def exploitation(request,service_pk=None):
     s.exiger_gestion(request.user)
-    service=get_object_or_404(Service,pk=service_pk)
+    service=get_object_or_404(Service,pk=service_pk) if service_pk else None
     f=FormulaireMetier(request.POST if request.method=='POST' else None)
     f.fields['lieu']=forms.ModelChoiceField(m.LieuHebergement._base_manager.all(),label='Lieu physique')
     f.fields['etablissement']=forms.ModelChoiceField(Etablissement.objects.all(),required=False,label='Établissement exploitant')
     f.fields['organisme_exterieur']=forms.ModelChoiceField(m.Partenaire._base_manager.all(),required=False,label='Ou organisme exploitant, si l’établissement n’est pas identifié')
     f.fields['interlocuteur']=forms.ModelChoiceField(m.Intervenant._base_manager.all(),required=False,label='Interlocuteur (facultatif)')
     f.fields['debut']=forms.DateField(label='Depuis le',initial=timezone.localdate(),widget=forms.DateInput(attrs={'type':'date'}))
-    f.fields['attendu']=forms.CharField(widget=forms.HiddenInput,initial=s.jeton(service))
-    return formulaire(request,f,'Déclarer un changement d’exploitant',lambda **d:s.changer_exploitation(request.user,service,**d),reverse('acteurs:service',args=[service.pk]), service=service)
+    if service:
+        f.fields['attendu']=forms.CharField(widget=forms.HiddenInput,initial=s.jeton(service))
+    return formulaire(request,f,'Déclarer un changement d’exploitant',lambda **d:s.changer_exploitation(request.user,service,**d),reverse('acteurs:organisation')+'#lieux-hebergement', service=service, page_parametrage=True)
 
 
 @never_cache
@@ -244,17 +268,22 @@ def terminer(request,pk):
 @never_cache
 @login_required
 @require_http_methods(['GET','POST'])
-def reperage_politique(request,service_pk):
+def reperage_politique(request,service_pk=None,etablissement_pk=None):
     s.exiger_gestion(request.user)
-    service=get_object_or_404(Service.objects.select_related('etablissement'),pk=service_pk)
+    if service_pk:
+        service = get_object_or_404(Service, pk=service_pk)
+        etablissement_pk = service.etablissement_id
+        if request.method == 'GET':
+            return redirect('acteurs:recherche_etablissement', etablissement_pk=etablissement_pk)
+    etablissement = get_object_or_404(Etablissement, pk=etablissement_pk)
     f=FormulaireMetier(request.POST if request.method=='POST' else None)
-    f.fields['activer']=forms.BooleanField(required=False,initial=service.etablissement.reperage_identites,label='Afficher dans la recherche les noms des dossiers des autres services',help_text='Ce réglage concerne tout l’établissement. Les comptes habilités au suivi social, à l’accueil ou à la gestion peuvent retrouver un nom et voir quel service suit le dossier. L’ouverture du dossier et l’accès à son contenu restent soumis à leurs droits habituels.')
-    f.fields['attendu']=forms.CharField(widget=forms.HiddenInput,initial=s.jeton(service.etablissement))
+    f.fields['activer']=forms.BooleanField(required=False,initial=etablissement.reperage_identites,label='Afficher dans la recherche les noms des dossiers des autres services',help_text='Ce réglage concerne tout l’établissement. Les comptes habilités au suivi social, à l’accueil ou à la gestion peuvent retrouver un nom et voir quel service suit le dossier. L’ouverture du dossier et l’accès à son contenu restent soumis à leurs droits habituels.')
+    f.fields['attendu']=forms.CharField(widget=forms.HiddenInput,initial=s.jeton(etablissement))
     def faire(activer,attendu):
-        s.exiger_gestion(request.user);e=service.etablissement;s.reserver(e,attendu)
+        s.exiger_gestion(request.user);e=etablissement;s.reserver(e,attendu)
         avant=e.reperage_identites;e.reperage_identites=activer;e.save(update_fields=['reperage_identites'])
-        s.journal(request.user,service,'reperage_identites',{'actif':avant},{'etablissement':e.pk,'actif':activer})
-    return formulaire(request,f,'Recherche entre services · '+str(service.etablissement),faire,reverse('acteurs:service',args=[service.pk])+f'#service-{service.pk}-recherche', service=service)
+        s.journal(request.user,None,'reperage_identites',{'actif':avant},{'etablissement':e.pk,'actif':activer},etablissement=e)
+    return formulaire(request,f,'Recherche entre services',faire,reverse('acteurs:etablissement',args=[etablissement.pk])+'#recherche', etablissement=etablissement)
 
 
 @never_cache

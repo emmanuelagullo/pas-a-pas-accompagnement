@@ -17,8 +17,8 @@ def exiger_gestion(compte):
         raise PermissionDenied('La configuration des accès nécessite une autorisation explicite.')
 
 
-def journal(compte, service, action, avant, apres, dossier=None, date=None):
-    return JournalAcces.objects.create(auteur=compte, service=service, action=action,
+def journal(compte, service, action, avant, apres, dossier=None, date=None, etablissement=None):
+    return JournalAcces.objects.create(auteur=compte, service=service, etablissement=etablissement, action=action,
         avant=avant, apres=apres, dossier=dossier, date_effet=date or timezone.localdate())
 
 
@@ -267,7 +267,8 @@ def changer_exploitation(compte,service,lieu,debut,etablissement=None,organisme_
     # Verrou commun au lieu : deux services ne peuvent définir deux exploitants
     # concurrents sur un même lieu physique.
     LieuHebergement._base_manager.filter(pk=lieu.pk).update(revision_sociale=F('revision_sociale')+1)
-    reserver(service,attendu)
+    if service:
+        reserver(service,attendu)
     if ExploitationLieu.objects.filter(lieu=lieu,debut__gte=debut).exists():
         raise ValidationError('Une exploitation existe déjà à cette date ou après ; ne réécrivez pas son histoire.')
     ouverts=list(ExploitationLieu.objects.filter(lieu=lieu,debut__lt=debut).filter(Q(fin__isnull=True)|Q(fin__gt=debut)))

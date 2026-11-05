@@ -1,4 +1,4 @@
-{% extends 'base.html' %}{% load static %}{% load saisie %}{% block contenu %}<div id="parametrage">{% if service or prestataires_page or request.resolver_match.url_name == 'creer_service' %}
+{% extends 'base.html' %}{% load static %}{% load saisie %}{% block contenu %}<div id="parametrage">{% if page_parametrage or service or etablissement or prestataires_page or request.resolver_match.url_name == 'creer_service' %}
   {% include "acteurs/_parametrage_nav.html" with page_actuelle=titre %}
 {% else %}
   <p><a href="{{ retour }}">← Revenir</a></p>

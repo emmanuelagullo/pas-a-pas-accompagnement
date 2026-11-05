@@ -24,7 +24,7 @@ def preparer(social, accueil=None, coordination=None):
     g=OrganismeGestionnaire.objects.create(organisme=org)
     fiche=m.Partenaire.objects.create(libelle='Établissement Les Passerelles',cree_par=social)
     etab=Etablissement.objects.create(organisme=g,fiche=fiche)
-    service=Service.objects.create(etablissement=etab,libelle='Accompagnement')
+    service=Service.objects.create(etablissement=etab,libelle='Les Tisserands', sous_titre='Accompagnement social et accès aux droits')
     autre=Service.objects.create(etablissement=etab,libelle='Accueil de jour',politique='individuel')
     hier=timezone.localdate()-timedelta(days=30)
     debut=timezone.now()-timedelta(days=30)

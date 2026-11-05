@@ -18,6 +18,31 @@ class ReperageTests(TestCase):
     def connecte(self,u=None):
         c=Client();c.force_login(u or self.ua);return c
     def url(self,ds):return reverse('dossiers:detail',args=['menage',ds.menage_id])
+    def test_parametrage_etablissement_et_identite_service(self):
+        fiche = reverse('acteurs:etablissement', args=[self.etab.pk])
+        recherche = reverse('acteurs:recherche_etablissement', args=[self.etab.pk])
+        identite = reverse('acteurs:identite_service', args=[self.sa.pk])
+        c = self.connecte()
+        self.assertEqual(c.get(fiche).status_code, 403)
+        self.assertEqual(c.post(recherche, {'activer': 'on'}).status_code, 403)
+
+        c = self.connecte(self.admin)
+        self.assertContains(c.get(fiche), recherche)
+        self.assertNotContains(c.get(reverse('acteurs:service', args=[self.sa.pk])), recherche)
+        self.assertRedirects(c.post(recherche, {
+            'activer': 'on', 'attendu': s.jeton(self.etab),
+        }), fiche + '#recherche')
+        self.etab.refresh_from_db()
+        self.assertTrue(self.etab.reperage_identites)
+        self.assertTrue(JournalAcces.objects.filter(
+            etablissement=self.etab, service__isnull=True, action='reperage_identites',
+        ).exists())
+        self.assertRedirects(c.post(identite, {
+            'libelle': 'Les Tisserands', 'sous_titre': 'Accès aux droits', 'attendu': s.jeton(self.sa),
+        }), reverse('acteurs:service', args=[self.sa.pk]))
+        self.assertContains(c.get(fiche), 'Les Tisserands')
+        self.assertContains(c.get(fiche), 'Accès aux droits')
+
     def test_option_et_frontiere_etablissement(self):
         c=self.connecte();self.assertNotContains(c.get('/',{'q':'fictive','fragment':1}),'Ménage fictif B')
         self.activer();self.assertContains(c.get('/',{'q':'fictive','fragment':1}),'Ménage fictif B')

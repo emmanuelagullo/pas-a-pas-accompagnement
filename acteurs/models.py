@@ -42,6 +42,7 @@ class Service(ModeleOrganisation):
         ('individuel', 'Lecture et écriture sur les dossiers suivis')]
     etablissement = models.ForeignKey(Etablissement, on_delete=models.PROTECT)
     libelle = models.CharField(max_length=160)
+    sous_titre = models.CharField("Sous-titre", max_length=160, blank=True)
     politique = models.CharField(max_length=12, choices=POLITIQUES, default='collectif')
     revision = models.PositiveIntegerField(default=0, editable=False)
     actif = models.BooleanField(default=True)
@@ -149,7 +150,8 @@ class Responsabilite(Periode):
 
 class JournalAcces(ModeleOrganisation):
     action = models.CharField(max_length=40)
-    service = models.ForeignKey(Service, on_delete=models.PROTECT)
+    service = models.ForeignKey(Service, on_delete=models.PROTECT, null=True)
+    etablissement = models.ForeignKey(Etablissement, on_delete=models.PROTECT, null=True)
     dossier = models.ForeignKey(DossierService, on_delete=models.PROTECT, null=True)
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     date_effet = models.DateField()
