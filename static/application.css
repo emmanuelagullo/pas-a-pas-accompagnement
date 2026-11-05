@@ -418,3 +418,5 @@ header > nav .menu-utilisateur { position: relative; }
 #parametrage-editeur input,#parametrage-editeur select,#parametrage-editeur textarea {min-width:0;max-width:100%;box-sizing:border-box}
 #parametrage-editeur select {width:100%}
 #parametrage-editeur label {overflow-wrap:anywhere}
+
+.episodes-compacts .frise-slot { display:contents; }

@@ -160,12 +160,13 @@ def actions(context,famille):
     u=context['request'].user;v=p.version_nav;cle='commun:'+str(p.pk)
     def lien(action,label):
         operation=reverse('dossiers:collectif_action',args=['prise',p.accompagnement_id,action])+'?'+urlencode({'pk':p.pk})
-        return {'label':label,'url':nav.adresse(context,cle,operation),'bouton':label=='Prolonger'}
+        return {'label':label,'url':nav.adresse(context,cle,operation),'bouton':label in ('Prolonger','Modifier')}
     principaux=[{'label':'Ouvrir','url':nav.adresse(context,cle),'bouton':True}, {'label':'Imprimer / PDF','url':nav.adresse(context,cle,impression=True),'imprimer':True,'bouton':True}]
     autres=[]
     if v.action!='annulation' and u.has_perm('personnes.change_prestationcollective'):
         if v.fin_prevue and not v.fin:principaux.append(lien('prolongation','Prolonger'))
-        autres=[lien('correction','Modifier'),lien('annulation','Annuler la prestation')]
+        principaux.insert(1,lien('correction','Modifier'))
+        autres=[lien('annulation','Annuler la prestation')]
         if famille=='hebergement' and v.arrivee and not v.fin:
             if u.has_perm('personnes.add_mouvementcollectif'):autres.extend([lien('lieu','Changer de lieu'),lien('absence','Enregistrer une absence')])
             if u.has_perm('personnes.change_mouvementcollectif'):autres.extend([lien('retour','Enregistrer le retour d’absence'),lien('annuler_mouvement','Annuler un mouvement')])

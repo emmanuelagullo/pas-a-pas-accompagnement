@@ -676,3 +676,10 @@ ouvre la consultation NAV, puis ses commandes autorisées. Cette règle remplace
 l’ouverture directe de l’éditeur des prestations introduite par COL4c ; les
 éditeurs de paramétrage restent ancrés dans leur propre bloc. Les populations
 de collecte par rubrique restent à réaliser.
+
+COL4e : vérifier la géométrie des frises de prestations ouvertes et fermées,
+pas seulement leur présence. La commande est à droite du titre de période ; le
+détail prend toute la largeur. Les liens NAV déjà construits gardent leur
+opération après projection HTML, y compris avec un attribut booléen vide.
+Vérifier Modifier → formulaire → Enregistrer et les ancres du sommaire pour
+chaque composition de ménage affichée.

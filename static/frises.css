@@ -124,3 +124,16 @@
 .bd-liste-prises .frise-bulle{display:none}
 
 #prises .bd-liste-prises>li:has(.frise-details)>a:not(.bd-lien-projet)>span:not(.frise-slot){padding-inline-end:3.8rem}
+
+/* NAV prestations : commande au niveau du titre, détail sur toute la largeur. */
+.prestation-ligne:has(> .frise-slot .frise-details) { position:relative; }
+.prestation-ligne:has(> .frise-slot .frise-details) > .prestation-consulter > strong { display:block; padding-inline-end:5.8rem; min-height:1.5rem; }
+.prestation-ligne > .frise-slot > .frise-details { grid-column:1/-1; position:static; min-width:0; padding-top:0; margin:0; }
+.prestation-ligne > .frise-slot > .frise-details > summary { top:.7rem; right:.8rem; }
+.prestation-ligne > .frise-slot > .frise-details > .frise-depliee { display:block; margin:.4rem .8rem; }
+.prestation-ligne .frise-detail > a { border:0; border-radius:0; padding:.15rem 0; font-size:.85rem; }
+.prestation-ligne .frise-bulle { display:none; }
+.prestation-ligne .frise-repere:hover .frise-bulle,.prestation-ligne .frise-repere:focus .frise-bulle { display:block; }
+.prestation-ligne .frise-details > summary .frise-fermer { display:none; }
+.prestation-ligne .frise-details[open] > summary .frise-fermer { display:inline; }
+.prestation-ligne .frise-details[open] > summary .frise-ouvrir { display:none; }

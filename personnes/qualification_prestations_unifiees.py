@@ -40,6 +40,13 @@ class DeuxServicesNAV(Donnees,StaticLiveServerTestCase):
                 formes=[]
                 for nom,a,cleh,cler in [('Accompagnement',self.a2,'sejour:'+str(self.h2.pk),'repas:'+str(self.r2.pk)),('Amandiers',self.a,'commun:'+str(self.hg.pk),'commun:'+str(self.rg.pk))]:
                     page.goto(self.live_server_url+reverse('dossiers:prise',args=['menage',a.menage_id,a.pk])+'?q=Fictif&page=2')
+                    if nom=='Amandiers' and largeur>600:
+                        menu=page.locator('#sommaire-dossier')
+                        menu.locator('.condition-nav-details').first.locator('summary').first.click()
+                        menu.get_by_role('link',name='Voir la composition du ménage',exact=True).click()
+                        expect(page.locator('#condition-composition')).to_be_visible()
+                        if javascript:
+                            self.assertTrue(page.locator('#condition-composition').evaluate('(e)=>e.open && e.closest("[data-condition-volet]").open'))
                     hbox=page.locator('#hebergement');rbox=page.locator('#repas')
                     for boite,label in [(hbox,'Nouveau séjour'),(rbox,'Nouvelle période de repas')]:
                         entete=boite.locator(':scope > .boite-entete')
@@ -63,12 +70,27 @@ class DeuxServicesNAV(Donnees,StaticLiveServerTestCase):
                     rp.locator('input[type=radio]').check()
                     if not javascript:rbox.get_by_role('button',name='Afficher les actions des repas choisis',exact=True).click()
                     # The existing timeline also opens the same NAV panel.
+                    commande=rp.locator(':scope > div.frise-slot details.frise-details > summary')
+                    titre=rp.locator(':scope > a > strong')
+                    self.assertLess(abs(commande.bounding_box()['y']-titre.bounding_box()['y']),12)
+                    self.assertGreater(commande.bounding_box()['x'],rp.bounding_box()['x']+rp.bounding_box()['width']*.55)
                     rp.locator(':scope > div.frise-slot details.frise-details > summary').click()
+                    detail=rp.locator('.frise-depliee')
+                    self.assertGreater(detail.bounding_box()['width'],rp.bounding_box()['width']*.8)
+                    if os.environ.get('NAV_UNIFIE_CAPTURES'):
+                        page.screenshot(path=str(out/(nom+'-frise-'+str(largeur)+('-js' if javascript else '-html')+'.png')),full_page=True)
+
                     rp.locator(':scope > div.frise-slot .frise-detail a').first.click()
                     expect(page.locator('[data-prestation-panneau]')).to_have_count(1)
                     expect(page.get_by_role('navigation',name='Fil d’Ariane')).to_be_visible()
                     self.assertIn('q=Fictif',page.url)
                     if javascript:self.assertTrue(cadre.evaluate('(e)=>e.isConnected'))
+                    if nom=='Amandiers':
+                        panneau=page.locator('[data-prestation-panneau]')
+                        panneau.get_by_role('link',name='Modifier',exact=True).click()
+                        expect(page.locator('[data-prestation-panneau] form[data-prestation-form]')).to_be_visible()
+                        page.locator('[data-prestation-panneau]').get_by_role('button',name='Enregistrer',exact=True).click()
+                        expect(page.locator('[data-prestation-panneau] form[data-prestation-form]')).to_have_count(0)
                     page.get_by_role('link',name='Refermer',exact=True).click()
                     expect(page.locator('[data-prestation-panneau]')).to_have_count(0)
                     self.assertLessEqual(page.evaluate('document.documentElement.scrollWidth'),largeur+1)

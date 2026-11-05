@@ -169,7 +169,7 @@ class LiensLocaux(HTMLParser):
         cle = a.get('data-prestation-cible') or (self.pile[-1][1] if self.pile else self.cle)
         texte = 'texte-narratif' in a.get('class','').split() or bool(self.pile and self.pile[-1][2])
         externe=False
-        if not texte and not a.get('data-prestation-lien') and tag == 'a' and cle and a.get('href') and not a['href'].startswith('#') and (self.tous or 'data-dossier-action' in a):
+        if not texte and 'data-prestation-lien' not in a and tag == 'a' and cle and a.get('href') and not a['href'].startswith('#') and (self.tous or 'data-dossier-action' in a):
             lien = urljoin(self.base,a['href']) if self.base else a['href']
             try:
                 if urlsplit(lien).path == reverse('dossiers:prise', args=[self.context['nature'],self.context['objet'].pk,self.context['prise'].pk]):
@@ -320,6 +320,9 @@ def page(request, nature, pk, prise_pk):
         if consulter:
             from .financements import LECTURE
             donnees.update(prestation=objet, prestation_genre=genre, prestation_cadre=context, prestation_finance_autorisee=request.user.has_perms(['personnes.'+d for d in LECTURE]))
+            if genre == 'commun':
+                from .prestations_presentation import actions
+                donnees['actions_selection'] = actions(context, 'hebergement' if objet.nature == 'hebergement' else 'restauration')
             if genre == 'sejour':
                 donnees['operations_sejour']=[x for x in donnees.get('operations',[]) if x.sejour_id == objet.pk]
             donnees['operations_accord']=[x for x in donnees.get('operations',[]) if x.sejour_id is None] if genre in ('sejour','hebergement') else []
