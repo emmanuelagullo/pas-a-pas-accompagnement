@@ -1,8 +1,10 @@
 from django.urls import path
+from . import vues_collecte
 from . import views as v
 from . import vues_collectif, vues_prestataires
 app_name='acteurs'
 urlpatterns=[
+    path('services/<int:service_pk>/rubriques/',vues_collecte.configurer,name='collecte'),
     path('prestataires/',vues_prestataires.catalogue,name='prestataires'),
     path('prestataires/nouveau/',vues_prestataires.catalogue,{'action':'nouveau'},name='prestataire_nouveau'),
     path('prestataires/<int:pk>/',vues_prestataires.catalogue,name='prestataire'),

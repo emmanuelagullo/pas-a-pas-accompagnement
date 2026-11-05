@@ -28,6 +28,15 @@ dossiers réels. Les comptes professionnels sont distincts des personnes suivies
 
 ## État courant et repères de lecture
 
+Les réglages de service proposent désormais **Rubriques sociales** : trois
+profils de départ, puis rattachement personnel / ménage / les deux lorsque le
+schéma le permet, ou information non demandée. Les personnes concernées peuvent
+être la personne de référence, les adultes, toutes les personnes identifiées ou
+une catégorie d’âge du service. Le choix ne donne aucun droit et ne convertit
+aucune donnée historique. Les valeurs du ménage et personnelles restent
+distinctes. Le jeu neuf Les Passerelles instancie ces réglages aux Amandiers.
+
+
 Les services peuvent activer explicitement un parcours collectif compact :
 personne de référence et composition déclarée, données du ménage, hébergement
 commun et repas calculés par période. Les mêmes groupes Hébergement et Repas

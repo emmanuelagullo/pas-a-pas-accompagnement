@@ -683,3 +683,15 @@ détail prend toute la largeur. Les liens NAV déjà construits gardent leur
 opération après projection HTML, y compris avec un attribut booléen vide.
 Vérifier Modifier → formulaire → Enregistrer et les ancres du sommaire pour
 chaque composition de ménage affichée.
+
+COL6 : lire acteurs/collecte.py et personnes/collecte.py pour les règles de
+collecte par rubrique. Elles ne donnent pas de droits de lecture. Conserver les
+schémas personnels, les valeurs ménage distinctes et les faits antérieurs. Les
+rubriques hors collecte ne comptent pas dans les repères ; leurs valeurs déjà
+présentes restent consultables. Tout nouvel accès d’écriture sociale doit être
+relié au contrôle commun, y compris formulaire direct, fragment et appel Python.
+Le contrôle précède les transactions métier pour préserver la concurrence SQLite.
+Le service, la prise et la personne doivent rester corrélés. Une nouvelle règle
+ne doit jamais modifier rétroactivement le ménage ni inventer une naissance ou
+un bénéficiaire. Qualifier la préparation d’un profil sans sauvegarde, les réglages
+sur place, le repli sans JavaScript et la coexistence de services différents.

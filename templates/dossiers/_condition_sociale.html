@@ -26,7 +26,7 @@
 <p class="condition-reperes-personne" data-condition-reperes-personne>{% include 'dossiers/_condition_reperes_nombre.html' with reperes=personne.reperes %}</p>
 <nav class="condition-ancres" aria-label="Rubriques de {{ personne.personne }}">{% for g in personne.groupes %}<a href="#{{ g.ancre }}">{{ g.titre }}</a>{% endfor %}</nav>
 {% for g in personne.groupes %}<details open id="{{ g.ancre }}" class="condition-groupe condition-depliant" data-condition-groupe data-condition-repli="{{ g.ancre }}">
-<summary aria-labelledby="{{ g.ancre }}-titre" aria-describedby="{{ g.ancre }}-apercu"><h4 id="{{ g.ancre }}-titre">{{ g.titre }}</h4><span class="condition-apercu" id="{{ g.ancre }}-apercu">{{ g.apercu }}</span></summary>
+<summary aria-labelledby="{{ g.ancre }}-titre" aria-describedby="{{ g.ancre }}-apercu"><h4 id="{{ g.ancre }}-titre">{{ g.titre }}</h4><span class="condition-apercu" id="{{ g.ancre }}-apercu">{% if g.hors_collecte %}Information conservée — non demandée par ce service{% else %}{{ g.apercu }}{% endif %}</span></summary>
 <div class="boite-entete">{% if g.historique %}<details><summary>Autres actions de la rubrique</summary><a href="{{ g.historique }}">Historique</a></details>{% endif %}</div>
 {% if g.code == 'identite' %}<p class="helptext">Identité actuelle, y compris dans une vue à une date passée.</p>{% endif %}
 {% for fiche in g.fiches %}<div data-condition-lecture class="condition-fiche{% if fiche.herite %} condition-heritee{% endif %}">

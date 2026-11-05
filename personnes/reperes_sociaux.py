@@ -33,7 +33,7 @@ def etat_rubrique(groupe):
 
 
 def compter(groupes):
-    etats = [etat_rubrique(g) for g in groupes]
+    etats = [etat_rubrique(g) for g in groupes if not g.get('hors_collecte')]
     return {'total': len(etats), 'informations': etats.count('informations'),
             'non_connu': etats.count('non_connu')}
 

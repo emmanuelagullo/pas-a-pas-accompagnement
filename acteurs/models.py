@@ -45,6 +45,7 @@ class Service(ModeleOrganisation):
     politique = models.CharField(max_length=12, choices=POLITIQUES, default='collectif')
     revision = models.PositiveIntegerField(default=0, editable=False)
     actif = models.BooleanField(default=True)
+    collecte_rubriques = models.JSONField(default=dict, blank=True)
     catalogue_prestations = models.BooleanField(default=False)
     profil_collectif = models.JSONField(default=dict, blank=True,
         help_text='Vide : parcours historique. Configuration explicite sans conversion des anciennes prestations.')

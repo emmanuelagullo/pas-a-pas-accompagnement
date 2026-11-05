@@ -75,6 +75,9 @@ def configurer(request,service_pk):
     f=ProfilForm(request.POST if request.method=='POST' else None,initial={**defaut(),**service.profil_collectif,'actif':bool(service.profil_collectif),'attendu':s.jeton(service),'catalogue':service.catalogue_prestations,'offres':list(service.offres.values_list('pk',flat=True))})
     def sauver(attendu,actif,catalogue,offres,**valeurs):
         s.reserver(service,attendu);avant=deepcopy(service.profil_collectif)
+        from .collecte import verifier as verifier_collecte
+        from .profils_collectifs import categories_defaut
+        verifier_collecte(service.collecte_rubriques,valeurs['categories'] if actif else categories_defaut())
         service.profil_collectif=valeurs if actif else {}
         if actif:verifier(valeurs)
         service.catalogue_prestations=catalogue

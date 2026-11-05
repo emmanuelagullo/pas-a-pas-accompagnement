@@ -203,11 +203,11 @@ def actions_natives(context,famille):
         if not objet.fin and autorise('change_sejour','change_affectation','change_absence'):principaux.append(lien('Enregistrer la sortie','suivi:sortir',objet.pk))
         if not objet.fin:
             if context.get('lecture_lieux'):
-                if objet.lieu_ouvert and autorise('change_affectation','add_affectation'):principaux.append(lien('Changer de lieu','suivi:changer_lieu',objet.lieu_ouvert.pk))
-                elif not objet.lieu_ouvert and autorise('add_affectation'):principaux.append(lien('Affecter un lieu','suivi:affecter',objet.pk))
+                if objet.lieu_ouvert and autorise('change_affectation','add_affectation'):autres.append(lien('Changer de lieu','suivi:changer_lieu',objet.lieu_ouvert.pk))
+                elif not objet.lieu_ouvert and autorise('add_affectation'):autres.append(lien('Affecter un lieu','suivi:affecter',objet.pk))
             if autorise('view_absence'):
-                if objet.absence_ouverte and autorise('change_absence'):principaux.append(lien('Enregistrer le retour d’absence','suivi:clore_absence',objet.absence_ouverte.pk))
-                elif not objet.absence_ouverte and autorise('add_absence'):principaux.append(lien('Enregistrer une absence','suivi:absence',objet.pk))
+                if objet.absence_ouverte and autorise('change_absence'):autres.append(lien('Enregistrer le retour d’absence','suivi:clore_absence',objet.absence_ouverte.pk))
+                elif not objet.absence_ouverte and autorise('add_absence'):autres.append(lien('Enregistrer une absence','suivi:absence',objet.pk))
         if autorise('annuler_sejour','view_annulationarrivee'):autres.append(lien('Corriger ou annuler l’arrivée','dossiers:annuler_arrivee',objet.pk))
         if autorise('change_sejour','view_correctionperiode'):autres.append(lien('Corriger les dates du séjour','suivi:corriger_saisie','sejour',objet.pk))
         if autorise('view_notepartagee'):autres.append(lien('Notes du séjour','suivi:notes','sejour',objet.pk))

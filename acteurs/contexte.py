@@ -76,5 +76,7 @@ def service_metier(f):
                         for x in v:verifier(x)
                 for n,v in valeurs.items():
                     if n not in ('acteur','auteur','utilisateur'):verifier(v)
+            from personnes.collecte import verifier_appel
+            verifier_appel(f, valeurs)
             return f(*args, **kwargs)
     return executer

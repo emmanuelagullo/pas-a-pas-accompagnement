@@ -221,11 +221,11 @@ def _charger(acteur, objets, nature, *, prise=None, navigations=None, retour_rec
             faits[-1]['modele']='prestationcollective';faits[-1]['prestation_collective_id']=str(p.pk)
             if p.nature=='hebergement' and v.arrivee:
                 x=SimpleNamespace(pk=p.pk,debut=v.arrivee,fin=v.fin)
-                ajouter(x,p.accompagnement_id,'sejour','Séjour enregistré pour le groupe',url,personnes,0,annule)
+                ajouter(x,p.accompagnement_id,'sejour','Hébergement — arrivée enregistrée',url,personnes,0,annule)
                 faits[-1]['modele']='prestationcollective';faits[-1]['prestation_collective_id']=str(p.pk)
             if acteur.has_perm('personnes.view_mouvementcollectif'):
                 for mouvement in p.mouvements.filter(annule_le__isnull=True):
-                    ajouter(mouvement,p.accompagnement_id,'absence' if mouvement.nature=='absence' else 'lieu','Absence du groupe' if mouvement.nature=='absence' else 'Affectation du groupe',url,personnes,0,annule)
+                    ajouter(mouvement,p.accompagnement_id,'absence' if mouvement.nature=='absence' else 'lieu','Absence du groupe' if mouvement.nature=='absence' else 'Lieu d’hébergement',url,personnes,0,annule)
                     faits[-1]['prestation_collective_id']=str(p.pk)
     if nature == 'personne':
         faits = [f for f in faits if f['personnes'] & ids]

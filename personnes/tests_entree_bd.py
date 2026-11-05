@@ -321,5 +321,5 @@ class EntreeBDTests(Donnees, TestCase):
         self.assertNotContains(page, 'Aide à la recherche et à la création')
         self.assertContains(page, 'name="action_dossiers" value="nouveau"')
         page = self.client.get(reverse('dossiers:prise', args=['menage', self.m.pk, self.a.pk]))
-        self.assertContains(page, 'Comprendre les actions d’hébergement')
-        self.assertContains(page, 'tous concernés')
+        self.assertNotContains(page, 'Comprendre les actions d’hébergement')
+        self.assertContains(page, 'Nouveau séjour')

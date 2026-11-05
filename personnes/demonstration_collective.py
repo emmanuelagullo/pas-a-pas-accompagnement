@@ -6,6 +6,7 @@ from django.core.management import call_command
 from io import StringIO
 from acteurs.models import Service,AppartenanceProfessionnelle,OffrePrestataire,TarifOffre
 from acteurs.profils_collectifs import defaut
+from acteurs.collecte import profil as profil_collecte
 from acteurs.contexte import perimetre
 from acteurs import services
 from . import models as m, suivi, collectifs as c
@@ -14,7 +15,7 @@ def completer(auteur,etablissement,professionnel):
     call_command('autoriser_collectif',auteur.username,stdout=StringIO())
     auteur=type(auteur).objects.get(pk=auteur.pk)
     jour=timezone.localdate();entree=jour-timedelta(days=14)
-    service=Service.objects.create(etablissement=etablissement,libelle='Les Amandiers',profil_collectif=defaut())
+    service=Service.objects.create(etablissement=etablissement,libelle='Les Amandiers',profil_collectif=defaut(),collecte_rubriques=profil_collecte('menage'))
     AppartenanceProfessionnelle.objects.create(service=service,professionnel=professionnel,debut=entree)
     services.habiliter(auteur,auteur,service,'social',entree,statistiques_service=True,exporter=True,corriger_autrui=True)
     lieu_repas=m.Partenaire.objects.create(libelle='La Table des Amandiers — fictive',cree_par=auteur)

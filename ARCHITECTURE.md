@@ -2,6 +2,29 @@
 
 ## État courant
 
+COL6 introduit Service.collecte_rubriques, une politique fermée de collecte
+indépendante des droits et des modes de prestations. Vide conserve l’existant.
+Les schémas personnels restent typés ; seules coordonnées communes, logement,
+revenu, dettes et projet déjà stockés dans CompositionCollective sont proposés
+au ménage. Aucun rattachement collectif de santé ou protection juridique n’est
+inventé. Les objectifs et autres démarches de parcours gardent leurs cibles
+métier existantes ; le texte de projet du ménage n’en est pas une copie.
+Les règles s’appliquent dans la présentation, les repères, les formulaires directs
+et les services d’écriture avant leurs transactions. Les archives restent lisibles
+selon les habilitations ; ce réglage de collecte n’est pas une restriction de
+lecture. Les exports historiques et rapports conservent leur sens et leurs droits.
+La configuration est journalisée avec réservation de révision. Changer une règle
+ne migre, ne copie et ne supprime aucun fait ; revenir à une collecte antérieure
+réactive ses nouvelles saisies. Les âges sont évalués à la date du fait à partir
+d’une date de naissance, jamais déduits d’un effectif anonyme. Une année seule
+ne donne pas une date de transition précise. La référence provient de la
+composition datée ; la désignation multiple et les dérogations individuelles
+datées ne sont pas ajoutées par ce lot.
+La prise en charge n’affiche plus les notices « Comprendre les actions… » ; les
+mouvements de lieu et d’absence restent secondaires. Les faits d’arrivée et
+l’autorisation restent distincts dans la frise et les calculs.
+
+
 COL1–4 ajoute des options de suivi configurables par service, décrites dans
 [COLLECTIF.md](COLLECTIF.md). Les compositions datées conservent les identités
 connues et les effectifs complémentaires sans personnes fictives. Les prestations

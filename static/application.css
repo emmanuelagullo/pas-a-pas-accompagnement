@@ -420,3 +420,19 @@ header > nav .menu-utilisateur { position: relative; }
 #parametrage-editeur label {overflow-wrap:anywhere}
 
 .episodes-compacts .frise-slot { display:contents; }
+
+.collecte-table { overflow-x:auto; margin-block:.75rem; }
+.collecte-table table { width:100%; }
+.collecte-table select { min-width:10rem; max-width:100%; }
+.collecte-reglages > summary { cursor:pointer; font-weight:600; margin-block:.75rem; }
+
+#parametrage form:has(.collecte-reglages), .collecte-reglages, .collecte-table { min-width:0; max-width:100%; }
+.collecte-table table { table-layout:fixed; }
+.collecte-table select { min-width:0; width:100%; box-sizing:border-box; }
+@media(max-width:600px) {
+ .collecte-table table,.collecte-table tbody,.collecte-table tr,.collecte-table th,.collecte-table td { display:block; width:auto; }
+ .collecte-table thead { display:none; }
+ .collecte-table tr { border-bottom:1px solid #cadbd3; padding-block:.5rem; }
+ .collecte-table td { padding:.25rem 0; }
+ .collecte-table .visuellement-cache { position:static; width:auto; height:auto; margin:0; clip-path:none; white-space:normal; }
+}

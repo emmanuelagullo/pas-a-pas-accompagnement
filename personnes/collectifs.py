@@ -23,9 +23,15 @@ def profil(objet):
     try:service=service_objet(objet)
     except ValidationError:return None
     valeur=service.profil_collectif
-    if not valeur:return None
+    if not valeur:
+        if not service.collecte_rubriques:return None
+        valeur={**defaut(),'identification':'tous','hebergement':'individuel','restauration':'individuel'}
     verifier(valeur)
-    return {**defaut(),**valeur}
+    cfg={**defaut(),**valeur}
+    if service.collecte_rubriques:
+        from acteurs.collecte import champs_menage
+        cfg['rubriques']=champs_menage(service.collecte_rubriques)
+    return cfg
 
 def service_objet(objet):
     from acteurs.contexte import courant

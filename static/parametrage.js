@@ -2,6 +2,8 @@
 (() => {
   if(window.PasParametrage)return;window.PasParametrage=true;
   let occupe=false,modifie=false,blocActif='';
+  function collecte(){document.querySelectorAll('.collecte-table tr').forEach(ligne=>{const portee=ligne.querySelector('select[name$="_portee"]'), population=ligne.querySelector('select[name$="_population"]');if(portee && population)population.disabled=!['personne','deux'].includes(portee.value);});}
+  collecte();
   function dire(texte){const e=document.getElementById('etat-parametrage');if(e)e.textContent=texte;}
   function liberer(){blocActif='';modifie=false;}
   async function charger(url,options={},bloc=null) {
@@ -36,6 +38,7 @@
       }
       history.replaceState(history.state,'',r.url+(blocActif?'#'+blocActif:''));
       if(cible){if(!cible.matches('input,select,textarea,a,button'))cible.tabIndex=-1;cible.focus({preventScroll:true});cible.scrollIntoView({block:'nearest'});}
+      collecte();
       document.dispatchEvent(new Event('navigation:actualise'));
       dire(options.method==='POST' && !modifie ? 'Modification enregistrée.' : '');
     }catch(_){dire('Opération non confirmée. Votre saisie est conservée ; vérifiez avant de recommencer.');}
@@ -51,10 +54,12 @@
     charger(a.href,{},bloc);
   });
   document.addEventListener('input',e=>{if(e.target.closest('#parametrage-editeur form'))modifie=true;});
-  document.addEventListener('change',e=>{if(e.target.closest('#parametrage-editeur form'))modifie=true;});
+  document.addEventListener('change',e=>{if(e.target.closest('#parametrage-editeur form'))modifie=true;collecte();});
   document.addEventListener('submit',e=>{
     const f=e.target.closest('#parametrage-editeur form');if(!f)return;
-    e.preventDefault();charger(f.action || location.href,{method:'POST',body:new FormData(f)});
+    e.preventDefault();const body=new FormData(f);
+    if(e.submitter?.name)body.set(e.submitter.name,e.submitter.value);
+    charger(f.action || location.href,{method:'POST',body});
   });
   window.addEventListener('beforeunload',e=>{if(modifie || occupe){e.preventDefault();e.returnValue='';}});
 })();

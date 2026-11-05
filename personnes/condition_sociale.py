@@ -278,7 +278,9 @@ def presentation(request, personnes, jour, objet, nature, prise, params):
             'url': url('dossiers:parcours', nature, objet.pk) + '&rubrique=' + code})
     from . import collectifs
     cible=prise or objet
-    if isinstance(cible,(m.Menage,m.Accompagnement)):
+    from . import collecte
+    collecte_fine=collecte.presentation(resultats,cible,jour)
+    if not collecte_fine and isinstance(cible,(m.Menage,m.Accompagnement)):
         cfg=collectifs.profil(cible)
         if cfg:
             comp=collectifs.composition(cible,jour) if acteur.has_perm('personnes.view_compositioncollective') else None

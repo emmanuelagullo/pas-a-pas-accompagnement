@@ -40,6 +40,8 @@ class SejourUnifieTests(Donnees, TestCase):
         page = self.client.get(self.prise)
         self.assertContains(page, 'Prévu — arrivée à confirmer')
         from urllib.parse import quote
+        # Une seule barre NAV : l’arrivée agit sur l’accueil sélectionné.
+        page = self.client.get(self.prise + '?sejour=' + str(accord.pk))
         self.assertContains(page, 'operation=' + quote(reverse('suivi:arrivee_prevue', args=[accord.pk]), safe=''))
         self.assertNotContains(page, 'Autorisation sans admission')
         self.assertNotContains(page, 'Accorder un hébergement sans admission')

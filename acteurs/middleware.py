@@ -86,6 +86,9 @@ class PerimetreMiddleware:
         prestations={'dossiers:nouveau','suivi:accorder_hebergement','suivi:accorder_repas','suivi:accorder_services_repas','dossiers:aide_accorder'}
         reperage='prestation' if nom in prestations else nom in identites
         with perimetre(request.user,service,stats,responsable,creation,export_demande,vue_courante.kwargs.get('nature',''),reperage=reperage) as ctx:
+            from personnes.collecte import verifier_route
+            try:verifier_route(request,vue_courante)
+            except PermissionDenied:return self.refus()
             response=self.get_response(request)
             if creation and request.method=='POST' and response.status_code in (301,302,303) and p.active():
                 response=self.retour_creation(request,response,ctx)

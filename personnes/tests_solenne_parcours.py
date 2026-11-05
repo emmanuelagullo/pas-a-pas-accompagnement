@@ -125,12 +125,12 @@ class ParcoursSolenneTests(Donnees, TestCase):
         self.assertEqual(self.a.fin, date(2026, 2, 1))
         self.assertNotContains(self.client.get(self.prise), 'Clôturer la prise')
 
-    def test_actions_du_jour_hors_details_et_retour_absence(self):
+    def test_mouvements_dans_actions_secondaires_et_retour_absence(self):
         hebergement.ajouter_periode(self.u, self.s, date(2026, 1, 3), None, self.lieu)
         page = self.client.get(self.prise)
         html = page.content.decode()
-        self.assertLess(html.index('Changer de lieu'), html.index('Autres actions et informations'))
-        self.assertLess(html.index('Enregistrer une absence'), html.index('Autres actions et informations'))
+        self.assertGreater(html.index('Changer de lieu'), html.index('Autres actions et informations'))
+        self.assertGreater(html.index('Enregistrer une absence'), html.index('Autres actions et informations'))
         hebergement.ajouter_periode(self.u, self.s, date(2026, 1, 12), None, absence=True)
         self.assertContains(self.client.get(self.prise), 'Enregistrer le retour d’absence')
 
