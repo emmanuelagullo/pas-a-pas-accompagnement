@@ -11,6 +11,12 @@ class CollecteNavigateur(Donnees,StaticLiveServerTestCase):
     declarer=base.CollectifsTests.declarer
     def setUp(self):
         base.CollectifsTests.setUp(self)
+        self.service.sous_titre = 'Accueil et hébergement des familles'
+        self.service.save(update_fields=['sous_titre'])
+        from acteurs.models import OffrePrestataire
+        from .models import Partenaire
+        lieu = Partenaire.objects.create(libelle='Cuisine fictive', cree_par=self.u)
+        OffrePrestataire.objects.create(lieu=lieu, libelle='Table d’essai', nature='restauration')
         self.u.user_permissions.add(Permission.objects.get(content_type__app_label='acteurs',codename='gerer_organisation'))
         self.u=type(self.u).objects.get(pk=self.u.pk)
     def parcourir(self,js,largeur):
@@ -22,7 +28,15 @@ class CollecteNavigateur(Donnees,StaticLiveServerTestCase):
                 ctx=browser.new_context(java_script_enabled=js,viewport={'width':largeur,'height':900})
                 ctx.add_cookies([{'name':settings.SESSION_COOKIE_NAME,'value':self.client.cookies[settings.SESSION_COOKIE_NAME].value,'url':self.live_server_url}])
                 page=ctx.new_page()
-                page.goto(self.live_server_url+reverse('acteurs:service',args=[self.service.pk]))
+                page.goto(self.live_server_url+reverse('acteurs:prestataires'))
+                offre = page.locator('.bd-liste-cartes a', has_text='Table d’essai')
+                expect(offre.locator('span')).to_contain_text('Cuisine fictive')
+                self.assertLessEqual(page.evaluate('document.documentElement.scrollWidth'), largeur+1)
+                page.goto(self.live_server_url+reverse('acteurs:etablissement', args=[self.service.etablissement_id]))
+                carte = page.locator('.bd-liste-cartes a', has_text='Les Amandiers')
+                expect(carte.locator('span')).to_have_text(self.service.sous_titre)
+                self.assertLessEqual(page.evaluate('document.documentElement.scrollWidth'), largeur+1)
+                carte.locator('span').click()
                 ariane = page.get_by_role('navigation', name='Fil d’Ariane')
                 expect(ariane.get_by_role('link', name='Paramétrage')).to_be_visible()
                 expect(ariane.locator('[aria-current=page]')).to_have_text('Les Amandiers')

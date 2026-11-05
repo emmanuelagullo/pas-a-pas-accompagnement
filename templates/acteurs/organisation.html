@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block contenu %}
-<div id="parametrage"{% if service or etablissement %} class="bd-dossier condition-page"{% endif %}>
+<div id="parametrage" class="bd-dossier{% if service or etablissement %} condition-page{% endif %}">
   {% if etablissement %}
     {% include "commun/_sommaire.html" with liens_sommaire="acteurs/_etablissement_sommaire.html" ancre_1="services-liste" libelle_1="Services" ancre_2="recherche" libelle_2="Recherche" %}
   {% elif service %}
@@ -15,9 +15,11 @@
       {% url 'acteurs:creer_service_etablissement' etablissement.pk as creer %}
       {% include 'commun/_boite_entete.html' with titre='Services' action_url=creer action_libelle='Créer un service' action_type='parametrage' only %}
       <div data-parametrage-hote></div>
-      <ul class="episodes-compacts">
-        {% for s in services %}<li><a href="{% url 'acteurs:service' s.pk %}">{{ s }}</a>{% if s.sous_titre %} · {{ s.sous_titre }}{% endif %}</li>
-        {% empty %}<li>Aucun service configuré.</li>{% endfor %}
+      <ul class="bd-liste-cartes">
+        {% for s in services %}
+          {% url 'acteurs:service' s.pk as fiche %}
+          <li>{% include 'commun/_lien_liste.html' with url=fiche titre=s.libelle resume=s.sous_titre only %}</li>
+        {% empty %}<li class="bd-vide">Aucun service configuré.</li>{% endfor %}
       </ul>
     </section>
     <section class="dossier-boite carte" id="recherche" data-parametrage-bloc>
@@ -32,7 +34,12 @@
     {% else %}
     <section class="dossier-boite carte">
       <h2>Établissements</h2>
-      <ul class="episodes-compacts">{% for e in etablissements %}<li><a href="{% url 'acteurs:etablissement' e.pk %}">{{ e }}</a></li>{% empty %}<li>Aucun établissement configuré.</li>{% endfor %}</ul>
+      <ul class="bd-liste-cartes">
+        {% for e in etablissements %}
+          {% url 'acteurs:etablissement' e.pk as fiche %}
+          <li>{% include 'commun/_lien_liste.html' with url=fiche titre=e only %}</li>
+        {% empty %}<li class="bd-vide">Aucun établissement configuré.</li>{% endfor %}
+      </ul>
     </section>
     <section class="dossier-boite carte">
       {% url 'acteurs:prestataires' as offres %}

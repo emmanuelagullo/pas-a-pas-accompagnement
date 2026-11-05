@@ -1,0 +1,1 @@
+{% if offre.libelle != offre.lieu.libelle %}{{ offre.lieu }} · {% endif %}{{ offre.get_nature_display }}{% if not offre.actif %} · Retirée{% endif %}

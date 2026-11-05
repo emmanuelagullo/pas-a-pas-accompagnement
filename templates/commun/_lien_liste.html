@@ -1,0 +1,4 @@
+<a href="{{ url }}">
+  <strong>{{ titre }}</strong>
+  {% if resume_template %}<span>{% include resume_template %}</span>{% elif resume %}<span>{{ resume }}</span>{% endif %}
+</a>
