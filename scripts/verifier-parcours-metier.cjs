@@ -74,7 +74,8 @@ module.exports = async function verifierParcoursMetier(app) {
   await precision.fill('Correction fictive du parcours navigateur');
   await cliquerLienPwa(app.getByRole('button', {name:'Enregistrer', exact:true}));
   await app.getByRole('heading', {name:/Prise en charge du/}).waitFor();
-  await cliquerLienPwa(historique.getByRole('link', {name:'Historique des corrections', exact:true}));
+  await historique.locator(':scope > summary').click();
+  await cliquerLienPwa(historique.getByRole('link', {name:'Corrections', exact:true}));
   await app.getByText('Correction fictive du parcours navigateur', {exact:false}).waitFor();
   await app.getByText('Installation dans un logement autonome fictif.', {exact:false}).waitFor();
   await app.locator('.menu-chantiers > summary').click();

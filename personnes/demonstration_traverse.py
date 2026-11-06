@@ -25,7 +25,7 @@ def completer(auteur, etablissement, professionnel):
         listes_saisie={'destination_sortie': ['Logement social', 'Logement privé', 'Résidence sociale', 'Pension de famille']},
     )
     AppartenanceProfessionnelle.objects.create(service=service, professionnel=professionnel, debut=entree)
-    services.habiliter(auteur, auteur, service, 'social', entree)
+    services.habiliter(auteur, auteur, service, 'social', entree, exporter=True)
     with perimetre(auteur, service=service, creation='dossier', nature_creation='menage'):
         adulte = m.Personne.objects.create(designation='Maya Morel', date_naissance=date(1989, 4, 8),
                                          precision_naissance='exacte', cree_par=auteur)
