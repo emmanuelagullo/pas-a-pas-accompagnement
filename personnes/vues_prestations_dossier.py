@@ -67,7 +67,7 @@ def nouveau(request, nature, pk, prestation):
             simple = parcours_simple(a, 'hebergement') and request.user.has_perm('personnes.add_sejour')
             initial['attendu'] = admission.jeton(a)
             form = AdmissionGuideeForm(request.POST if request.method == 'POST' else None,
-                acteur=request.user, simple=simple, beneficiaires=a.beneficiaires.all(), initial=initial)
+                acteur=request.user, simple=simple, accompagnement=a, beneficiaires=a.beneficiaires.all(), initial=initial)
         elif prestation == 'services_repas':
             initial['attendu'] = repas.jeton_services(a)
             form = ServicesForm(request.POST if request.method == 'POST' else None, accompagnement=a, initial=initial)
@@ -86,12 +86,12 @@ def nouveau(request, nature, pk, prestation):
         form.order_fields(['accompagnement', 'beneficiaires', 'debut', 'fin', 'duree', 'calcul_periode', 'arrivee_effectuee', 'admission', 'lieu', 'service', 'services', 'prestataire', 'attendu'])
     if a and prestation!='hebergement':preparation_repas.preparer_formulaire(form,request,a)
     statut = 200
-    if request.method == 'POST' and not getattr(form,'preparation_seule',False) and form.is_valid() and a:
+    if request.method == 'POST' and not getattr(form,'preparation_seule',False) and form.is_valid() and a and (prestation != 'hebergement' or form.enregistrement_autorise(request.user)):
         d = preparation_repas.sans_preparation(form.cleaned_data)
         d.pop('accompagnement')
         try:
             if prestation == 'hebergement':
-                accord = admission.accueillir(request.user, a, **d)
+                accord = admission.accueillir(request.user, a, modifier_fin=form.conflit_fin, **d)
                 sejours = accord.sejours.non_annules()
                 if nature == 'personne':
                     sejours = sejours.filter(beneficiaires=objet)

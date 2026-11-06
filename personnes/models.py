@@ -678,7 +678,7 @@ class EvolutionPriseEnCharge(ModeleControle):
     accompagnement = models.ForeignKey(Accompagnement, on_delete=models.PROTECT, related_name="evolutions_prevision")
     ancienne_fin = models.DateField(null=True)
     nouvelle_fin = models.DateField(null=True, blank=True)
-    action = models.CharField(max_length=20, choices=[('prolongation', 'Prolongation'), ('correction', 'Correction de prévision')], default='prolongation')
+    action = models.CharField(max_length=20, choices=[('prolongation', 'Prolongation'), ('correction', 'Correction de prévision'), ('fin_effective', 'Modification de la fin de prise en charge')], default='prolongation')
     motif = models.CharField(max_length=240, blank=True)
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     enregistre_le = models.DateTimeField(auto_now_add=True)

@@ -109,6 +109,8 @@ exactement aux patches livrés ; expliciter leur base et leurs dépendances.
 
 ### Présentation et opérations sensibles
 
+- Vouvoyer les utilisateurs dans les messages et les aides.
+
 - Afficher les dates civiles en français, en lecture et en saisie
   (`jj/mm/aaaa`). Un sélecteur natif peut suivre la langue du navigateur.
   Vérifier la saisie sur un navigateur configuré en anglais et les calculs

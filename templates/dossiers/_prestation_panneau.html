@@ -1,6 +1,6 @@
 <div class="prestation-panneau{% if impression %} prestation-impression{% endif %}" data-prestation-panneau>
 <nav class="prestation-commandes" aria-label="Actions de la prestation ouverte">
-{% if en_action %}<a href="{{ retour_consultation }}" data-prestation-lien data-prestation-annuler>{% if en_creation %}Annuler la création{% else %}Annuler et revenir à la prestation{% endif %}</a>{% else %}<a href="{{ fermer_url }}" data-prestation-fermer>Refermer</a><a href="{{ imprimer_url }}" target="_blank" rel="noopener">Imprimer / PDF</a>{% endif %}
+{% if en_action %}<a class="bouton secondaire" href="{{ retour_consultation }}" data-prestation-lien data-prestation-annuler>Annuler</a>{% else %}<a href="{{ fermer_url }}" data-prestation-fermer>Refermer</a><a href="{{ imprimer_url }}" target="_blank" rel="noopener">Imprimer / PDF</a>{% endif %}
 </nav>
 {% if impression %}<p><strong>{{ dossier }} · Prise en charge du {{ prise.debut|date:'d/m/Y' }}</strong></p><p class="helptext">Utilisez la commande Imprimer du navigateur pour imprimer cette prestation ou l’enregistrer en PDF.</p><button type="button" data-prestation-imprimer>Imprimer / PDF</button>{% endif %}
 <div class="prestation-contenu{% if en_action %} operation-en-place{% endif %}" data-prestation-contenu>{{ contenu }}</div>

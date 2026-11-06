@@ -19,7 +19,7 @@ def jeton(accompagnement):
 
 @service_metier
 @serialiser('accompagnement')
-def accueillir(acteur, accompagnement, beneficiaires, debut, fin, admission, attendu, lieu=None, arrivee_effectuee=True):
+def accueillir(acteur, accompagnement, beneficiaires, debut, fin, admission, attendu, lieu=None, arrivee_effectuee=True, modifier_fin=False):
     h.droit(acteur, 'add_accordhebergement')
     if arrivee_effectuee:
         h.exiger(acteur, 'add_sejour')
@@ -36,6 +36,21 @@ def accueillir(acteur, accompagnement, beneficiaires, debut, fin, admission, att
         raise ValidationError('Le formulaire a expiré. Rechargez l’accompagnement.') from exc
     if precedent != etat(a, a.revision_sociale - 1):
         raise ValidationError('Cet accompagnement a changé. Rechargez le formulaire avant une nouvelle admission.')
+    if modifier_fin:
+        from django.utils import timezone
+        from .models import EvolutionPriseEnCharge
+
+        h.exiger(acteur, 'change_accompagnement')
+        ancienne_fin = a.fin
+        if not ancienne_fin or debut < a.debut or (debut < ancienne_fin and fin and fin <= ancienne_fin):
+            raise ValidationError('La fin de cette prise en charge ne nécessite pas de modification.')
+        a.fin = fin if fin and fin <= timezone.localdate() else None
+        a.full_clean()
+        a.save(update_fields=['fin'])
+        EvolutionPriseEnCharge.objects.create(
+            accompagnement=a, ancienne_fin=ancienne_fin, nouvelle_fin=a.fin,
+            action='fin_effective', auteur=acteur,
+        )
     beneficiaires = list(beneficiaires)
     accord = h.accorder(acteur, a, beneficiaires, debut, fin)
     if not arrivee_effectuee:

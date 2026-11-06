@@ -23,6 +23,28 @@ class SejourUnifieTests(Donnees, TestCase):
         self.prise = reverse('dossiers:prise', args=['menage', self.m.pk, self.a.pk])
         self.creation = reverse('dossiers:nouveau', args=['menage', self.m.pk, 'hebergement'])
 
+    def test_reouverture_confirmee_avec_le_sejour(self):
+        self.u.user_permissions.add(Permission.objects.get(
+            content_type__app_label='personnes', codename='change_accompagnement',
+        ))
+        self.a.fin = date(2026, 3, 1)
+        self.a.save(update_fields=['fin'])
+        url = self.creation
+        donnees = {'accompagnement': str(self.a.pk), 'beneficiaires': [self.p.pk], 'debut': '02/03/2026',
+                   'arrivee_effectuee': 'on', 'admission': '02/03/2026',
+                   'attendu': admission.jeton(self.a)}
+        page = self.client.post(url, donnees)
+        self.assertContains(page, 'Rouvrir la prise en charge et enregistrer le séjour')
+        self.a.refresh_from_db()
+        self.assertEqual(self.a.fin, date(2026, 3, 1))
+        self.assertEqual(Sejour.objects.count(), 1)
+        reponse = self.client.post(url, {**donnees, 'confirmation_fin': page.context['form'].jeton_fin})
+        self.assertEqual(reponse.status_code, 302)
+        self.a.refresh_from_db()
+        self.assertIsNone(self.a.fin)
+        self.assertEqual(Sejour.objects.count(), 2)
+        self.assertEqual(self.a.evolutions_prevision.get().action, 'fin_effective')
+
     def prevoir(self, personnes=None):
         self.a.refresh_from_db()
         return admission.accueillir(self.u, self.a, personnes or [self.p], date(2026, 1, 1), None,
