@@ -54,8 +54,9 @@ module.exports = async function verifierParcoursMetier(app) {
   await hebergement.getByRole('button', {name:'Enregistrer l’arrivée', exact:true}).click();
   await app.locator('[data-prestation-form]').waitFor({state:'detached'});
   await app.getByText('Prévu — arrivée à confirmer', {exact:true}).waitFor({state:'hidden'});
-  const historique = app.locator('.bd-dossier');
-  await cliquerLienPwa(historique.getByRole('link', {name:'Informations conservées des anciens suivis', exact:true}));
+  const historique = app.locator('#historique-prise');
+  await historique.locator(':scope > summary').click();
+  await cliquerLienPwa(historique.getByRole('link', {name:'Anciens suivis', exact:true}));
   await app.getByRole('heading', {name:/Situation et parcours sociaux — Thomas/}).waitFor();
   await cliquerLienPwa(app.getByRole('link', {name:'Corriger cet événement', exact:true}));
   // L’événement social reste un texte simple ; seuls les commentaires et
