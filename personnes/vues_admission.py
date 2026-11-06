@@ -26,9 +26,10 @@ class AdmissionGuideeForm(AccordForm):
         label='Premier lieu — facultatif', help_text='Une affectation débute à la date d’admission pour chaque personne sélectionnée.')
     attendu = forms.CharField(widget=forms.HiddenInput)
 
-    def __init__(self, *args, acteur, simple=False, accompagnement=None, **kwargs):
+    def __init__(self, *args, acteur, simple=False, accompagnement=None, sejour=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.simple = simple
+        self.edition_sejour = sejour is not None
         self.accompagnement = accompagnement
         self.peut_admettre = acteur.has_perm('personnes.add_sejour')
         if not simple and self.is_bound and forms.BooleanField(required=False).clean(self.data.get('arrivee_effectuee')) and not self.peut_admettre:
@@ -56,13 +57,30 @@ class AdmissionGuideeForm(AccordForm):
             del self.fields['arrivee_effectuee'], self.fields['admission']
             self.champs_arrivee_visibles = True
             self.fields['debut'].label = 'Date d’arrivée'
-        if acteur.has_perms(['personnes.add_affectation', 'personnes.view_affectation', 'personnes.view_lieuhebergement']):
+        droits_lieu = ['personnes.view_affectation', 'personnes.view_lieuhebergement']
+        if not self.edition_sejour:
+            droits_lieu.append('personnes.add_affectation')
+        if acteur.has_perms(droits_lieu):
             self.fields['lieu'].queryset = LieuHebergement.objects.all()
         else:
             del self.fields['lieu']
 
+        if self.edition_sejour:
+            self.fields['beneficiaires'].disabled = True
+            self.fields['beneficiaires'].help_text = 'Personnes enregistrées pour ce séjour.'
+            self.fields['fin'].label = 'Fin du séjour (exclue)'
+            if 'lieu' in self.fields:
+                affectation = sejour.affectations.order_by('debut', 'pk').first()
+                self.initial['lieu'] = affectation.lieu_id if affectation else None
+                self.fields['lieu'].disabled = True
+                self.fields['lieu'].help_text = 'Premier lieu enregistré pour ce séjour.'
+
     def clean(self):
         donnees = super().clean()
+        if self.edition_sejour:
+            donnees.pop('beneficiaires', None)
+            donnees.pop('lieu', None)
+            return donnees
         a = self.accompagnement
         self.conflit_fin = False
         if a is not None:

@@ -1,3 +1,4 @@
+from copy import deepcopy
 from . import textes_riches as tr
 from . import dossier
 from django import forms
@@ -64,8 +65,15 @@ def corriger(request,nature,pk):
         from acteurs.profils_collectifs import parcours_simple
         simple = nature == 'sejour' and parcours_simple(a, 'hebergement')
         if simple:
-            form.fields['debut'].label = 'Date d’arrivée'
-            form.fields['fin'].label = 'Fin du séjour (exclue)'
+            from .vues_admission import AdmissionGuideeForm
+
+            initial['beneficiaires'] = list(objet.beneficiaires.values_list('pk', flat=True))
+            form = AdmissionGuideeForm(
+                request.POST if request.method == 'POST' else None,
+                initial=initial, acteur=request.user, simple=True,
+                accompagnement=a, sejour=objet, beneficiaires=objet.beneficiaires.all(),
+            )
+            form.fields['motif'] = deepcopy(PeriodeForm.base_fields['motif'])
             if objet.fin is None and request.user.has_perms((
                 'personnes.change_sejour', 'personnes.change_affectation', 'personnes.change_absence',
             )):
