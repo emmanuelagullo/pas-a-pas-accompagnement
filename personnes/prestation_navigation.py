@@ -302,6 +302,8 @@ def page(request, nature, pk, prise_pk):
                 autoriser_operation(context,cle,resultat['Location'])
             except Http404: pass
             else: return HttpResponseRedirect(adresse(context,cle,resultat['Location']))
+        if genre == 'sejour' and match.view_name == 'suivi:corriger_saisie':
+            return HttpResponseRedirect(adresse(context) + '#hebergement')
         return HttpResponseRedirect(adresse(context,cle))
     if not isinstance(resultat, TemplateResponse) and resultat.status_code == 409:
         lecture = copy(interne); lecture.method='GET'; lecture._post=QueryDict(''); lecture._files=MultiValueDict()
@@ -314,8 +316,17 @@ def page(request, nature, pk, prise_pk):
     if genre in ('commun','nouveau') and match.view_name=='dossiers:collectif_action' and resultat.get('Content-Type','').startswith('application/json'):return resultat
     if resultat.get('Content-Type','').startswith('application/pdf') or 'attachment' in resultat.get('Content-Disposition',''):
         return resultat
+    annuler_en_pied = False
     if isinstance(resultat, TemplateResponse):
         donnees = {**resultat.context_data,'base_prestation':'dossiers/_prestation_base.html'}
+        annuler_en_pied = not consulter and (
+            genre == 'sejour' and match.view_name == 'suivi:corriger_saisie'
+            or genre == 'nouveau' and objet == 'hebergement'
+        )
+        if annuler_en_pied:
+            donnees['annuler_prestation_url'] = adresse(context) + '#hebergement'
+            donnees['activer_si_modifie'] = genre == 'sejour' and request.method == 'GET'
+
         consulter = genre != 'nouveau' and urlsplit(operation).path == urlsplit(consultation(genre,objet)).path
         if consulter:
             from .financements import LECTURE
@@ -339,7 +350,7 @@ def page(request, nature, pk, prise_pk):
     contenu = localiser(contenu,context,cle,'' if consulter else adresse(context,cle,operation),True,operation)
     panneau = render_to_string('dossiers/_prestation_panneau.html',{
         'dossier':context['objet'],'prise':context['prise'],'contenu':contenu,'fermer_url':adresse(context)+'#prestation-'+cle.replace(':','-'),'retour_consultation':adresse(context)+'#'+('hebergement' if objet == 'hebergement' else 'repas' if objet in ('repas','services_repas') else 'aides-'+objet) if genre == 'nouveau' else adresse(context,cle),'en_creation':genre == 'nouveau',
-        'en_action':urlsplit(operation).path != (urlsplit(consultation(genre,objet)).path if genre != 'nouveau' else ''),
+        'annuler_en_pied':annuler_en_pied,'en_action':urlsplit(operation).path != (urlsplit(consultation(genre,objet)).path if genre != 'nouveau' else ''),
         'imprimer_url':adresse(context,cle,impression=True),'impression':request.GET.get('imprimer')=='1',
     },request=request)
     context.update(prestation_ouverte=cle,prestation_panneau=mark_safe(panneau),prestation_annulee=genre == 'sejour' and bool(objet.annule_le),prestation_accord_annule=genre == 'hebergement' and bool(objet.annule_le))

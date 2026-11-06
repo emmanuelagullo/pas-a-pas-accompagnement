@@ -234,7 +234,6 @@ def actions_natives(context,famille):
             if autorise('view_absence'):
                 if objet.absence_ouverte and autorise('change_absence'):autres.append(lien('Enregistrer le retour d’absence','suivi:clore_absence',objet.absence_ouverte.pk))
                 elif not objet.absence_ouverte and autorise('add_absence'):autres.append(lien('Enregistrer une absence','suivi:absence',objet.pk))
-        informations=['Période de suivi du '+date(accord.accompagnement.debut)+'. Accord jusqu’au '+(date(accord.fin) or 'sans fin prévue')+' (fin exclue).']
         if autorise('view_partenaire') and objet.lieu_ouvert and objet.lieu_ouvert.lieu.organisme_id:informations.insert(0,'Organisme rattaché au lieu : '+str(objet.lieu_ouvert.lieu.organisme))
     noms=' ; '.join(str(p) for p in objet.beneficiaires.all())
     return {'cle':cle,'resume':noms,'principaux':principaux,'autres':autres,'informations':informations,'repli':not repas and context.get('selection_hebergement_collective'),'titre_repli':'Actions individuelles — '+noms+' · '+date(objet.debut)}

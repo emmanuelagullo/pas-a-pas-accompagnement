@@ -89,6 +89,23 @@
       etat(options.method==='POST' ? 'Enregistrement non confirmé. Votre saisie est conservée ; vérifiez avant de recommencer.' : 'Impossible d’ouvrir cette prestation. La page est conservée.');
     } finally {occupe=false; document.querySelectorAll('[data-prestation-hote][aria-busy]').forEach(e=>e.removeAttribute('aria-busy'));}
   }
+  const formulairesSuivis = new WeakSet();
+  function preparerValidation() {
+    for (const form of document.querySelectorAll('[data-enregistrer-si-modifie]')) {
+      if (formulairesSuivis.has(form)) continue;
+      const bouton = form.querySelector('button[type="submit"]');
+      if (!bouton) continue;
+      formulairesSuivis.add(form);
+      const etatFormulaire = () => JSON.stringify([...new FormData(form)]);
+      const initial = etatFormulaire();
+      const actualiser = () => { bouton.disabled = etatFormulaire() === initial; };
+      form.addEventListener('input', () => queueMicrotask(actualiser));
+      form.addEventListener('change', () => queueMicrotask(actualiser));
+      actualiser();
+    }
+  }
+  document.addEventListener('navigation:actualise', () => queueMicrotask(preparerValidation));
+  queueMicrotask(preparerValidation);
   document.addEventListener('input',e=>{if(e.target.closest('[data-prestation-form]'))modifie=true;});
   document.addEventListener('dossier:disponible',e=>{
     if(occupe || ouverts().some(h=>h.querySelector('[data-prestation-form]'))){e.preventDefault();etat('Terminez ou annulez l’action de prestation avant de modifier la situation sociale.');}
