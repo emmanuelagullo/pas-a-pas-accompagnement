@@ -39,6 +39,8 @@ class HebergementTests(Donnees,TestCase):
         h.sortir(self.u,self.s,date(2026,1,20),destination_sortie="Logement social")
         self.s.refresh_from_db();absence.refresh_from_db()
         self.assertEqual(self.s.destination_sortie, "Logement social")
+        self.client.force_login(self.u)
+        self.assertContains(self.client.get(reverse("suivi:resume", args=[self.a.pk])), "Logement social")
         self.assertEqual(self.s.fin,date(2026,1,20))
         self.assertEqual(absence.fin,self.s.fin)
         self.assertEqual(list(self.s.affectations.values_list('fin',flat=True)),[date(2026,1,10),date(2026,1,20)])

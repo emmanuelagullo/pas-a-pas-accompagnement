@@ -1,4 +1,4 @@
-from . import dossier, bd6
+from . import dossier, bd6, departs_logement
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
@@ -26,4 +26,5 @@ def resume(request, pk):
         'accords_repas': a.accords_repas.filter(annule_le__isnull=True).prefetch_related('beneficiaires') if lecture_repas else [],
         'sejours': Sejour.objects.non_annules().filter(accord__accompagnement=a).select_related('accord').prefetch_related(
             'beneficiaires', 'affectations__lieu', 'absences') if lecture_sejours else [],
+        'departs_logement': departs_logement.par_prise(request.user, [a.pk], timezone.localdate()).get(a.pk, ()),
         'lecture_repas': lecture_repas, 'lecture_sejours': lecture_sejours})

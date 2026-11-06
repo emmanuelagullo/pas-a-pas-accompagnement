@@ -363,6 +363,8 @@ def rapport(request):
             etiquettes=dict(r.version._meta.get_field('etat').choices)
             repartition=[(etiquettes[x['etat']],x['nombre']) for x in qs.order_by().values('etat').annotate(nombre=Count('element_id',distinct=True))]
         objets=list(qs.order_by('pk'))
+        from .departs_logement import par_prise
+        departs = par_prise(request.user, [v.accompagnement_id for v in objets], jour) if code == 'prises' else {}
         modele=m.InformationsAccompagnement if code=='prises' else r.version
         for v in objets:
             e=v.accompagnement if code=='prises' else v.element
@@ -372,15 +374,17 @@ def rapport(request):
             delai=(adm.debut-depot).days if code=='demandes' and adm and adm.debut<=jour else None
             if delai is not None:delais.append(delai)
             lignes_rapport.append({'fait':v,'element':e,'cible':str(e.menage) if code=='prises' else str(e.cible),'beneficiaires':ps,
+                'departs_logement': departs.get(e.pk, ()),
                 'depot':depot,'admission':adm if adm and adm.debut<=jour else None,'delai':delai,'lignes':lignes(modele,v,champs),
                 'url':reverse('suivi:resume',args=[e.pk]) if code=='prises' else reverse('dossiers:parcours_element',args=[code,e.pk])+'?date='+jour.isoformat()})
         if request.GET.get('format')=='csv':
             response=HttpResponse(content_type='text/csv; charset=utf-8');response['Content-Disposition']='attachment; filename="parcours.csv"'
-            w=csv.writer(response,delimiter=';');w.writerow(['date_reference','rubrique','element_id','cible','beneficiaires_ids','depot_ou_debut_prise','date_effet','saisie_le','fin_exclue',*champs,'source','prise_id','admission_debut','delai_jours'])
+            w=csv.writer(response,delimiter=';');w.writerow(['date_reference','rubrique','element_id','cible','beneficiaires_ids','depot_ou_debut_prise','date_effet','saisie_le','fin_exclue',*champs,'source','prise_id','admission_debut','delai_jours', *(['departs_logement'] if code == 'prises' else [])])
             for x in lignes_rapport:
                 v=x['fait'];a=x['admission']
                 w.writerow([jour.isoformat(),code,x['element'].pk,cellule_csv(x['cible']),','.join(str(p.pk) for p in x['beneficiaires']),x['depot'].isoformat(),'' if code=='prises' else v.debut.isoformat(),v.enregistre_le.isoformat(),(x['element'].fin.isoformat() if x['element'].fin else '') if code=='prises' else v.fin.isoformat() if v.fin else '',
-                    *[cellule_csv(json.dumps(s.valeur_journal(getattr(v,c)),ensure_ascii=False) if isinstance(getattr(v,c),Model) else getattr(v,c) if getattr(v,c) is not None else '') for c in champs],cellule_csv(v.motif if code=='prises' else v.source),a.pk if a else '',a.debut.isoformat() if a else '',x['delai'] if x['delai'] is not None else ''])
+                    *[cellule_csv(json.dumps(s.valeur_journal(getattr(v,c)),ensure_ascii=False) if isinstance(getattr(v,c),Model) else getattr(v,c) if getattr(v,c) is not None else '') for c in champs],cellule_csv(v.motif if code=='prises' else v.source),a.pk if a else '',a.debut.isoformat() if a else '',x['delai'] if x['delai'] is not None else '',
+                    *([json.dumps([(date.isoformat(), destination) for date, destination in x['departs_logement']], ensure_ascii=False)] if code == 'prises' else [])])
             return response
     params.pop('format',None);params.pop('page',None)
     return TemplateResponse(request,'dossiers/rapport_parcours.html',{'form':f,'code':code,'nombre':len(objets),'delais':delais,
