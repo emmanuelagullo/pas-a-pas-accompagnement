@@ -8,13 +8,14 @@ from django.db.models import Q
 from django.urls import reverse
 from . import services as s
 from .models import Service, OffrePrestataire
-from .profils_collectifs import defaut, defaut_individuel, verifier, MODES, IDENTIFICATIONS
+from .profils_collectifs import defaut, defaut_individuel, verifier, MODES, IDENTIFICATIONS, FAMILLES
 from .views import formulaire
 from personnes.champs_saisie import FormulaireMetier
 
 class ProfilForm(FormulaireMetier):
     actif=forms.BooleanField(label='Utiliser les réglages de ce service pour la composition et les prestations',required=False)
     prestations=forms.MultipleChoiceField(label='Prestations proposées',choices=[('hebergement','Hébergement'),('restauration','Repas')],required=False,widget=forms.CheckboxSelectMultiple)
+    parcours_simples = forms.MultipleChoiceField(label="Prestations en parcours simple", choices=FAMILLES, required=False, widget=forms.CheckboxSelectMultiple)
     catalogue=forms.BooleanField(label='Limiter le choix aux offres sélectionnées',required=False,help_text='Cochez cette case pour choisir les offres proposées lors de la saisie.')
     offres=forms.ModelMultipleChoiceField(OffrePrestataire.objects.none(),label='Offres proposées à la saisie',required=False,widget=forms.CheckboxSelectMultiple)
     identification=forms.ChoiceField(label='Personnes à identifier',choices=IDENTIFICATIONS)
@@ -34,7 +35,7 @@ class ProfilForm(FormulaireMetier):
             self.fields['offres'].queryset = OffrePrestataire.objects.filter(
                 Q(actif=True) | Q(pk__in=self.initial['offres']))
             for nom in ('actif', 'prestations', 'aides', 'hebergement', 'restauration',
-                        'petits_dejeuners', 'catalogue', 'offres'):
+                        'petits_dejeuners', 'catalogue', 'offres', 'parcours_simples'):
                 self.fields[nom].disabled = True
         elif volet == 'prestations':
             self.fields['identification'].disabled = True
@@ -67,6 +68,10 @@ class ProfilForm(FormulaireMetier):
         elif self.volet == 'prestations':
             groupes = groupes[2:]
         return [(titre,[self[nom] for nom in noms]) for titre,noms in groupes]
+    @property
+    def afficher_parcours(self):
+        return self.volet != "composition"
+
     @property
     def afficher_categories(self):
         return self.volet != 'prestations'

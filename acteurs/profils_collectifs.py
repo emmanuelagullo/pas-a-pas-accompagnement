@@ -4,6 +4,20 @@ from django.core.exceptions import ValidationError
 MODES = [('collectif','Collectif uniquement'), ('option','Collectif avec détail facultatif'), ('individuel','Suivi individuel')]
 IDENTIFICATIONS = [('reference','Personne de référence et composition'), ('adultes','Adultes identifiés'), ('tous','Tous les bénéficiaires identifiés')]
 
+FAMILLES = [('hebergement', 'Hébergement'), ('restauration', 'Repas'),
+            ('transport', 'Transport'), ('bon_alimentaire', 'Bons alimentaires'),
+            ('produits', 'Produits alimentaires'), ('accueil_jour', 'Accueil de jour')]
+
+
+def parcours_simple(prise, famille):
+    from personnes.collectifs import service_objet
+    try:
+        service = service_objet(prise)
+    except ValidationError:
+        return False
+    return famille in service.profil_collectif.get('parcours_simples', ())
+
+
 def categories_defaut():
     return [{'code':'adulte','libelle':'Adulte','min':18,'max':120},
             {'code':'enfant','libelle':'Enfant','min':3,'max':17},
@@ -45,7 +59,10 @@ def defaut_individuel(*, collecte_configuree=False):
 
 
 def verifier(valeur):
-    if not isinstance(valeur,dict) or set(valeur)-set(defaut()) or set(defaut())-set(valeur)-{'aides','prestations'}:raise ValidationError('Profil collectif incomplet ou champ inconnu.')
+    if not isinstance(valeur,dict) or set(valeur)-set(defaut())-{'parcours_simples'} or set(defaut())-set(valeur)-{'aides','prestations'}:raise ValidationError('Profil collectif incomplet ou champ inconnu.')
+    simples = valeur.get('parcours_simples', [])
+    if not isinstance(simples, list) or any(not isinstance(x, str) or x not in dict(FAMILLES) for x in simples):
+        raise ValidationError('Famille de parcours simple inconnue.')
     familles=valeur.get('prestations',['hebergement','restauration'])
     if not isinstance(familles,list) or set(familles)-{'hebergement','restauration'}:raise ValidationError('Famille de prestation inconnue.')
     aides=valeur.get('aides',[])

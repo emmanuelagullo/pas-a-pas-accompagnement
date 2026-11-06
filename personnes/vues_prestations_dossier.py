@@ -63,9 +63,11 @@ def nouveau(request, nature, pk, prestation):
         fin = min(a.fin_prevue, a.fin) if a.fin_prevue and a.fin else a.fin_prevue
         initial.update(debut=debut, fin=fin if fin and fin > debut else None, admission=debut, beneficiaires=[pk] if nature == 'personne' else [p.pk for p in a.beneficiaires.all()])
         if prestation == 'hebergement':
+            from acteurs.profils_collectifs import parcours_simple
+            simple = parcours_simple(a, 'hebergement') and request.user.has_perm('personnes.add_sejour')
             initial['attendu'] = admission.jeton(a)
             form = AdmissionGuideeForm(request.POST if request.method == 'POST' else None,
-                acteur=request.user, beneficiaires=a.beneficiaires.all(), initial=initial)
+                acteur=request.user, simple=simple, beneficiaires=a.beneficiaires.all(), initial=initial)
         elif prestation == 'services_repas':
             initial['attendu'] = repas.jeton_services(a)
             form = ServicesForm(request.POST if request.method == 'POST' else None, accompagnement=a, initial=initial)

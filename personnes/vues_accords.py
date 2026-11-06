@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.http import Http404
+from django.core.exceptions import ValidationError
 from django.views.decorators.http import require_http_methods
 from . import accords
 from .forms_hebergement import date_champ
@@ -30,6 +31,9 @@ def decider(request, nature, pk, action):
         raise Http404
     accord = get_object_or_404(modele.objects.select_related('accompagnement__menage').prefetch_related('beneficiaires'), pk=pk)
     accords.droits(request.user, accord, action)
+    non_presentation = request.GET.get('non_presentation') == '1'
+    if non_presentation and (nature != 'hebergement' or action != 'annuler'):
+        raise Http404
     form = (ProlongationForm if action == 'prolonger' else DecisionForm)(
         request.POST if request.method == 'POST' else None, initial={'attendu': accords.jeton(accord)})
     # Explain the meaning of the operation in the form, not only in a tooltip.
@@ -41,11 +45,19 @@ def decider(request, nature, pk, action):
         texte = ('Annuler une saisie erronée conserve l’accord, ses dates et son historique. '
                  'Aucune annulation n’est possible si une distribution, même annulée, ou un séjour, même terminé, existe. '
                  'Une sortie réelle ne se traite pas par cette annulation.')
+    if non_presentation:
+        form.fields['motif'].disabled = True
+        form.initial['motif'] = 'Non-présentation'
+        texte = 'L’accueil prévu sera fermé. Aucun séjour ni aucune nuitée ne seront enregistrés.'
     form.fields['confirmer'].help_text = texte
     titre = ('Prolonger l’accord' if action == 'prolonger' else 'Annuler un accord saisi par erreur')
+    if non_presentation:
+        titre = 'Enregistrer la non-présentation'
     titre += ' — ' + ('repas' if nature == 'repas' else 'hébergement')
     def appliquer(**donnees):
         donnees.pop('confirmer')
+        if non_presentation and accord.sejours.exists():
+            raise ValidationError('Une arrivée a déjà été enregistrée pour cet accord.')
         return (accords.prolonger if action == 'prolonger' else accords.annuler)(request.user, accord, **donnees)
     form.fields['motif'].help_text = ('Accord du ' + accord.debut.strftime('%d/%m/%Y') +
         ' ; fin exclue : ' + (accord.fin.strftime('%d/%m/%Y') if accord.fin else 'non prévue') +

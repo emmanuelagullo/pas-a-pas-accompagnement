@@ -112,6 +112,10 @@ class PrestationForm(FormulaireMetier):
             else:del self.fields['lieu']
             if not cfg['petits_dejeuners']:del self.fields['petits_dejeuners']
             self.fields['fin_prevue'].label='Départ prévu — date exclue'
+            self.arrivee_simple = not v and 'hebergement' in cfg.get('parcours_simples', ())
+            if self.arrivee_simple:
+                self.fields['debut'].label = 'Date d’arrivée'
+                del self.fields['arrivee'], self.fields['fin']
         else:
             for k in ('arrivee','lieu','petits_dejeuners'):del self.fields[k]
             self.fields['fin_prevue'].label='Dernier jour prévu — repas de fin compris'
@@ -212,7 +216,10 @@ class PrestationForm(FormulaireMetier):
     def champs_selection(self):return [self[n] for n in self.selection_champs]
 
     def clean(self):
-        d=super().clean();lignes=[]
+        d=super().clean()
+        if getattr(self, "arrivee_simple", False):
+            d["arrivee"] = d.get("debut")
+        lignes=[]
         offre=d.get('offre')
         offres_tarifs=c.tarifs_offre(self.acteur,offre,d.get('debut') or self.comp.debut,d.get('devise','EUR')) if offre else {}
         proposes=c.tarifs_proposes(self.acteur,getattr(d.get('prestataire'),'pk',None),d.get('debut') or self.comp.debut,self.comp.categories,d.get('devise','EUR')) if self.nature=='restauration' else {}

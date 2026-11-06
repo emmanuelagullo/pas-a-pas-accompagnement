@@ -183,6 +183,12 @@ def actions_natives(context,famille):
         principaux=[]
         if context['request'].user.has_perm('personnes.add_sejour'):
             principaux.append({'label':'Enregistrer l’arrivée','url':nav.adresse(context,cle,reverse('suivi:arrivee_prevue',args=[prevu.pk])),'bouton':True})
+        from acteurs.profils_collectifs import parcours_simple
+        if (context['request'].user.has_perms(['personnes.annuler_accordhebergement', 'personnes.view_sejour', 'personnes.view_evolutionaccord'])
+                and parcours_simple(prevu.accompagnement, 'hebergement')
+                and not prevu.sejours.exists()):
+            operation = reverse('suivi:annuler_accord', args=['hebergement', prevu.pk]) + '?non_presentation=1'
+            principaux.append({'label': 'Non-présentation', 'url': nav.adresse(context, cle, operation), 'bouton': True})
         principaux.extend([{'label':'Ouvrir','url':nav.adresse(context,cle),'bouton':True},{'label':'Imprimer / PDF','url':nav.adresse(context,cle,impression=True),'imprimer':True,'bouton':True}])
         return {'cle':cle,'resume':' ; '.join(str(p) for p in prevu.personnes_attendues),'principaux':principaux,'autres':[]}
     u=context['request'].user;repas=famille=='restauration';cle=('repas:' if repas else 'sejour:')+str(objet.pk)
@@ -194,7 +200,10 @@ def actions_natives(context,famille):
     if not accord.annule_le and accord.fin and autorise('view_evolutionaccord','prolonger_accordrepas' if repas else 'prolonger_accordhebergement'):
         principaux.append(lien('Prolonger','suivi:prolonger_accord','repas' if repas else 'hebergement',accord.pk))
     if repas:
-        if not accord.annule_le and autorise('add_repasdistribue'):principaux.append(lien('Enregistrer une distribution','suivi:distribuer_repas',accord.pk))
+        if not accord.annule_le and autorise('add_repasdistribue'):
+            from acteurs.profils_collectifs import parcours_simple
+            actions_distribution = autres if parcours_simple(accord.accompagnement, 'restauration') else principaux
+            actions_distribution.append(lien('Enregistrer une distribution','suivi:distribuer_repas',accord.pk))
         if not accord.annule_le and autorise('change_accordrepas','view_correctionperiode'):autres.append(lien('Corriger les dates de l’accord','suivi:corriger_saisie','accordrepas',accord.pk))
         informations=['Période de suivi du '+date(accord.accompagnement.debut)+'. Un accord ne prouve pas une distribution.']
         if accord.annule_le:informations.append('Accord annulé : '+accord.motif_annulation)

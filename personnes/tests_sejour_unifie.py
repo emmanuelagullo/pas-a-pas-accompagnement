@@ -28,6 +28,33 @@ class SejourUnifieTests(Donnees, TestCase):
         return admission.accueillir(self.u, self.a, personnes or [self.p], date(2026, 1, 1), None,
             None, admission.jeton(self.a), arrivee_effectuee=False)
 
+    def test_arrivee_simple_en_un_geste(self):
+        with patch('acteurs.profils_collectifs.parcours_simple', return_value=True):
+            form = self.client.get(self.creation).context['form']
+            self.assertNotIn('arrivee_effectuee', form.fields)
+            self.assertNotIn('admission', form.fields)
+            rep = self.client.post(self.creation, {
+                'accompagnement': str(self.a.pk), 'beneficiaires': [str(self.p.pk)],
+                'debut': '2026-01-05', 'attendu': form.initial['attendu'],
+                'lieu': str(self.lieu.pk),
+            })
+        self.assertEqual(rep.status_code, 302)
+        sejour = AccordHebergement.objects.exclude(pk=self.accord.pk).get().sejours.get()
+        self.assertEqual(sejour.debut, date(2026, 1, 5))
+        self.assertEqual(sejour.affectations.get().lieu, self.lieu)
+
+    def test_non_presentation_ne_cree_pas_de_sejour(self):
+        self.u.user_permissions.add(*Permission.objects.filter(codename__in=['annuler_accordhebergement', 'view_evolutionaccord']))
+        accord = self.prevoir()
+        url = reverse('suivi:annuler_accord', args=['hebergement', accord.pk]) + '?non_presentation=1'
+        form = self.client.get(url).context['form']
+        self.assertEqual(self.client.post(url, {
+            'attendu': form.initial['attendu'], 'confirmer': 'on',
+        }).status_code, 302)
+        accord.refresh_from_db()
+        self.assertEqual(accord.motif_annulation, 'Non-présentation')
+        self.assertFalse(accord.sejours.exists())
+
     def test_futur_ne_cree_ni_sejour_ni_affectation(self):
         debut = timezone.localdate() + timedelta(days=30)
         self.a.refresh_from_db()

@@ -44,8 +44,8 @@ def organisation(request,service_pk=None,action=None,etablissement_pk=None):
             f.fields['etablissement'].disabled = True
             f.fields['etablissement'].widget = forms.HiddenInput()
         def creer(**d):
-            from .profils_collectifs import defaut
-            x=Service(**d,profil_collectif=defaut());x.full_clean();x.save();s.journal(request.user,x,'service',{}, {'libelle':x.libelle,'politique':x.politique})
+            from .profils_collectifs import defaut, FAMILLES
+            x=Service(**d,profil_collectif={**defaut(), "parcours_simples": list(dict(FAMILLES))});x.full_clean();x.save();s.journal(request.user,x,'service',{}, {'libelle':x.libelle,'politique':x.politique})
         return formulaire(request,f,'Créer un service',creer,retour,etablissement=etablissement)
     if action=='identite':
         f = FormulaireMetier(request.POST if request.method=='POST' else None)

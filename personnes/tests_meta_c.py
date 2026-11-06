@@ -91,6 +91,23 @@ class MetaCTests(TestCase):
         with patch.object(m.RevisionAide.objects,'create',side_effect=RuntimeError('Journal fictif indisponible')):
             with self.assertRaises(RuntimeError):self.remettre(a,quantite=D('1'))
         self.assertEqual(a.remises.count(),1);self.assertEqual(s.total(a),2)
+    def test_transport_simple_enregistre_la_remise_sans_usage(self):
+        url = reverse('dossiers:aide_accorder', args=[self.a.pk, 'transport'])
+        with patch('acteurs.profils_collectifs.parcours_simple', return_value=True):
+            form = self.client.get(url).context['form']
+            self.assertNotIn('fin', form.fields)
+            donnees = {
+                'type_aide': str(self.type.pk), 'beneficiaires': [str(self.p.pk)],
+                'debut': '2026-01-05', 'quantite': '2', 'devise': 'EUR',
+                'source': 'Remise fictive', 'attendu': form.initial['attendu'],
+            }
+            self.assertEqual(self.client.post(url, donnees).status_code, 302)
+            self.client.post(url, donnees)
+        remise = m.RemiseAide.objects.get()
+        self.assertEqual(remise.quantite, D('2'))
+        self.assertFalse(remise.usages.exists())
+        self.assertEqual(m.AccordAide.objects.count(), 1)
+
     def test_http_accord_remise_rapport_et_impression(self):
         url=reverse('dossiers:aide_accorder',args=[self.a.pk,'transport']);page=self.client.get(url);self.assertEqual(page.status_code,200)
         d={'type_aide':str(self.type.pk),'beneficiaires':[str(self.p.pk),str(self.p2.pk)],'debut':'2026-01-01','fin':'2026-02-01','quantite':'5','devise':'EUR','source':'Décision fictive','attendu':page.context['form'].initial['attendu']}

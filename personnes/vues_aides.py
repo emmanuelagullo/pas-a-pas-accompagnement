@@ -8,6 +8,7 @@ from django import forms
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
+from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404,render
 from django.http import HttpResponse,Http404
@@ -66,12 +67,32 @@ def accorder(request,pk,nature):
     a=get_object_or_404(m.Accompagnement,pk=pk);ctx,p,q=nav(request,a)
     f=AccordForm(request.POST if request.method=='POST' else None,accompagnement=a,nature=nature,
         initial={'debut':max(a.debut,date_retenue(request,a)),'attendu':bd6.jeton(a),'beneficiaires':list(a.beneficiaires.values_list('pk',flat=True))})
+    from acteurs.profils_collectifs import parcours_simple
+    simple = parcours_simple(a, nature) and request.user.has_perm('personnes.add_remiseaide')
+    if simple:
+        for champ in ('fin', 'financeur', 'motif'):
+            del f.fields[champ]
+        f.fields['debut'].label = 'Date de remise ou de réalisation'
+        f.fields['quantite'].label = 'Quantité totale remise ou réalisée'
+        f.fields['quantite'].help_text = 'Quantité globale pour les personnes sélectionnées.'
+        f.fields['quantite'].required = True
+        f.fields['source'].label = 'Source de la réalisation'
+
+    @transaction.atomic
     def action(**d):
-        d.pop('motif',None)
-        return s.accorder(request.user,a,**d)
-    return traiter(request,f,'Autoriser — '+dict(m.TypeAide.NATURES)[nature],action,lambda x:url_accord(x,q),a.menage,
+        d.pop('motif', None)
+        if simple:
+            d.update(fin=d['debut'] + timedelta(days=1), financeur=None)
+        accord = s.accorder(request.user, a, **d)
+        if simple:
+            s.remettre(request.user, accord, d['beneficiaires'], d['debut'],
+                       d['quantite'], d['source'], bd6.jeton(accord))
+        return accord
+
+    titre = ('Enregistrer — ' if simple else 'Autoriser — ') + dict(m.TypeAide.NATURES)[nature]
+    return traiter(request,f,titre,action,lambda x:url_accord(x,q),a.menage,
         catalogue_aides=reverse('dossiers:types_aides'),annuler=ctx.get('retour_dossier') or reverse('suivi:accompagnement',args=[a.pk]),
-        explication='Autorisation distincte de la remise. Quantité globale pour les personnes cochées. Si la liste est vide, définir d’abord le type dans le catalogue des aides.')
+        explication='' if simple else 'Autorisation distincte de la remise. Quantité globale pour les personnes cochées. Si la liste est vide, définir d’abord le type dans le catalogue des aides.')
 
 
 @never_cache

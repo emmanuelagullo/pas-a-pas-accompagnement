@@ -25,10 +25,11 @@ class AdmissionGuideeForm(AccordForm):
         label='Premier lieu — facultatif', help_text='Une affectation débute à la date d’admission pour chaque personne sélectionnée.')
     attendu = forms.CharField(widget=forms.HiddenInput)
 
-    def __init__(self, *args, acteur, **kwargs):
+    def __init__(self, *args, acteur, simple=False, **kwargs):
         super().__init__(*args, **kwargs)
+        self.simple = simple
         self.peut_admettre = acteur.has_perm('personnes.add_sejour')
-        if self.is_bound and forms.BooleanField(required=False).clean(self.data.get('arrivee_effectuee')) and not self.peut_admettre:
+        if not simple and self.is_bound and forms.BooleanField(required=False).clean(self.data.get('arrivee_effectuee')) and not self.peut_admettre:
             h.exiger(acteur, 'add_sejour')
         if not self.is_bound:
             self.initial.setdefault('arrivee_effectuee', self.peut_admettre)
@@ -36,13 +37,17 @@ class AdmissionGuideeForm(AccordForm):
             self.fields['arrivee_effectuee'].disabled = True
             self.initial['arrivee_effectuee'] = False
             self.fields['arrivee_effectuee'].help_text = 'Votre compte permet de préparer l’accueil ; une personne autorisée enregistrera l’arrivée.'
-        self.champs_arrivee_visibles = bool(self['arrivee_effectuee'].value())
+        self.champs_arrivee_visibles = simple or bool(self['arrivee_effectuee'].value())
         if not self.champs_arrivee_visibles:
             for nom in ('admission', 'lieu'):
                 self.fields[nom].disabled = True
                 self.initial[nom] = None
         self.fields['debut'].label = 'Début prévu inclus'
         self.fields['fin'].label = 'Fin prévue exclue — facultative'
+        if simple:
+            del self.fields['arrivee_effectuee'], self.fields['admission']
+            self.champs_arrivee_visibles = True
+            self.fields['debut'].label = 'Date d’arrivée'
         if acteur.has_perms(['personnes.add_affectation', 'personnes.view_affectation', 'personnes.view_lieuhebergement']):
             self.fields['lieu'].queryset = LieuHebergement.objects.all()
         else:
@@ -50,6 +55,8 @@ class AdmissionGuideeForm(AccordForm):
 
     def clean(self):
         donnees = super().clean()
+        if self.simple:
+            donnees.update(arrivee_effectuee=True, admission=donnees.get('debut'))
         if donnees.get('arrivee_effectuee') and not donnees.get('admission'):
             self.add_error('admission', 'Indiquez la date de l’arrivée effectuée.')
         return donnees
@@ -66,8 +73,10 @@ def accueillir(request, pk):
     jour = date.fromisoformat(date_contexte) if date_contexte else timezone.localdate()
     fin = min(a.fin_prevue, a.fin) if a.fin_prevue and a.fin else a.fin_prevue
     debut = max(a.debut, jour)
+    from acteurs.profils_collectifs import parcours_simple
+    simple = parcours_simple(a, 'hebergement') and request.user.has_perm('personnes.add_sejour')
     form = AdmissionGuideeForm(request.POST if request.method == 'POST' else None,
-        acteur=request.user, beneficiaires=a.beneficiaires.all(), initial={'debut': debut, 'fin': fin if fin and fin > debut else None,
+        acteur=request.user, simple=simple, beneficiaires=a.beneficiaires.all(), initial={'debut': debut, 'fin': fin if fin and fin > debut else None,
             'admission': debut, 'beneficiaires': list(a.beneficiaires.values_list('pk', flat=True)),
             'attendu': admission.jeton(a)})
     statut = 200
