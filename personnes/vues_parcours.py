@@ -377,7 +377,8 @@ def rapport(request):
             lignes_rapport.append({'fait':v,'element':e,'cible':str(e.menage) if code=='prises' else str(e.cible),'beneficiaires':ps,
                 'departs_logement': departs.get(e.pk, ()),
                 'depot':depot,'admission':adm if adm and adm.debut<=jour else None,'delai':delai,'lignes':lignes(modele,v,champs),
-                'url':reverse('suivi:resume',args=[e.pk]) if code=='prises' else reverse('dossiers:parcours_element',args=[code,e.pk])+'?date='+jour.isoformat()})
+                'url_dossier': reverse('dossiers:detail', args=['menage', e.menage_id]) if code == 'prises' else '',
+                'url':reverse('dossiers:prise',args=['menage',e.menage_id,e.pk]) if code=='prises' else reverse('dossiers:parcours_element',args=[code,e.pk])+'?date='+jour.isoformat()})
         if request.GET.get('format')=='csv':
             response=HttpResponse(content_type='text/csv; charset=utf-8');response['Content-Disposition']='attachment; filename="parcours.csv"'
             w=csv.writer(response,delimiter=';');w.writerow(['date_reference','rubrique','element_id','cible','beneficiaires_ids','depot_ou_debut_prise','date_effet','saisie_le','fin_exclue',*champs,'source','prise_id','admission_debut','delai_jours', *(['departs_logement'] if code == 'prises' else [])])
