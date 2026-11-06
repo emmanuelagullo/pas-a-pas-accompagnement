@@ -19,15 +19,17 @@ class CorrectionsTests(TestCase):
         return c.periode(self.u,objet,debut,fin,'Erreur fictive',c.jeton(objet),**kw)
 
     def test_fin_saisie_dans_le_sejour_enregistre_le_depart(self):
+        accord = h.accorder(self.u, self.a, [self.p], date(2026, 1, 1), None)
+        sejour = h.admettre(self.u, accord, [self.p], date(2026, 1, 2))
         lieu = h.creer_lieu(self.u, 'Logement fictif')
-        h.ajouter_periode(self.u, self.s, self.s.debut, None, lieu)
+        h.ajouter_periode(self.u, sejour, sejour.debut, None, lieu)
         fin = date(2026, 1, 10)
-        self.corriger(self.s, self.s.debut, fin, depart_sejour=True, destination_sortie='Logement social')
-        self.s.refresh_from_db()
-        self.assertEqual(self.s.fin, fin)
-        self.assertEqual(self.s.destination_sortie, 'Logement social')
-        self.assertEqual(self.s.affectations.get().fin, fin)
-        self.assertEqual(self.accord.operations.filter(action='Sortie effective').count(), 1)
+        self.corriger(sejour, sejour.debut, fin, depart_sejour=True, destination_sortie='Logement social')
+        sejour.refresh_from_db()
+        self.assertEqual(sejour.fin, fin)
+        self.assertEqual(sejour.destination_sortie, 'Logement social')
+        self.assertEqual(sejour.affectations.get().fin, fin)
+        self.assertEqual(accord.operations.filter(action='Sortie effective').count(), 1)
 
     def test_accord_preserve_distributions(self):
         accord=repas.accorder(self.u,self.a,[self.p],date(2026,1,1),date(2026,2,1),'dejeuner')
