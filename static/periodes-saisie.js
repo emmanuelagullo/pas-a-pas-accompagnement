@@ -1,5 +1,7 @@
 /* Calculs civils UTC : pas de décalage selon fuseau ou changement d'heure. */
 (() => {
+  if (window.periodesSaisieInstallees) return;
+  window.periodesSaisieInstallees = true;
   const jour = valeur => {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(valeur)) return null;
     const d = new Date(valeur + 'T00:00:00Z');
@@ -33,10 +35,12 @@
       mode('duree');
     };
     fin.addEventListener('input', depuisDates);
+    fin.addEventListener('change', depuisDates);
     duree.addEventListener('input', depuisDuree);
-    debut.addEventListener('input', () => duree.value ? depuisDuree() : depuisDates());
+    debut.addEventListener('input', () => modes.some(m => m.checked && m.value === 'duree') ? depuisDuree() : depuisDates());
+    for (const m of modes) m.addEventListener('change', () => m.value === 'duree' ? depuisDuree() : depuisDates());
     // Ne jamais écraser une saisie invalide après un retour serveur.
-    if (!duree.value && !form.querySelector('.errorlist')) depuisDates();
+    if (!form.querySelector('.errorlist') && !modes.some(m => m.checked && m.value === 'duree')) depuisDates();
   }
   };
   document.addEventListener('condition:form', initialiser);

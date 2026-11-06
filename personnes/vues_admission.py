@@ -25,9 +25,10 @@ class AdmissionGuideeForm(AccordForm):
         label='Premier lieu — facultatif', help_text='Une affectation débute à la date d’admission pour chaque personne sélectionnée.')
     attendu = forms.CharField(widget=forms.HiddenInput)
 
-    def __init__(self, *args, acteur, simple=False, **kwargs):
+    def __init__(self, *args, acteur, simple=False, accompagnement=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.simple = simple
+        self.accompagnement = accompagnement
         self.peut_admettre = acteur.has_perm('personnes.add_sejour')
         if not simple and self.is_bound and forms.BooleanField(required=False).clean(self.data.get('arrivee_effectuee')) and not self.peut_admettre:
             h.exiger(acteur, 'add_sejour')
@@ -55,6 +56,13 @@ class AdmissionGuideeForm(AccordForm):
 
     def clean(self):
         donnees = super().clean()
+        a = self.accompagnement
+        if a is not None:
+            debut, fin = donnees.get('debut'), donnees.get('fin')
+            if debut and (debut < a.debut or a.fin and debut >= a.fin):
+                self.add_error('debut', 'Choisissez une date comprise dans la prise en charge.')
+            if a.fin and not self.has_error('fin') and (fin is None or fin > a.fin):
+                self.add_error('fin', 'Indiquez une fin au plus tard le ' + a.fin.strftime('%d/%m/%Y') + ', date de fin de la prise en charge.')
         if self.simple:
             donnees.update(arrivee_effectuee=True, admission=donnees.get('debut'))
         if donnees.get('arrivee_effectuee') and not donnees.get('admission'):
@@ -71,12 +79,12 @@ def accueillir(request, pk):
     navigation = dossier.lire(request, a)
     date_contexte = navigation.get('dossier_valeurs', {}).get('date_service')
     jour = date.fromisoformat(date_contexte) if date_contexte else timezone.localdate()
-    fin = min(a.fin_prevue, a.fin) if a.fin_prevue and a.fin else a.fin_prevue
+    fin = min(a.fin_prevue, a.fin) if a.fin_prevue and a.fin else a.fin or a.fin_prevue
     debut = max(a.debut, jour)
     from acteurs.profils_collectifs import parcours_simple
     simple = parcours_simple(a, 'hebergement') and request.user.has_perm('personnes.add_sejour')
     form = AdmissionGuideeForm(request.POST if request.method == 'POST' else None,
-        acteur=request.user, simple=simple, beneficiaires=a.beneficiaires.all(), initial={'debut': debut, 'fin': fin if fin and fin > debut else None,
+        acteur=request.user, simple=simple, accompagnement=a, beneficiaires=a.beneficiaires.all(), initial={'debut': debut, 'fin': fin if fin and fin > debut else None,
             'admission': debut, 'beneficiaires': list(a.beneficiaires.values_list('pk', flat=True)),
             'attendu': admission.jeton(a)})
     statut = 200
