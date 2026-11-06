@@ -106,7 +106,7 @@ def terminer(request, pk, nature):
         champ = champ_destination(s.accord.accompagnement)
         if champ is not None:
             form.fields["destination_sortie"] = champ
-    return traiter_hebergement(request,form,"Enregistrer la sortie" if nature=="sejour" else "Enregistrer le retour d’absence" if nature=="absence" else "Clôturer l’affectation",lambda **d:action(request.user,objet,**d),s.accord.accompagnement.menage, retour=retour_hebergement(request, s.accord_id), sejour=s)
+    return traiter_hebergement(request,form,"Enregistrer le départ" if nature=="sejour" else "Enregistrer le retour d’absence" if nature=="absence" else "Clôturer l’affectation",lambda **d:action(request.user,objet,**d),s.accord.accompagnement.menage, retour=retour_hebergement(request, s.accord_id), sejour=s)
 
 
 @require_http_methods(["GET", "POST"])

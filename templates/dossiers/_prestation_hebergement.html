@@ -18,7 +18,7 @@
 {% if not s.annule_le and perms.personnes.change_sejour and perms.personnes.view_correctionperiode %}<p><a class="bouton secondaire" href="{% dossier_url 'suivi:corriger_saisie' 'sejour' s.pk %}">Corriger les dates du séjour</a></p>{% endif %}
 <details><summary>Lieux, absences et autres actions du séjour</summary>
 {% if not s.annule_le and not s.fin %}
-{% if perms.personnes.change_sejour and perms.personnes.change_affectation and perms.personnes.change_absence %}<a href="{% dossier_url 'suivi:sortir' s.pk %}">Enregistrer la sortie</a>{% endif %}
+{% if perms.personnes.change_sejour and perms.personnes.change_affectation and perms.personnes.change_absence %}<a href="{% dossier_url 'suivi:sortir' s.pk %}">Enregistrer le départ</a>{% endif %}
 {% if perms.personnes.add_affectation and perms.personnes.view_lieuhebergement %}<a href="{% dossier_url 'suivi:affecter' s.pk %}">Affecter un lieu</a>{% endif %}
 {% if perms.personnes.add_absence and perms.personnes.view_absence %}<a href="{% dossier_url 'suivi:absence' s.pk %}">Enregistrer une absence</a>{% endif %}
 {% endif %}

@@ -1,5 +1,5 @@
 {% load dossier %}
-<section class="carte dossier-boite" id="hebergement"><h2>Hébergement</h2><details class="aide-contextuelle"><summary>Comprendre les actions d’hébergement</summary><p>Choisir un séjour affiche ses actions ; les bénéficiaires affichés sont tous concernés. Corriger les dates rectifie une erreur de saisie. Prolonger l’accord étend une autorisation, sans prolonger une présence réelle. Enregistrer la sortie termine le séjour ; son historique est conservé.</p></details>
+<section class="carte dossier-boite" id="hebergement"><h2>Hébergement</h2><details class="aide-contextuelle"><summary>Comprendre les actions d’hébergement</summary><p>Choisir un séjour affiche ses actions ; les bénéficiaires affichés sont tous concernés. Corriger les dates rectifie une erreur de saisie. Prolonger l’accord étend une autorisation, sans prolonger une présence réelle. Enregistrer le départ termine le séjour ; son historique est conservé.</p></details>
 <p>{% if synthese %}Tous les séjours de ce dossier, ouverts puis terminés.{% else %}Tous les séjours de cet accompagnement, ouverts puis terminés.{% endif %} Un séjour ouvert ne prouve pas la présence physique.</p>
 {% if perms.personnes.add_accordhebergement %}<p>{% if synthese %}<a href="{% url 'dossiers:choisir' nature objet.pk 'admission' %}?{{ navigation_query }}">Nouveau séjour</a>{% else %}<a href="{% dossier_url 'suivi:admission_guidee' accompagnement.pk %}">Nouveau séjour</a>{% endif %}</p>{% endif %}
 {% if sejours_dossier %}<form method="get" action="#hebergement">
@@ -22,7 +22,7 @@
 {% if not s.fin %}
 {% if s.lieu_ouvert and perms.personnes.change_affectation and perms.personnes.add_affectation and lecture_lieux %}<a href="{% dossier_url 'suivi:changer_lieu' s.lieu_ouvert.pk %}">Changer de lieu</a>{% elif not s.lieu_ouvert and perms.personnes.add_affectation and lecture_lieux %}<a href="{% dossier_url 'suivi:affecter' s.pk %}">Affecter un lieu</a>{% endif %}
 {% if perms.personnes.view_absence %}{% if s.absence_ouverte and perms.personnes.change_absence %}<a href="{% dossier_url 'suivi:clore_absence' s.absence_ouverte.pk %}">Enregistrer le retour d’absence</a>{% elif not s.absence_ouverte and perms.personnes.add_absence %}<a href="{% dossier_url 'suivi:absence' s.pk %}">Enregistrer une absence</a>{% endif %}{% endif %}
-{% if perms.personnes.change_sejour and perms.personnes.change_affectation and perms.personnes.change_absence %}<a href="{% dossier_url 'suivi:sortir' s.pk %}">Enregistrer la sortie</a>{% endif %}
+{% if perms.personnes.change_sejour and perms.personnes.change_affectation and perms.personnes.change_absence %}<a href="{% dossier_url 'suivi:sortir' s.pk %}">Enregistrer le départ</a>{% endif %}
 {% endif %}
 {% if perms.personnes.view_notepartagee %}<a href="{% dossier_url 'suivi:notes' 'sejour' s.pk %}">Notes du séjour</a>{% endif %}
 </nav>

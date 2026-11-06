@@ -165,14 +165,15 @@ def actions(context,famille):
     u=context['request'].user;v=p.version_nav;cle='commun:'+str(p.pk)
     def lien(action,label):
         operation=reverse('dossiers:collectif_action',args=['prise',p.accompagnement_id,action])+'?'+urlencode({'pk':p.pk})
-        return {'label':label,'url':nav.adresse(context,cle,operation),'bouton':label in ('Prolonger','Modifier')}
+        return {'label':label,'url':nav.adresse(context,cle,operation),'bouton':label in ('Prolonger','Modifier','Enregistrer le départ')}
     principaux=[{'label':'Ouvrir','url':nav.adresse(context,cle),'bouton':True}, {'label':'Imprimer / PDF','url':nav.adresse(context,cle,impression=True),'imprimer':True,'bouton':True}]
     autres=[]
     if v.action!='annulation' and u.has_perm('personnes.change_prestationcollective'):
         if v.fin_prevue and not v.fin:principaux.append(lien('prolongation','Prolonger'))
         principaux.insert(1,lien('correction','Modifier'))
         autres=[lien('annulation','Annuler la prestation')]
-        if famille=='hebergement' and v.arrivee and not v.fin:
+        if famille=='hebergement' and v.arrivee and not v.fin and u.has_perms(('personnes.view_versionprestationcollective', 'personnes.view_couvertcollectif')):
+            principaux.append(lien('depart', 'Enregistrer le départ'))
             if u.has_perm('personnes.add_mouvementcollectif'):autres.extend([lien('lieu','Changer de lieu'),lien('absence','Enregistrer une absence')])
             if u.has_perm('personnes.change_mouvementcollectif'):autres.extend([lien('retour','Enregistrer le retour d’absence'),lien('annuler_mouvement','Annuler un mouvement')])
     return {'cle':cle,'resume':str(sum(c.effectifs(v.composition).values()))+' personnes déclarées','principaux':principaux,'autres':autres}
@@ -199,7 +200,7 @@ def actions_natives(context,famille):
     u=context['request'].user;repas=famille=='restauration';cle=('repas:' if repas else 'sejour:')+str(objet.pk)
     accord=objet if repas else objet.accord
     def autorise(*droits):return u.has_perms(['personnes.'+d for d in droits])
-    def lien(label,nom,*args):return {'label':label,'url':nav.adresse(context,cle,reverse(nom,args=args)),'bouton':label in ('Prolonger','Enregistrer la sortie','Enregistrer une distribution')}
+    def lien(label,nom,*args):return {'label':label,'url':nav.adresse(context,cle,reverse(nom,args=args)),'bouton':label in ('Prolonger','Enregistrer le départ','Enregistrer une distribution')}
     principaux=[{'label':'Ouvrir','url':nav.adresse(context,cle),'bouton':True},{'label':'Imprimer / PDF','url':nav.adresse(context,cle,impression=True),'imprimer':True,'bouton':True}]
     autres=[];informations=[]
     if not accord.annule_le and accord.fin and autorise('view_evolutionaccord','prolonger_accordrepas' if repas else 'prolonger_accordhebergement'):
@@ -214,7 +215,7 @@ def actions_natives(context,famille):
         if accord.annule_le:informations.append('Accord annulé : '+accord.motif_annulation)
     else:
         if objet.beneficiaires.count()>1 and not objet.fin and autorise('add_continuitesejour'):principaux.insert(0,lien('Poursuivre individuellement','dossiers:individualiser_sejour',objet.pk))
-        if not objet.fin and autorise('change_sejour','change_affectation','change_absence'):principaux.append(lien('Enregistrer la sortie','suivi:sortir',objet.pk))
+        if not objet.fin and autorise('change_sejour','change_affectation','change_absence'):principaux.append(lien('Enregistrer le départ','suivi:sortir',objet.pk))
         if not objet.fin:
             if context.get('lecture_lieux'):
                 if objet.lieu_ouvert and autorise('change_affectation','add_affectation'):autres.append(lien('Changer de lieu','suivi:changer_lieu',objet.lieu_ouvert.pk))

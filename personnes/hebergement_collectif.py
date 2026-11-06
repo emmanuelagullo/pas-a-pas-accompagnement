@@ -9,7 +9,7 @@ from .verrous_metier import serialiser
 ACTIONS = {'affecter': ('Affecter ou changer de lieu', ('add_affectation', 'change_affectation', 'view_affectation', 'view_lieuhebergement')),
     'absence': ('Enregistrer une absence', ('add_absence', 'view_absence')),
     'retour': ('Enregistrer un retour d’absence', ('change_absence', 'view_absence')),
-    'sortie': ('Enregistrer la sortie', ('change_sejour', 'change_affectation', 'change_absence'))}
+    'sortie': ('Enregistrer le départ', ('change_sejour', 'change_affectation', 'change_absence'))}
 
 
 def sejours_ouverts(accord):

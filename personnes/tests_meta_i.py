@@ -92,7 +92,7 @@ class ArriveesErronees(TestCase):
         self.assertEqual(financements.quantites_documentees(self.u,self.ac,D,date(2026,2,1)),[])
         url=reverse('suivi:accord_hebergement',args=[self.ac.pk])
         r=self.client.get(url);self.assertContains(r,'Erreur de cible fictive')
-        self.assertNotContains(r,'Enregistrer la sortie')
+        self.assertNotContains(r,'Enregistrer le départ')
     def test_document_emis_bloque_sans_reecriture(self):
         from . import financements as f
         financement=f.enregistrer(self.u,self.ac,attendu=f.jeton(self.ac),motif='Calcul fictif',action='definition',lignes=[dict(phase='autorise',date=D,libelle='Nuit fictive',unite='personne-nuit',categorie='',quantite=1,prix=10,tarif=None,justification='Convention fictive')],imputations=[],emetteur=None,mentions='',debut=D,fin=None,devise='EUR',prestataire=None,prescripteur=None,facturation=None,signataire=None,reference='',source='Convention fictive')

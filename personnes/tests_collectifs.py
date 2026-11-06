@@ -83,6 +83,9 @@ class CollectifsTests(Donnees,TestCase):
     def test_hebergement_un_groupe_un_lieu(self):
         self.a=m.Accompagnement.objects.select_related('menage').get(pk=self.a.pk)
         p=c.creer(self.u,self.a,'hebergement',self.comp,c.jeton(self.a),[],debut=date(2026,1,10),arrivee=date(2026,1,10),fin_prevue=date(2026,1,13),lieu=self.lieu)
+        self.client.force_login(self.u)
+        url = reverse('dossiers:prise', args=['menage', self.m.pk, self.a.pk])
+        self.assertContains(self.client.get(url, {'sejour': p.pk}), 'Enregistrer le départ')
         c.mouvement(self.u,p,'absence',c.jeton(p),date(2026,1,11))
         p.refresh_from_db();absence=p.mouvements.get()
         c.reviser_mouvement(self.u,p,absence,c.jeton(p),date(2026,1,12))
