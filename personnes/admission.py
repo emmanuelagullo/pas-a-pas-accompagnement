@@ -55,10 +55,9 @@ def accueillir(acteur, accompagnement, beneficiaires, debut, fin, admission, att
     accord = h.accorder(acteur, a, beneficiaires, debut, fin)
     if not arrivee_effectuee:
         return accord
-    sejours = h.admettre_individuellement(acteur, accord, beneficiaires, admission)
+    sejour = h.admettre(acteur, accord, beneficiaires, admission)
     if lieu is not None:
-        for sejour in sejours:
-            h.ajouter_periode(acteur, sejour, admission, None, lieu)
+        h.ajouter_periode(acteur, sejour, admission, None, lieu)
     return accord
 
 
@@ -77,8 +76,7 @@ def enregistrer_arrivee(acteur, accord, beneficiaires, debut, attendu, lieu=None
         raise ValidationError('Une arrivée est déjà enregistrée pour une personne sélectionnée. Rechargez la liste.')
     if lieu is not None:
         h.exiger(acteur, 'add_affectation', 'view_affectation', 'view_lieuhebergement')
-    sejours = h.admettre_individuellement(acteur, accord, personnes, debut)
+    sejour = h.admettre(acteur, accord, personnes, debut)
     if lieu is not None:
-        for sejour in sejours:
-            h.ajouter_periode(acteur, sejour, debut, None, lieu)
-    return sejours
+        h.ajouter_periode(acteur, sejour, debut, None, lieu)
+    return [sejour]

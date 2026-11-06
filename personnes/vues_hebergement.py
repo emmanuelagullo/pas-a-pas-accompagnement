@@ -73,7 +73,7 @@ def admettre(request, pk):
         return HttpResponse('Cet accord est annulé ; aucune nouvelle réalisation ne peut lui être rattachée.', status=409)
     return traiter_hebergement(request,AdmissionForm(request.POST or None,beneficiaires=a.beneficiaires.all(),
         initial={"debut": a.debut if a.fin and timezone.localdate() >= a.fin else max(a.debut, timezone.localdate()),
-                 "beneficiaires": list(a.beneficiaires.values_list("pk", flat=True))}),"Enregistrer une admission — un séjour distinct par personne sélectionnée",lambda **d:h.admettre_individuellement(request.user,a,**d),a.accompagnement.menage, accompagnement=a.accompagnement, retour=reverse("suivi:accord_hebergement", args=[a.pk]))
+                 "beneficiaires": list(a.beneficiaires.values_list("pk", flat=True))}),"Enregistrer l’arrivée",lambda **d:h.admettre(request.user,a,**d),a.accompagnement.menage, accompagnement=a.accompagnement, retour=reverse("suivi:accord_hebergement", args=[a.pk]))
 
 
 @require_http_methods(["GET", "POST"])

@@ -214,7 +214,6 @@ def actions_natives(context,famille):
         informations=['Période de suivi du '+date(accord.accompagnement.debut)+'. Un accord ne prouve pas une distribution.']
         if accord.annule_le:informations.append('Accord annulé : '+accord.motif_annulation)
     else:
-        if objet.beneficiaires.count()>1 and not objet.fin and autorise('add_continuitesejour'):principaux.insert(0,lien('Poursuivre individuellement','dossiers:individualiser_sejour',objet.pk))
         if not objet.fin and autorise('change_sejour','change_affectation','change_absence'):principaux.append(lien('Enregistrer le départ','suivi:sortir',objet.pk))
         if not objet.fin:
             if context.get('lecture_lieux'):
@@ -223,9 +222,6 @@ def actions_natives(context,famille):
             if autorise('view_absence'):
                 if objet.absence_ouverte and autorise('change_absence'):autres.append(lien('Enregistrer le retour d’absence','suivi:clore_absence',objet.absence_ouverte.pk))
                 elif not objet.absence_ouverte and autorise('add_absence'):autres.append(lien('Enregistrer une absence','suivi:absence',objet.pk))
-        if autorise('annuler_sejour','view_annulationarrivee'):autres.append(lien('Corriger ou annuler l’arrivée','dossiers:annuler_arrivee',objet.pk))
-        if autorise('change_sejour','view_correctionperiode'):autres.append(lien('Corriger les dates du séjour','suivi:corriger_saisie','sejour',objet.pk))
-        if autorise('view_notepartagee'):autres.append(lien('Notes du séjour','suivi:notes','sejour',objet.pk))
         informations=['Période de suivi du '+date(accord.accompagnement.debut)+'. Accord jusqu’au '+(date(accord.fin) or 'sans fin prévue')+' (fin exclue).']
         if autorise('view_partenaire') and objet.lieu_ouvert and objet.lieu_ouvert.lieu.organisme_id:informations.insert(0,'Organisme rattaché au lieu : '+str(objet.lieu_ouvert.lieu.organisme))
     noms=' ; '.join(str(p) for p in objet.beneficiaires.all())

@@ -23,6 +23,18 @@ class SejourUnifieTests(Donnees, TestCase):
         self.prise = reverse('dossiers:prise', args=['menage', self.m.pk, self.a.pk])
         self.creation = reverse('dossiers:nouveau', args=['menage', self.m.pk, 'hebergement'])
 
+    def test_une_arrivee_commune_cree_un_seul_sejour(self):
+        autre = Personne.objects.create(designation='Autre bénéficiaire fictif', cree_par=self.u)
+        self.a.beneficiaires.add(autre)
+        accord = admission.accueillir(
+            self.u, self.a, [self.p, autre], date(2026, 1, 10), None,
+            date(2026, 1, 10), admission.jeton(self.a), lieu=self.lieu,
+        )
+        sejour = accord.sejours.get()
+        self.assertEqual(set(sejour.beneficiaires.all()), {self.p, autre})
+        self.assertEqual(sejour.affectations.get().lieu, self.lieu)
+        self.assertEqual(accord.operations.filter(action='Admission effective').count(), 1)
+
     def test_reouverture_confirmee_avec_le_sejour(self):
         self.u.user_permissions.add(Permission.objects.get(
             content_type__app_label='personnes', codename='change_accompagnement',
