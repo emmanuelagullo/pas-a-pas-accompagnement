@@ -11,6 +11,24 @@ from acteurs.profils_collectifs import defaut_individuel
 from . import collectifs, hebergement, informations_suivi, models as m, suivi
 
 
+# Choix du service fictif, proposés à la saisie sans présélection.
+DESTINATIONS_TRAVERSE = [
+    'Logement social', 'Logement privé', 'Logement privé avec mandat de gestion',
+    'Pension de famille', 'Résidence accueil',
+    'Intermédiation locative avec bail glissant',
+    'Intermédiation locative avec mandat de gestion', 'Sous-location avec bail glissant',
+    'Résidence sociale', 'Foyer de jeunes travailleurs', 'Foyer de travailleurs migrants',
+    'Intermédiation locative sans bail glissant', 'Sous-location sans bail glissant',
+    'Hébergement d’urgence', 'Hébergement de stabilisation', 'Hôtel social',
+    'Centre d’hébergement et de réinsertion sociale', 'Appartement relais',
+    'Hospitalisation', 'Incarcération', 'Hébergé chez un tiers', 'Rue',
+    'Établissement pour personnes âgées ou handicapées', 'Retour au domicile',
+    'Structure médico-sociale', 'Hébergement d’urgence pour demandeurs d’asile',
+    'Centre d’accueil pour demandeurs d’asile', 'Autre destination',
+    'Sans information', 'Hors champ',
+]
+
+
 def completer(auteur, etablissement, professionnel):
     entree = timezone.localdate() - timedelta(days=240)
     sortie = entree + timedelta(days=210)
@@ -22,7 +40,7 @@ def completer(auteur, etablissement, professionnel):
         sous_titre='Hébergement et accompagnement vers le logement',
         collecte_rubriques=regles,
         profil_collectif={**defaut_individuel(collecte_configuree=True), 'prestations': ['hebergement'], 'parcours_simples': ['hebergement']},
-        listes_saisie={'destination_sortie': ['Logement social', 'Logement privé', 'Résidence sociale', 'Pension de famille']},
+        listes_saisie={'destination_sortie': DESTINATIONS_TRAVERSE},
     )
     AppartenanceProfessionnelle.objects.create(service=service, professionnel=professionnel, debut=entree)
     services.habiliter(auteur, auteur, service, 'social', entree, exporter=True)
