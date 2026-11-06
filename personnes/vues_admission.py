@@ -23,7 +23,7 @@ class AdmissionGuideeForm(AccordForm):
         widget=forms.CheckboxInput(attrs={'data-arrivee-effectuee': '1'}))
     admission = date_champ('Date d’arrivée', False)
     lieu = forms.ModelChoiceField(LieuHebergement.objects.none(), required=False,
-        label='Premier lieu — facultatif', help_text='Une affectation débute à la date d’admission pour chaque personne sélectionnée.')
+        label='Lieu — facultatif')
     attendu = forms.CharField(widget=forms.HiddenInput)
 
     def __init__(self, *args, acteur, simple=False, accompagnement=None, sejour=None, **kwargs):
@@ -66,20 +66,27 @@ class AdmissionGuideeForm(AccordForm):
             del self.fields['lieu']
 
         if self.edition_sejour:
-            self.fields['beneficiaires'].disabled = True
-            self.fields['beneficiaires'].help_text = 'Personnes enregistrées pour ce séjour.'
+            self.fields['beneficiaires'].disabled = bool(
+                sejour.origine_collective_id or hasattr(sejour, 'individualisation')
+            )
             self.fields['fin'].label = 'Fin du séjour (exclue)'
             if 'lieu' in self.fields:
-                affectation = sejour.affectations.order_by('debut', 'pk').first()
-                self.initial['lieu'] = affectation.lieu_id if affectation else None
-                self.fields['lieu'].disabled = True
-                self.fields['lieu'].help_text = 'Premier lieu enregistré pour ce séjour.'
+                affectations = list(sejour.affectations.order_by('debut', 'pk')[:2])
+                champ = self.fields['lieu']
+                if len(affectations) == 1:
+                    self.initial['lieu'] = affectations[0].lieu_id
+                    champ.required = True
+                champ.disabled = len(affectations) > 1 or not acteur.has_perm(
+                    'personnes.change_affectation' if affectations else 'personnes.add_affectation'
+                )
+
 
     def clean(self):
         donnees = super().clean()
         if self.edition_sejour:
-            donnees.pop('beneficiaires', None)
-            donnees.pop('lieu', None)
+            for nom in ('beneficiaires', 'lieu'):
+                if nom in self.fields and self.fields[nom].disabled:
+                    donnees.pop(nom, None)
             return donnees
         a = self.accompagnement
         self.conflit_fin = False

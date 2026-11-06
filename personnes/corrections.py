@@ -42,6 +42,9 @@ def etat(objet):
     resultat = [str(objet.debut),str(objet.fin),getattr(objet,'source','')]
     if isinstance(objet, (m.AccordRepas, m.AccordHebergement)):
         resultat += [objet.revision, str(objet.annule_le)]
+    if isinstance(objet, m.Sejour):
+        resultat += [str(objet.annule_le), list(sorted(str(p) for p in objet.beneficiaires.values_list('pk', flat=True))),
+                     [[str(x.pk), str(x.lieu_id), str(x.debut), str(x.fin)] for x in objet.affectations.order_by('pk')]]
     return resultat
 
 
@@ -132,9 +135,55 @@ def enregistrer(acteur,objet,ancien,motif):
         nouvelle_source=getattr(objet,'source',''),motif=motif,auteur=acteur)
 
 
+def corriger_composition_et_lieu(acteur, sejour, beneficiaires, lieu):
+    from .hebergement import ajouter_periode, audit
+
+    changements = {}
+    if beneficiaires is not None:
+        avant = set(sejour.beneficiaires.values_list('pk', flat=True))
+        apres = {p.pk for p in beneficiaires}
+        if avant != apres:
+            if not apres or not apres.issubset(sejour.accord.accompagnement.beneficiaires.values_list('pk', flat=True)):
+                raise ValidationError('Choisissez les bénéficiaires de cette prise en charge.')
+            if sejour.origine_collective_id or hasattr(sejour, 'individualisation'):
+                raise ValidationError('Ce séjour comporte des départs séparés. Sa composition ne peut pas être corrigée ici.')
+            nouveaux = apres - avant
+            if nouveaux:
+                voisins = sejour.accord.sejours.non_annules().exclude(pk=sejour.pk).filter(
+                    Q(fin__isnull=True) | Q(fin__gt=sejour.debut), beneficiaires__in=nouveaux,
+                )
+                if sejour.fin:
+                    voisins = voisins.filter(debut__lt=sejour.fin)
+                if voisins.exists():
+                    raise ValidationError('Une personne ajoutée figure déjà dans un séjour qui recouvre ces dates.')
+                autorises = set(sejour.accord.beneficiaires.values_list('pk', flat=True))
+                if nouveaux - autorises:
+                    exiger(acteur, 'change_accordhebergement')
+                    sejour.accord.beneficiaires.add(*(nouveaux - autorises))
+            sejour.beneficiaires.set(apres)
+            changements['beneficiaires'] = {'avant': sorted(map(str, avant)), 'apres': sorted(map(str, apres))}
+    if lieu is not None:
+        affectations = list(sejour.affectations.all()[:2])
+        if len(affectations) > 1:
+            raise ValidationError('Ce séjour comporte plusieurs lieux enregistrés.')
+        if not affectations:
+            ajouter_periode(acteur, sejour, sejour.debut, sejour.fin, lieu)
+            changements['lieu'] = {'avant': None, 'apres': str(lieu.pk)}
+        elif affectations[0].lieu_id != lieu.pk:
+            affectation = affectations[0]
+            exiger(acteur, 'view_affectation', 'change_affectation', 'view_lieuhebergement')
+            changements['lieu'] = {'avant': str(affectation.lieu_id), 'apres': str(lieu.pk)}
+            affectation.lieu = m.LieuHebergement.objects.get(pk=lieu.pk)
+            affectation.full_clean()
+            affectation.save(update_fields=['lieu'])
+    if changements:
+        audit(acteur, sejour.accord, 'Correction du séjour', sejour.debut, sejour=sejour, details=changements)
+    return bool(changements)
+
+
 @service_metier
 @serialiser('objet')
-def periode(acteur,objet,debut,fin,motif,attendu,source=None, *, depart_sejour=False, destination_sortie=""):
+def periode(acteur,objet,debut,fin,motif,attendu,source=None, *, depart_sejour=False, destination_sortie="", beneficiaires=None, lieu=None):
     nature=objet._meta.model_name
     droits(acteur,nature)
     objet=type(objet).objects.get(pk=objet.pk)
@@ -145,6 +194,11 @@ def periode(acteur,objet,debut,fin,motif,attendu,source=None, *, depart_sejour=F
         from .accords import exiger_actif
         exiger_actif(objet)
     ancien=(objet.debut,objet.fin,getattr(objet,'source',''))
+    modification_sejour = False
+    if depart_sejour and nature == 'sejour':
+        if objet.annule_le:
+            raise ValidationError('Ce séjour a été annulé.')
+        modification_sejour = corriger_composition_et_lieu(acteur, objet, beneficiaires, lieu)
     if depart_sejour and nature == 'sejour' and objet.fin is None and fin is not None:
         from .hebergement import sortir
 
@@ -162,7 +216,10 @@ def periode(acteur,objet,debut,fin,motif,attendu,source=None, *, depart_sejour=F
         raise ValidationError('Utilisez la clôture dédiée. La correction ne ferme ni ne rouvre une période.')
     objet.debut,objet.fin=debut,fin
     if source is not None and nature=='situationsociale':objet.source=source
-    if ancien==(objet.debut,objet.fin,getattr(objet,'source','')):raise ValidationError('Aucune modification.')
+    if ancien==(objet.debut,objet.fin,getattr(objet,'source','')):
+        if modification_sejour:
+            return objet
+        raise ValidationError('Aucune modification.')
     if nature=='situationsociale':
         serie=m.SituationSociale.objects.filter(accompagnement=objet.accompagnement,beneficiaire=objet.beneficiaire,dimension=objet.dimension)
         precedent=serie.filter(debut__lt=ancien[0]).order_by('-debut').first()

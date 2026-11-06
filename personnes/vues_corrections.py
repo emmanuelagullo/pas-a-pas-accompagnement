@@ -71,7 +71,10 @@ def corriger(request,nature,pk):
             form = AdmissionGuideeForm(
                 request.POST if request.method == 'POST' else None,
                 initial=initial, acteur=request.user, simple=True,
-                accompagnement=a, sejour=objet, beneficiaires=objet.beneficiaires.all(),
+                accompagnement=a, sejour=objet, beneficiaires=(
+                    a.beneficiaires.all() if request.user.has_perm('personnes.change_accordhebergement')
+                    else objet.accord.beneficiaires.all()
+                ),
             )
             form.fields['motif'] = deepcopy(PeriodeForm.base_fields['motif'])
             if objet.fin is None and request.user.has_perms((

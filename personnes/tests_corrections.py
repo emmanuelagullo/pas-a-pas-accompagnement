@@ -31,6 +31,24 @@ class CorrectionsTests(TestCase):
         self.assertEqual(sejour.affectations.get().fin, fin)
         self.assertEqual(accord.operations.filter(action='Sortie effective').count(), 1)
 
+    def test_corriger_le_lieu_et_les_beneficiaires_du_sejour(self):
+        from .models import Personne
+
+        autre = Personne.objects.create(designation='Autre personne fictive', cree_par=self.u)
+        self.a.beneficiaires.add(autre)
+        accord = h.accorder(self.u, self.a, [self.p], date(2026, 1, 1), None)
+        sejour = h.admettre(self.u, accord, [self.p], date(2026, 1, 2))
+        premier = h.creer_lieu(self.u, 'Lieu saisi par erreur')
+        lieu = h.creer_lieu(self.u, 'Lieu corrigé')
+        h.ajouter_periode(self.u, sejour, sejour.debut, None, premier)
+        self.corriger(sejour, sejour.debut, None, depart_sejour=True,
+                      beneficiaires=[self.p, autre], lieu=lieu)
+        self.assertEqual(set(sejour.beneficiaires.all()), {self.p, autre})
+        self.assertEqual(sejour.affectations.get().lieu, lieu)
+        trace = accord.operations.get(action='Correction du séjour')
+        self.assertEqual(trace.details['lieu'], {'avant': str(premier.pk), 'apres': str(lieu.pk)})
+        self.assertEqual(accord.sejours.count(), 1)
+
     def test_accord_preserve_distributions(self):
         accord=repas.accorder(self.u,self.a,[self.p],date(2026,1,1),date(2026,2,1),'dejeuner')
         repas.distribuer(self.u,accord,self.p,date(2026,1,5),1)

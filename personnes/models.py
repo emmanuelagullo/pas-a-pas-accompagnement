@@ -393,6 +393,7 @@ class Absence(Periode):
 
 
 class OperationHebergement(ModeleControle):
+    details = models.JSONField(default=dict, blank=True)
     accord = models.ForeignKey(AccordHebergement, on_delete=models.PROTECT, related_name="operations")
     sejour = models.ForeignKey(Sejour, on_delete=models.PROTECT, null=True)
     affectation = models.ForeignKey(Affectation, on_delete=models.PROTECT, null=True)
