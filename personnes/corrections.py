@@ -134,7 +134,7 @@ def enregistrer(acteur,objet,ancien,motif):
 
 @service_metier
 @serialiser('objet')
-def periode(acteur,objet,debut,fin,motif,attendu,source=None):
+def periode(acteur,objet,debut,fin,motif,attendu,source=None, *, depart_sejour=False, destination_sortie=""):
     nature=objet._meta.model_name
     droits(acteur,nature)
     objet=type(objet).objects.get(pk=objet.pk)
@@ -145,6 +145,19 @@ def periode(acteur,objet,debut,fin,motif,attendu,source=None):
         from .accords import exiger_actif
         exiger_actif(objet)
     ancien=(objet.debut,objet.fin,getattr(objet,'source',''))
+    if depart_sejour and nature == 'sejour' and objet.fin is None and fin is not None:
+        from .hebergement import sortir
+
+        if objet.annule_le or hasattr(objet, 'individualisation'):
+            raise ValidationError('Ce séjour ne peut pas être terminé.')
+        if debut != objet.debut:
+            objet.debut = debut
+            valider(objet)
+            objet.save(update_fields=['debut'])
+            enregistrer(acteur, objet, ancien, motif)
+        sortir(acteur, objet, fin, destination_sortie=destination_sortie)
+        objet.refresh_from_db()
+        return objet
     if (objet.fin is None)!=(fin is None):
         raise ValidationError('Utilisez la clôture dédiée. La correction ne ferme ni ne rouvre une période.')
     objet.debut,objet.fin=debut,fin

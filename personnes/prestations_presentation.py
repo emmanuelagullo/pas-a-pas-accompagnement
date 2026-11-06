@@ -99,6 +99,16 @@ def creation(context,famille):
     else:url=reverse('dossiers:nouveau',args=[context['nature'],context['objet'].pk,nature])+'?'+context.get('navigation_query','')
     return {'url':url,'cle':cle,'label':'Nouvelle période de repas' if nature=='repas' else 'Nouveau séjour'}
 
+def ouvrir_sejour(context, sejour, cle):
+    from acteurs.profils_collectifs import parcours_simple
+    from . import prestation_navigation as nav
+
+    droits = ('personnes.change_sejour', 'personnes.view_correctionperiode')
+    if not sejour.annule_le and context['request'].user.has_perms(droits) and parcours_simple(sejour.accord.accompagnement, 'hebergement'):
+        return nav.adresse(context, cle, reverse('suivi:corriger_saisie', args=['sejour', sejour.pk]))
+    return nav.adresse(context, cle)
+
+
 def ligne(context,objet,genre):
     from acteurs.listes_saisie import DESTINATION_SORTIE
     initialiser(context)
@@ -154,7 +164,7 @@ def ligne(context,objet,genre):
     if context.get('prise') and famille=='hebergement':
         params={**context['parametres_prestations'],'sejour':str(objet.pk),'prevision':''}
         selection_url=reverse('dossiers:prise',args=[context['nature'],context['objet'].pk,context['prise'].pk])+'?'+urlencode(params)+'#hebergement'
-    return {'objet':objet,'cle':cle,'genre':genre,'pk':str(objet.pk),'titre':titre,'resume':resume,'param':param,'form':'selection-repas' if param=='repas' else 'selection-hebergement','selected':choisi,'selection_url':selection_url,'ouvrir_url':nav.adresse(context,cle)}
+    return {'objet':objet,'cle':cle,'genre':genre,'pk':str(objet.pk),'titre':titre,'resume':resume,'param':param,'form':'selection-repas' if param=='repas' else 'selection-hebergement','selected':choisi,'selection_url':selection_url,'ouvrir_url':ouvrir_sejour(context, objet, cle) if genre == 'sejour' else nav.adresse(context,cle)}
 
 def actions(context,famille):
     """Les nouvelles capacités alimentent la même barre NAV de la sélection."""
@@ -202,6 +212,8 @@ def actions_natives(context,famille):
     def autorise(*droits):return u.has_perms(['personnes.'+d for d in droits])
     def lien(label,nom,*args):return {'label':label,'url':nav.adresse(context,cle,reverse(nom,args=args)),'bouton':label in ('Prolonger','Enregistrer le départ','Enregistrer une distribution')}
     principaux=[{'label':'Ouvrir','url':nav.adresse(context,cle),'bouton':True},{'label':'Imprimer / PDF','url':nav.adresse(context,cle,impression=True),'imprimer':True,'bouton':True}]
+    if not repas:
+        principaux[0]['url'] = ouvrir_sejour(context, objet, cle)
     autres=[];informations=[]
     if not accord.annule_le and accord.fin and autorise('view_evolutionaccord','prolonger_accordrepas' if repas else 'prolonger_accordhebergement'):
         principaux.append(lien('Prolonger','suivi:prolonger_accord','repas' if repas else 'hebergement',accord.pk))
@@ -214,7 +226,7 @@ def actions_natives(context,famille):
         informations=['Période de suivi du '+date(accord.accompagnement.debut)+'. Un accord ne prouve pas une distribution.']
         if accord.annule_le:informations.append('Accord annulé : '+accord.motif_annulation)
     else:
-        if not objet.fin and autorise('change_sejour','change_affectation','change_absence'):principaux.append(lien('Enregistrer le départ','suivi:sortir',objet.pk))
+        if not objet.fin and principaux[0]['url'] == nav.adresse(context,cle) and autorise('change_sejour','change_affectation','change_absence'):principaux.append(lien('Enregistrer le départ','suivi:sortir',objet.pk))
         if not objet.fin:
             if context.get('lecture_lieux'):
                 if objet.lieu_ouvert and autorise('change_affectation','add_affectation'):autres.append(lien('Changer de lieu','suivi:changer_lieu',objet.lieu_ouvert.pk))

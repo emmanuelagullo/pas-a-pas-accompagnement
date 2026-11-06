@@ -61,8 +61,20 @@ def corriger(request,nature,pk):
             form.fields['fin'].disabled=True;form.fields['source'].required=True
         else:
             del form.fields['source']
-        action=lambda **d:c.periode(request.user,objet,**d)
-    return traiter_hebergement(request,form,'Corriger une saisie — '+objet._meta.verbose_name,action,c.menage_de(objet),accompagnement=a,retour=retour)
+        from acteurs.profils_collectifs import parcours_simple
+        simple = nature == 'sejour' and parcours_simple(a, 'hebergement')
+        if simple:
+            form.fields['debut'].label = 'Date d’arrivée'
+            form.fields['fin'].label = 'Fin du séjour (exclue)'
+            if objet.fin is None and request.user.has_perms((
+                'personnes.change_sejour', 'personnes.change_affectation', 'personnes.change_absence',
+            )):
+                from .vues_informations import champ_destination
+                destination = champ_destination(a)
+                if destination is not None:
+                    form.fields['destination_sortie'] = destination
+        action=lambda **d:c.periode(request.user,objet,depart_sejour=simple,**d)
+    return traiter_hebergement(request,form,'Modifier le séjour' if nature == 'sejour' else 'Corriger une saisie — '+objet._meta.verbose_name,action,c.menage_de(objet),accompagnement=a,retour=retour)
 
 
 @require_safe
