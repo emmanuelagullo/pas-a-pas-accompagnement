@@ -64,21 +64,21 @@
       const r=await fetch(url,{credentials:'same-origin',cache:'no-store',...options});
       const doc=new DOMParser().parseFromString(await r.text(),'text/html');
       if(doc.querySelector('[name=password]')){location.assign(r.url);return;}
-      const frais=doc.querySelector('#composition-collective'),ancien=document.querySelector('#composition-collective');
+      const frais=doc.querySelector('[data-composition-collective]'),ancien=document.querySelector('[data-composition-collective]');
       if(frais && ancien){ancien.replaceWith(frais);frais.open=true;history.replaceState(history.state,'',r.url);}
       else if(doc.querySelector('#collectif-form') && document.querySelector('#collectif-form'))document.querySelector('#collectif-form').replaceWith(doc.querySelector('#collectif-form'));
       else throw Error();
-      socialModifie=Boolean(document.querySelector('[data-collectif-form]'));initialiser();
-      document.querySelector('#collectif-form .errorlist,#collectif-form input:not([type=hidden]),#composition-collective summary')?.focus({preventScroll:true});
+      socialModifie=options.method==='POST' && Boolean(document.querySelector('[data-collectif-form]'));initialiser();
+      document.querySelector('#collectif-form .errorlist,#collectif-form input:not([type=hidden]),[data-composition-collective] summary')?.focus({preventScroll:true});
       document.dispatchEvent(new Event('navigation:actualise'));
-    } catch(_) {const out=document.querySelector('#collectif-form [data-collectif-calcul]');if(out)out.textContent='Opération non confirmée. Votre saisie est conservée ; vérifiez avant de recommencer.';}
+    } catch(_) {const out=document.querySelector('[data-composition-collective] [data-collectif-etat]');if(out)out.textContent='Impossible de mettre à jour la composition. Vérifiez les informations affichées avant de réessayer.';}
     finally{socialOccupe=false;}
   }
   document.addEventListener('click',e=>{
-    const a=e.target.closest('[data-collectif-lien]');if(!a || e.button!==0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey)return;
+    const a=e.target.closest('[data-collectif-lien]');if(!a || !document.querySelector('[data-composition-collective]') || e.button!==0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey)return;
     e.preventDefault();if(socialModifie && !confirm('Abandonner les modifications non enregistrées ?'))return;social(a.href);
   });
-  document.addEventListener('submit',e=>{const f=e.target.closest('[data-collectif-form]');if(!f || !document.querySelector('#composition-collective'))return;e.preventDefault();social(f.action,{method:'POST',body:new FormData(f)});});
+  document.addEventListener('submit',e=>{const f=e.target.closest('[data-collectif-form]');if(!f || !document.querySelector('[data-composition-collective]'))return;e.preventDefault();social(f.action,{method:'POST',body:new FormData(f)});});
   document.addEventListener('condition:disponible',e=>{if(socialOccupe || document.querySelector('[data-collectif-form]'))e.preventDefault();});
   window.addEventListener('beforeunload',e=>{if(socialModifie || socialOccupe){e.preventDefault();e.returnValue='';}});
   document.addEventListener('navigation:actualise',initialiser);initialiser();

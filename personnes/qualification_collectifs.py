@@ -12,6 +12,28 @@ class CollectifsNavigateur(Donnees,StaticLiveServerTestCase):
     restaurer=tests.CollectifsTests.restaurer
     def setUp(self):tests.CollectifsTests.setUp(self)
 
+    def test_modifier_composition_sur_place(self):
+        from playwright.sync_api import sync_playwright, expect
+
+        self.client.force_login(self.u)
+        with sync_playwright() as pw, pw.chromium.launch(headless=True, args=['--no-sandbox']) as browser:
+            contexte = browser.new_context()
+            contexte.add_cookies([{
+                'name': settings.SESSION_COOKIE_NAME,
+                'value': self.client.cookies[settings.SESSION_COOKIE_NAME].value,
+                'url': self.live_server_url,
+            }])
+            page = contexte.new_page()
+            url = reverse('dossiers:prise', args=['menage', self.m.pk, self.a.pk])
+            page.goto(self.live_server_url + url)
+            composition = page.locator('[data-composition-collective]')
+            page.locator('#condition-sociale').evaluate("(bloc) => { bloc.open = true; }")
+            composition.evaluate("(bloc) => { bloc.open = true; }")
+            composition.get_by_role('link', name='Modifier', exact=True).click()
+            expect(composition.locator('[data-collectif-form]')).to_be_visible()
+            composition.get_by_role('link', name='Annuler', exact=True).click()
+            expect(composition.locator('[data-collectif-form]')).to_have_count(0)
+
     def parcourir(self,javascript,largeur):
         from playwright.sync_api import sync_playwright,expect
         self.client.force_login(self.u)
