@@ -1,6 +1,7 @@
 from django.template.response import TemplateResponse
 """Un accès de parcours depuis la BD, sélection locale et actions au niveau de l'élément."""
 import csv
+from collections import Counter
 import json
 from urllib.parse import urlencode
 from django import forms
@@ -386,8 +387,12 @@ def rapport(request):
                     *[cellule_csv(json.dumps(s.valeur_journal(getattr(v,c)),ensure_ascii=False) if isinstance(getattr(v,c),Model) else getattr(v,c) if getattr(v,c) is not None else '') for c in champs],cellule_csv(v.motif if code=='prises' else v.source),a.pk if a else '',a.debut.isoformat() if a else '',x['delai'] if x['delai'] is not None else '',
                     *([json.dumps([(date.isoformat(), destination) for date, destination in x['departs_logement']], ensure_ascii=False)] if code == 'prises' else [])])
             return response
+    destinations = Counter(destination or 'Non renseignée'
+                           for ligne in lignes_rapport
+                           for _, destination in ligne['departs_logement'])
     params.pop('format',None);params.pop('page',None)
     return TemplateResponse(request,'dossiers/rapport_parcours.html',{'form':f,'code':code,'nombre':len(objets),'delais':delais,
+        'destinations_logement': sorted(destinations.items(), key=lambda x: x[0].casefold()),
         'repartition':repartition,'moyenne_delai':sum(delais)/len(delais) if delais else None,'page_obj':Paginator(lignes_rapport,40).get_page(request.GET.get('page')),'query_rapport':params.urlencode()})
 
 
