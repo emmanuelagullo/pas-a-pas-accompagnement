@@ -109,6 +109,14 @@ exactement aux patches livrés ; expliciter leur base et leurs dépendances.
 
 ### Présentation et opérations sensibles
 
+- Afficher les dates civiles en français, en lecture et en saisie
+  (`jj/mm/aaaa`). Un sélecteur natif peut suivre la langue du navigateur.
+  Vérifier la saisie sur un navigateur configuré en anglais et les calculs
+  de durée quand le format visible change.
+- Employer « séjour » et « prise en charge » dans les messages d’hébergement.
+  En cas de conflit, afficher les périodes concernées et indiquer quelle
+  date corriger. Placer les actions rares derrière les actions courantes.
+
 - Reprendre les templates communs du fil d’Ariane, des boîtes et du sommaire
   latéral et mobile. Employer des intitulés courts et les styles de boutons
   existants. Les sous-titres des listes sont dans la même carte cliquable que

@@ -50,6 +50,12 @@ def bornes(sejour, debut, fin):
         raise ValidationError("Le début effectif ne peut pas être futur.")
 
 
+def periode_affichee(debut, fin):
+    return debut.strftime('%d/%m/%Y') + (
+        ' au ' + fin.strftime('%d/%m/%Y') + ' (fin exclue)' if fin else ', sans date de fin'
+    )
+
+
 @service_metier
 @serialiser("accompagnement")
 @transaction.atomic
@@ -66,7 +72,11 @@ def accorder(acteur, accompagnement, beneficiaires, debut, fin):
     if not ids or not ids.issubset(set(accompagnement.beneficiaires.values_list("pk", flat=True))):
         raise ValidationError("Sélectionnez des bénéficiaires de cet accompagnement.")
     if debut < accompagnement.debut or (accompagnement.fin and (fin is None or fin > accompagnement.fin)):
-        raise ValidationError("L’accord doit être compris dans l’accompagnement.")
+        raise ValidationError(
+            f"Séjour demandé du {periode_affichee(debut, fin)}. "
+            f"Prise en charge du {periode_affichee(accompagnement.debut, accompagnement.fin)}. "
+            "Ajustez les dates du séjour pour qu’il reste dans la prise en charge."
+        )
     accord = AccordHebergement(accompagnement=accompagnement, debut=debut, fin=fin, cree_par=acteur)
     accord.full_clean(); accord.save(); accord.beneficiaires.set(ids)
     audit(acteur, accord, "Hébergement accordé", debut)

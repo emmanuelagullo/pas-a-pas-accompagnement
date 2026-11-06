@@ -35,7 +35,7 @@ def adapter(form):
             continue
         w.attrs.setdefault('autocomplete', 'off')
         if isinstance(champ, forms.DateField) and not isinstance(champ, forms.DateTimeField):
-            if type(w) in (forms.TextInput, forms.DateInput):
+            if type(w) in (forms.TextInput, forms.DateInput) and 'data-date-fr' not in w.attrs:
                 champ.widget = forms.DateInput(format='%Y-%m-%d', attrs={**w.attrs, 'type':'date'})
         elif isinstance(champ, forms.EmailField) or nom in ('courriel', 'email'):
             if isinstance(w, forms.TextInput):

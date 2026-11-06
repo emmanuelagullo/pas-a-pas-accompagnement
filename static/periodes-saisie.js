@@ -3,6 +3,7 @@
   if (window.periodesSaisieInstallees) return;
   window.periodesSaisieInstallees = true;
   const jour = valeur => {
+    valeur = valeur.replace(/^(\d{2})\/(\d{2})\/(\d{4})$/, '$3-$2-$1');
     if (!/^\d{4}-\d{2}-\d{2}$/.test(valeur)) return null;
     const d = new Date(valeur + 'T00:00:00Z');
     return Number.isFinite(d.getTime()) && d.toISOString().slice(0,10) === valeur ? d.getTime()/86400000 : null;
@@ -30,7 +31,10 @@
     };
     const depuisDuree = () => {
       const d = jour(debut.value), n = Number(duree.value);
-      if (d !== null && Number.isInteger(n) && n>0) fin.value = iso(d+n);
+      if (d !== null && Number.isInteger(n) && n>0)  {
+        const valeur = iso(d+n);
+        fin.value = fin.hasAttribute('data-date-fr') ? valeur.replace(/^(\d{4})-(\d{2})-(\d{2})$/, '$3/$2/$1') : valeur;
+      }
       else if (!duree.value) fin.value = '';
       mode('duree');
     };

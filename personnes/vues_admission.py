@@ -45,6 +45,12 @@ class AdmissionGuideeForm(AccordForm):
                 self.initial[nom] = None
         self.fields['debut'].label = 'Début prévu inclus'
         self.fields['fin'].label = 'Fin prévue exclue — facultative'
+        for nom in ('debut', 'fin', 'admission'):
+            champ = self.fields[nom]
+            champ.widget = forms.DateInput(format='%d/%m/%Y', attrs={
+                **champ.widget.attrs, 'type': 'text', 'placeholder': 'jj/mm/aaaa', 'data-date-fr': '1',
+            })
+            champ.input_formats = ('%d/%m/%Y', '%Y-%m-%d')
         if simple:
             del self.fields['arrivee_effectuee'], self.fields['admission']
             self.champs_arrivee_visibles = True
