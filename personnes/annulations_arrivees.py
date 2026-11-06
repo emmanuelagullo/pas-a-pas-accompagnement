@@ -74,7 +74,7 @@ def annuler(acteur,sejour,attendu,motif,*,accord_correct=None,beneficiaires=(),r
                 if reprendre_mouvements:
                     for p in s.affectations.select_related('lieu'):h.ajouter_periode(acteur,nouveau,p.debut,p.fin,p.lieu)
                     for p in s.absences.all():h.ajouter_periode(acteur,nouveau,p.debut,p.fin,absence=True)
-                if s.fin:h.sortir(acteur,nouveau,s.fin)
+                if s.fin:h.sortir(acteur,nouveau,s.fin,destination_sortie=s.destination_sortie)
         instant=timezone.now()
         m.Sejour.objects.filter(pk__in=[x.pk for x in xs],annule_le__isnull=True).update(annule_le=instant,annule_par=acteur,motif_annulation=motif,revision=F('revision')+1)
         m.AccordHebergement.objects.filter(pk=s.accord_id).update(revision=F('revision')+1)

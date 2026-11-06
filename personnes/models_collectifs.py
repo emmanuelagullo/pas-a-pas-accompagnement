@@ -5,6 +5,7 @@ from django.db import models
 from django.db.models import Q, F
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
+from acteurs.listes_saisie import DESTINATION_SORTIE
 from acteurs.managers import ModeleControle
 
 
@@ -55,6 +56,7 @@ class PrestationCollective(ModeleControle):
 
 
 class VersionPrestationCollective(ModeleControle):
+    destination_sortie = models.CharField(DESTINATION_SORTIE, max_length=160, blank=True)
     prestation = models.ForeignKey(PrestationCollective, on_delete=models.PROTECT, related_name='versions')
     offre = models.ForeignKey('acteurs.OffrePrestataire', on_delete=models.PROTECT, null=True, blank=True)
     libelle_offre = models.CharField(max_length=160, blank=True)

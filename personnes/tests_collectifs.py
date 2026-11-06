@@ -86,7 +86,8 @@ class CollectifsTests(Donnees,TestCase):
         c.mouvement(self.u,p,'absence',c.jeton(p),date(2026,1,11))
         p.refresh_from_db();absence=p.mouvements.get()
         c.reviser_mouvement(self.u,p,absence,c.jeton(p),date(2026,1,12))
-        p.refresh_from_db();c.modifier(self.u,p,c.jeton(p),'depart',fin=date(2026,1,13))
+        p.refresh_from_db();c.modifier(self.u,p,c.jeton(p),'depart',fin=date(2026,1,13),destination_sortie='Logement social')
+        self.assertEqual(p.courante.destination_sortie, 'Logement social')
         self.assertEqual(c.bilan(p.courante,date(2026,1,10),date(2026,1,14))['nuits'],3)
         self.assertEqual(p.mouvements.count(),1)
 

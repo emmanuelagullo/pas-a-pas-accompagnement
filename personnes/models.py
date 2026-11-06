@@ -1,3 +1,4 @@
+from acteurs.listes_saisie import DESTINATION_SORTIE
 from acteurs.managers import ModeleControle, ManagerControle, controler_manager
 import uuid
 from decimal import Decimal
@@ -306,6 +307,7 @@ class SejourQuerySet(models.QuerySet):
 
 
 class Sejour(Periode):
+    destination_sortie = models.CharField(DESTINATION_SORTIE, max_length=160, blank=True)
     objects=controler_manager(SejourQuerySet.as_manager())
     annule_le=models.DateTimeField(null=True,blank=True,editable=False)
     annule_par=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT,null=True,blank=True,related_name='+',editable=False)
@@ -636,7 +638,7 @@ class InformationsAccompagnement(TraceSaisie):
     motif_entree = models.CharField('Motif d’entrée', max_length=160, blank=True)
     orientation_sortie = models.CharField('Orientation à la sortie', max_length=160, blank=True)
     motif_sortie = models.CharField('Motif de sortie', max_length=160, blank=True)
-    destination_sortie = models.CharField('Destination à la sortie', max_length=160, blank=True)
+    destination_sortie = models.CharField(DESTINATION_SORTIE, max_length=160, blank=True)
     dispositif_logement = models.CharField('Dispositif de logement', max_length=24, blank=True, choices=parcours_logement.DISPOSITIFS)
     type_logement = models.CharField('Type de logement fourni', max_length=8, blank=True, choices=parcours_logement.TYPES_LOGEMENT)
     situation_logement_entree = models.CharField('Situation de logement à l’entrée — motif principal', max_length=24, blank=True, choices=parcours_logement.SITUATIONS_ENTREE)

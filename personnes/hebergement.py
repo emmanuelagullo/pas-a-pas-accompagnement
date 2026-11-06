@@ -153,7 +153,10 @@ def terminer_periode(acteur, objet, fin):
 @service_metier
 @serialiser("sejour")
 @transaction.atomic
-def sortir(acteur, sejour, fin):
+def sortir(acteur, sejour, fin, destination_sortie=""):
+    destination_sortie = destination_sortie.strip()
+    if len(destination_sortie) > 160:
+        raise ValidationError("La destination ne peut dépasser 160 caractères.")
     droit(acteur, "change_sejour")
     # La sortie peut clôturer automatiquement les périodes encore ouvertes.
     exiger(acteur, "change_affectation", "change_absence")
@@ -172,7 +175,9 @@ def sortir(acteur, sejour, fin):
                 objet.fin = fin; objet.save(update_fields=["fin"])
                 audit(acteur, sejour.accord, "Absence close à la sortie" if modele is Absence else "Affectation close à la sortie", fin,
                     sejour=sejour, **({"absence": objet} if modele is Absence else {"affectation": objet}))
-    sejour.fin = fin; sejour.save(update_fields=["fin"])
+    sejour.fin = fin
+    sejour.destination_sortie = destination_sortie
+    sejour.save(update_fields=["fin", "destination_sortie"])
     audit(acteur, sejour.accord, "Sortie effective", fin, sejour=sejour)
 
 

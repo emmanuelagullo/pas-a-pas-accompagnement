@@ -100,7 +100,13 @@ def terminer(request, pk, nature):
     debut = objet.debut
     jour = jour_hebergement(request, s.accord.accompagnement)
     initial = {"fin": jour} if debut < jour else {}
-    return traiter_hebergement(request,ClotureForm(request.POST or None, initial=initial),"Enregistrer la sortie" if nature=="sejour" else "Enregistrer le retour d’absence" if nature=="absence" else "Clôturer l’affectation",lambda **d:action(request.user,objet,**d),s.accord.accompagnement.menage, retour=retour_hebergement(request, s.accord_id), sejour=s)
+    form = ClotureForm(request.POST or None, initial=initial)
+    if nature == "sejour":
+        from .vues_informations import champ_destination
+        champ = champ_destination(s.accord.accompagnement)
+        if champ is not None:
+            form.fields["destination_sortie"] = champ
+    return traiter_hebergement(request,form,"Enregistrer la sortie" if nature=="sejour" else "Enregistrer le retour d’absence" if nature=="absence" else "Clôturer l’affectation",lambda **d:action(request.user,objet,**d),s.accord.accompagnement.menage, retour=retour_hebergement(request, s.accord_id), sejour=s)
 
 
 @require_http_methods(["GET", "POST"])

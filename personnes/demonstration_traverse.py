@@ -58,11 +58,11 @@ def completer(auteur, etablissement, professionnel):
         accord = hebergement.accorder(auteur, prise, [adulte, enfant], entree, sortie)
         sejour = hebergement.admettre(auteur, accord, [adulte, enfant], entree)
         hebergement.ajouter_periode(auteur, sejour, entree, sortie, lieu=lieu)
-        hebergement.sortir(auteur, sejour, sortie)
+        hebergement.sortir(auteur, sejour, sortie, destination_sortie="Logement social")
         donnees = dict.fromkeys(informations_suivi.CHAMPS, '')
         donnees.update(motif_entree='Orientation vers un logement', motif_sortie='Fin de prise en charge',
-                       destination_sortie='Logement social', dispositif_logement='iml', type_logement='t1',
-                       situation_logement_entree='urgence', categorie_sortie='logement_social')
+                       dispositif_logement='iml', type_logement='t1',
+                       situation_logement_entree='urgence')
         informations_suivi.enregistrer(auteur, prise, informations_suivi.jeton(prise, None), '', **donnees)
         suivi.clore(auteur, prise, sortie)
     return service

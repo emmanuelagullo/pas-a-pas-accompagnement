@@ -265,7 +265,7 @@ class RapportParcoursForm(FormulaireMetier):
     motif_entree=forms.CharField(label='Motif d’entrée exact',max_length=160,required=False)
     motif_sortie=forms.CharField(label='Motif de sortie exact',max_length=160,required=False)
     orientation_sortie=forms.CharField(label='Orientation de sortie exacte',max_length=160,required=False)
-    destination_sortie=forms.CharField(label='Destination de sortie exacte',max_length=160,required=False)
+    destination_sortie=forms.CharField(label=m.InformationsAccompagnement._meta.get_field('destination_sortie').verbose_name,max_length=160,required=False)
     def clean(self):
         d=super().clean()
         if d.get('depuis') and d.get('jusqua') and d['depuis']>d['jusqua']:raise forms.ValidationError('La période est inversée.')

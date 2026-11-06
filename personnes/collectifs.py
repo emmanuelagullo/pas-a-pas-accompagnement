@@ -17,7 +17,7 @@ from .verrous_metier import serialiser
 
 SALT='collectif-etat-v1'
 SOCIAUX=('logement','revenu','dette','telephone','courriel','projet')
-VERSION=('debut','fin','fin_prevue','arrivee','lieu','prestataire','dejeuner','diner','premier','dernier','petits_dejeuners','devise','offre','libelle_offre')
+VERSION=('debut','fin','fin_prevue','arrivee','lieu','prestataire','dejeuner','diner','premier','dernier','petits_dejeuners','devise','offre','libelle_offre','destination_sortie')
 
 def profil(objet):
     try:service=service_objet(objet)
@@ -323,8 +323,10 @@ def modifier(acteur,p,attendu,action,couverts=None,motif='',**valeurs):
         valeurs={}
     if action=='prolongation':
         if v.fin or set(valeurs)!={'fin_prevue'} or not v.fin_prevue or valeurs['fin_prevue']<=v.fin_prevue:raise ValidationError('La nouvelle fin prévue doit prolonger une période non terminée.')
-    if action=='depart' and (set(valeurs)!={'fin'} or v.fin):raise ValidationError('Renseignez un premier départ effectif.')
+    if action=='depart' and ('fin' not in valeurs or set(valeurs)-{'fin','destination_sortie'} or v.fin):raise ValidationError('Renseignez un premier départ effectif.')
     d.update(valeurs)
+    if d["destination_sortie"] and (p.nature != "hebergement" or not d["fin"]):
+        raise ValidationError("La destination concerne un départ effectif d’hébergement.")
     for x in p.mouvements.filter(annule_le__isnull=True):
         if d['arrivee'] and x.debut<d['arrivee'] or d['fin'] and (x.debut>=d['fin'] or x.fin and x.fin>d['fin']):
             raise ValidationError('La période exclurait un mouvement enregistré ; corrigez ce mouvement d’abord.')

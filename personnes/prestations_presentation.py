@@ -100,6 +100,7 @@ def creation(context,famille):
     return {'url':url,'cle':cle,'label':'Nouvelle période de repas' if nature=='repas' else 'Nouveau séjour'}
 
 def ligne(context,objet,genre):
+    from acteurs.listes_saisie import DESTINATION_SORTIE
     initialiser(context)
     from . import prestation_navigation as nav
     if isinstance(objet,m.PrestationCollective):genre='commun'
@@ -117,6 +118,8 @@ def ligne(context,objet,genre):
         if lieu:resume[0]+=' · '+lieu
         if famille=='restauration':titre=('Déjeuner / Dîner' if v.dejeuner and v.diner else 'Déjeuner' if v.dejeuner else 'Dîner')+' · '+titre
         resume.append(str(sum(nombres.values()))+' personnes déclarées')
+        if famille=='hebergement' and v.destination_sortie and v.action != 'annulation':
+            resume.append(DESTINATION_SORTIE + ' : ' + v.destination_sortie)
         if famille=='hebergement' and v.arrivee:
             titre=date(v.arrivee)+' → '+(date(v.fin) or 'en cours')
             if v.fin_prevue:resume.append('Fin prévue : '+date(v.fin_prevue))
@@ -145,6 +148,8 @@ def ligne(context,objet,genre):
                 lieu=objet.lieu_ouvert.lieu if objet.lieu_ouvert else objet.lieux_dossier[0].lieu if objet.lieux_dossier else 'Lieu non renseigné'
                 etat+=' · '+str(lieu)
             resume=[etat]
+            if objet.destination_sortie and not objet.annule_le:
+                resume.append(DESTINATION_SORTIE + ' : ' + objet.destination_sortie)
         if genre!='hebergement':resume.append(' ; '.join(str(p) for p in objet.beneficiaires.all()))
     if context.get('prise') and famille=='hebergement':
         params={**context['parametres_prestations'],'sejour':str(objet.pk),'prevision':''}
