@@ -102,8 +102,10 @@ class PrestationsLocalesTests(TestCase):
         url=self.url('nouveau:hebergement')
         page=self.client.post(url,data,follow=True)
         self.assertEqual(page.status_code,200)
-        self.assertContains(page,'Accord d’hébergement du')
+        self.assertNotContains(page, 'data-prestation-panneau')
+        self.assertContains(page, 'Prévu — arrivée à confirmer')
         prevu=m.AccordHebergement.objects.exclude(pk=self.accord.pk).get()
+        self.assertContains(page, 'hebergement-prevu-' + str(prevu.pk))
         url=self.url('hebergement:'+str(prevu.pk),reverse('suivi:arrivee_prevue',args=[prevu.pk]))
         from . import accords
         page=self.client.post(url,{'attendu':accords.jeton(prevu),'debut':'2026-04-01','beneficiaires':[str(self.p.pk)]},follow=True)
