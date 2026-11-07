@@ -319,13 +319,25 @@ def page(request, nature, pk, prise_pk):
     annuler_en_pied = False
     if isinstance(resultat, TemplateResponse):
         donnees = {**resultat.context_data,'base_prestation':'dossiers/_prestation_base.html'}
-        annuler_en_pied = not consulter and (
-            genre == 'sejour' and match.view_name == 'suivi:corriger_saisie'
-            or genre == 'nouveau' and objet == 'hebergement'
+        annuler_en_pied = not consulter and resultat.template_name in (
+            'suivi/form.html', 'dossiers/form_bd6.html',
+            'dossiers/nouvelle_prestation.html', 'collectifs/form.html',
+            'hebergement/admission_guidee.html',
         )
         if annuler_en_pied:
-            donnees['annuler_prestation_url'] = adresse(context) + '#hebergement'
-            donnees['activer_si_modifie'] = genre == 'sejour' and request.method == 'GET'
+            if genre == 'nouveau':
+                if objet in ('hebergement', 'commun_hebergement'):
+                    ancre = 'hebergement'
+                elif objet in ('repas', 'services_repas', 'commun_restauration'):
+                    ancre = 'repas'
+                else:
+                    ancre = 'aides-' + objet
+                donnees['annuler_prestation_url'] = adresse(context) + '#' + ancre
+            elif genre == 'sejour' and match.view_name == 'suivi:corriger_saisie':
+                donnees['annuler_prestation_url'] = adresse(context) + '#hebergement'
+                donnees['activer_si_modifie'] = request.method == 'GET'
+            else:
+                donnees['annuler_prestation_url'] = adresse(context, cle)
 
         consulter = genre != 'nouveau' and urlsplit(operation).path == urlsplit(consultation(genre,objet)).path
         if consulter:
