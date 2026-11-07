@@ -8,6 +8,13 @@ def prestation_ouvrir(context, genre, pk):
     return nav.adresse(context.get('prestation_cadre') or context, str(genre)+':'+str(pk))
 
 @register.simple_tag(takes_context=True)
+def ouvrir_aide(context, code, aide):
+    from personnes.prestations_presentation import ouvrir_prestation
+
+    return ouvrir_prestation(context, aide, f'aide_{code}:{aide.pk}')
+
+
+@register.simple_tag(takes_context=True)
 def prestation_imprimer(context, genre, pk):
     return nav.adresse(context.get('prestation_cadre') or context, str(genre)+':'+str(pk), impression=True)
 

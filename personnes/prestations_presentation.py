@@ -99,14 +99,28 @@ def creation(context,famille):
     else:url=reverse('dossiers:nouveau',args=[context['nature'],context['objet'].pk,nature])+'?'+context.get('navigation_query','')
     return {'url':url,'cle':cle,'label':'Nouvelle période de repas' if nature=='repas' else 'Nouveau séjour'}
 
-def ouvrir_sejour(context, sejour, cle):
+def ouvrir_prestation(context, objet, cle):
     from acteurs.profils_collectifs import parcours_simple
     from . import prestation_navigation as nav
 
-    droits = ('personnes.change_sejour', 'personnes.view_correctionperiode')
-    if not sejour.annule_le and context['request'].user.has_perms(droits) and parcours_simple(sejour.accord.accompagnement, 'hebergement'):
-        return nav.adresse(context, cle, reverse('suivi:corriger_saisie', args=['sejour', sejour.pk]))
-    return nav.adresse(context, cle)
+    utilisateur = context['request'].user
+    genre = cle.split(':', 1)[0]
+    operation = ''
+    if genre == 'commun':
+        version = objet.version_nav
+        if version.action != 'annulation' and utilisateur.has_perm('personnes.change_prestationcollective'):
+            operation = reverse('dossiers:collectif_action', args=['prise', objet.accompagnement_id, 'correction'])
+            operation += '?' + urlencode({'pk': objet.pk})
+    elif not getattr(objet, 'annule_le', None):
+        if genre == 'sejour' and parcours_simple(objet.accord.accompagnement, 'hebergement') and utilisateur.has_perms((
+            'personnes.change_sejour', 'personnes.view_correctionperiode',
+        )):
+            operation = reverse('suivi:corriger_saisie', args=['sejour', objet.pk])
+        elif genre == 'repas' and utilisateur.has_perms(('personnes.change_accordrepas', 'personnes.view_correctionperiode')):
+            operation = reverse('suivi:corriger_saisie', args=['accordrepas', objet.pk])
+        elif genre.startswith('aide_') and utilisateur.has_perm('personnes.change_accordaide'):
+            operation = reverse('dossiers:aide_corriger', args=[objet.pk])
+    return nav.adresse(context, cle, operation)
 
 
 def ligne(context,objet,genre):
@@ -164,7 +178,7 @@ def ligne(context,objet,genre):
     if context.get('prise') and famille=='hebergement':
         params={**context['parametres_prestations'],'sejour':str(objet.pk),'prevision':''}
         selection_url=reverse('dossiers:prise',args=[context['nature'],context['objet'].pk,context['prise'].pk])+'?'+urlencode(params)+'#hebergement'
-    return {'objet':objet,'cle':cle,'genre':genre,'pk':str(objet.pk),'titre':titre,'resume':resume,'param':param,'form':'selection-repas' if param=='repas' else 'selection-hebergement','selected':choisi,'selection_url':selection_url,'ouvrir_url':ouvrir_sejour(context, objet, cle) if genre == 'sejour' else nav.adresse(context,cle)}
+    return {'objet':objet,'cle':cle,'genre':genre,'pk':str(objet.pk),'titre':titre,'resume':resume,'param':param,'form':'selection-repas' if param=='repas' else 'selection-hebergement','selected':choisi,'selection_url':selection_url,'ouvrir_url':ouvrir_prestation(context, objet, cle)}
 
 def actions(context,famille):
     """Les nouvelles capacités alimentent la même barre NAV de la sélection."""
@@ -176,11 +190,10 @@ def actions(context,famille):
     def lien(action,label):
         operation=reverse('dossiers:collectif_action',args=['prise',p.accompagnement_id,action])+'?'+urlencode({'pk':p.pk})
         return {'label':label,'url':nav.adresse(context,cle,operation),'bouton':label in ('Prolonger','Modifier','Enregistrer le départ')}
-    principaux=[{'label':'Ouvrir','url':nav.adresse(context,cle),'bouton':True}, {'label':'Imprimer / PDF','url':nav.adresse(context,cle,impression=True),'imprimer':True,'bouton':True}]
+    principaux=[{'label':'Ouvrir','url':ouvrir_prestation(context,p,cle),'bouton':True}, {'label':'Imprimer / PDF','url':nav.adresse(context,cle,impression=True),'imprimer':True,'bouton':True}]
     autres=[]
     if v.action!='annulation' and u.has_perm('personnes.change_prestationcollective'):
         if v.fin_prevue and not v.fin:principaux.append(lien('prolongation','Prolonger'))
-        principaux.insert(1,lien('correction','Modifier'))
         autres=[lien('annulation','Annuler la prestation')]
         if famille=='hebergement' and v.arrivee and not v.fin and u.has_perms(('personnes.view_versionprestationcollective', 'personnes.view_couvertcollectif')):
             principaux.append(lien('depart', 'Enregistrer le départ'))
@@ -212,8 +225,7 @@ def actions_natives(context,famille):
     def autorise(*droits):return u.has_perms(['personnes.'+d for d in droits])
     def lien(label,nom,*args):return {'label':label,'url':nav.adresse(context,cle,reverse(nom,args=args)),'bouton':label in ('Prolonger','Enregistrer le départ','Enregistrer une distribution')}
     principaux=[{'label':'Ouvrir','url':nav.adresse(context,cle),'bouton':True},{'label':'Imprimer / PDF','url':nav.adresse(context,cle,impression=True),'imprimer':True,'bouton':True}]
-    if not repas:
-        principaux[0]['url'] = ouvrir_sejour(context, objet, cle)
+    principaux[0]['url'] = ouvrir_prestation(context, objet, cle)
     autres=[];informations=[]
     if not accord.annule_le and accord.fin and autorise('view_evolutionaccord','prolonger_accordrepas' if repas else 'prolonger_accordhebergement'):
         principaux.append(lien('Prolonger','suivi:prolonger_accord','repas' if repas else 'hebergement',accord.pk))
@@ -222,7 +234,6 @@ def actions_natives(context,famille):
             from acteurs.profils_collectifs import parcours_simple
             actions_distribution = autres if parcours_simple(accord.accompagnement, 'restauration') else principaux
             actions_distribution.append(lien('Enregistrer une distribution','suivi:distribuer_repas',accord.pk))
-        if not accord.annule_le and autorise('change_accordrepas','view_correctionperiode'):autres.append(lien('Corriger les dates de l’accord','suivi:corriger_saisie','accordrepas',accord.pk))
         informations=['Période de suivi du '+date(accord.accompagnement.debut)+'. Un accord ne prouve pas une distribution.']
         if accord.annule_le:informations.append('Accord annulé : '+accord.motif_annulation)
     else:

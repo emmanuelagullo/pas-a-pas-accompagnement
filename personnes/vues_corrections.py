@@ -84,7 +84,23 @@ def corriger(request,nature,pk):
                 destination = champ_destination(a)
                 if destination is not None:
                     form.fields['destination_sortie'] = destination
-        action=lambda **d:c.periode(request.user,objet,depart_sejour=simple,**d)
+        if nature == 'accordrepas':
+            from .forms_repas import AccordForm
+
+            form = AccordForm(
+                request.POST if request.method == 'POST' else None,
+                accompagnement=a, instance=objet, initial=initial,
+            )
+            form.fields['attendu'] = forms.CharField(widget=forms.HiddenInput)
+            form.fields['motif'] = deepcopy(PeriodeForm.base_fields['motif'])
+            for champ in ('beneficiaires', 'service', 'prestataire', 'jours_semaine'):
+                form.fields[champ].disabled = True
+
+        def action(**donnees):
+            if nature == 'accordrepas':
+                for champ in ('beneficiaires', 'service', 'prestataire', 'jours_semaine'):
+                    donnees.pop(champ, None)
+            return c.periode(request.user, objet, depart_sejour=simple, **donnees)
     return traiter_hebergement(request,form,'Modifier le séjour' if nature == 'sejour' else 'Corriger une saisie — '+objet._meta.verbose_name,action,c.menage_de(objet),accompagnement=a,retour=retour)
 
 

@@ -137,11 +137,17 @@ def action(request,pk,action,remise_pk=None):
     elif action in ('corriger','prolonger'):
         s.droit(request.user,'change_accordaide')
         f=AccordForm(request.POST if request.method=='POST' else None,accompagnement=a.accompagnement,instance=a,initial={'attendu':token})
-        f.fields.pop('type_aide');f.fields.pop('beneficiaires');f.fields['motif'].required=action=='prolonger'
+        f.fields['type_aide'].queryset = m.TypeAide.objects.filter(pk=a.type_aide_id)
+        f.fields['type_aide'].disabled = True
+        f.fields['beneficiaires'].disabled = True
+        f.fields['motif'].required = action == 'prolonger'
         if action=='prolonger':
             for c in s.CHAMPS:
                 if c not in ('fin','source'):f.fields[c].disabled=True
-        fn=lambda **d:s.modifier(request.user,a,prolongation=action=='prolonger',**d)
+        def fn(**donnees):
+            donnees.pop('type_aide', None)
+            donnees.pop('beneficiaires', None)
+            return s.modifier(request.user, a, prolongation=action == 'prolonger', **donnees)
     else:raise Http404
     if p.get('retour')=='jour':url=ctx.get('retour_dossier') or url
     return traiter(request,f,{'remettre':'Enregistrer une réalisation','corriger_remise':'Corriger une réalisation','annuler':'Annuler une saisie erronée','usage':'Constater l’utilisation déclarée','corriger':'Corriger l’autorisation','prolonger':'Prolonger l’autorisation'}[action]+' — '+a.libelle,fn,url,a.accompagnement.menage,
