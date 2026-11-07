@@ -101,6 +101,11 @@ def corriger(request,nature,pk):
                 for champ in ('beneficiaires', 'service', 'prestataire', 'jours_semaine'):
                     donnees.pop(champ, None)
             return c.periode(request.user, objet, depart_sejour=simple, **donnees)
+    if request.method == 'POST' and request.headers.get('X-Verifier-Prestation') == '1':
+        if nature not in ('sejour', 'accordrepas'):
+            raise Http404
+        from .validation_prestations import diagnostic
+        return diagnostic(form, a)
     return traiter_hebergement(request,form,'Modifier le séjour' if nature == 'sejour' else 'Corriger une saisie — '+objet._meta.verbose_name,action,c.menage_de(objet),accompagnement=a,retour=retour)
 
 

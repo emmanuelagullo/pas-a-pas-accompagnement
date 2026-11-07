@@ -78,6 +78,18 @@ def accorder(request,pk,nature):
         f.fields['quantite'].required = True
         f.fields['source'].label = 'Source de la réalisation'
 
+    if request.method == 'POST' and request.headers.get('X-Verifier-Prestation') == '1':
+        from .validation_prestations import diagnostic
+        from django.forms import DateField
+        from django.core.exceptions import ValidationError
+        fin = None
+        if simple:
+            try:
+                fin = DateField().clean(request.POST.get('debut')) + timedelta(days=1)
+            except (ValidationError, OverflowError):
+                pass
+        return diagnostic(f, a, fin_par_defaut=fin)
+
     @transaction.atomic
     def action(**d):
         d.pop('motif', None)
@@ -149,6 +161,11 @@ def action(request,pk,action,remise_pk=None):
             donnees.pop('beneficiaires', None)
             return s.modifier(request.user, a, prolongation=action == 'prolonger', **donnees)
     else:raise Http404
+    if request.method == 'POST' and request.headers.get('X-Verifier-Prestation') == '1':
+        if action != 'corriger':
+            raise Http404
+        from .validation_prestations import diagnostic
+        return diagnostic(f, a.accompagnement)
     if p.get('retour')=='jour':url=ctx.get('retour_dossier') or url
     return traiter(request,f,{'remettre':'Enregistrer une réalisation','corriger_remise':'Corriger une réalisation','annuler':'Annuler une saisie erronée','usage':'Constater l’utilisation déclarée','corriger':'Corriger l’autorisation','prolonger':'Prolonger l’autorisation'}[action]+' — '+a.libelle,fn,url,a.accompagnement.menage,
         explication='Unité : '+a.unite+'. '+a.precision+' Quantité globale, jamais multipliée par bénéficiaire. Les textes et versions restent conservés.')

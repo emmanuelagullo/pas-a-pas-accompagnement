@@ -86,9 +86,12 @@ def nouveau(request, nature, pk, prestation):
         form.order_fields(['accompagnement', 'beneficiaires', 'debut', 'fin', 'duree', 'calcul_periode', 'arrivee_effectuee', 'admission', 'lieu', 'service', 'services', 'prestataire', 'attendu'])
     if a and prestation!='hebergement':preparation_repas.preparer_formulaire(form,request,a)
     if request.method == 'POST' and request.headers.get('X-Verifier-Prestation') == '1':
-        if prestation != 'hebergement' or a is None:
+        if a is None:
             raise Http404
-        return verifier_saisie_sejour(request, form)
+        if prestation == 'hebergement':
+            return verifier_saisie_sejour(request, form)
+        from .validation_prestations import diagnostic
+        return diagnostic(form, a)
     statut = 200
     if request.method == 'POST' and not getattr(form,'preparation_seule',False) and form.is_valid() and a and (prestation != 'hebergement' or form.enregistrement_autorise(request.user)):
         d = preparation_repas.sans_preparation(form.cleaned_data)

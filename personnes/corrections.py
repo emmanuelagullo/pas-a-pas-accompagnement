@@ -119,7 +119,8 @@ def valider(objet):
         if hasattr(objet,'individualisation') and objet.fin!=objet.individualisation.date or objet.origine_collective_id and objet.debut!=objet.origine_collective.fin:
             raise ValidationError('La date de continuité ne se corrige pas indépendamment de ses fragments ; les autres dates restent corrigibles.')
         incluse(objet.accord, objet.debut, point=True, libelle="La date d’arrivée du séjour", cadre="période d’hébergement prévue")
-        incluse(objet.accord.accompagnement, objet.debut, objet.fin, libelle="La date d’arrivée du séjour")
+        from .validation_prestations import verifier_periode_prise
+        verifier_periode_prise(objet.accord.accompagnement, objet.debut, objet.fin)
         for periode in list(objet.affectations.all())+list(objet.absences.all()):incluse(objet,periode.debut,periode.fin)
     elif nature in ('affectation','absence'):
         from .hebergement import bornes

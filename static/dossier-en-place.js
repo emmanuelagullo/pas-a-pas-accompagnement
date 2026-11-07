@@ -136,10 +136,10 @@
   const verifications = new WeakMap();
   document.addEventListener('change', async evenement => {
     const champ = evenement.target;
-    if (!champ.matches?.('[name=debut], [name=fin], [name=admission]')) return;
+    if (!champ.matches?.('[name=debut], [name=fin], [name=fin_prevue], [name=arrivee], [name=admission]')) return;
     const form = champ.form;
     const commandes = form?.querySelector('[data-validation-sejour]');
-    if (!commandes || occupe || !form.matches('[data-prestation-form]')) return;
+    if (occupe || !form?.matches('[data-prestation-form]') || !form.closest('[data-prestation-verifiable]')) return;
     verifications.get(form)?.abort();
     const controle = new AbortController();
     verifications.set(form, controle);
@@ -152,11 +152,11 @@
       if (!reponse.ok || !reponse.headers.get('Content-Type')?.startsWith('application/json')) return;
       const resultat = await reponse.json();
       if (controle.signal.aborted || !form.isConnected || occupe) return;
-      for (const nom of ['debut', 'fin', 'admission']) {
+      for (const nom of ['debut', 'fin', 'fin_prevue', 'arrivee', 'admission']) {
         if (String(form.elements.namedItem(nom)?.value || '') !== String(donnees.get(nom) || '')) return;
       }
-      if (!commandes.contains(document.activeElement)) commandes.innerHTML = resultat.commandes;
-      for (const nom of ['debut', 'fin', 'admission']) {
+      if (commandes && resultat.commandes && !commandes.contains(document.activeElement)) commandes.innerHTML = resultat.commandes;
+      for (const nom of ['debut', 'fin', 'fin_prevue', 'arrivee', 'admission']) {
         const entree = form.elements.namedItem(nom);
         if (!entree?.id) continue;
         const identifiant = entree.id + '-verification';

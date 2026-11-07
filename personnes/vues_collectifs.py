@@ -2,7 +2,7 @@
 from datetime import date, timedelta
 from urllib.parse import urlencode
 from django import forms
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.cache import never_cache
@@ -115,6 +115,11 @@ def action(request,cible,pk,action):
     statut=200
     try:ctx=preparer(request,objet,action,request.GET.get('pk'),request.GET.get('nature'))
     except ValidationError as e:return render(request,'collectifs/erreur.html',{'erreur':' '.join(e.messages),'retour':retour(objet)},status=400)
+    if request.method == 'POST' and request.headers.get('X-Verifier-Prestation') == '1':
+        if action not in ('creation', 'correction'):
+            raise Http404
+        from .validation_prestations import diagnostic
+        return diagnostic(ctx['form'], objet, 'fin_prevue')
     if action=='consultation':
         if request.method!='GET':raise PermissionDenied
         return render(request,'collectifs/consultation.html',ctx)
@@ -130,7 +135,12 @@ def action(request,cible,pk,action):
     if request.method=='POST' and ctx['form'].is_valid():
         try:resultat=ctx['faire'](**ctx['form'].cleaned_data)
         except (ValidationError,OperationalError) as e:
-            ctx['form'].add_error(None,' '.join(e.messages) if isinstance(e,ValidationError) else 'Écriture non confirmée. Rechargez avant de réessayer.');statut=409
+            if isinstance(e, ValidationError):
+                from .validation_prestations import reporter_erreur
+                reporter_erreur(ctx['form'], e)
+            else:
+                ctx['form'].add_error(None, 'Écriture non confirmée. Rechargez avant de réessayer.')
+            statut = 409
         else:
             reponse=redirect(ctx['retour'])
             if isinstance(resultat,m.PrestationCollective):reponse['X-Prestation-Collective']=str(resultat.pk)

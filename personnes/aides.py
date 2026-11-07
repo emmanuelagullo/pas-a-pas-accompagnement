@@ -96,7 +96,8 @@ def accorder(acteur,accompagnement,type_aide,beneficiaires,attendu,**valeurs):
     if not type_aide.actif:raise ValidationError('Ce type d’aide n’est plus proposé ; choisissez un type actif.')
     ids=beneficiaires_valides(beneficiaires,accompagnement.beneficiaires)
     source_valide(valeurs['source'])
-    if valeurs['debut']<accompagnement.debut or accompagnement.fin and (not valeurs['fin'] or valeurs['fin']>accompagnement.fin):raise ValidationError('L’accord doit rester dans la prise en charge.')
+    from .validation_prestations import verifier_periode_prise
+    verifier_periode_prise(accompagnement, valeurs['debut'], valeurs['fin'])
     a=m.AccordAide(accompagnement=accompagnement,type_aide=type_aide,cree_par=acteur,**valeurs,
         **{c:getattr(type_aide,c) for c in ('nature','libelle','unite','fractionnable','precision')})
     entier(a,a.quantite)
@@ -119,7 +120,9 @@ def modifier(acteur,accord,attendu,motif,prolongation=False,**valeurs):
     entier(accord,accord.quantite)
     accord.full_clean();a=accord.accompagnement
     if accord.debut<a.debut:raise ValidationError('L’accord commence avant la prise en charge.')
-    if (accord.fin!=ancienne_fin or accord.debut!=ancien_debut) and a.fin and (accord.fin is None or accord.fin>a.fin):raise ValidationError('La nouvelle période doit respecter la prise en charge close ; les anciennes prévisions restent conservées.')
+    if accord.fin != ancienne_fin or accord.debut != ancien_debut:
+        from .validation_prestations import verifier_periode_prise
+        verifier_periode_prise(a, accord.debut, accord.fin)
     if accord.quantite is not None and total(accord)>accord.quantite:raise ValidationError('La quantité autorisée ne peut être inférieure aux remises actives.')
     for r in accord.remises.filter(annule_le__isnull=True):bornes(accord,r.date)
     apres=photo(accord)

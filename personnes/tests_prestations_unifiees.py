@@ -35,7 +35,8 @@ class PrestationsUnifieesTests(Donnees,TestCase):
         self.assertEqual(page.status_code,200)
         self.assertContains(page,'data-prestation-panneau',count=1)
         self.assertContains(page,'>Ouvrir</a>')
-        self.assertNotContains(page,'>Modifier</a>')
+        rubrique = page.content.decode().split('data-dossier-boite="repas"', 1)[1]
+        self.assertNotIn('>Modifier</a>', rubrique.split('</section>', 1)[0])
         self.assertContains(page,'%2Fcorrection%2F%3Fpk%3D'+str(p.pk))
         self.assertContains(page,'id="condition-composition"',count=1)
         self.assertContains(page,'>Refermer</a>',count=1)

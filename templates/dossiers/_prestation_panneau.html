@@ -1,4 +1,4 @@
-<div class="prestation-panneau{% if impression %} prestation-impression{% endif %}" data-prestation-panneau{% if en_action %} data-prestation-en-action{% endif %}>
+<div class="prestation-panneau{% if impression %} prestation-impression{% endif %}" data-prestation-panneau{% if verifiable %} data-prestation-verifiable{% endif %}{% if en_action %} data-prestation-en-action{% endif %}>
 <nav class="prestation-commandes" aria-label="Actions de la prestation ouverte">
 {% if en_action %}{% if not annuler_en_pied %}<a class="bouton secondaire" href="{{ retour_consultation }}" data-prestation-lien data-prestation-annuler>Annuler</a>{% endif %}{% else %}<a href="{{ fermer_url }}" data-prestation-fermer>Refermer</a><a href="{{ imprimer_url }}" target="_blank" rel="noopener">Imprimer / PDF</a>{% endif %}
 </nav>

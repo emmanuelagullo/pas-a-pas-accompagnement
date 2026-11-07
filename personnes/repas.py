@@ -27,8 +27,8 @@ def accorder(acteur, accompagnement, beneficiaires, debut, fin, service, prestat
     ids = {p.pk for p in beneficiaires}
     if not ids or not ids.issubset(set(accompagnement.beneficiaires.values_list("pk", flat=True))):
         raise ValidationError("Choisissez des bénéficiaires de cet accompagnement.")
-    if debut < accompagnement.debut or (accompagnement.fin and (fin is None or fin > accompagnement.fin)):
-        raise ValidationError("La période accordée doit être comprise dans l’accompagnement.")
+    from .validation_prestations import verifier_periode_prise
+    verifier_periode_prise(accompagnement, debut, fin)
     accord = AccordRepas(accompagnement=accompagnement, debut=debut, fin=fin, service=service, prestataire=prestataire, jours_semaine=jours_semaine or [], cree_par=acteur)
     accord.full_clean()
     accord.save()

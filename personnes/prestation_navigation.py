@@ -272,7 +272,12 @@ def page(request, nature, pk, prise_pk):
     interne._prestation_capture = True
     interne.path = urlsplit(operation).path; interne.path_info = chemin_interne(interne.path); interne.resolver_match = match
     verification = request.headers.get('X-Verifier-Prestation') == '1'
-    if verification and (genre != 'nouveau' or objet != 'hebergement' or match.view_name != 'dossiers:nouveau'):
+    verifiable = (
+        match.view_name in ('dossiers:nouveau', 'dossiers:aide_accorder', 'dossiers:aide_corriger')
+        or match.view_name == 'dossiers:collectif_action' and match.kwargs.get('action') in ('creation', 'correction')
+        or match.view_name == 'suivi:corriger_saisie' and match.kwargs.get('nature') in ('sejour', 'accordrepas')
+    )
+    if verification and not verifiable:
         raise Http404
     resultat = match.func(interne, *match.args, **match.kwargs)
     if verification:
@@ -367,7 +372,7 @@ def page(request, nature, pk, prise_pk):
     contenu = localiser(contenu,context,cle,'' if consulter else adresse(context,cle,operation),True,operation)
     panneau = render_to_string('dossiers/_prestation_panneau.html',{
         'dossier':context['objet'],'prise':context['prise'],'contenu':contenu,'fermer_url':adresse(context)+'#prestation-'+cle.replace(':','-'),'retour_consultation':adresse(context)+'#'+('hebergement' if objet == 'hebergement' else 'repas' if objet in ('repas','services_repas') else 'aides-'+objet) if genre == 'nouveau' else adresse(context,cle),'en_creation':genre == 'nouveau',
-        'annuler_en_pied':annuler_en_pied,'en_action':urlsplit(operation).path != (urlsplit(consultation(genre,objet)).path if genre != 'nouveau' else ''),
+        'annuler_en_pied':annuler_en_pied, 'verifiable':verifiable, 'en_action':urlsplit(operation).path != (urlsplit(consultation(genre,objet)).path if genre != 'nouveau' else ''),
         'imprimer_url':adresse(context,cle,impression=True),'impression':request.GET.get('imprimer')=='1',
     },request=request)
     context.update(prestation_ouverte=cle,prestation_panneau=mark_safe(panneau),prestation_annulee=genre == 'sejour' and bool(objet.annule_le),prestation_accord_annule=genre == 'hebergement' and bool(objet.annule_le))

@@ -160,8 +160,8 @@ def renseigner(acteur,objet,attendu,debut,reference,identifies,complements,sourc
 def verifier_version(p,v):
     from .hebergement import verifier_periode
     a=p.accompagnement
-    if v.debut<a.debut or (a.fin and (v.fin_prevue is None or v.fin_prevue>a.fin)):
-        raise ValidationError('La période doit rester dans la prise en charge.')
+    from .validation_prestations import verifier_periode_prise
+    verifier_periode_prise(a, v.debut, v.fin_prevue, champ_fin='fin_prevue')
     if v.fin_prevue and v.fin_prevue<v.debut or v.fin and v.fin<v.debut:raise ValidationError('La fin précède le début.')
     if v.fin and v.fin>timezone.localdate():raise ValidationError('Une fin effective ne peut pas être future.')
     if p.nature=='hebergement':

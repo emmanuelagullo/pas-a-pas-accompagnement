@@ -1,0 +1,1 @@
+{% if champ.is_hidden %}{{ champ }}{{ champ.errors }}{% else %}<div class="champ-formulaire"{% if champ_arrivee %} data-champ-arrivee{% if not arrivee_visible %} hidden{% endif %}{% endif %}>{{ champ.as_field_group }}</div>{% endif %}

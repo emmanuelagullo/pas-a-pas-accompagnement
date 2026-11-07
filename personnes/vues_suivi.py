@@ -59,7 +59,8 @@ def traiter(request, formulaire, titre, action, menage=None, retour=None, sejour
         try:
             resultat = saisie_sociale.executer(formulaire, action)
         except ValidationError as erreur:
-            formulaire.add_error(None, " ".join(erreur.messages))
+            from .validation_prestations import reporter_erreur
+            reporter_erreur(formulaire, erreur)
         else:
             if request.headers.get('X-Condition-Form') == '1':
                 from django.http import JsonResponse
