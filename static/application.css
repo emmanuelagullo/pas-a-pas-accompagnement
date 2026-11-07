@@ -464,4 +464,6 @@ header > nav .menu-utilisateur { position: relative; }
 
 /* Les choix de période et Annuler partagent le pied du formulaire. */
 .bd-actions > [data-validation-prestation] { display: contents; }
-.bd-actions > [data-validation-prestation] > :is(.attention-parametrage, .impact-nouvelle-prise) { flex-basis: 100%; }
+.bd-actions > [data-validation-prestation] > :is(.conflit-periode, .choix-periode) { flex-basis: 100%; }
+.choix-periode { margin: 0; padding: .55rem .8rem; }
+.choix-periode p { margin: 0 0 .55rem; }

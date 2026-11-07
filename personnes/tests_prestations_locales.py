@@ -101,7 +101,14 @@ class PrestationsLocalesTests(TestCase):
         donnees.pop('arrivee_effectuee')
         url = self.url('nouveau:hebergement')
         apercu = self.client.post(url, donnees, headers={'X-Verifier-Prestation': '1'})
-        self.assertIn('Créer une prise en charge pour ce séjour', apercu.json()['commandes'])
+        commandes = apercu.json()['commandes']
+        self.assertIn('La prise en charge s’est terminée le 01/03/2026', commandes)
+        self.assertIn('Créer une prise en charge pour ce séjour', commandes)
+        self.assertIn('aria-describedby="effet-modification-prise"', commandes)
+        self.assertIn('aria-describedby="effet-nouvelle-prise"', commandes)
+        formulaire = self.client.get(url)
+        self.assertContains(formulaire, 'type="number" name="duree"')
+
         self.assertEqual(m.Accompagnement.objects.count(), 1)
         page = self.client.post(url, {**donnees, 'nouvelle_prise': '1'}, follow=True)
         self.assertEqual(page.status_code, 200)

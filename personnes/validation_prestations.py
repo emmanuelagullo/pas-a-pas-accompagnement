@@ -60,7 +60,7 @@ def preparer_resolution(request, form, prise, champ_fin='fin', *, fin_par_defaut
             return None
     if not request.user.has_perm('personnes.change_accompagnement'):
         return None
-    form.accompagnement = prise
+    form.fin_prise_resolution = prise.fin
     form.fin_confirmation = fin
     form.nouvelle_fin = fin if fin and fin <= timezone.localdate() else None
     donnees = [str(prise.pk), str(prise.fin), prise.revision_sociale, str(debut), str(fin),

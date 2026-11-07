@@ -47,7 +47,7 @@ class AdmissionGuideeForm(AccordForm):
                 self.initial[nom] = None
         self.fields['debut'].label = 'Début prévu inclus'
         self.fields['fin'].label = 'Fin prévue exclue — facultative'
-        for nom in ('debut', 'fin', 'admission', 'duree'):
+        for nom in ('debut', 'fin', 'admission'):
             champ = self.fields[nom]
             champ.widget = forms.DateInput(format='%d/%m/%Y', attrs={
                 **champ.widget.attrs, 'type': 'text', 'placeholder': 'jj/mm/aaaa', 'data-date-fr': '1',
@@ -127,6 +127,7 @@ class AdmissionGuideeForm(AccordForm):
                 return True
         except signing.BadSignature:
             pass
+        self.fin_prise_resolution = self.accompagnement.fin
         self.fin_confirmation = fin
         self.jeton_fin = signing.dumps(dates, salt='sejour-fin-prise')
         self.nouvelle_fin = fin if fin and fin <= timezone.localdate() else None
