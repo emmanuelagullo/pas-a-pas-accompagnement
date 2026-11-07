@@ -271,7 +271,12 @@ def page(request, nature, pk, prise_pk):
         interne._post['contexte_dossier'] = context['prise'].navigation['contexte_dossier']
     interne._prestation_capture = True
     interne.path = urlsplit(operation).path; interne.path_info = chemin_interne(interne.path); interne.resolver_match = match
+    verification = request.headers.get('X-Verifier-Prestation') == '1'
+    if verification and (genre != 'nouveau' or objet != 'hebergement' or match.view_name != 'dossiers:nouveau'):
+        raise Http404
     resultat = match.func(interne, *match.args, **match.kwargs)
+    if verification:
+        return resultat
     if 300 <= resultat.status_code < 400:
         if request.method != 'POST': raise Http404
         # Le POST n'est jamais rejoué ; revenir par un GET stable et signé.

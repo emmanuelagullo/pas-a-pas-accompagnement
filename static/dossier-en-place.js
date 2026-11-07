@@ -133,6 +133,53 @@
     if(modifie || occupe){radio.checked=false;const precedent=radio.closest('[data-dossier-boite]').querySelector('.selectionnee [data-prestation-url]');if(precedent)precedent.checked=true;etat('Terminez ou annulez la saisie en cours.');return;}
     charger(radio.dataset.prestationUrl);
   });
+  const verifications = new WeakMap();
+  document.addEventListener('change', async evenement => {
+    const champ = evenement.target;
+    if (!champ.matches?.('[name=debut], [name=fin], [name=admission]')) return;
+    const form = champ.form;
+    const commandes = form?.querySelector('[data-validation-sejour]');
+    if (!commandes || occupe || !form.matches('[data-prestation-form]')) return;
+    verifications.get(form)?.abort();
+    const controle = new AbortController();
+    verifications.set(form, controle);
+    const donnees = new FormData(form);
+    try {
+      const reponse = await fetch(actionFormulaire(form), {
+        method: 'POST', body: donnees, credentials: 'same-origin',
+        headers: {'X-Verifier-Prestation': '1'}, signal: controle.signal,
+      });
+      if (!reponse.ok || !reponse.headers.get('Content-Type')?.startsWith('application/json')) return;
+      const resultat = await reponse.json();
+      if (controle.signal.aborted || !form.isConnected || occupe) return;
+      for (const nom of ['debut', 'fin', 'admission']) {
+        if (String(form.elements.namedItem(nom)?.value || '') !== String(donnees.get(nom) || '')) return;
+      }
+      if (!commandes.contains(document.activeElement)) commandes.innerHTML = resultat.commandes;
+      for (const nom of ['debut', 'fin', 'admission']) {
+        const entree = form.elements.namedItem(nom);
+        if (!entree?.id) continue;
+        const identifiant = entree.id + '-verification';
+        const descriptions = (entree.getAttribute('aria-describedby') || '').split(/\s+/).filter(id => id && id !== identifiant);
+        let message = document.getElementById(identifiant);
+        if (!message) {
+          message = document.createElement('p');
+          message.id = identifiant;
+          message.className = 'errorlist';
+          message.setAttribute('aria-live', 'polite');
+          entree.after(message);
+        }
+        const erreurs = resultat.erreurs[nom] || [];
+        message.textContent = erreurs.join(' ');
+        message.hidden = !erreurs.length;
+        if (erreurs.length) descriptions.push(identifiant);
+        if (descriptions.length) entree.setAttribute('aria-describedby', descriptions.join(' '));
+        else entree.removeAttribute('aria-describedby');
+      }
+    } catch (_) {
+      // L’enregistrement normal reste disponible si la vérification échoue.
+    }
+  });
   document.addEventListener('submit',e=>{
     const form=e.target;if(!form.matches('[data-prestation-form]'))return;
     e.preventDefault();if(occupe)return;

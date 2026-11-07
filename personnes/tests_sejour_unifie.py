@@ -45,6 +45,12 @@ class SejourUnifieTests(Donnees, TestCase):
         donnees = {'accompagnement': str(self.a.pk), 'beneficiaires': [self.p.pk], 'debut': '02/03/2026',
                    'arrivee_effectuee': 'on', 'admission': '02/03/2026',
                    'attendu': admission.jeton(self.a)}
+        verification = self.client.post(url, donnees, headers={'X-Verifier-Prestation': '1'})
+        self.assertEqual(verification.status_code, 200)
+        self.assertIn('Rouvrir la prise en charge et enregistrer le séjour', verification.json()['commandes'])
+        self.a.refresh_from_db()
+        self.assertEqual(self.a.fin, date(2026, 3, 1))
+        self.assertEqual(Sejour.objects.count(), 1)
         page = self.client.post(url, donnees)
         self.assertContains(page, 'Rouvrir la prise en charge et enregistrer le séjour')
         self.a.refresh_from_db()

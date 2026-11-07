@@ -124,6 +124,18 @@ class AdmissionGuideeForm(AccordForm):
         return False
 
 
+def verifier_saisie_sejour(request, form):
+    from django.http import JsonResponse
+    from django.template.loader import render_to_string
+
+    if form.is_valid():
+        form.enregistrement_autorise(request.user)
+    return JsonResponse({
+        'commandes': render_to_string('hebergement/_validation_sejour.html', {'form': form}, request=request),
+        'erreurs': {nom: list(form.errors[nom]) for nom in ('debut', 'fin', 'admission') if nom in form.errors},
+    })
+
+
 @never_cache
 @require_http_methods(['GET', 'POST'])
 @login_required
@@ -141,6 +153,8 @@ def accueillir(request, pk):
         acteur=request.user, simple=simple, accompagnement=a, beneficiaires=a.beneficiaires.all(), initial={'debut': debut, 'fin': fin if fin and fin > debut else None,
             'admission': debut, 'beneficiaires': list(a.beneficiaires.values_list('pk', flat=True)),
             'attendu': admission.jeton(a)})
+    if request.method == 'POST' and request.headers.get('X-Verifier-Prestation') == '1':
+        return verifier_saisie_sejour(request, form)
     statut = 200
     if request.method == 'POST' and form.is_valid() and form.enregistrement_autorise(request.user):
         try:
