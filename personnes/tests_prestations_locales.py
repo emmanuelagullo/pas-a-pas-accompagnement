@@ -29,7 +29,7 @@ class PrestationsLocalesTests(TestCase):
             page=self.client.get(self.url(cle))
             self.assertEqual(page.status_code,200)
             self.assertContains(page,'aria-label="Fil d’Ariane"',count=1)
-            self.assertContains(page,'<h1>Prise en charge',count=1)
+            self.assertContains(page,'<h1 data-prise-entete="titre">Prise en charge',count=1)
             self.assertContains(page,'data-prestation-panneau',count=1)
             self.assertContains(page,'>Refermer</a>',count=1)
             self.assertContains(page,'id="hebergement"')
@@ -87,7 +87,7 @@ class PrestationsLocalesTests(TestCase):
             with self.subTest(cle=cle,route=route):
                 page=self.client.get(self.url(cle,reverse(route,args=args)))
                 self.assertEqual(page.status_code,200)
-                self.assertContains(page,'<h1>Prise en charge',count=1)
+                self.assertContains(page,'<h1 data-prise-entete="titre">Prise en charge',count=1)
                 self.assertContains(page,'data-prestation-panneau',count=1)
                 self.assertNotContains(page,'<h1>Enregistrer')
                 self.assertNotContains(page,'&lt;!DOCTYPE')

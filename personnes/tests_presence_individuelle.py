@@ -58,9 +58,10 @@ class PresenceFamilialeTests(Donnees, TestCase):
             h.admettre_individuellement(self.u, self.accord, [self.p, autre], date(2026,1,5))
         self.assertEqual(Sejour.objects.count(), 1)
 
-    def test_http_selection_collective_cree_deux_sejours(self):
+    def test_http_selection_collective_cree_un_sejour_commun(self):
         self.client.force_login(self.u)
         response = self.client.post(reverse('suivi:admettre', args=[self.accord.pk]),
             {'beneficiaires': [str(self.p.pk), str(self.enfant.pk)], 'debut': '2026-01-05'})
         self.assertRedirects(response, reverse('suivi:accord_hebergement', args=[self.accord.pk]))
-        self.assertEqual(Sejour.objects.count(), 3)
+        self.assertEqual(Sejour.objects.count(), 2)
+        self.assertTrue(self.accord.sejours.filter(beneficiaires=self.p).filter(beneficiaires=self.enfant).exists())

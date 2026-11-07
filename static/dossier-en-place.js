@@ -64,6 +64,15 @@
       if(!doc.querySelector('[data-dossier-form2]') || (!reponse.ok && ![400,409].includes(reponse.status)))throw new Error();
       const ouverte=cibleUrl(reponse.url), source=ouverte && hote(ouverte,doc);
       synchroniser(doc);
+      if (options.method === 'POST') {
+        const entete = ['titre', 'etat', 'actions'].map(nom => '[data-prise-entete="' + nom + '"]');
+        entete.push('.fil-ariane [aria-current="page"]');
+        for (const selecteur of entete) {
+          const actuel = document.querySelector(selecteur), recu = doc.querySelector(selecteur);
+          if (actuel && recu && !actuel.isEqualNode(recu)) actuel.replaceWith(recu.cloneNode(true));
+        }
+        document.title = doc.title;
+      }
       let destination=source && hote(ouverte);
       if(source && !destination && ouverte.startsWith('hebergement:')){destination=source.cloneNode(false);document.querySelector('#hebergement > .boite-entete').after(destination);}
       if(source && !destination)throw new Error();

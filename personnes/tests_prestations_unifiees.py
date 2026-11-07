@@ -40,7 +40,7 @@ class PrestationsUnifieesTests(Donnees,TestCase):
         self.assertContains(page,'%2Fcorrection%2F%3Fpk%3D'+str(p.pk))
         self.assertContains(page,'id="condition-composition"',count=1)
         self.assertContains(page,'>Refermer</a>',count=1)
-        self.assertContains(page,'<h1>Prise en charge',count=1)
+        self.assertContains(page,'<h1 data-prise-entete="titre">Prise en charge',count=1)
         operation=reverse('dossiers:collectif_action',args=['prise',self.a.pk,'prolongation'])+'?'+urlencode({'pk':p.pk})
         page=self.client.get(self.url('commun:'+str(p.pk),operation))
         self.assertContains(page,'data-prestation-form')
@@ -68,8 +68,9 @@ class PrestationsUnifieesTests(Donnees,TestCase):
         self.assertFalse(m.PrestationCollective.objects.exists())
         response=self.client.post(self.url('nouveau:commun_restauration'),d)
         self.assertEqual(response.status_code,302)
-        self.assertContains(self.client.get(response.url),'data-prestation-panneau',count=1)
-        self.assertEqual(m.PrestationCollective.objects.count(),1)
+        page = self.client.get(response.url)
+        self.assertNotContains(page, 'data-prestation-panneau')
+        self.assertContains(page, 'commun:' + str(m.PrestationCollective.objects.get().pk))
 
     def test_desactivation_ne_cache_pas_histoire_et_garde_interface(self):
         p=self.restaurer();self.service.profil_collectif={};self.service.save()

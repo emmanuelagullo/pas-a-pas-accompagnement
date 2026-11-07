@@ -307,6 +307,14 @@ def page(request, nature, pk, prise_pk):
         elif genre == 'hebergement' and match.view_name in ('suivi:arrivee_prevue','suivi:admettre') and params.get('sejour'):
             cle = 'sejour:'+params['sejour']
         context['parametres_prestations'] = params
+        if genre == 'nouveau':
+            if objet.startswith('commun_'):
+                params['sejour' if objet == 'commun_hebergement' else 'repas'] = ident
+            elif objet not in ('hebergement', 'repas', 'services_repas'):
+                params['aide_' + objet] = str(ident)
+            ancre = ('hebergement' if objet in ('hebergement', 'commun_hebergement') else
+                     'repas' if objet in ('repas', 'services_repas', 'commun_restauration') else 'aides-' + objet)
+            return HttpResponseRedirect(adresse(context) + '#' + ancre)
         if genre != 'nouveau' and (match.view_name.startswith('dossiers:financement') or match.view_name == 'suivi:cahier'):
             try:
                 autoriser_operation(context,cle,resultat['Location'])

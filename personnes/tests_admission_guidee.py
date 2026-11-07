@@ -21,12 +21,12 @@ class AdmissionGuideeTests(TestCase):
         valeurs.update(kw)
         return admission.accueillir(self.u, self.a, **valeurs)
 
-    def test_accord_admissions_individuelles_et_affectations_sans_repas(self):
+    def test_accord_sejour_commun_et_affectation_sans_repas(self):
         accord = self.accueillir()
         self.assertEqual(accord.debut, date(2026,2,1))
-        self.assertEqual(accord.sejours.count(), 2)
+        self.assertEqual(accord.sejours.count(), 1)
         for s in accord.sejours.all():
-            self.assertEqual(s.beneficiaires.count(), 1)
+            self.assertEqual(s.beneficiaires.count(), 2)
             self.assertEqual(s.debut, date(2026,2,3))
             self.assertEqual(s.affectations.get().lieu, self.lieu)
         self.assertFalse(RepasDistribue.objects.exists())
@@ -39,23 +39,16 @@ class AdmissionGuideeTests(TestCase):
         self.u = type(self.u).objects.get(pk=self.u.pk)
         accord = self.accueillir(lieu=None)
         self.assertFalse(Affectation.objects.filter(sejour__accord=accord).exists())
-        self.assertEqual(accord.sejours.count(), 2)
+        self.assertEqual(accord.sejours.count(), 1)
         with self.assertRaises(PermissionDenied): self.accueillir()
 
     def test_mauvaise_date_et_echec_affectation_annulent_tout(self):
         avant = (AccordHebergement.objects.count(), Sejour.objects.count(), OperationHebergement.objects.count())
         with self.assertRaises(ValidationError): self.accueillir(admission=date(2026,3,1))
-        ajouter = h.ajouter_periode
-        appels = 0
-        def affecter(*args, **kwargs):
-            nonlocal appels
-            appels += 1
-            if appels == 2:
-                raise ValidationError('Deuxième affectation indisponible')
-            return ajouter(*args, **kwargs)
-        with patch('personnes.admission.h.ajouter_periode', side_effect=affecter):
-            with self.assertRaises(ValidationError): self.accueillir()
-        self.assertEqual(appels, 2)
+        with patch('personnes.admission.h.ajouter_periode', side_effect=ValidationError('Lieu indisponible')) as affecter:
+            with self.assertRaises(ValidationError):
+                self.accueillir()
+        affecter.assert_called_once()
         self.assertFalse(Affectation.objects.exists())
         self.assertEqual((AccordHebergement.objects.count(), Sejour.objects.count(), OperationHebergement.objects.count()), avant)
 
@@ -86,7 +79,7 @@ from django.test import TransactionTestCase
 
 
 class ConcurrenceAdmissionGuidee(TransactionTestCase):
-    def test_double_envoi_ne_cree_quun_accord_et_deux_sejours(self):
+    def test_double_envoi_ne_cree_quun_accord_et_un_sejour(self):
         from concurrent.futures import ThreadPoolExecutor
         from threading import Barrier
         from django.db import close_old_connections, connections, OperationalError
@@ -111,5 +104,5 @@ class ConcurrenceAdmissionGuidee(TransactionTestCase):
             resultats = list(pool.map(envoyer, range(2)))
         self.assertEqual(sum(resultats), 1)
         self.assertEqual(AccordHebergement.objects.count(), 2)
-        self.assertEqual(Sejour.objects.count(), 3)
-        self.assertEqual(Affectation.objects.count(), 2)
+        self.assertEqual(Sejour.objects.count(), 2)
+        self.assertEqual(Affectation.objects.count(), 1)
