@@ -49,6 +49,34 @@ class CorrectionsTests(TestCase):
         self.assertEqual(trace.details['lieu'], {'avant': str(premier.pk), 'apres': str(lieu.pk)})
         self.assertEqual(accord.sejours.count(), 1)
 
+    def test_modifier_la_fin_de_prise_et_le_sejour_ensemble(self):
+        from django.contrib.auth.models import Permission
+
+        self.u.user_permissions.add(Permission.objects.get(
+            content_type__app_label='personnes', codename='change_accompagnement',
+        ))
+        self.u = type(self.u).objects.get(pk=self.u.pk)
+        accord = h.accorder(self.u, self.a, [self.p], date(2026, 1, 1), None)
+        sejour = h.admettre(self.u, accord, [self.p], date(2026, 1, 2))
+        h.sortir(self.u, sejour, date(2026, 1, 9))
+        suivi = self.a
+        suivi.fin = date(2026, 1, 10)
+        suivi.save(update_fields=['fin'])
+        suivi.refresh_from_db()
+        sejour.refresh_from_db()
+        with self.assertRaises(ValidationError):
+            self.corriger(sejour, date(2025, 12, 1), date(2026, 1, 12),
+                          depart_sejour=True, prise_confirmee=(suivi.fin, suivi.revision_sociale))
+        suivi.refresh_from_db()
+        self.assertEqual(suivi.fin, date(2026, 1, 10))
+        self.corriger(sejour, sejour.debut, date(2026, 1, 12),
+                      depart_sejour=True, prise_confirmee=(suivi.fin, suivi.revision_sociale))
+        suivi.refresh_from_db()
+        sejour.refresh_from_db()
+        self.assertEqual(suivi.fin, date(2026, 1, 12))
+        self.assertEqual(sejour.fin, suivi.fin)
+        self.assertEqual(suivi.evolutions_prevision.get().action, 'fin_effective')
+
     def test_accord_preserve_distributions(self):
         accord=repas.accorder(self.u,self.a,[self.p],date(2026,1,1),date(2026,2,1),'dejeuner')
         repas.distribuer(self.u,accord,self.p,date(2026,1,5),1)

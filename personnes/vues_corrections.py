@@ -43,6 +43,7 @@ def corriger(request,nature,pk):
         return HttpResponse('Cet accord est annulé ; ses dates restent conservées dans l’historique.', status=409)
     a=c.suivi_de(objet)
     retour=reverse('suivi:accompagnement',args=[a.pk]) if a else reverse('suivi:detail',args=[objet.menage_id])
+    simple = False
     if nature in c.TEXTES:
         initial={'date_effet':objet.date_effet,'texte':objet.texte,'source':getattr(objet,'source',''),'attendu':c.jeton(objet)}
         form=TexteForm(request.POST if request.method=='POST' else None,initial=initial)
@@ -100,13 +101,18 @@ def corriger(request,nature,pk):
             if nature == 'accordrepas':
                 for champ in ('beneficiaires', 'service', 'prestataire', 'jours_semaine'):
                     donnees.pop(champ, None)
-            return c.periode(request.user, objet, depart_sejour=simple, **donnees)
+            prise_confirmee = (a.fin, a.revision_sociale) if simple and form.conflit_fin else None
+            return c.periode(request.user, objet, depart_sejour=simple, prise_confirmee=prise_confirmee, **donnees)
     if request.method == 'POST' and request.headers.get('X-Verifier-Prestation') == '1':
         if nature not in ('sejour', 'accordrepas'):
             raise Http404
+        if simple:
+            from .vues_admission import verifier_saisie_sejour
+            return verifier_saisie_sejour(request, form)
         from .validation_prestations import diagnostic
         return diagnostic(form, a)
-    return traiter_hebergement(request,form,'Modifier le séjour' if nature == 'sejour' else 'Corriger une saisie — '+objet._meta.verbose_name,action,c.menage_de(objet),accompagnement=a,retour=retour)
+    return traiter_hebergement(request,form,'Modifier le séjour' if nature == 'sejour' else 'Corriger une saisie — '+objet._meta.verbose_name,action,c.menage_de(objet),accompagnement=a,retour=retour,
+        avant_enregistrement=(lambda: form.enregistrement_autorise(request.user)) if simple else None)
 
 
 @require_safe

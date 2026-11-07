@@ -49,13 +49,13 @@ def detail(request, pk):
         "evenements": menage.evenements.select_related("auteur") if request.user.has_perm("personnes.view_evenementsuivi") else []})
 
 
-def traiter(request, formulaire, titre, action, menage=None, retour=None, sejour=None, accompagnement=None):
+def traiter(request, formulaire, titre, action, menage=None, retour=None, sejour=None, accompagnement=None, avant_enregistrement=None):
     if accompagnement is None and sejour is not None:
         accompagnement = sejour.accord.accompagnement
     navigation = dossier.lire(request, accompagnement)
     from . import saisie_sociale
     saisie_sociale.preparer(request, formulaire)
-    if request.method == "POST" and not getattr(formulaire,"preparation_seule",False) and formulaire.is_valid():
+    if request.method == "POST" and not getattr(formulaire,"preparation_seule",False) and formulaire.is_valid() and (avant_enregistrement is None or avant_enregistrement()):
         try:
             resultat = saisie_sociale.executer(formulaire, action)
         except ValidationError as erreur:

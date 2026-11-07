@@ -190,7 +190,7 @@ def corriger_composition_et_lieu(acteur, sejour, beneficiaires, lieu):
 
 @service_metier
 @serialiser('objet')
-def periode(acteur,objet,debut,fin,motif,attendu,source=None, *, depart_sejour=False, destination_sortie="", beneficiaires=None, lieu=None):
+def periode(acteur,objet,debut,fin,motif,attendu,source=None, *, depart_sejour=False, destination_sortie="", beneficiaires=None, lieu=None, prise_confirmee=None):
     nature=objet._meta.model_name
     droits(acteur,nature)
     objet=type(objet).objects.get(pk=objet.pk)
@@ -201,6 +201,15 @@ def periode(acteur,objet,debut,fin,motif,attendu,source=None, *, depart_sejour=F
         from .accords import exiger_actif
         exiger_actif(objet)
     ancien=(objet.debut,objet.fin,getattr(objet,'source',''))
+    if prise_confirmee is not None and depart_sejour and nature == 'sejour':
+        from .admission import modifier_fin_prise
+        from .social import verrouiller
+
+        prise = verrouiller(objet.accord.accompagnement)
+        if (prise.fin, prise.revision_sociale - 1) != prise_confirmee:
+            raise ValidationError('La prise en charge a changé. Rechargez le formulaire avant de confirmer.')
+        modifier_fin_prise(acteur, prise, debut, fin)
+        objet.accord.accompagnement = prise
     modification_sejour = False
     if depart_sejour and nature == 'sejour':
         if objet.annule_le:

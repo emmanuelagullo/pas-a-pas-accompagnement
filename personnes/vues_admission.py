@@ -83,11 +83,6 @@ class AdmissionGuideeForm(AccordForm):
 
     def clean(self):
         donnees = super().clean()
-        if self.edition_sejour:
-            for nom in ('beneficiaires', 'lieu'):
-                if nom in self.fields and self.fields[nom].disabled:
-                    donnees.pop(nom, None)
-            return donnees
         a = self.accompagnement
         self.conflit_fin = False
         if a is not None:
@@ -98,6 +93,11 @@ class AdmissionGuideeForm(AccordForm):
                 self.add_error('fin', 'La date de fin du séjour doit suivre sa date de début.')
             elif debut and a.fin and not self.has_error('fin') and (debut >= a.fin or fin is None or fin > a.fin):
                 self.conflit_fin = True
+        if self.edition_sejour:
+            for nom in ('beneficiaires', 'lieu'):
+                if nom in self.fields and self.fields[nom].disabled:
+                    donnees.pop(nom, None)
+            return donnees
         if self.simple:
             donnees.update(arrivee_effectuee=True, admission=donnees.get('debut'))
         if donnees.get('arrivee_effectuee') and not donnees.get('admission'):
@@ -113,7 +113,8 @@ class AdmissionGuideeForm(AccordForm):
             self.add_error('fin', f'La prise en charge s’est terminée le {date_fin}. Modifiez les dates du séjour ou demandez à une personne autorisée de modifier la prise en charge.')
             return False
         fin = self.cleaned_data.get('fin')
-        dates = [self.cleaned_data['attendu'], str(self.cleaned_data['debut']), str(fin)]
+        dates = [self.cleaned_data['attendu'], str(self.cleaned_data['debut']), str(fin),
+                 str(self.accompagnement.fin), self.accompagnement.revision_sociale]
         try:
             if signing.loads(self.data.get('confirmation_fin', ''), salt='sejour-fin-prise', max_age=3600) == dates:
                 return True
