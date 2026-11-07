@@ -386,6 +386,13 @@ header > nav .menu-utilisateur { position: relative; }
 /* NAV7 : seul le contenu de la prestation choisie se développe. */
 .prestation-hote { grid-column:1/-1; min-width:0; }
 .prestation-hote:empty { display:none; }
+/* Pendant une saisie, conserver le dossier visible et retirer les commandes concurrentes. */
+.bd-prestations:has([data-prestation-en-action]) :is(.actions-directes, .hebergement-actions-individuelles, [data-hebergement-actions], [data-prestation-selection-valider]) {
+  display: none;
+}
+.prestation-panneau :is(h4, .erreurs-formulaire, .errorlist):focus {
+  scroll-margin-block: 5rem;
+}
 .prestation-panneau { padding:1rem; border-top:1px solid #b8ccbf; background:white; overflow-wrap:anywhere; }
 .prestation-commandes { display:flex; flex-wrap:wrap; gap:.75rem; margin-bottom:1rem; }
 .prestation-contenu h4 { font-size:1.15rem; margin:.8rem 0; }
