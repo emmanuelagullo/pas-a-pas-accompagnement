@@ -335,6 +335,8 @@ def page(request, nature, pk, prise_pk):
             'hebergement/admission_guidee.html',
         )
         if annuler_en_pied:
+            if genre == 'repas' and match.view_name == 'suivi:corriger_saisie':
+                donnees['distributions_prestation_url'] = adresse(context, cle)
             if genre == 'nouveau':
                 if objet in ('hebergement', 'commun_hebergement'):
                     ancre = 'hebergement'
