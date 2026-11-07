@@ -390,6 +390,15 @@ header > nav .menu-utilisateur { position: relative; }
 .bd-prestations:has([data-prestation-en-action]) :is(.actions-directes, .hebergement-actions-individuelles, [data-hebergement-actions], [data-prestation-selection-valider], [data-prestation-creation]) {
   display: none;
 }
+/* La sélection précédente ne s’affiche pas pendant la création. */
+.bd-prestations:has([data-prestation-en-creation]) .prestation-selection {
+  visibility: hidden;
+}
+.bd-prestations:has([data-prestation-en-creation]) .prestation-ligne.selectionnee {
+  background: transparent;
+  border-color: #dbe5df;
+  box-shadow: none;
+}
 .prestation-panneau [data-prestation-soumission-implicite] { display: none; }
 .prestation-panneau :is(h4, .erreurs-formulaire, .errorlist):focus {
   scroll-margin-block: 5rem;
