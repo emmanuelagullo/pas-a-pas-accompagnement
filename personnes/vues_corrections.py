@@ -68,6 +68,8 @@ def corriger(request,nature,pk):
         if simple:
             from .vues_admission import AdmissionGuideeForm
 
+            if objet.fin is None:
+                initial['fin'] = objet.accord.fin
             initial['beneficiaires'] = list(objet.beneficiaires.values_list('pk', flat=True))
             form = AdmissionGuideeForm(
                 request.POST if request.method == 'POST' else None,

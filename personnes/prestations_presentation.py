@@ -172,6 +172,8 @@ def ligne(context,objet,genre):
                 lieu=objet.lieu_ouvert.lieu if objet.lieu_ouvert else objet.lieux_dossier[0].lieu if objet.lieux_dossier else 'Lieu non renseigné'
                 etat+=' · '+str(lieu)
             resume=[etat]
+            if not objet.fin and objet.accord.fin:
+                resume.append('Fin d’hébergement prévue le ' + date(objet.accord.fin))
             if objet.destination_sortie and not objet.annule_le:
                 resume.append(DESTINATION_SORTIE + ' : ' + objet.destination_sortie)
         if genre!='hebergement':resume.append(' ; '.join(str(p) for p in objet.beneficiaires.all()))

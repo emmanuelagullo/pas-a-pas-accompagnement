@@ -43,7 +43,7 @@ def etat(objet):
     if isinstance(objet, (m.AccordRepas, m.AccordHebergement)):
         resultat += [objet.revision, str(objet.annule_le)]
     if isinstance(objet, m.Sejour):
-        resultat += [str(objet.annule_le), list(sorted(str(p) for p in objet.beneficiaires.values_list('pk', flat=True))),
+        resultat += [objet.accord.revision, str(objet.annule_le), list(sorted(str(p) for p in objet.beneficiaires.values_list('pk', flat=True))),
                      [[str(x.pk), str(x.lieu_id), str(x.debut), str(x.fin)] for x in objet.affectations.order_by('pk')]]
     return resultat
 
@@ -96,7 +96,7 @@ def dates_dependantes(a):
         for valeur in modele.objects.filter(accompagnement=a).values_list(champ,flat=True):incluse(a,valeur,point=True)
 
 
-def valider(objet):
+def valider(objet, *, fin_prevue_sejour=None):
     nature=objet._meta.model_name
     if nature=='sejour' and objet.annule_le or nature in ('affectation','absence') and objet.sejour.annule_le:raise ValidationError('Cette arrivée a été annulée ; ses périodes restent dans l’historique et ne sont plus modifiables.')
     objet.full_clean()
@@ -120,7 +120,7 @@ def valider(objet):
             raise ValidationError('La date de continuité ne se corrige pas indépendamment de ses fragments ; les autres dates restent corrigibles.')
         incluse(objet.accord, objet.debut, point=True, libelle="La date d’arrivée du séjour", cadre="période d’hébergement prévue")
         from .validation_prestations import verifier_periode_prise
-        verifier_periode_prise(objet.accord.accompagnement, objet.debut, objet.fin)
+        verifier_periode_prise(objet.accord.accompagnement, objet.debut, objet.fin or fin_prevue_sejour)
         for periode in list(objet.affectations.all())+list(objet.absences.all()):incluse(objet,periode.debut,periode.fin)
     elif nature in ('affectation','absence'):
         from .hebergement import bornes
@@ -218,6 +218,40 @@ def periode(acteur,objet,debut,fin,motif,attendu,source=None, *, depart_sejour=F
         if objet.annule_le:
             raise ValidationError('Ce séjour a été annulé.')
         modification_sejour = corriger_composition_et_lieu(acteur, objet, beneficiaires, lieu)
+    if depart_sejour and nature == 'sejour' and objet.fin is None and (
+        (fin is not None and fin > timezone.localdate())
+        or (objet.accord.fin is not None and fin in (None, objet.accord.fin))
+    ):
+        from .accords import exiger_actif
+        from .hebergement import verifier_periode
+        from .validation_prestations import verifier_periode_prise
+
+        accord = objet.accord
+        if destination_sortie:
+            raise ValidationError("Renseignez la destination lorsque le départ a eu lieu.")
+        verifier_periode(debut, fin)
+        verifier_periode_prise(accord.accompagnement, debut, fin)
+        if fin != accord.fin:
+            exiger(acteur, 'change_accordhebergement')
+            exiger_actif(accord)
+            if accord.sejours.non_annules().exclude(pk=objet.pk).exists():
+                raise ValidationError("Cette fin prévue est commune à plusieurs séjours. Modifiez la période d’hébergement associée.")
+            ancien_accord = (accord.debut, accord.fin, '')
+            accord.fin = fin
+            accord.revision += 1
+            accord.full_clean()
+            accord.save(update_fields=['fin', 'revision'])
+            enregistrer(acteur, accord, ancien_accord, motif)
+            modification_sejour = True
+        if debut != objet.debut:
+            objet.debut = debut
+            valider(objet, fin_prevue_sejour=fin)
+            objet.save(update_fields=['debut'])
+            enregistrer(acteur, objet, ancien, motif)
+            modification_sejour = True
+        if not modification_sejour:
+            raise ValidationError('Aucune modification.')
+        return objet
     if depart_sejour and nature == 'sejour' and objet.fin is None and fin is not None:
         from .hebergement import sortir
 

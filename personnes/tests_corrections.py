@@ -31,6 +31,20 @@ class CorrectionsTests(TestCase):
         self.assertEqual(sejour.affectations.get().fin, fin)
         self.assertEqual(accord.operations.filter(action='Sortie effective').count(), 1)
 
+    def test_fin_future_saisie_dans_le_sejour_reste_prevue(self):
+        from datetime import timedelta
+        from django.utils import timezone
+
+        accord = h.accorder(self.u, self.a, [self.p], date(2026, 1, 1), None)
+        sejour = h.admettre(self.u, accord, [self.p], date(2026, 1, 2))
+        fin = timezone.localdate() + timedelta(days=7)
+        self.corriger(sejour, sejour.debut, fin, depart_sejour=True)
+        accord.refresh_from_db()
+        sejour.refresh_from_db()
+        self.assertEqual(accord.fin, fin)
+        self.assertIsNone(sejour.fin)
+        self.assertFalse(accord.operations.filter(action='Sortie effective').exists())
+
     def test_corriger_le_lieu_et_les_beneficiaires_du_sejour(self):
         from .models import Personne
 

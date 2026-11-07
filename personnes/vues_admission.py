@@ -71,6 +71,8 @@ class AdmissionGuideeForm(AccordForm):
                 sejour.origine_collective_id or hasattr(sejour, 'individualisation')
             )
             self.fields['fin'].label = 'Fin du séjour (exclue)'
+            if sejour.fin is None:
+                self.fields['fin'].help_text = 'Une date future fixe la fin prévue, sans enregistrer de départ.'
             if 'lieu' in self.fields:
                 affectations = list(sejour.affectations.order_by('debut', 'pk')[:2])
                 champ = self.fields['lieu']
