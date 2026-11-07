@@ -293,13 +293,13 @@ class NouveauxParcoursNavigateur(StaticLiveServerTestCase):
         page = self.navigateur()
         page.goto(self.live_server_url + reverse('suivi:accompagnement', args=[self.a.pk]))
         page.get_by_role('link', name='Nouveau séjour', exact=True).click()
-        page.locator('input[name="debut"]').fill('2026-02-01')
-        page.locator('input[name="fin"]').fill('2026-03-01')
-        page.locator('input[name="admission"]').fill('2026-02-03')
+        page.locator('input[name="debut"]').fill('01/02/2026')
+        page.locator('input[name="fin"]').fill('01/03/2026')
+        page.locator('input[name="admission"]').fill('03/02/2026')
         page.locator('select[name="lieu"]').select_option(str(self.lieu.pk))
         page.get_by_role('button', name='Enregistrer le séjour').click()
         page.get_by_role('heading', name='Dossier — ' + self.m.libelle, exact=True).wait_for()
-        self.assertEqual(page.locator('input[name="sejour"]').count(), 3)
+        self.assertEqual(page.locator('input[name="sejour"]').count(), 2)
         def nouvel_identifiant():
             return str(AccordHebergement.objects.exclude(pk=self.accord.pk).get().sejours.first().pk)
         identifiant = verifier_hors_boucle_playwright(nouvel_identifiant)
@@ -307,7 +307,7 @@ class NouveauxParcoursNavigateur(StaticLiveServerTestCase):
         page.get_by_role('button', name='Afficher les actions du séjour choisi', exact=True).click()
         page.get_by_role('link', name='Ouvrir le séjour et son accord', exact=True).click()
         page.get_by_role('heading', name='Hébergement accordé et séjours effectifs').wait_for()
-        self.assertEqual(page.get_by_role('heading', name='Séjour du', exact=False).count(), 2)
+        self.assertEqual(page.get_by_role('heading', name='Séjour du', exact=False).count(), 1)
         page.get_by_role('link', name='Agir sur plusieurs séjours', exact=False).click()
         for case in page.locator('input[name="sejours"]').all():
             case.check()
@@ -319,7 +319,7 @@ class NouveauxParcoursNavigateur(StaticLiveServerTestCase):
             accord = AccordHebergement.objects.exclude(pk=self.accord.pk).get()
             return (accord.sejours.count(), sum(s.absences.filter(debut=date(2026,2,5)).count() for s in accord.sejours.all()),
                     RepasDistribue.objects.count())
-        self.assertEqual(verifier_hors_boucle_playwright(verifier), (2, 2, 0))
+        self.assertEqual(verifier_hors_boucle_playwright(verifier), (1, 1, 0))
 
     def test_veilleur_date_conservee_et_refus_social(self):
         self.profil('view_personne', 'view_menage', 'view_accompagnement',
@@ -566,7 +566,7 @@ class EntreeBDNavigateur(StaticLiveServerTestCase):
         boite.get_by_text('Le formulaire a expiré. Rechargez l’accompagnement.', exact=True).wait_for()
         self.assertEqual(boite.locator('input[name="debut"]').input_value(), '2026-04-01')
         page.once('dialog', lambda dialog: dialog.accept())
-        boite.get_by_role('link', name='Annuler la création', exact=True).click()
+        boite.get_by_role('link', name='Annuler', exact=True).click()
         page.locator('[data-prestation-form]').wait_for(state='detached')
         self.assertEqual(page.locator('#hebergement [data-prestation-url]:checked').count(), 1)
 
@@ -740,7 +740,7 @@ class ConditionSocialeNavigateur(StaticLiveServerTestCase):
         page.get_by_role('link', name='Nouveau séjour', exact=True).click()
         hebergement = page.locator('#hebergement')
         hebergement.locator('form[data-prestation-dossier]').wait_for()
-        hebergement.get_by_role('link', name='Annuler la création', exact=True).click()
+        hebergement.get_by_role('link', name='Annuler', exact=True).click()
         page.locator('[data-prestation-form]').wait_for(state='detached')
         self.assertEqual(page.locator('[data-condition-contexte]').input_value(), 'Entretien fictif de qualification')
         groupe.get_by_role('link', name='Modifier', exact=True).click()

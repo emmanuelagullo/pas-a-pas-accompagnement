@@ -237,7 +237,7 @@ class RubriquesSocialesNavigateur(StaticLiveServerTestCase):
         page.get_by_role('link', name='Nouveau séjour', exact=True).click()
         hebergement = page.locator('#hebergement')
         expect(hebergement.locator('form[data-prestation-dossier]')).to_be_visible()
-        hebergement.get_by_role('link', name='Annuler la création', exact=True).click()
+        hebergement.get_by_role('link', name='Annuler', exact=True).click()
         expect(page.locator('[data-prestation-form]')).to_have_count(0)
         expect(page.locator('[data-condition-repli][open]')).to_have_count(0)
         page.locator('.menu-utilisateur').first.locator('summary').click()

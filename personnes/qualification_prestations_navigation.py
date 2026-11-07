@@ -97,7 +97,7 @@ class PrestationsNavigationNavigateur(StaticLiveServerTestCase):
         expect(panneau).to_be_visible()
         expect(page.get_by_role('navigation', name='Dans cette page', exact=True).get_by_role('link', name='Prestations', exact=True)).to_have_attribute('aria-current', 'location')
         self.assertGreater(panneau.bounding_box()['width'], 700)
-        boite.get_by_role('link', name='Annuler et revenir à la prestation', exact=True).click()
+        boite.get_by_role('link', name='Annuler', exact=True).click()
         expect(panneau).to_have_count(0)
         boite.get_by_role('link', name='Enregistrer une distribution', exact=True).first.click()
         form = boite.locator('.operation-en-place form').last

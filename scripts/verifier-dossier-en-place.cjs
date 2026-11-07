@@ -19,7 +19,7 @@ const path = require('node:path');
         return disponible;
       }},
     location: {href: 'https://exemple.invalid/chrs/dossiers/menage/fictif/', origin: 'https://exemple.invalid'},
-    URL, Event, FormData: class { append() {} },
+    URL, Event, queueMicrotask, FormData: class { append() {} },
     fetch: (url, options) => new Promise((resolve, reject) => pending.push({url, options, resolve, reject})),
   };
   const code = fs.readFileSync(path.join(__dirname, '../static/dossier-en-place.js'), 'utf8');

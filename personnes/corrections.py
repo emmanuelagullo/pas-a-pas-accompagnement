@@ -65,9 +65,15 @@ def motif_valide(motif):
     return motif
 
 
-def incluse(parent,debut,fin=None,point=False):
-    if debut<parent.debut or (parent.fin and (debut>=parent.fin or (not point and (fin is None or fin>parent.fin)))):
-        raise ValidationError('La correction dépasse la période de rattachement.')
+def incluse(parent, debut, fin=None, point=False, *, libelle='La date demandée', cadre=None):
+    nom = cadre or ('prise en charge' if isinstance(parent, m.Accompagnement) else str(parent._meta.verbose_name))
+    if debut < parent.debut:
+        raise ValidationError(f'{libelle} est le {debut:%d/%m/%Y}. Début de la {nom} : {parent.debut:%d/%m/%Y}.')
+    if parent.fin and debut >= parent.fin:
+        raise ValidationError(f'{libelle} est le {debut:%d/%m/%Y}. Fin de la {nom} : {parent.fin:%d/%m/%Y} (date exclue).')
+    if parent.fin and not point and (fin is None or fin > parent.fin):
+        fin_demandee = f'La fin demandée est le {fin:%d/%m/%Y}.' if fin else 'Vous n’avez indiqué aucune date de fin.'
+        raise ValidationError(f'{fin_demandee} Fin de la {nom} : {parent.fin:%d/%m/%Y} (date exclue).')
 
 
 def dates_dependantes(a):
@@ -112,8 +118,8 @@ def valider(objet):
     elif nature=='sejour':
         if hasattr(objet,'individualisation') and objet.fin!=objet.individualisation.date or objet.origine_collective_id and objet.debut!=objet.origine_collective.fin:
             raise ValidationError('La date de continuité ne se corrige pas indépendamment de ses fragments ; les autres dates restent corrigibles.')
-        incluse(objet.accord,objet.debut,point=True)
-        incluse(objet.accord.accompagnement,objet.debut,objet.fin)
+        incluse(objet.accord, objet.debut, point=True, libelle="La date d’arrivée du séjour", cadre="période d’hébergement prévue")
+        incluse(objet.accord.accompagnement, objet.debut, objet.fin, libelle="La date d’arrivée du séjour")
         for periode in list(objet.affectations.all())+list(objet.absences.all()):incluse(objet,periode.debut,periode.fin)
     elif nature in ('affectation','absence'):
         from .hebergement import bornes

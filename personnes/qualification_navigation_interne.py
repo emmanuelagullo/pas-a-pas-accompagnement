@@ -258,7 +258,7 @@ class NavigationInterneNavigateur(StaticLiveServerTestCase):
         hebergement = page.locator('#hebergement')
         expect(hebergement.locator('form[data-prestation-dossier]')).to_be_visible()
         # Annuler la création conserve le cadre et le sommaire du dossier.
-        hebergement.get_by_role('link', name='Annuler la création', exact=True).tap()
+        hebergement.get_by_role('link', name='Annuler', exact=True).tap()
         expect(page.locator('[data-prestation-form]')).to_have_count(0)
         barre.get_by_role('button', name='Sommaire', exact=True).tap()
         expect(menu).to_be_visible()
