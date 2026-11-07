@@ -42,7 +42,7 @@ module.exports = async function verifierParcoursMetier(app) {
   // COL4b conserve ce groupe et cette nomenclature entre services ;
   // COL4d compare les deux services dans le même composant NAV
   // (qualification_prestations_unifiees), en complément de ce parcours.
-  await hebergement.getByRole('link', {name:'Annuler la création', exact:true}).click();
+  await hebergement.locator('form[data-prestation-dossier]').getByRole('link', {name:'Annuler', exact:true}).click();
   await app.locator('[data-prestation-form]').waitFor({state:'detached'});
   // Même formulaire pour l’accueil prévu, puis confirmation de l’arrivée.
   await app.getByRole('link', {name:'Nouveau séjour', exact:true}).click();

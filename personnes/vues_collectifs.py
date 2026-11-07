@@ -72,6 +72,7 @@ def preparer(request,objet,action,pk=None,nature=None):
         suivi.exiger(acteur,'view_prestationcollective','view_compositioncollective','view_versionprestationcollective','view_couvertcollectif','change_prestationcollective' if p else 'add_prestationcollective')
         if not p and cfg[nature]=='individuel':raise PermissionDenied('Utilisez le parcours individuel de cette famille.')
         form=f.PrestationForm(data,prise=objet,nature=nature,comp=comp,acteur=acteur,prestation=p)
+        form.objet_periode = 'le séjour' if nature == 'hebergement' else 'la période de repas'
         if p:
             def faire(attendu,couverts,**d):return c.modifier(acteur,p,attendu,'correction',couverts=couverts,**d)
         else:

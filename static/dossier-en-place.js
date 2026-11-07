@@ -153,6 +153,16 @@
   const verifications = new WeakMap();
   const temporisations = new WeakMap();
   const saisiesProgrammees = new WeakMap();
+  const ouverturesVerifiees = new WeakSet();
+  function verifierOuvertures() {
+    for (const form of document.querySelectorAll('[data-prestation-verifier-a-ouverture] [data-prestation-form]')) {
+      if (ouverturesVerifiees.has(form)) continue;
+      ouverturesVerifiees.add(form);
+      verifierPeriode(form);
+    }
+  }
+  document.addEventListener('navigation:actualise', () => queueMicrotask(verifierOuvertures));
+  queueMicrotask(verifierOuvertures);
   const champsPeriode = '[name=debut], [name=fin], [name=fin_prevue], [name=arrivee], [name=admission], [data-periode-duree], [name=calcul_periode], [data-arrivee-effectuee]';
   function programmerVerification({target: champ}) {
     if (!champ.matches?.(champsPeriode)) return;

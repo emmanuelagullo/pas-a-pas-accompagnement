@@ -108,6 +108,7 @@ class PrestationsLocalesTests(TestCase):
         self.assertIn('aria-describedby="effet-nouvelle-prise"', commandes)
         formulaire = self.client.get(url)
         self.assertContains(formulaire, 'type="number" name="duree"')
+        self.assertContains(formulaire, 'data-prestation-verifier-a-ouverture')
 
         self.assertEqual(m.Accompagnement.objects.count(), 1)
         page = self.client.post(url, {**donnees, 'nouvelle_prise': '1'}, follow=True)

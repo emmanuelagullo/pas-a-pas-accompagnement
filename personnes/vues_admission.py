@@ -18,6 +18,7 @@ from . import admission, hebergement as h, dossier, accords
 from .prestation_navigation import rendre as render
 
 class AdmissionGuideeForm(AccordForm):
+    objet_periode = "le séjour"
     arrivee_effectuee = forms.BooleanField(label='Arrivée déjà effectuée', required=False, initial=True,
         help_text='Décochez pour un accueil prévu. La date d’arrivée et le lieu s’appliquent seulement à une arrivée effectuée.',
         widget=forms.CheckboxInput(attrs={'data-arrivee-effectuee': '1'}))

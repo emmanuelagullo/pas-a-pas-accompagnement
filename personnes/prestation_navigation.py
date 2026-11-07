@@ -384,7 +384,9 @@ def page(request, nature, pk, prise_pk):
     contenu = localiser(contenu,context,cle,'' if consulter else adresse(context,cle,operation),True,operation)
     panneau = render_to_string('dossiers/_prestation_panneau.html',{
         'dossier':context['objet'],'prise':context['prise'],'contenu':contenu,'fermer_url':adresse(context)+'#prestation-'+cle.replace(':','-'),'retour_consultation':adresse(context)+'#'+('hebergement' if objet == 'hebergement' else 'repas' if objet in ('repas','services_repas') else 'aides-'+objet) if genre == 'nouveau' else adresse(context,cle),'en_creation':genre == 'nouveau',
-        'annuler_en_pied':annuler_en_pied, 'verifiable':verifiable, 'en_action':urlsplit(operation).path != (urlsplit(consultation(genre,objet)).path if genre != 'nouveau' else ''),
+        'annuler_en_pied':annuler_en_pied, 'verifiable':verifiable,
+        'verifier_a_ouverture': request.method == 'GET' and genre == 'nouveau'
+            and objet in ('hebergement', 'commun_hebergement') and context['prise'].fin, 'en_action':urlsplit(operation).path != (urlsplit(consultation(genre,objet)).path if genre != 'nouveau' else ''),
         'imprimer_url':adresse(context,cle,impression=True),'impression':request.GET.get('imprimer')=='1',
     },request=request)
     context.update(prestation_ouverte=cle,prestation_panneau=mark_safe(panneau),prestation_annulee=genre == 'sejour' and bool(objet.annule_le),prestation_accord_annule=genre == 'hebergement' and bool(objet.annule_le))

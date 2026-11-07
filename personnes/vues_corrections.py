@@ -103,6 +103,8 @@ def corriger(request,nature,pk):
                     donnees.pop(champ, None)
             prise_confirmee = (a.fin, a.revision_sociale) if simple and form.conflit_fin else getattr(form, "prise_confirmee", None)
             return c.periode(request.user, objet, depart_sejour=simple, prise_confirmee=prise_confirmee, **donnees)
+    if nature == 'accordrepas':
+        form.objet_periode = 'la période de repas'
     if request.method == 'POST' and request.headers.get('X-Verifier-Prestation') == '1':
         if nature not in ('sejour', 'accordrepas'):
             raise Http404

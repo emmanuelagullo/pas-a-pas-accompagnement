@@ -75,6 +75,8 @@ def nouveau(request, nature, pk, prestation):
             form = AccordForm(request.POST if request.method == 'POST' else None, accompagnement=a, initial=initial)
     else:
         form = FormulaireMetier(request.POST if request.method == 'POST' else None, initial=initial)
+    if a and prestation != 'hebergement':
+        form.objet_periode = 'la période de repas'
     champ = forms.ModelChoiceField(periodes, label='Prise en charge', empty_label='Choisir la prise en charge',
         help_text='Rattachement de cette prestation et bénéficiaires possibles. Aucune prise en charge ne sera créée.')
     champ.label_from_instance = lambda p: f'{p.debut:%d/%m/%Y} → {p.fin.strftime("%d/%m/%Y") if p.fin else "ouverte"} — {p.menage}'

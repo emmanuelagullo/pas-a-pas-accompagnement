@@ -80,6 +80,7 @@ def accorder(request,pk,nature):
 
     from .validation_prestations import diagnostic, preparer_resolution
     f.resolution_periode = True
+    f.objet_periode = "l’aide"
 
     def confirmer():
         fin = f.cleaned_data['debut'] + timedelta(days=1) if simple else None
@@ -169,6 +170,7 @@ def action(request,pk,action,remise_pk=None):
             return s.modifier(request.user, a, prolongation=action == 'prolonger',
                               prise_confirmee=getattr(f, 'prise_confirmee', None), **donnees)
     else:raise Http404
+    f.objet_periode = 'l’aide'
     if request.method == 'POST' and request.headers.get('X-Verifier-Prestation') == '1':
         if action != 'corriger':
             raise Http404
