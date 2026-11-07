@@ -40,3 +40,6 @@ TEMPLATES = [{**TEMPLATES[0], 'OPTIONS': {**TEMPLATES[0]['OPTIONS'],
     'context_processors': [*TEMPLATES[0]['OPTIONS']['context_processors'],
         'pas_a_pas_accompagnement.demo.contexte']}}]
 MIDDLEWARE = [*MIDDLEWARE, 'pas_a_pas_accompagnement.demo.ProtegerComptePublic']
+
+# La base SQLite de cette démonstration est neuve à chaque démarrage.
+MIGRATION_MODULES = dict.fromkeys(('identites', 'personnes', 'acteurs'))

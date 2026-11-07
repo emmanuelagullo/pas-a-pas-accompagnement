@@ -25,7 +25,7 @@ export DJANGO_SETTINGS_MODULE=pas_a_pas_accompagnement.settings_demo
 # Le runtime/volume temporaire de l'hébergeur reste responsable de sa purge.
 # Pas de suppression récursive automatique au redémarrage.
 python3 manage.py check --deploy --fail-level ERROR
-python3 manage.py migrate --noinput
+python3 manage.py migrate --run-syncdb --noinput
 case "${ACCOMPAGNEMENT_SCENARIO_DEMO:-acteurs}" in
     acteurs) python3 manage.py preparer_demonstration --acteurs ;;
     complet) python3 manage.py preparer_demonstration ;;

@@ -24,6 +24,24 @@ class RepriseCollectiveTests(CollectifsTests):
         for code,n in c.effectifs(self.comp).items():d.update({'couverts_'+code:str(n),'prix_'+code:'5'})
         d.update(kw);return d
 
+    def test_nouvelle_prise_pour_un_sejour_collectif(self):
+        self.a.fin = date(2026, 1, 5)
+        self.a.save(update_fields=['fin'])
+        self.a.refresh_from_db()
+        self.client.force_login(self.u)
+        url = reverse('dossiers:collectif_action', args=['prise', self.a.pk, 'creation']) + '?nature=hebergement'
+        donnees = {'debut': '2026-01-10', 'fin_prevue': '2026-01-11', 'devise': 'EUR', 'attendu': c.jeton(self.a)}
+        apercu = self.client.post(url, donnees, headers={'X-Verifier-Prestation': '1'})
+        self.assertIn('Créer une prise en charge pour ce séjour', apercu.json()['commandes'])
+        self.assertEqual(m.Accompagnement.objects.count(), 1)
+        page = self.client.post(url, {**donnees, 'nouvelle_prise': '1'})
+        self.assertEqual(page.status_code, 302, page.context['formctx']['form'].errors if page.context else '')
+        prestation = m.PrestationCollective.objects.get()
+        self.assertNotEqual(prestation.accompagnement_id, self.a.pk)
+        self.assertEqual(prestation.courante.composition.accompagnement_id, prestation.accompagnement_id)
+        self.assertEqual(prestation.courante.composition.complements, self.comp.complements)
+        self.assertEqual(m.Accompagnement.objects.get(pk=self.a.pk).fin, date(2026, 1, 5))
+
     def test_mono_repas_sans_bornes_transmises(self):
         d=self.donnees();d.pop('diner');d.pop('premier');d.pop('dernier')
         f=PrestationForm(d,prise=self.a,nature='restauration',comp=self.comp,acteur=self.u)

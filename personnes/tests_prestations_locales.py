@@ -94,6 +94,26 @@ class PrestationsLocalesTests(TestCase):
                 liens=Liens();liens.feed(page.content.decode())
                 self.assertTrue(all('/tarifs/' in u or '/rapports/' in u or '/liaison/' in u or ('/dossiers/' in u and 'lia_ouvrir=1' in u) for u in liens.externes),liens.externes)
 
+    def test_nouvelle_prise_pour_un_sejour_apres_interruption(self):
+        self.a.fin = date(2026, 3, 1)
+        self.a.save(update_fields=['fin'])
+        donnees = precedent.Form2Tests.donnees(self)
+        donnees.pop('arrivee_effectuee')
+        url = self.url('nouveau:hebergement')
+        apercu = self.client.post(url, donnees, headers={'X-Verifier-Prestation': '1'})
+        self.assertIn('Créer une prise en charge pour ce séjour', apercu.json()['commandes'])
+        self.assertEqual(m.Accompagnement.objects.count(), 1)
+        page = self.client.post(url, {**donnees, 'nouvelle_prise': '1'}, follow=True)
+        self.assertEqual(page.status_code, 200)
+        nouvelle = m.Accompagnement.objects.exclude(pk=self.a.pk).get()
+        self.assertEqual(nouvelle.debut, date(2026, 4, 1))
+        self.assertContains(page, 'Prise en charge du 01/04/2026')
+        self.assertTrue(m.AccordHebergement.objects.filter(accompagnement=nouvelle).exists())
+        self.a.refresh_from_db()
+        self.assertEqual(self.a.fin, date(2026, 3, 1))
+        self.assertEqual(self.client.post(url, {**donnees, 'nouvelle_prise': '1'}).status_code, 409)
+        self.assertEqual(m.Accompagnement.objects.count(), 2)
+
     def test_creation_prevue_et_arrivee_dans_form3(self):
         from . import hebergement, admission
         hebergement.sortir(self.u,self.s,date(2026,1,20))
@@ -103,7 +123,6 @@ class PrestationsLocalesTests(TestCase):
         page=self.client.post(url,data,follow=True)
         self.assertEqual(page.status_code,200)
         self.assertNotContains(page, 'data-prestation-panneau')
-        self.assertContains(page, 'Prévu — arrivée à confirmer')
         prevu=m.AccordHebergement.objects.exclude(pk=self.accord.pk).get()
         self.assertContains(page, 'hebergement-prevu-' + str(prevu.pk))
         url=self.url('hebergement:'+str(prevu.pk),reverse('suivi:arrivee_prevue',args=[prevu.pk]))

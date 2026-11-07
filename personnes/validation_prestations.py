@@ -22,10 +22,10 @@ def reporter_erreur(form, erreur):
 
 
 
-def diagnostic(form, prise, champ_fin='fin', *, fin_par_defaut=None, request=None):
+def diagnostic(form, prise, champ_fin='fin', *, fin_par_defaut=None, request=None, proposer_nouvelle_prise=False):
     valide = form.is_valid()
     if valide and request is not None:
-        preparer_resolution(request, form, prise, champ_fin, fin_par_defaut=fin_par_defaut)
+        preparer_resolution(request, form, prise, champ_fin, fin_par_defaut=fin_par_defaut, proposer_nouvelle_prise=proposer_nouvelle_prise)
     debut = form.cleaned_data.get('debut')
     if debut and champ_fin not in form.errors and not getattr(form, 'jeton_fin', None):
         fin = form.cleaned_data.get(champ_fin, fin_par_defaut)
@@ -33,7 +33,7 @@ def diagnostic(form, prise, champ_fin='fin', *, fin_par_defaut=None, request=Non
             verifier_periode_prise(prise, debut, fin, champ_fin=champ_fin)
         except ValidationError as erreur:
             reporter_erreur(form, erreur)
-    reponse = {'erreurs': {nom: list(form.errors[nom]) for nom in ('debut', champ_fin, 'arrivee', 'admission') if nom in form.errors}}
+    reponse = {'erreurs': {nom: list(form.errors[nom]) for nom in ('debut', champ_fin, 'arrivee', 'admission', 'duree') if nom in form.errors}}
     if request is not None:
         from django.template.loader import render_to_string
         reponse['commandes'] = render_to_string(
@@ -42,7 +42,7 @@ def diagnostic(form, prise, champ_fin='fin', *, fin_par_defaut=None, request=Non
     return JsonResponse(reponse)
 
 
-def preparer_resolution(request, form, prise, champ_fin='fin', *, fin_par_defaut=None):
+def preparer_resolution(request, form, prise, champ_fin='fin', *, fin_par_defaut=None, proposer_nouvelle_prise=False):
     """Retourne l'état confirmé de la prise et prépare la même commande en aperçu."""
     from django.core import signing
     from django.utils import timezone
@@ -53,6 +53,11 @@ def preparer_resolution(request, form, prise, champ_fin='fin', *, fin_par_defaut
         return None
     if debut < prise.fin and fin is not None and fin <= prise.fin:
         return None
+    if proposer_nouvelle_prise:
+        from .admission import peut_ouvrir_apres_interruption
+        form.proposer_nouvelle_prise = peut_ouvrir_apres_interruption(request.user, prise, debut)
+        if form.proposer_nouvelle_prise and request.POST.get('nouvelle_prise') and request.headers.get('X-Verifier-Prestation') != '1':
+            return None
     if not request.user.has_perm('personnes.change_accompagnement'):
         return None
     form.accompagnement = prise

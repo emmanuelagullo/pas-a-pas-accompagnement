@@ -6,6 +6,6 @@
 </form><fieldset class="prestations-choix"><legend class="visuellement-cache">Sélectionner une période de repas pour ses actions</legend>
 <ul class="episodes-compacts" data-prestation-liste="repas">{% for accord in lignes_repas_nav %}{% ligne_prestation accord 'repas' %}{% empty %}<li>Aucun repas accordé.</li>{% endfor %}</ul></fieldset>{% if accords_repas or lignes_nav_restauration %}<button form="selection-repas" class="secondaire" data-prestation-selection-valider>Afficher les actions des repas choisis</button>{% endif %}
 {% actions_prestation 'restauration' %}
-{% if perms.personnes.add_accordrepas and suivi_repas_detaille %}<details><summary>Plusieurs services en une saisie</summary><a data-dossier-action data-prestation-cible="nouveau:services_repas" href="{% url 'dossiers:nouveau' nature objet.pk 'services_repas' %}?{{ navigation_query }}&amp;contexte_dossier={{ contexte_dossier|urlencode }}">Accorder plusieurs services</a></details>{% endif %}
+{% if perms.personnes.add_accordrepas and suivi_repas_detaille %}<details data-prestation-creation><summary>Plusieurs services en une saisie</summary><a data-dossier-action data-prestation-cible="nouveau:services_repas" href="{% url 'dossiers:nouveau' nature objet.pk 'services_repas' %}?{{ navigation_query }}&amp;contexte_dossier={{ contexte_dossier|urlencode }}">Accorder plusieurs services</a></details>{% endif %}
 </section>
 {% endprestations_locales %}

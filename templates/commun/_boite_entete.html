@@ -1,4 +1,4 @@
 <div class="boite-entete">
   <h3>{{ titre }}</h3>
-  {% if action_url %}<a class="bouton{% if secondaire %} secondaire{% endif %}" {% if action_type == 'parametrage' %}data-parametrage-modifier{% elif action_type == 'prestation' %}data-prestation-lien{% endif %} href="{{ action_url }}">{{ action_libelle }}</a>{% endif %}
+  {% if action_url %}<a class="bouton{% if secondaire %} secondaire{% endif %}" {% if action_type == 'parametrage' %}data-parametrage-modifier{% elif action_type == 'prestation' %}data-prestation-lien data-prestation-creation{% endif %} href="{{ action_url }}">{{ action_libelle }}</a>{% endif %}
 </div>

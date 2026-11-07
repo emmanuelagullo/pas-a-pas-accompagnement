@@ -241,7 +241,7 @@ def tarifs_proposes(acteur,prestataire,jour,categories,devise):
 
 @service_metier
 @transaction.atomic
-def creer(acteur,accompagnement,nature,comp,attendu,couverts,selection=None,reference_selection=None,selection_complements=None,prise_confirmee=None,**valeurs):
+def creer(acteur,accompagnement,nature,comp,attendu,couverts,selection=None,reference_selection=None,selection_complements=None,prise_confirmee=None,nouvelle_prise=False,**valeurs):
     suivi.exiger(acteur,'view_prestationcollective','add_prestationcollective','view_versionprestationcollective','view_couvertcollectif','view_compositioncollective')
     # Le jeton de création est lié à la prise, composition et configuration.
     verifier_jeton(accompagnement,attendu)
@@ -256,6 +256,27 @@ def creer(acteur,accompagnement,nature,comp,attendu,couverts,selection=None,refe
     verifier_offre(acteur,accompagnement,nature,valeurs)
     if comp.menage_id!=accompagnement.menage_id or comp.service_id!=service_objet(accompagnement).pk or comp.accompagnement_id not in (None,accompagnement.pk) or comp.annule_le:
         raise ValidationError('Composition étrangère ou annulée.')
+    if nouvelle_prise:
+        from .admission import ouvrir_apres_interruption
+
+        if nature != 'hebergement':
+            raise ValidationError('Cette action est réservée aux nouveaux séjours.')
+        debut = valeurs['debut']
+        # La nouvelle prise conserve son groupe. La sélection de la prestation
+        # reste traitée ci-dessous, comme pour une création ordinaire.
+        accompagnement = ouvrir_apres_interruption(
+            acteur, accompagnement, list(accompagnement.beneficiaires.all()), debut, valeurs.get('fin_prevue'),
+        )
+        if comp.accompagnement_id:
+            suivi.exiger(acteur, 'add_compositioncollective')
+            identifiants = list(comp.identifies.values_list('pk', flat=True))
+            comp = m.CompositionCollective.objects.create(
+                menage=comp.menage, accompagnement=accompagnement, service=comp.service,
+                debut=debut, reference=comp.reference, categories=deepcopy(comp.categories),
+                identites=deepcopy(comp.identites), complements=deepcopy(comp.complements),
+                auteur=acteur,
+            )
+            comp.identifies.set(identifiants)
     if selection is not None:
         suivi.exiger(acteur,'add_compositioncollective')
         ids={p.pk for p in selection}

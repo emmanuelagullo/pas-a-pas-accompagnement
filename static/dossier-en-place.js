@@ -59,6 +59,12 @@
     (ancien || hote(cle))?.setAttribute('aria-busy','true');
     try {
       const reponse=await fetch(url,{credentials:'same-origin',cache:'no-store',...options});
+      if (reponse.ok && options.body?.get?.('nouvelle_prise') && new URL(reponse.url).pathname !== url.pathname) {
+        modifie = false;
+        occupe = false;
+        location.assign(reponse.url);
+        return;
+      }
       const doc=new DOMParser().parseFromString(await reponse.text(),'text/html');
       if(doc.querySelector('input[name=password]')){location.assign(reponse.url);return;}
       if(!doc.querySelector('[data-dossier-form2]') || (!reponse.ok && ![400,409].includes(reponse.status)))throw new Error();
@@ -102,12 +108,14 @@
   function preparerValidation() {
     for (const form of document.querySelectorAll('[data-enregistrer-si-modifie]')) {
       if (formulairesSuivis.has(form)) continue;
-      const bouton = form.querySelector('button[type="submit"]');
-      if (!bouton) continue;
       formulairesSuivis.add(form);
       const etatFormulaire = () => JSON.stringify([...new FormData(form)]);
       const initial = etatFormulaire();
-      const actualiser = () => { bouton.disabled = etatFormulaire() === initial; };
+      const actualiser = () => {
+        const bouton = form.querySelector('button[type="submit"]:not([name]):not([hidden])');
+        if (bouton) bouton.disabled = etatFormulaire() === initial;
+      };
+      form.addEventListener('prestation:validation', actualiser);
       form.addEventListener('input', () => queueMicrotask(actualiser));
       form.addEventListener('change', () => queueMicrotask(actualiser));
       actualiser();
@@ -143,12 +151,30 @@
     charger(radio.dataset.prestationUrl);
   });
   const verifications = new WeakMap();
-  document.addEventListener('change', async evenement => {
-    const champ = evenement.target;
-    if (!champ.matches?.('[name=debut], [name=fin], [name=fin_prevue], [name=arrivee], [name=admission]')) return;
+  const temporisations = new WeakMap();
+  const champsPeriode = '[name=debut], [name=fin], [name=fin_prevue], [name=arrivee], [name=admission], [data-periode-duree], [name=calcul_periode], [data-arrivee-effectuee]';
+  function programmerVerification({target: champ}) {
+    if (!champ.matches?.(champsPeriode)) return;
     const form = champ.form;
+    if (!form?.matches('[data-prestation-form]') || !form.closest('[data-prestation-verifiable]')) return;
+    verifications.get(form)?.abort();
+    const commande = form.querySelector('[data-validation-prestation]');
+    if (commande?.querySelector('[name=confirmation_fin], [name=nouvelle_prise]')) {
+      const enregistrer = commande.querySelector('[data-prestation-soumission-implicite]');
+      if (enregistrer) {
+        enregistrer.removeAttribute('data-prestation-soumission-implicite');
+        enregistrer.hidden = false;
+        commande.replaceChildren(enregistrer);
+      }
+    }
+    if (!temporisations.has(form)) temporisations.set(form, window.PasRecherche.temporiser(() => verifierPeriode(form)));
+    temporisations.get(form)();
+  }
+  document.addEventListener('input', programmerVerification);
+  document.addEventListener('change', programmerVerification);
+  async function verifierPeriode(form) {
     const commandes = form?.querySelector('[data-validation-prestation]');
-    if (occupe || !form?.matches('[data-prestation-form]') || !form.closest('[data-prestation-verifiable]')) return;
+    if (occupe || !form.isConnected) return;
     verifications.get(form)?.abort();
     const controle = new AbortController();
     verifications.set(form, controle);
@@ -161,11 +187,20 @@
       if (!reponse.ok || !reponse.headers.get('Content-Type')?.startsWith('application/json')) return;
       const resultat = await reponse.json();
       if (controle.signal.aborted || !form.isConnected || occupe) return;
-      for (const nom of ['debut', 'fin', 'fin_prevue', 'arrivee', 'admission']) {
+      for (const nom of ['debut', 'fin', 'fin_prevue', 'arrivee', 'admission', 'duree']) {
         if (String(form.elements.namedItem(nom)?.value || '') !== String(donnees.get(nom) || '')) return;
       }
-      if (commandes && resultat.commandes && !commandes.contains(document.activeElement)) commandes.innerHTML = resultat.commandes;
-      for (const nom of ['debut', 'fin', 'fin_prevue', 'arrivee', 'admission']) {
+      if (commandes && resultat.commandes && commandes.innerHTML.trim() !== resultat.commandes.trim()) {
+        const actif = document.activeElement;
+        const commandeActive = commandes.contains(actif);
+        commandes.innerHTML = resultat.commandes;
+        form.dispatchEvent(new Event('prestation:validation'));
+        if (commandeActive) {
+          const boutons = [...commandes.querySelectorAll('button:not([hidden])')];
+          (boutons.find(bouton => bouton.name === actif.name) || boutons[0])?.focus({preventScroll: true});
+        }
+      }
+      for (const nom of ['debut', 'fin', 'fin_prevue', 'arrivee', 'admission', 'duree']) {
         const entree = form.elements.namedItem(nom);
         if (!entree?.id) continue;
         const identifiant = entree.id + '-verification';
@@ -188,7 +223,7 @@
     } catch (_) {
       // L’enregistrement normal reste disponible si la vérification échoue.
     }
-  });
+  }
   document.addEventListener('submit',e=>{
     const form=e.target;if(!form.matches('[data-prestation-form]'))return;
     e.preventDefault();if(occupe)return;

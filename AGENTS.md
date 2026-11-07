@@ -729,3 +729,7 @@ Le service, la prise et la personne doivent rester corrélés. Une nouvelle règ
 ne doit jamais modifier rétroactivement le ménage ni inventer une naissance ou
 un bénéficiaire. Qualifier la préparation d’un profil sans sauvegarde, les réglages
 sur place, le repli sans JavaScript et la coexistence de services différents.
+
+Pour les dates et durées des prestations, réévaluer après une courte pause de
+saisie avec la temporisation commune. Ignorer les réponses dépassées et garder
+la validation serveur lors de l’enregistrement, y compris sans JavaScript.

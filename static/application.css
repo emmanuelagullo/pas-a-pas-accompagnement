@@ -387,9 +387,10 @@ header > nav .menu-utilisateur { position: relative; }
 .prestation-hote { grid-column:1/-1; min-width:0; }
 .prestation-hote:empty { display:none; }
 /* Pendant une saisie, conserver le dossier visible et retirer les commandes concurrentes. */
-.bd-prestations:has([data-prestation-en-action]) :is(.actions-directes, .hebergement-actions-individuelles, [data-hebergement-actions], [data-prestation-selection-valider]) {
+.bd-prestations:has([data-prestation-en-action]) :is(.actions-directes, .hebergement-actions-individuelles, [data-hebergement-actions], [data-prestation-selection-valider], [data-prestation-creation]) {
   display: none;
 }
+.prestation-panneau [data-prestation-soumission-implicite] { display: none; }
 .prestation-panneau :is(h4, .erreurs-formulaire, .errorlist):focus {
   scroll-margin-block: 5rem;
 }
@@ -397,7 +398,7 @@ header > nav .menu-utilisateur { position: relative; }
 .prestation-commandes { display:flex; flex-wrap:wrap; gap:.75rem; margin-bottom:1rem; }
 .prestation-contenu h4 { font-size:1.15rem; margin:.8rem 0; }
 .prestation-contenu h5 { font-size:1rem; }
-.prestation-contenu a { display:inline; padding:.15rem; border:0; text-decoration:underline; color:#175c50; }
+.prestation-contenu a:not(.bouton) { display:inline; padding:.15rem; border:0; text-decoration:underline; color:#175c50; }
 .prestation-selection input { accent-color:#175c50; }
 @media print {
   body:has(.prestation-impression) > header, body:has(.prestation-impression) > footer { display:none !important; }
@@ -460,3 +461,7 @@ header > nav .menu-utilisateur { position: relative; }
   padding: .55rem .8rem;
   margin-block-end: .75rem;
 }
+
+/* Les choix de période et Annuler partagent le pied du formulaire. */
+.bd-actions > [data-validation-prestation] { display: contents; }
+.bd-actions > [data-validation-prestation] > :is(.attention-parametrage, .impact-nouvelle-prise) { flex-basis: 100%; }

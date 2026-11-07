@@ -107,7 +107,17 @@ def nouveau(request, nature, pk, prestation):
                     'titre': 'Nouvelle période de repas',
                 })
             if prestation == 'hebergement':
-                accord = admission.accueillir(request.user, a, modifier_fin=form.conflit_fin, **d)
+                nouvelle = bool(form.conflit_fin and request.POST.get('nouvelle_prise') and form.proposer_nouvelle_prise)
+                accord = admission.accueillir(request.user, a, modifier_fin=form.conflit_fin and not nouvelle, nouvelle_prise=nouvelle, **d)
+                if nouvelle:
+                    repere = {k: params[k] for k in ('q', 'mode', 'page', 'filtre', 'en_cours', 'retour_exploration') if k in params}
+                    cible = nature if nature == 'menage' or accord.accompagnement.beneficiaires.filter(pk=pk).exists() else 'menage'
+                    destination = dossier.pour_prise(
+                        request, accord.accompagnement, cible, pk if cible == nature else a.menage_id, repere,
+                    )['retour_dossier'] + '#hebergement'
+                    reponse = redirect(destination)
+                    reponse['X-Nouvelle-Prise'] = '1'
+                    return reponse
                 sejours = accord.sejours.non_annules()
                 if nature == 'personne':
                     sejours = sejours.filter(beneficiaires=objet)

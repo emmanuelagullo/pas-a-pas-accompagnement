@@ -72,7 +72,7 @@ Créer un service web Python depuis le dépôt ou son miroir, branche main.
 Les commandes suivantes supposent Python 3.12+ et Git, avec Gunicorn disponible :
 
 - Construction hébergée : `python -m pip install -r requirements-serveur.txt`.
-- Démarrage : `bash start-render.sh`.
+- Démarrage : `bash start-render.sh`. Sur cette base SQLite neuve, Django crée les tables de Pas à Pas depuis les modèles et charge le scénario fictif. Les installations persistantes appliquent les migrations habituelles.
 - Contrôle de santé : `/health/`.
 Sur Render, **aucune variable applicative HTTPS n'est nécessaire** : le script
 reprend RENDER_EXTERNAL_HOSTNAME, fourni par la plateforme, pour l'hôte exact,

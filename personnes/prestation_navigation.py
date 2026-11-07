@@ -284,6 +284,8 @@ def page(request, nature, pk, prise_pk):
         return resultat
     if 300 <= resultat.status_code < 400:
         if request.method != 'POST': raise Http404
+        if resultat.get('X-Nouvelle-Prise') == '1':
+            return resultat
         # Le POST n'est jamais rejoué ; revenir par un GET stable et signé.
         params = dict(context['parametres_prestations'])
         from django.core import signing

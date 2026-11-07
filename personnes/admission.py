@@ -34,9 +34,28 @@ def modifier_fin_prise(acteur, a, debut, fin):
     )
 
 
+def peut_ouvrir_apres_interruption(acteur, prise, debut):
+    return bool(debut and prise and prise.fin and debut > prise.fin and acteur.has_perms([
+        'personnes.view_personne', 'personnes.view_menage',
+        'personnes.view_accompagnement', 'personnes.add_accompagnement',
+    ]))
+
+
+def ouvrir_apres_interruption(acteur, prise, beneficiaires, debut, fin):
+    from acteurs import portees
+    from acteurs.contexte import perimetre
+    from . import suivi
+
+    if not peut_ouvrir_apres_interruption(acteur, prise, debut):
+        raise ValidationError('Une nouvelle prise en charge est proposée après une interruption du suivi.')
+    origine = portees.existante(prise)
+    with perimetre(acteur, service=origine.service_id if origine else None):
+        return suivi.ouvrir(acteur, prise.menage, beneficiaires, debut, fin)
+
+
 @service_metier
 @serialiser('accompagnement')
-def accueillir(acteur, accompagnement, beneficiaires, debut, fin, admission, attendu, lieu=None, arrivee_effectuee=True, modifier_fin=False):
+def accueillir(acteur, accompagnement, beneficiaires, debut, fin, admission, attendu, lieu=None, arrivee_effectuee=True, modifier_fin=False, nouvelle_prise=False):
     h.droit(acteur, 'add_accordhebergement')
     if arrivee_effectuee:
         h.exiger(acteur, 'add_sejour')
@@ -56,6 +75,8 @@ def accueillir(acteur, accompagnement, beneficiaires, debut, fin, admission, att
     if modifier_fin:
         modifier_fin_prise(acteur, a, debut, fin)
     beneficiaires = list(beneficiaires)
+    if nouvelle_prise:
+        a = ouvrir_apres_interruption(acteur, a, beneficiaires, debut, fin)
     accord = h.accorder(acteur, a, beneficiaires, debut, fin)
     if not arrivee_effectuee:
         return accord

@@ -47,7 +47,7 @@ class AdmissionGuideeForm(AccordForm):
                 self.initial[nom] = None
         self.fields['debut'].label = 'Début prévu inclus'
         self.fields['fin'].label = 'Fin prévue exclue — facultative'
-        for nom in ('debut', 'fin', 'admission'):
+        for nom in ('debut', 'fin', 'admission', 'duree'):
             champ = self.fields[nom]
             champ.widget = forms.DateInput(format='%d/%m/%Y', attrs={
                 **champ.widget.attrs, 'type': 'text', 'placeholder': 'jj/mm/aaaa', 'data-date-fr': '1',
@@ -106,6 +106,13 @@ class AdmissionGuideeForm(AccordForm):
 
 
     def enregistrement_autorise(self, acteur):
+        self.proposer_nouvelle_prise = not self.edition_sejour and admission.peut_ouvrir_apres_interruption(
+            acteur, self.accompagnement, self.cleaned_data.get('debut'),
+        )
+        if self.data.get('nouvelle_prise'):
+            if not self.proposer_nouvelle_prise:
+                self.add_error(None, 'La nouvelle prise en charge ne peut plus être créée avec ces dates.')
+            return self.proposer_nouvelle_prise
         if not self.conflit_fin:
             return True
         if not acteur.has_perm('personnes.change_accompagnement'):
@@ -134,7 +141,7 @@ def verifier_saisie_sejour(request, form):
         form.enregistrement_autorise(request.user)
     return JsonResponse({
         'commandes': render_to_string('dossiers/_prestation_validation.html', {'form': form}, request=request),
-        'erreurs': {nom: list(form.errors[nom]) for nom in ('debut', 'fin', 'admission') if nom in form.errors},
+        'erreurs': {nom: list(form.errors[nom]) for nom in ('debut', 'fin', 'admission', 'duree') if nom in form.errors},
     })
 
 
@@ -160,7 +167,8 @@ def accueillir(request, pk):
     statut = 200
     if request.method == 'POST' and form.is_valid() and form.enregistrement_autorise(request.user):
         try:
-            accord = admission.accueillir(request.user, a, modifier_fin=form.conflit_fin, **form.cleaned_data)
+            nouvelle = bool(request.POST.get('nouvelle_prise') and form.proposer_nouvelle_prise) if form.conflit_fin else False
+            accord = admission.accueillir(request.user, a, modifier_fin=form.conflit_fin and not nouvelle, nouvelle_prise=nouvelle, **form.cleaned_data)
         except ValidationError as erreur:
             form.add_error(None, 'Aucun accord, séjour ou lieu d’affectation n’a été enregistré. ' + ' '.join(erreur.messages))
             statut = 409
@@ -169,6 +177,8 @@ def accueillir(request, pk):
             statut = 409
         else:
             messages.success(request, 'Arrivée enregistrée.' if form.cleaned_data['arrivee_effectuee'] else 'Séjour prévu ; arrivée à confirmer.')
+            if nouvelle:
+                return redirect(dossier.pour_prise(request, accord.accompagnement, 'menage', a.menage_id, {})['retour_dossier'])
             return redirect(navigation['retour_dossier']) if navigation else redirect('suivi:accord_hebergement', pk=accord.pk)
     return render(request, 'hebergement/admission_guidee.html', {**navigation, 'accompagnement': a, 'form': form}, status=statut)
 
