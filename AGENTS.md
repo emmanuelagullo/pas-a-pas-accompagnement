@@ -382,6 +382,11 @@ navigateur/PWA lors d'un changement des libellés ou de la navigation.
 
 ## Aides contextuelles et erreurs compréhensibles
 
+Mieux vaut omettre une aide que présenter une explication obscure ou technique.
+Écrire pour les professionnels qui utilisent le dossier, avec leurs mots et des
+indications utiles à leur travail. Garder les détails informatiques, comme le
+fonctionnement de JavaScript, dans la documentation technique.
+
 Pour chaque champ ou action dont le sens n'est pas évident, expliquer l'intention,
 la cible (personne, groupe, période), l'effet et les limites utiles. Éviter les
 aides qui répètent simplement le libellé ; ne pas imposer une bulle à chaque item.

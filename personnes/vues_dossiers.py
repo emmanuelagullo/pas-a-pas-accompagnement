@@ -277,6 +277,23 @@ def detail(request, nature, pk, prise_pk=None):
         params['prise'] = str(prise.pk)
         params['accompagnement'] = str(prise.pk)
     signer = dossier.pour_prise if prise else dossier.pour_vue
+    aides_visibles = []
+    if prise:
+        from . import aides as metier_aides, models as modeles
+        if request.user.has_perms(metier_aides.LECTURE):
+            qs = modeles.AccordAide.objects.filter(accompagnement=prise).prefetch_related('beneficiaires')
+            if nature == 'personne': qs = qs.filter(beneficiaires=objet)
+            aides_visibles = list(qs)
+    if prise and getattr(request, '_prestation_interne', False) and request.headers.get('X-Verifier-Prestation') == '1':
+        # L'aperçu valide la même cible sans préparer les rubriques du dossier.
+        prise.navigation = signer(request, prise, nature, pk, params)
+        return render(request, 'dossiers/prise.html', {
+            'request': request, 'objet': objet, 'nature': nature, 'prise': prise,
+            'parametres_prestations': params, 'sejours_dossier': sejours,
+            'arrivees_annulees': arrivees_annulees, 'hebergements_prevus': prevus,
+            'accords_annules_sans_sejour': [a for a in accords_h if a.annule_le],
+            'accords_repas': accords_r, 'prestations_aides_visibles': aides_visibles,
+        })
     # Chaque boîte signe le vrai parent de sa sélection, jamais le premier suivi arbitraire.
     nav_h = signer(request, selection_h.accord.accompagnement, nature, pk, params) if selection_h else {}
     nav_r = signer(request, selection_r.accompagnement, nature, pk, params) if selection_r else {}
@@ -364,13 +381,6 @@ def detail(request, nature, pk, prise_pk=None):
     groupes_h, accords_collectifs, selection_collective = presenter(sejours,selection_h)
     from .hebergement_collectif import ACTIONS
     actions_collectives_h=any(request.user.has_perms(['personnes.'+d for d in droits]) for _,droits in ACTIONS.values())
-    aides_visibles = []
-    if prise:
-        from . import aides as metier_aides, models as modeles
-        if request.user.has_perms(metier_aides.LECTURE):
-            qs = modeles.AccordAide.objects.filter(accompagnement=prise).prefetch_related('beneficiaires')
-            if nature == 'personne': qs = qs.filter(beneficiaires=objet)
-            aides_visibles = list(qs)
     contexte = {'sources_prestations_nav': sources_nav, 'request':request,
         'frise_ouverte': params.get('frise_ouverte', ''), 'frise_axe': next(iter(frises_objets.values()), None), 'frises_actives': frises_actives, 'frise_retour': frises.commande(request), 'frises_objets': frises_objets,
         'condition_personnes': condition_personnes, 'condition_projets': condition_projets, 'condition_reperes': condition_reperes,

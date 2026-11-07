@@ -18,8 +18,7 @@ def preparer(form):
         help_text='Début inclus, fin exclue. Ce nombre ne compte ni les personnes ni les repas réalisés. Vide : durée non définie.')
     form.fields['calcul_periode']=forms.ChoiceField(label='Calculer avec',required=False,
         choices=[('dates','Les dates'),('duree','Le début et la durée')],initial='dates',
-        widget=forms.RadioSelect(attrs={'data-periode-calcul':'1'}),
-        help_text='Les champs se synchronisent pendant la saisie. Sans JavaScript, choisissez le calcul puis enregistrez.')
+        widget=forms.RadioSelect(attrs={'data-periode-calcul':'1'}))
     if not form.is_bound:
         try:
             d=form.fields[debut].clean(form.initial.get(debut,form.fields[debut].initial))

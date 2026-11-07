@@ -37,7 +37,7 @@ def diagnostic(form, prise, champ_fin='fin', *, fin_par_defaut=None, request=Non
     if request is not None:
         from django.template.loader import render_to_string
         reponse['commandes'] = render_to_string(
-            'dossiers/_prestation_validation.html', {'form': form, 'libelle_validation': 'Enregistrer'}, request=request,
+            'dossiers/_prestation_validation.html', {'form': form, 'libelle_validation': 'Enregistrer'},
         )
     return JsonResponse(reponse)
 

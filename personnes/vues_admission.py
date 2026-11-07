@@ -140,7 +140,7 @@ def verifier_saisie_sejour(request, form):
     if form.is_valid():
         form.enregistrement_autorise(request.user)
     return JsonResponse({
-        'commandes': render_to_string('dossiers/_prestation_validation.html', {'form': form}, request=request),
+        'commandes': render_to_string('dossiers/_prestation_validation.html', {'form': form}),
         'erreurs': {nom: list(form.errors[nom]) for nom in ('debut', 'fin', 'admission', 'duree') if nom in form.errors},
     })
 
