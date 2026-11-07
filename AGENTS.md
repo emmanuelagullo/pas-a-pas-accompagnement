@@ -132,7 +132,10 @@ exactement aux patches livrés ; expliciter leur base et leurs dépendances.
 - Garder les opérations rares sous « Réglages avancés », repliés par défaut.
   Pour une action avec effet étendu ou difficile à corriger, expliquer son
   effet au point de confirmation et signaler l’attention par un libellé et
-  l’orange. Réserver le rouge aux actions majeures, par exemple une perte
+  l’orange. Si une résolution modifie aussi une autre donnée, nommer cette
+  donnée et annoncer la modification avant confirmation. La commande ordinaire
+  ou implicite ne doit jamais confirmer cet effet supplémentaire.
+  Réserver le rouge aux actions majeures, par exemple une perte
   irréversible de données ou un changement des droits d’administration.
   Une opération rouge requiert une confirmation serveur adaptée au mode
   d’authentification et une trace. Le changement d’un libellé sans changement

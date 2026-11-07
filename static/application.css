@@ -443,6 +443,16 @@ header > nav .menu-utilisateur { position: relative; }
  .collecte-table .visuellement-cache { position:static; width:auto; height:auto; margin:0; clip-path:none; white-space:normal; }
 }
 
+.bouton.bouton-attention {
+  background: #934500;
+  border-color: #934500;
+  color: #fff;
+}
+.bouton.bouton-attention:hover {
+  background: #743600;
+  border-color: #743600;
+}
+
 .attention-parametrage {
   border-inline-start: .25rem solid #a34d00;
   background: #fff3df;
