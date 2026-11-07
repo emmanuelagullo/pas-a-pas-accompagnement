@@ -138,7 +138,7 @@
     const champ = evenement.target;
     if (!champ.matches?.('[name=debut], [name=fin], [name=fin_prevue], [name=arrivee], [name=admission]')) return;
     const form = champ.form;
-    const commandes = form?.querySelector('[data-validation-sejour]');
+    const commandes = form?.querySelector('[data-validation-prestation]');
     if (occupe || !form?.matches('[data-prestation-form]') || !form.closest('[data-prestation-verifiable]')) return;
     verifications.get(form)?.abort();
     const controle = new AbortController();

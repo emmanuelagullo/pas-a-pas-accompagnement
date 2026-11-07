@@ -91,12 +91,21 @@ def nouveau(request, nature, pk, prestation):
         if prestation == 'hebergement':
             return verifier_saisie_sejour(request, form)
         from .validation_prestations import diagnostic
-        return diagnostic(form, a)
+        return diagnostic(form, a, request=request)
     statut = 200
     if request.method == 'POST' and not getattr(form,'preparation_seule',False) and form.is_valid() and a and (prestation != 'hebergement' or form.enregistrement_autorise(request.user)):
         d = preparation_repas.sans_preparation(form.cleaned_data)
         d.pop('accompagnement')
+        if prestation != 'hebergement':
+            from .validation_prestations import preparer_resolution
+            d['prise_confirmee'] = preparer_resolution(request, form, a)
         try:
+            if getattr(form, 'jeton_fin', None) and prestation != 'hebergement':
+                return render(request, 'dossiers/nouvelle_prestation.html', {
+                    **navigation, 'objet': objet, 'nature': nature, 'parametres_retour': params,
+                    'form': form, 'periode': a, 'prestation': prestation, 'retour': retour,
+                    'titre': 'Nouvelle période de repas',
+                })
             if prestation == 'hebergement':
                 accord = admission.accueillir(request.user, a, modifier_fin=form.conflit_fin, **d)
                 sejours = accord.sejours.non_annules()

@@ -101,7 +101,7 @@ def corriger(request,nature,pk):
             if nature == 'accordrepas':
                 for champ in ('beneficiaires', 'service', 'prestataire', 'jours_semaine'):
                     donnees.pop(champ, None)
-            prise_confirmee = (a.fin, a.revision_sociale) if simple and form.conflit_fin else None
+            prise_confirmee = (a.fin, a.revision_sociale) if simple and form.conflit_fin else getattr(form, "prise_confirmee", None)
             return c.periode(request.user, objet, depart_sejour=simple, prise_confirmee=prise_confirmee, **donnees)
     if request.method == 'POST' and request.headers.get('X-Verifier-Prestation') == '1':
         if nature not in ('sejour', 'accordrepas'):
@@ -110,9 +110,19 @@ def corriger(request,nature,pk):
             from .vues_admission import verifier_saisie_sejour
             return verifier_saisie_sejour(request, form)
         from .validation_prestations import diagnostic
-        return diagnostic(form, a)
+        return diagnostic(form, a, request=request if nature == "accordrepas" else None)
+    def avant_enregistrement():
+        if simple:
+            return form.enregistrement_autorise(request.user)
+        if nature == 'accordrepas':
+            from .validation_prestations import preparer_resolution
+            form.prise_confirmee = preparer_resolution(request, form, a)
+            return not getattr(form, 'jeton_fin', None)
+        return True
+
+    form.resolution_periode = nature == 'accordrepas'
     return traiter_hebergement(request,form,'Modifier le séjour' if nature == 'sejour' else 'Corriger une saisie — '+objet._meta.verbose_name,action,c.menage_de(objet),accompagnement=a,retour=retour,
-        avant_enregistrement=(lambda: form.enregistrement_autorise(request.user)) if simple else None)
+        avant_enregistrement=avant_enregistrement)
 
 
 @require_safe

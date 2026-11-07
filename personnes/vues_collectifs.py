@@ -104,7 +104,7 @@ def preparer(request,objet,action,pk=None,nature=None):
             elif action == "depart":
                 donnees["fin"] = date
             return c.modifier(acteur, p, attendu, action, motif=motif, **donnees)
-    return {'composition':action=='composition','form':form,'titre':titre,'action_url':url,'retour':retour_page,'faire':faire}
+    return {'composition':action=='composition','resolution_periode':action in ('creation','correction'),'form':form,'titre':titre,'action_url':url,'retour':retour_page,'faire':faire}
 
 @never_cache
 @login_required
@@ -119,7 +119,7 @@ def action(request,cible,pk,action):
         if action not in ('creation', 'correction'):
             raise Http404
         from .validation_prestations import diagnostic
-        return diagnostic(ctx['form'], objet, 'fin_prevue')
+        return diagnostic(ctx['form'], objet, 'fin_prevue', request=request)
     if action=='consultation':
         if request.method!='GET':raise PermissionDenied
         return render(request,'collectifs/consultation.html',ctx)
@@ -133,7 +133,13 @@ def action(request,cible,pk,action):
             ctx['form'].data=data
         return render(request,'collectifs/form.html',{'formctx':ctx})
     if request.method=='POST' and ctx['form'].is_valid():
-        try:resultat=ctx['faire'](**ctx['form'].cleaned_data)
+        donnees = ctx['form'].cleaned_data.copy()
+        if action in ('creation', 'correction'):
+            from .validation_prestations import preparer_resolution
+            donnees['prise_confirmee'] = preparer_resolution(request, ctx['form'], objet, 'fin_prevue')
+            if getattr(ctx['form'], 'jeton_fin', None):
+                return render(request, 'collectifs/form.html', {'formctx': ctx})
+        try:resultat=ctx['faire'](**donnees)
         except (ValidationError,OperationalError) as e:
             if isinstance(e, ValidationError):
                 from .validation_prestations import reporter_erreur

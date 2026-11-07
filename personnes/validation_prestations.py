@@ -22,13 +22,61 @@ def reporter_erreur(form, erreur):
 
 
 
-def diagnostic(form, prise, champ_fin='fin', *, fin_par_defaut=None):
-    form.is_valid()
+def diagnostic(form, prise, champ_fin='fin', *, fin_par_defaut=None, request=None):
+    valide = form.is_valid()
+    if valide and request is not None:
+        preparer_resolution(request, form, prise, champ_fin, fin_par_defaut=fin_par_defaut)
     debut = form.cleaned_data.get('debut')
-    if debut and champ_fin not in form.errors:
+    if debut and champ_fin not in form.errors and not getattr(form, 'jeton_fin', None):
         fin = form.cleaned_data.get(champ_fin, fin_par_defaut)
         try:
             verifier_periode_prise(prise, debut, fin, champ_fin=champ_fin)
         except ValidationError as erreur:
             reporter_erreur(form, erreur)
-    return JsonResponse({'erreurs': {nom: list(form.errors[nom]) for nom in ('debut', champ_fin, 'arrivee', 'admission') if nom in form.errors}})
+    reponse = {'erreurs': {nom: list(form.errors[nom]) for nom in ('debut', champ_fin, 'arrivee', 'admission') if nom in form.errors}}
+    if request is not None:
+        from django.template.loader import render_to_string
+        reponse['commandes'] = render_to_string(
+            'dossiers/_prestation_validation.html', {'form': form, 'libelle_validation': 'Enregistrer'}, request=request,
+        )
+    return JsonResponse(reponse)
+
+
+def preparer_resolution(request, form, prise, champ_fin='fin', *, fin_par_defaut=None):
+    """Retourne l'état confirmé de la prise et prépare la même commande en aperçu."""
+    from django.core import signing
+    from django.utils import timezone
+
+    debut = form.cleaned_data.get('debut')
+    fin = form.cleaned_data.get(champ_fin, fin_par_defaut)
+    if not debut or not prise.fin or debut < prise.debut or (fin and fin < debut):
+        return None
+    if debut < prise.fin and fin is not None and fin <= prise.fin:
+        return None
+    if not request.user.has_perm('personnes.change_accompagnement'):
+        return None
+    form.accompagnement = prise
+    form.fin_confirmation = fin
+    form.nouvelle_fin = fin if fin and fin <= timezone.localdate() else None
+    donnees = [str(prise.pk), str(prise.fin), prise.revision_sociale, str(debut), str(fin),
+               request.path_info, request.GET.get('pk'), request.GET.get('nature')]
+    try:
+        confirme = signing.loads(request.POST.get('confirmation_fin', ''), salt='prestation-fin-prise', max_age=3600) == donnees
+    except signing.BadSignature:
+        confirme = False
+    if confirme:
+        return prise.fin, prise.revision_sociale
+    form.jeton_fin = signing.dumps(donnees, salt='prestation-fin-prise')
+    return None
+
+
+def appliquer_resolution(acteur, prise, debut, fin, confirme):
+    """À appeler sous la transaction et après les contrôles propres à la prestation."""
+    from .admission import modifier_fin_prise
+    from .social import verrouiller
+
+    prise = verrouiller(prise)
+    if (prise.fin, prise.revision_sociale - 1) != confirme:
+        raise ValidationError('La prise en charge a changé. Rechargez le formulaire avant de confirmer.')
+    modifier_fin_prise(acteur, prise, debut, fin)
+    return prise

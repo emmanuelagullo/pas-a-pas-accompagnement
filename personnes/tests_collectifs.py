@@ -38,6 +38,24 @@ class CollectifsTests(Donnees,TestCase):
         d.update(kw)
         return c.creer(self.u,self.a,'restauration',self.comp,c.jeton(self.a),[{'categorie':'adulte','nombre':2,'prix':Decimal('8')},{'categorie':'enfant','nombre':2,'prix':Decimal('5')}],**d)
 
+    def test_resolution_collective_atomique(self):
+        prestation = self.restaurer()
+        self.a.fin = date(2026, 1, 15)
+        self.a.save(update_fields=['fin'])
+        self.a.refresh_from_db()
+        confirme = self.a.fin, self.a.revision_sociale
+        with self.assertRaises(ValidationError):
+            c.modifier(self.u, prestation, c.jeton(prestation), 'correction',
+                       fin_prevue=date(2026, 1, 18), dejeuner=False, diner=False,
+                       prise_confirmee=confirme)
+        self.a.refresh_from_db()
+        self.assertEqual(self.a.fin, confirme[0])
+        prestation.refresh_from_db()
+        version = c.modifier(self.u, prestation, c.jeton(prestation), 'correction',
+                             fin_prevue=date(2026, 1, 18), prise_confirmee=confirme)
+        self.a.refresh_from_db()
+        self.assertEqual(self.a.fin, version.fin_prevue)
+
     def test_volumes_et_couts_sans_distribution(self):
         p=self.restaurer();r=c.bilan(p.courante,date(2026,1,10),date(2026,1,14))
         self.assertEqual((r['dejeuners'],r['diners'],r['repas'],r['cout']),(3,3,24,Decimal('156')))

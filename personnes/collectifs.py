@@ -241,12 +241,15 @@ def tarifs_proposes(acteur,prestataire,jour,categories,devise):
 
 @service_metier
 @transaction.atomic
-def creer(acteur,accompagnement,nature,comp,attendu,couverts,selection=None,reference_selection=None,selection_complements=None,**valeurs):
+def creer(acteur,accompagnement,nature,comp,attendu,couverts,selection=None,reference_selection=None,selection_complements=None,prise_confirmee=None,**valeurs):
     suivi.exiger(acteur,'view_prestationcollective','add_prestationcollective','view_versionprestationcollective','view_couvertcollectif','view_compositioncollective')
     # Le jeton de création est lié à la prise, composition et configuration.
     verifier_jeton(accompagnement,attendu)
     if m.Menage.objects.filter(pk=accompagnement.menage_id,revision=accompagnement.menage.revision).update(revision=F('revision')+1)!=1:
         raise ValidationError('Le ménage a changé ; rechargez.')
+    if prise_confirmee:
+        from .validation_prestations import appliquer_resolution
+        accompagnement = appliquer_resolution(acteur, accompagnement, valeurs['debut'], valeurs.get('fin_prevue'), prise_confirmee)
     cfg=profil(accompagnement)
     if nature not in dict(m.PrestationCollective.NATURES) or not cfg or cfg[nature]=='individuel':raise ValidationError('Cette famille utilise le parcours individuel.')
     if nature not in cfg.get('prestations',['hebergement','restauration']):raise PermissionDenied('Cette prestation n’est pas proposée par ce service.')
@@ -308,7 +311,7 @@ def _version(acteur,p,comp,action,couverts,valeurs,motif=''):
 
 @service_metier
 @transaction.atomic
-def modifier(acteur,p,attendu,action,couverts=None,motif='',**valeurs):
+def modifier(acteur,p,attendu,action,couverts=None,motif='',prise_confirmee=None,**valeurs):
     suivi.exiger(acteur,'view_prestationcollective','change_prestationcollective','view_versionprestationcollective','view_couvertcollectif')
     # Même ordre de réservation que les autres prestations : ménage avant prestation.
     m.Menage.objects.filter(pk=p.accompagnement.menage_id).update(revision=F('revision')+1)
@@ -325,6 +328,9 @@ def modifier(acteur,p,attendu,action,couverts=None,motif='',**valeurs):
         if v.fin or set(valeurs)!={'fin_prevue'} or not v.fin_prevue or valeurs['fin_prevue']<=v.fin_prevue:raise ValidationError('La nouvelle fin prévue doit prolonger une période non terminée.')
     if action=='depart' and ('fin' not in valeurs or set(valeurs)-{'fin','destination_sortie'} or v.fin):raise ValidationError('Renseignez un premier départ effectif.')
     d.update(valeurs)
+    if prise_confirmee and action == 'correction':
+        from .validation_prestations import appliquer_resolution
+        p.accompagnement = appliquer_resolution(acteur, p.accompagnement, d['debut'], d['fin_prevue'], prise_confirmee)
     if d["destination_sortie"] and (p.nature != "hebergement" or not d["fin"]):
         raise ValidationError("La destination concerne un départ effectif d’hébergement.")
     for x in p.mouvements.filter(annule_le__isnull=True):

@@ -81,7 +81,7 @@ def beneficiaires_valides(selection,parents):
 
 @service_metier
 @serialiser('accompagnement')
-def accorder(acteur,accompagnement,type_aide,beneficiaires,attendu,**valeurs):
+def accorder(acteur,accompagnement,type_aide,beneficiaires,attendu,prise_confirmee=None,**valeurs):
     from .collectifs import profil
     configuration=profil(accompagnement)
     if configuration and type_aide.nature not in configuration.get('aides',[]):raise ValidationError('Cette famille d’aide n’est pas proposée dans ce service.')
@@ -91,6 +91,11 @@ def accorder(acteur,accompagnement,type_aide,beneficiaires,attendu,**valeurs):
         if service_cfg.catalogue_prestations and not service_cfg.offres.filter(actif=True,nature=type_aide.nature,lieu=valeurs.get('prestataire')).exists():raise ValidationError('Choisissez un prestataire proposé par ce service pour cette aide.')
     droit(acteur,'add_accordaide')
     bd6.reserver(accompagnement,attendu)
+    if prise_confirmee:
+        if (accompagnement.fin, accompagnement.revision_sociale - 1) != prise_confirmee:
+            raise ValidationError('La prise en charge a changé. Rechargez le formulaire avant de confirmer.')
+        from .admission import modifier_fin_prise
+        modifier_fin_prise(acteur, accompagnement, valeurs['debut'], valeurs['fin'])
     if set(valeurs)!=set(CHAMPS):raise ValidationError('Précisez toutes les informations de l’accord.')
     type_aide.refresh_from_db()
     if not type_aide.actif:raise ValidationError('Ce type d’aide n’est plus proposé ; choisissez un type actif.')
@@ -108,7 +113,7 @@ def accorder(acteur,accompagnement,type_aide,beneficiaires,attendu,**valeurs):
 
 @service_metier
 @serialiser('accord')
-def modifier(acteur,accord,attendu,motif,prolongation=False,**valeurs):
+def modifier(acteur,accord,attendu,motif,prolongation=False,prise_confirmee=None,**valeurs):
     droit(acteur,'change_accordaide');bd6.reserver(accord,attendu)
     source_valide(valeurs.get('source',''),motif,prolongation)
     if accord.annule_le or set(valeurs)!=set(CHAMPS):raise ValidationError('Accord annulé ou données incomplètes.')
@@ -118,6 +123,11 @@ def modifier(acteur,accord,attendu,motif,prolongation=False,**valeurs):
         if any(getattr(accord,c)!=valeurs[c] for c in CHAMPS if c not in ('fin','source')):raise ValidationError('Une prolongation conserve les autres données.')
     for c,v in valeurs.items():setattr(accord,c,v)
     entier(accord,accord.quantite)
+    if prise_confirmee and not prolongation:
+        from .validation_prestations import appliquer_resolution
+        accord.accompagnement = appliquer_resolution(
+            acteur, accord.accompagnement, accord.debut, accord.fin, prise_confirmee,
+        )
     accord.full_clean();a=accord.accompagnement
     if accord.debut<a.debut:raise ValidationError('L’accord commence avant la prise en charge.')
     if accord.fin != ancienne_fin or accord.debut != ancien_debut:

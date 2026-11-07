@@ -123,7 +123,8 @@ def traiter(request, form, titre, action, url, objet, **contexte):
     if portee:
         contexte['condition_portee'] = portee
     statut = 200
-    if request.method == 'POST' and form.is_valid() and (not portee or portee_corrections.verifier(form, portee)):
+    avant_enregistrement = contexte.pop('avant_enregistrement', None)
+    if request.method == 'POST' and form.is_valid() and (not portee or portee_corrections.verifier(form, portee)) and (avant_enregistrement is None or avant_enregistrement()):
         try:
             resultat = saisie_sociale.executer(form, action)
         except (ValidationError, OperationalError) as erreur:

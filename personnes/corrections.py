@@ -201,15 +201,18 @@ def periode(acteur,objet,debut,fin,motif,attendu,source=None, *, depart_sejour=F
         from .accords import exiger_actif
         exiger_actif(objet)
     ancien=(objet.debut,objet.fin,getattr(objet,'source',''))
-    if prise_confirmee is not None and depart_sejour and nature == 'sejour':
+    if prise_confirmee is not None and (nature == 'accordrepas' or depart_sejour and nature == 'sejour'):
         from .admission import modifier_fin_prise
         from .social import verrouiller
 
-        prise = verrouiller(objet.accord.accompagnement)
+        prise = verrouiller(suivi_de(objet))
         if (prise.fin, prise.revision_sociale - 1) != prise_confirmee:
             raise ValidationError('La prise en charge a changé. Rechargez le formulaire avant de confirmer.')
         modifier_fin_prise(acteur, prise, debut, fin)
-        objet.accord.accompagnement = prise
+        if nature == "sejour":
+            objet.accord.accompagnement = prise
+        else:
+            objet.accompagnement = prise
     modification_sejour = False
     if depart_sejour and nature == 'sejour':
         if objet.annule_le:

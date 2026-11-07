@@ -78,8 +78,15 @@ def accorder(request,pk,nature):
         f.fields['quantite'].required = True
         f.fields['source'].label = 'Source de la réalisation'
 
+    from .validation_prestations import diagnostic, preparer_resolution
+    f.resolution_periode = True
+
+    def confirmer():
+        fin = f.cleaned_data['debut'] + timedelta(days=1) if simple else None
+        f.prise_confirmee = preparer_resolution(request, f, a, fin_par_defaut=fin)
+        return not getattr(f, 'jeton_fin', None)
+
     if request.method == 'POST' and request.headers.get('X-Verifier-Prestation') == '1':
-        from .validation_prestations import diagnostic
         from django.forms import DateField
         from django.core.exceptions import ValidationError
         fin = None
@@ -88,14 +95,14 @@ def accorder(request,pk,nature):
                 fin = DateField().clean(request.POST.get('debut')) + timedelta(days=1)
             except (ValidationError, OverflowError):
                 pass
-        return diagnostic(f, a, fin_par_defaut=fin)
+        return diagnostic(f, a, fin_par_defaut=fin, request=request)
 
     @transaction.atomic
     def action(**d):
         d.pop('motif', None)
         if simple:
             d.update(fin=d['debut'] + timedelta(days=1), financeur=None)
-        accord = s.accorder(request.user, a, **d)
+        accord = s.accorder(request.user, a, prise_confirmee=f.prise_confirmee, **d)
         if simple:
             s.remettre(request.user, accord, d['beneficiaires'], d['debut'],
                        d['quantite'], d['source'], bd6.jeton(accord))
@@ -103,7 +110,7 @@ def accorder(request,pk,nature):
 
     titre = ('Enregistrer — ' if simple else 'Autoriser — ') + dict(m.TypeAide.NATURES)[nature]
     return traiter(request,f,titre,action,lambda x:url_accord(x,q),a.menage,
-        catalogue_aides=reverse('dossiers:types_aides'),annuler=ctx.get('retour_dossier') or reverse('suivi:accompagnement',args=[a.pk]),
+        avant_enregistrement=confirmer, catalogue_aides=reverse('dossiers:types_aides'),annuler=ctx.get('retour_dossier') or reverse('suivi:accompagnement',args=[a.pk]),
         explication='' if simple else 'Autorisation distincte de la remise. Quantité globale pour les personnes cochées. Si la liste est vide, définir d’abord le type dans le catalogue des aides.')
 
 
@@ -159,15 +166,23 @@ def action(request,pk,action,remise_pk=None):
         def fn(**donnees):
             donnees.pop('type_aide', None)
             donnees.pop('beneficiaires', None)
-            return s.modifier(request.user, a, prolongation=action == 'prolonger', **donnees)
+            return s.modifier(request.user, a, prolongation=action == 'prolonger',
+                              prise_confirmee=getattr(f, 'prise_confirmee', None), **donnees)
     else:raise Http404
     if request.method == 'POST' and request.headers.get('X-Verifier-Prestation') == '1':
         if action != 'corriger':
             raise Http404
         from .validation_prestations import diagnostic
-        return diagnostic(f, a.accompagnement)
+        return diagnostic(f, a.accompagnement, request=request)
+    def confirmer_correction():
+        from .validation_prestations import preparer_resolution
+        f.prise_confirmee = preparer_resolution(request, f, a.accompagnement)
+        return not getattr(f, 'jeton_fin', None)
+
+    f.resolution_periode = action == 'corriger'
     if p.get('retour')=='jour':url=ctx.get('retour_dossier') or url
     return traiter(request,f,{'remettre':'Enregistrer une réalisation','corriger_remise':'Corriger une réalisation','annuler':'Annuler une saisie erronée','usage':'Constater l’utilisation déclarée','corriger':'Corriger l’autorisation','prolonger':'Prolonger l’autorisation'}[action]+' — '+a.libelle,fn,url,a.accompagnement.menage,
+        avant_enregistrement=confirmer_correction if f.resolution_periode else None,
         explication='Unité : '+a.unite+'. '+a.precision+' Quantité globale, jamais multipliée par bénéficiaire. Les textes et versions restent conservés.')
 
 

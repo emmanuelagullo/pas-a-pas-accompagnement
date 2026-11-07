@@ -16,7 +16,7 @@ def droit(acteur, action):
 @service_metier
 @serialiser("accompagnement")
 @transaction.atomic
-def accorder(acteur, accompagnement, beneficiaires, debut, fin, service, prestataire="", jours_semaine=None):
+def accorder(acteur, accompagnement, beneficiaires, debut, fin, service, prestataire="", jours_semaine=None, prise_confirmee=None):
     from .collectifs import profil
     configuration=profil(accompagnement)
     if configuration and 'restauration' not in configuration['prestations']:raise ValidationError('Cette prestation n’est pas proposée par ce service.')
@@ -28,6 +28,9 @@ def accorder(acteur, accompagnement, beneficiaires, debut, fin, service, prestat
     if not ids or not ids.issubset(set(accompagnement.beneficiaires.values_list("pk", flat=True))):
         raise ValidationError("Choisissez des bénéficiaires de cet accompagnement.")
     from .validation_prestations import verifier_periode_prise
+    if prise_confirmee:
+        from .validation_prestations import appliquer_resolution
+        accompagnement = appliquer_resolution(acteur, accompagnement, debut, fin, prise_confirmee)
     verifier_periode_prise(accompagnement, debut, fin)
     accord = AccordRepas(accompagnement=accompagnement, debut=debut, fin=fin, service=service, prestataire=prestataire, jours_semaine=jours_semaine or [], cree_par=acteur)
     accord.full_clean()
@@ -113,7 +116,7 @@ def jeton_services(accompagnement):
 
 @service_metier
 @serialiser('accompagnement')
-def accorder_services(acteur, accompagnement, beneficiaires, debut, fin, services, attendu, prestataire='', jours_semaine=None):
+def accorder_services(acteur, accompagnement, beneficiaires, debut, fin, services, attendu, prestataire='', jours_semaine=None, prise_confirmee=None):
     from django.core import signing
     from .social import verrouiller
     droit(acteur, 'add_accordrepas')
@@ -126,6 +129,11 @@ def accorder_services(acteur, accompagnement, beneficiaires, debut, fin, service
         sorted(str(pk) for pk in a.beneficiaires.values_list('pk', flat=True))]
     if precedent != etat:
         raise ValidationError('Cet accompagnement a changé. Rechargez le formulaire.')
+    if prise_confirmee:
+        if (a.fin, a.revision_sociale - 1) != prise_confirmee:
+            raise ValidationError('La prise en charge a changé. Rechargez le formulaire avant de confirmer.')
+        from .admission import modifier_fin_prise
+        modifier_fin_prise(acteur, a, debut, fin)
     services = list(services)
     if not services or len(set(services)) != len(services) or not set(services).issubset(dict(AccordRepas.SERVICES)):
         raise ValidationError('Sélectionnez des services distincts parmi ceux proposés.')
