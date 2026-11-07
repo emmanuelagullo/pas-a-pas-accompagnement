@@ -152,11 +152,17 @@
   });
   const verifications = new WeakMap();
   const temporisations = new WeakMap();
+  const saisiesProgrammees = new WeakMap();
   const champsPeriode = '[name=debut], [name=fin], [name=fin_prevue], [name=arrivee], [name=admission], [data-periode-duree], [name=calcul_periode], [data-arrivee-effectuee]';
   function programmerVerification({target: champ}) {
     if (!champ.matches?.(champsPeriode)) return;
     const form = champ.form;
     if (!form?.matches('[data-prestation-form]') || !form.closest('[data-prestation-verifiable]')) return;
+    // La sortie du champ peut émettre change après un input déjà traité.
+    // Garder alors le bouton sous le pointeur et la vérification en cours.
+    const saisie = JSON.stringify([...new FormData(form)]);
+    if (saisiesProgrammees.get(form) === saisie) return;
+    saisiesProgrammees.set(form, saisie);
     verifications.get(form)?.abort();
     const commande = form.querySelector('[data-validation-prestation]');
     if (commande?.querySelector('[name=confirmation_fin], [name=nouvelle_prise]')) {

@@ -49,5 +49,22 @@ const path = require('node:path');
   const initial = listeners.submit;
   vm.runInNewContext(code, context);
   assert.equal(listeners.submit, initial, 'Pas de double gestionnaire au retour du dossier');
+  let programmations = 0, remplacements = 0, date = '2026-11-07';
+  const fin = {matches: () => true, closest: () => form, form};
+  const enregistrer = {hidden: true, removeAttribute() {}};
+  form.querySelector = () => ({
+    querySelector: selecteur => selecteur === '[data-prestation-soumission-implicite]' ? enregistrer : true,
+    replaceChildren() { remplacements++; },
+  });
+  fin.closest = selecteur => selecteur === '[data-prestation-url]' ? null : form;
+  context.window.PasRecherche = {temporiser: () => () => { programmations++; }};
+  context.FormData = class { *[Symbol.iterator]() { yield ['fin', date]; } };
+  listeners.input({target: fin});
+  listeners.change({target: fin});
+  assert.equal(programmations, 1, 'Quitter un champ déjà vérifié ne relance pas la vérification');
+  assert.equal(remplacements, 1, 'Quitter le champ ne doit pas retirer le bouton de confirmation');
+  date = '2026-11-08';
+  listeners.input({target: fin});
+  assert.equal(programmations, 2, 'Une nouvelle valeur relance la vérification');
   console.log('NAV7 : double POST, panne sans rejeu, saisie conservée et initialisation unique : OK');
 })();
