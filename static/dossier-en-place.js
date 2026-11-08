@@ -227,7 +227,7 @@
           message.id = identifiant;
           message.className = 'errorlist';
           message.setAttribute('aria-live', 'polite');
-          entree.after(message);
+          (entree.closest('.saisie-date') || entree).after(message);
         }
         const erreurs = resultat.erreurs[nom] || [];
         message.textContent = erreurs.join(' ');

@@ -26,6 +26,20 @@ class PropositionInput(forms.TextInput):
             format_html_join('', '<option value="{}"></option>', ((v,) for v in self.propositions)))
 
 
+class DatePrestationInput(forms.DateInput):
+    def __init__(self, attrs=None):
+        super().__init__(format='%d/%m/%Y', attrs={
+            **(attrs or {}), 'type': 'text', 'placeholder': 'jj/mm/aaaa', 'data-date-fr': '1',
+        })
+
+
+def adapter_dates_prestation(form):
+    for champ in form.fields.values():
+        if isinstance(champ, forms.DateField) and not isinstance(champ, forms.DateTimeField) and not champ.widget.is_hidden:
+            champ.widget = DatePrestationInput(champ.widget.attrs)
+            champ.input_formats = ('%d/%m/%Y', '%Y-%m-%d')
+
+
 def adapter(form):
     """Idempotent, sans requête, y compris pour des champs ajoutés dynamiquement."""
     for nom, champ in form.fields.items():
@@ -66,6 +80,8 @@ class FormulaireMetier(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         adapter(self)
+        if getattr(self, "dates_prestation", False):
+            adapter_dates_prestation(self)
         from .periodes_saisie import preparer
         preparer(self)
         from acteurs.saisie import preparer as proposer_responsable
@@ -81,6 +97,8 @@ class FormulaireModeleMetier(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         adapter(self)
+        if getattr(self, "dates_prestation", False):
+            adapter_dates_prestation(self)
         from .periodes_saisie import preparer
         preparer(self)
         from acteurs.saisie import preparer as proposer_responsable

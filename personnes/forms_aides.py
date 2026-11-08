@@ -16,6 +16,7 @@ class TypeForm(FormulaireModeleMetier):
 
 
 class AccordForm(FormulaireModeleMetier):
+    dates_prestation = True
     saisie_periode=('debut','fin')
     attendu=forms.CharField(widget=forms.HiddenInput)
     motif=forms.CharField(label='Motif de correction ou prolongation',max_length=240,required=False)
@@ -47,6 +48,7 @@ class AccordForm(FormulaireModeleMetier):
 
 
 class RemiseForm(FormulaireMetier):
+    dates_prestation = True
     beneficiaires=forms.ModelMultipleChoiceField(m.Personne.objects.none(),widget=forms.CheckboxSelectMultiple,label='Personnes concernées par cette remise')
     date=date_champ('Date réellement effectuée')
     quantite=forms.DecimalField(label='Quantité totale pour toute la sélection',max_digits=14,decimal_places=3,min_value=Decimal('0.001'))
@@ -59,6 +61,7 @@ class RemiseForm(FormulaireMetier):
 
 
 class UsageForm(FormulaireMetier):
+    dates_prestation = True
     date=date_champ('Date du constat')
     quantite=forms.DecimalField(label='Unités utilisées déclarées',max_digits=14,decimal_places=3,min_value=0,required=False,
         help_text='Vide : inconnu. 0 : explicitement non utilisé. La remise ne prouve jamais l’utilisation ; un titre ne prouve pas un trajet.')

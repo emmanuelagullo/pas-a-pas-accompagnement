@@ -100,7 +100,10 @@ def terminer(request, pk, nature):
     debut = objet.debut
     jour = jour_hebergement(request, s.accord.accompagnement)
     initial = {"fin": jour} if debut < jour else {}
+    from .champs_saisie import adapter_dates_prestation
+
     form = ClotureForm(request.POST or None, initial=initial)
+    adapter_dates_prestation(form)
     return traiter_hebergement(request,form,"Enregistrer le départ" if nature=="sejour" else "Enregistrer le retour d’absence" if nature=="absence" else "Clôturer l’affectation",lambda **d:action(request.user,objet,**d),s.accord.accompagnement.menage, retour=retour_hebergement(request, s.accord_id), sejour=s)
 
 

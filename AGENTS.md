@@ -115,6 +115,13 @@ exactement aux patches livrés ; expliciter leur base et leurs dépendances.
   (`jj/mm/aaaa`). Un sélecteur natif peut suivre la langue du navigateur.
   Vérifier la saisie sur un navigateur configuré en anglais et les calculs
   de durée quand le format visible change.
+- Pour les prestations, employer le champ de date partagé en création et en
+  modification. Garder la saisie française, le calendrier natif, le pas d’un
+  jour et la synchronisation avec la durée et le diagnostic de période.
+  Toute modification d’un contrôle partagé doit nommer les gestes à préserver
+  et la recette qui les vérifie. Rejouer la recette sur un navigateur en anglais
+  et contrôler l’ouverture réelle du calendrier sous Firefox et sur écran tactile.
+
 - Employer « séjour » et « prise en charge » dans les messages d’hébergement.
   En cas de conflit, afficher les périodes concernées et indiquer quelle
   date corriger. Placer les actions rares derrière les actions courantes.

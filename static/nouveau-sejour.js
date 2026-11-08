@@ -8,6 +8,7 @@
     choix.form.querySelectorAll('[data-champ-arrivee]').forEach(champ => {
       champ.hidden = !choix.checked;
       champ.querySelectorAll('input, select, textarea').forEach(controle => { controle.disabled = !choix.checked; });
+      if (choix.checked) champ.querySelector('[data-date-fr]')?.dispatchEvent(new Event('date:disponible', {bubbles: true}));
     });
   });
 })();

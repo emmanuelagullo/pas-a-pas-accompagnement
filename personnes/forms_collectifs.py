@@ -80,6 +80,7 @@ class CompositionForm(FormulaireMetier):
 
 
 class PrestationForm(FormulaireMetier):
+    dates_prestation = True
     debut=forms.DateField(label='Début',widget=DATE)
     fin_prevue=forms.DateField(label='Fin prévue — facultative',widget=DATE,required=False)
     fin=forms.DateField(label='Départ effectif — facultatif',widget=DATE,required=False)
@@ -262,6 +263,7 @@ class PrestationForm(FormulaireMetier):
 
 
 class ActionForm(FormulaireMetier):
+    dates_prestation = True
     attendu=forms.CharField(widget=forms.HiddenInput)
     date=forms.DateField(widget=DATE,required=False)
     motif=forms.CharField(label='Précision — facultative',max_length=240,required=False)
@@ -277,6 +279,7 @@ class ActionForm(FormulaireMetier):
 
 
 class MouvementForm(FormulaireMetier):
+    dates_prestation = True
     attendu=forms.CharField(widget=forms.HiddenInput)
     debut=forms.DateField(label='Date du changement',widget=DATE)
     fin=forms.DateField(label='Retour prévu / fin exclue — facultative',widget=DATE,required=False)

@@ -101,6 +101,8 @@ def corriger(request,nature,pk):
             return c.periode(request.user, objet, depart_sejour=simple, prise_confirmee=prise_confirmee, **donnees)
     periodes_prestations = {'sejour': 'le séjour', 'accordhebergement': 'le séjour', 'accordrepas': 'la période de repas'}
     if nature in periodes_prestations:
+        from .champs_saisie import adapter_dates_prestation
+        adapter_dates_prestation(form)
         form.objet_periode = periodes_prestations[nature]
     if nature == 'sejour' and form.is_bound:
         try:

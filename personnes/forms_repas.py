@@ -29,6 +29,7 @@ def proposer_categories(form, accord):
 
 
 class CorrectionDistributionForm(FormulaireMetier):
+    dates_prestation = True
     precisions_facultatives = ('motif',)
     quantite = forms.IntegerField(label='Nombre de repas réellement distribués', min_value=1, max_value=32767)
     categorie_declaree = forms.CharField(max_length=80, required=False)
@@ -43,6 +44,7 @@ class CorrectionDistributionForm(FormulaireMetier):
 
 
 class AccordForm(FormulaireModeleMetier):
+    dates_prestation = True
     jours_semaine=forms.TypedMultipleChoiceField(label='Jours autorisés (aucun choix : tous les jours)',choices=list(enumerate(['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'])),coerce=int,required=False,widget=forms.CheckboxSelectMultiple)
     saisie_periode = ('debut', 'fin')
     beneficiaires = forms.ModelMultipleChoiceField(Personne.objects.none(), widget=forms.CheckboxSelectMultiple)
@@ -58,6 +60,7 @@ class AccordForm(FormulaireModeleMetier):
 
 
 class DistributionForm(FormulaireMetier):
+    dates_prestation = True
     age_jeune=forms.IntegerField(label='Âge maximal de la catégorie jeune (inclus)',min_value=0,max_value=120,required=False,initial=12)
     age_bas_age=forms.IntegerField(label='Âge maximal de la catégorie bas âge (inclus)',min_value=0,max_value=120,required=False,initial=2)
     aide_categorie=True
@@ -83,6 +86,7 @@ class AnnulationForm(FormulaireMetier):
 
 
 class ServicesForm(FormulaireMetier):
+    dates_prestation = True
     jours_semaine=forms.TypedMultipleChoiceField(label='Jours autorisés (aucun choix : tous les jours)',choices=list(enumerate(['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'])),coerce=int,required=False,widget=forms.CheckboxSelectMultiple)
     saisie_periode = ('debut', 'fin')
     beneficiaires = forms.ModelMultipleChoiceField(Personne.objects.none(), widget=forms.CheckboxSelectMultiple)

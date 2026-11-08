@@ -9,6 +9,7 @@ def date_champ(label, required=True):
 
 
 class AccordForm(FormulaireMetier):
+    dates_prestation = True
     saisie_periode = ('debut', 'fin')
     beneficiaires = forms.ModelMultipleChoiceField(Personne.objects.none(), widget=forms.CheckboxSelectMultiple)
     debut = date_champ("Début inclus")
@@ -24,12 +25,14 @@ class AdmissionForm(AccordForm):
 
 
 class PeriodeForm(FormulaireMetier):
+    dates_prestation = True
     saisie_periode = ('debut', 'fin')
     debut = date_champ("Début inclus")
     fin = date_champ("Fin exclue", False)
 
 
 class AffectationForm(PeriodeForm):
+    dates_prestation = True
     lieu = forms.ModelChoiceField(LieuHebergement.objects.all())
 
 
@@ -47,6 +50,7 @@ class LieuForm(FormulaireModeleMetier):
 
 
 class ChangementLieuForm(FormulaireMetier):
+    dates_prestation = True
     debut = date_champ("Date du changement de lieu")
     lieu = forms.ModelChoiceField(LieuHebergement.objects.all(), label="Nouveau lieu")
     attendu = forms.CharField(widget=forms.HiddenInput)

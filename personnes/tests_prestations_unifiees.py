@@ -64,6 +64,7 @@ class PrestationsUnifieesTests(Donnees,TestCase):
         from .tests_reprise_collective import RepriseCollectiveTests
         self.a=m.Accompagnement.objects.select_related('menage').get(pk=self.a.pk)
         d=RepriseCollectiveTests.donnees(self)
+        self.assertContains(self.client.get(self.url('nouveau:commun_restauration')), 'data-date-fr="1"')
         response=self.client.post(self.url('nouveau:commun_restauration',apercu='1'),d)
         self.assertEqual(response.status_code,200)
         self.assertIn('80.00 EUR',response.json()['message'])

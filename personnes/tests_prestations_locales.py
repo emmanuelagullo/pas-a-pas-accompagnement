@@ -37,6 +37,17 @@ class PrestationsLocalesTests(TestCase):
             self.assertContains(page,'id="repas"')
             self.assertContains(page,'data-prestation-form',count=0)
 
+    def test_champ_date_partage_dans_les_formulaires_de_prestation(self):
+        for nature in ('hebergement', 'repas', 'services_repas', 'transport'):
+            with self.subTest(nature=nature):
+                page = self.client.get(self.url('nouveau:' + nature))
+                self.assertContains(page, 'data-date-fr="1"')
+                self.assertContains(page, 'placeholder="jj/mm/aaaa"')
+        operation = reverse('suivi:corriger_saisie', args=['sejour', self.s.pk])
+        page = self.client.get(self.url('sejour:' + str(self.s.pk), operation))
+        self.assertContains(page, 'data-date-fr="1"')
+        self.assertContains(page, 'value="03/01/2026"')
+
     def test_validation_et_enregistrement_depuis_form3(self):
         operation=reverse('suivi:distribuer_repas',args=[self.r.pk])
         url=self.url('repas:'+str(self.r.pk),operation)
@@ -128,7 +139,7 @@ class PrestationsLocalesTests(TestCase):
         url = self.url('nouveau:hebergement')
         donnees = precedent.Form2Tests.donnees(self)
         donnees.pop('arrivee_effectuee')
-        donnees.update(debut='2025-12-25', fin='2025-12-29')
+        donnees.update(debut='25/12/2025', fin='29/12/2025')
         commandes = self.client.post(url, donnees, headers={'X-Verifier-Prestation': '1'}).json()['commandes']
         self.assertIn('Avancer le début de la prise en charge et enregistrer le séjour', commandes)
         self.assertIn('Créer une prise en charge pour ce séjour', commandes)
