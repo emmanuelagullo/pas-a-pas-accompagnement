@@ -46,8 +46,16 @@ def ages(debut, fin):
     if fin <= debut:
         raise ValueError('La fin doit être postérieure au début.')
     reference = fin - timedelta(days=1)
-    population = Personne.objects.filter(pk__in=
-        Sejour.objects.non_annules().filter(chevauche(debut, fin)).values('beneficiaires__pk')).distinct()
+    from .fins_hebergement import fin_sejour
+
+    sejours = (Sejour.objects.non_annules().filter(chevauche(debut, fin))
+               .select_related('accord__accompagnement').prefetch_related('beneficiaires'))
+    identifiants = set()
+    for sejour in sejours:
+        borne = fin_sejour(sejour)
+        if borne is None or borne > debut:
+            identifiants.update(p.pk for p in sejour.beneficiaires.all())
+    population = Personne.objects.filter(pk__in=identifiants)
     comptes = Counter()
     qualite = {code: 0 for code in ('inconnue', 'estimee', 'annee', 'annee_estimee', 'apres_reference')}
     for p in population.only('date_naissance', 'precision_naissance'):

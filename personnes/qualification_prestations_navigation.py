@@ -61,7 +61,10 @@ class PrestationsNavigationNavigateur(StaticLiveServerTestCase):
             lien = radio.locator('xpath=../..').locator('a.prestation-consulter')
             destination = lien.get_attribute('href')
             lien.click()
-            expect(page.locator('.operation-en-place')).to_have_count(0)
+            panneau = page.locator('[data-prestation-panneau]')
+            expect(panneau).to_be_visible()
+            if code != 'hebergement':
+                expect(panneau.locator('[data-prestation-form]')).to_be_visible()
             expect(page.locator('h1')).to_be_visible()
             self.assertIn(destination.split('?')[0], page.url)
             self.assertTrue(cadre.evaluate('e=>e.isConnected'))
@@ -82,8 +85,9 @@ class PrestationsNavigationNavigateur(StaticLiveServerTestCase):
                 if os.environ.get('PRESTATIONS_CAPTURES'): imprime.pdf(path=str(Path(os.environ['PRESTATIONS_CAPTURES'])/'NAV07-impression-prestation.pdf'))
                 imprime.close()
             expect(page.locator('#hebergement')).to_be_visible()
-            retour = page.get_by_role('link', name='Refermer', exact=True)
-            retour.click()
+            if code != 'hebergement':
+                panneau.get_by_role('link', name='Annuler', exact=True).click()
+            panneau.get_by_role('link', name='Refermer', exact=True).click()
             expect(page.locator('[data-prestation-panneau]')).to_have_count(0)
             expect(page.locator('#' + code + ' [data-prestation-url][value="' + valeur + '"]')).to_be_checked()
         self.assertIn('page=2', page.get_by_role('link', name='Dossiers', exact=True).first.get_attribute('href'))
@@ -134,7 +138,7 @@ class PrestationsNavigationNavigateur(StaticLiveServerTestCase):
             expect(radio).to_be_checked()
             self.assertEqual(page.locator('#hebergement input:checked').input_value(), str(self.s.pk))
         page.locator('#aides-transport .selectionnee a.prestation-consulter').click()
-        expect(page.get_by_role('heading', name='Transport — Transport fictif 1', exact=True)).to_be_visible()
+        expect(page.get_by_role('heading', name='Corriger l’autorisation — Transport fictif 1', exact=True)).to_be_visible()
         expect(page.get_by_role('navigation', name='Fil d’Ariane')).to_be_visible()
 
     def test_notes_de_prestation_publication_sur_place(self):
@@ -166,7 +170,6 @@ class PrestationsNavigationNavigateur(StaticLiveServerTestCase):
         form.get_by_role('button',name='Enregistrer le séjour',exact=True).click()
         expect(boite.locator('[data-prestation-form]')).to_have_count(0)
         expect(boite).to_contain_text('Prévu — arrivée à confirmer')
-        page.get_by_role('link',name='Refermer',exact=True).click()
         boite.get_by_role('link',name='Enregistrer l’arrivée',exact=True).click()
         form=boite.locator('[data-prestation-form]')
         expect(form).to_be_visible()

@@ -229,9 +229,11 @@ def quantites_documentees(acteur,accord,debut,fin):
         qs=accord.realisations.filter(annule_le__isnull=True,date__gte=debut,date__lt=fin).values('categorie_declaree').annotate(q=Sum('quantite'))
         return [{**communes,'libelle':accord.get_service_display(),'unite':'repas','categorie':x['categorie_declaree'],'quantite':x['q'],'justification':ref} for x in qs]
     suivi.exiger(acteur,'view_sejour')
+    from .fins_hebergement import fin_sejour
+
     q=0
     for sejour in accord.sejours.non_annules().filter(debut__lt=fin).filter(Q(fin__isnull=True)|Q(fin__gt=debut)).prefetch_related('beneficiaires'):
-        q+=(min(sejour.fin or fin,fin)-max(sejour.debut,debut)).days*sejour.beneficiaires.count()
+        q+=max(0, (min(fin_sejour(sejour) or fin, fin)-max(sejour.debut,debut)).days)*sejour.beneficiaires.count()
     return [{**communes,'libelle':'Nuitées de séjour documentées','unite':'personne-nuit de séjour','categorie':'','quantite':Decimal(q),
         'justification':ref+' Absences non déduites ; ne représente pas un nombre de chambres.'}] if q else []
 

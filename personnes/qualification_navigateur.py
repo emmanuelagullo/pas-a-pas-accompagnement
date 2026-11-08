@@ -381,8 +381,10 @@ class NouveauxParcoursNavigateur(StaticLiveServerTestCase):
         self.assertNotIn('Note réservée hors résumé', page.locator('body').inner_text())
         self.assertEqual(page.locator('main').count(), 1)
         page.emulate_media(media='print')
-        self.assertFalse(page.locator('nav').is_visible())
-        self.assertTrue(page.get_by_role('heading', name='Résumé d’accompagnement', exact=False).is_visible())
+        from playwright.sync_api import expect
+
+        expect(page.locator('body > nav')).to_be_hidden()
+        expect(page.get_by_role('heading', name='Résumé d’accompagnement', exact=False)).to_be_visible()
 
     def test_repas_plusieurs_services_sans_distribution(self):
         from .models import AccordRepas, RepasDistribue
@@ -649,7 +651,7 @@ class BD6Navigateur(EntreeBDNavigateur):
         page.locator('[name=fin_prevue]').fill('2026-12-01')
         page.locator('[name=motif]').fill('Prévision fictive navigateur')
         page.get_by_role('button', name='Enregistrer', exact=True).click()
-        page.get_by_text('01/12/2026 (exclue)', exact=False).wait_for()
+        page.locator('[data-prise-entete=etat]').get_by_text('Fin prévue le 01/12/2026 (date exclue)', exact=False).wait_for()
         page.set_viewport_size({'width': 360, 'height': 800})
         self.assertTrue(page.evaluate('document.documentElement.scrollWidth <= window.innerWidth'))
 

@@ -83,6 +83,14 @@
         if (entry.isIntersecting) visibles.add(entry.target);
         else visibles.delete(entry.target);
       });
+      const prestation = document.querySelector('[data-prestation-panneau]');
+      if (visible(prestation)) {
+        const rect = prestation.getBoundingClientRect();
+        if (rect.top < innerHeight && rect.bottom > 0) {
+          position(prestation.closest('[data-dossier-boite]') || prestation);
+          return;
+        }
+      }
       if (destinationExplicite && visible(destinationExplicite)) {
         const r=destinationExplicite.getBoundingClientRect();
         if(r.top>=0 && r.top<innerHeight){position(destinationExplicite);return;}
@@ -127,7 +135,7 @@
     });
     appliquerPanneau();
     observerPosition();
-    const actuel = document.querySelector('.operation-en-place')?.closest('[data-dossier-boite]') || cible(location.hash);
+    const actuel = document.querySelector('[data-prestation-panneau]')?.closest('[data-dossier-boite]') || cible(location.hash);
     if (visible(actuel)) position(actuel);
     else if (actuel?.closest('[data-condition-volet]:not([open])')) position(document.querySelector('[data-condition-volet]'));
     mesurer();

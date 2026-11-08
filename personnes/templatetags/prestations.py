@@ -59,8 +59,10 @@ def prestation_frise(context, url):
             from urllib.parse import parse_qsl
             cle='commun:'+dict(parse_qsl(urlsplit(url).query)).get('pk','')
         else:return {'url':url,'local':False}
-        nav.cible(context,cle)
-        return {'url':nav.adresse(context,cle),'local':True}
+        from ..prestations_presentation import ouvrir_prestation
+
+        _, objet = nav.cible(context, cle)
+        return {'url': ouvrir_prestation(context, objet, cle), 'local': True}
     except (Resolver404,nav.Http404,ValueError,LookupError,ObjectDoesNotExist,StopIteration):
         return {'url':url,'local':False}
 

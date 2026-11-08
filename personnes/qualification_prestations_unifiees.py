@@ -85,17 +85,16 @@ class DeuxServicesNAV(Donnees,StaticLiveServerTestCase):
                     expect(page.get_by_role('navigation',name='Fil d’Ariane')).to_be_visible()
                     self.assertIn('q=Fictif',page.url)
                     if javascript:self.assertTrue(cadre.evaluate('(e)=>e.isConnected'))
-                    if nom=='Amandiers':
-                        panneau=page.locator('[data-prestation-panneau]')
-                        rbox.get_by_role('link',name='Ouvrir',exact=True).click()
-                        expect(page.locator('[data-prestation-panneau] form[data-prestation-form]')).to_be_visible()
-                        panneau.get_by_role('link',name='Annuler',exact=True).click()
-                        expect(rbox.get_by_role('link',name='Ouvrir',exact=True)).to_be_visible()
-                        rbox.get_by_role('link',name='Ouvrir',exact=True).click()
-                        page.locator('[data-prestation-panneau]').get_by_role('button',name='Enregistrer',exact=True).click()
-                        expect(page.locator('[data-prestation-panneau] form[data-prestation-form]')).to_have_count(0)
-                    page.get_by_role('link',name='Refermer',exact=True).click()
+                    panneau=page.locator('[data-prestation-panneau]')
+                    expect(panneau.locator('form[data-prestation-form]')).to_be_visible()
+                    panneau.get_by_role('link',name='Annuler',exact=True).click()
+                    if nom != 'Amandiers':
+                        panneau.get_by_role('link',name='Refermer',exact=True).click()
                     expect(page.locator('[data-prestation-panneau]')).to_have_count(0)
+                    if nom == 'Amandiers':
+                        rp.locator(':scope > a.prestation-consulter').click()
+                        panneau.get_by_role('button',name='Enregistrer',exact=True).click()
+                        expect(panneau).to_have_count(0)
                     self.assertLessEqual(page.evaluate('document.documentElement.scrollWidth'),largeur+1)
                 # Identical native line structure; only data and selected state vary.
                 normalise=lambda forme:[forme[0].replace(' selectionnee',''),*forme[1:]]

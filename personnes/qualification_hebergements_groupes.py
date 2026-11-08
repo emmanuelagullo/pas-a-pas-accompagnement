@@ -41,6 +41,7 @@ class HebergementsGroupesNavigateur(StaticLiveServerTestCase):
         page.goto(self.url+'?prestation=sejour:'+str(enfant.pk))
         expect(page.locator('#prestation-sejour-'+str(enfant.pk))).to_be_visible()
         page.locator('[data-prestation-panneau]').get_by_role('link',name='Refermer',exact=True).click()
+        groupe.locator('[data-hebergement-actions] > summary').click()
         groupe.get_by_role('link',name='Agir sur les personnes…',exact=True).click()
         form=groupe.locator('[data-prestation-form]')
         expect(form).to_be_visible()
