@@ -120,10 +120,11 @@ class CorrectionsTests(TestCase):
         suivi.refresh_from_db()
         sejour.refresh_from_db()
         with self.assertRaises(ValidationError):
-            self.corriger(sejour, date(2025, 12, 1), date(2026, 1, 12),
+            self.corriger(sejour, date(2025, 12, 1), date(2099, 1, 12),
                           depart_sejour=True, prise_confirmee=(suivi.fin, suivi.revision_sociale))
         suivi.refresh_from_db()
         self.assertEqual(suivi.fin, date(2026, 1, 10))
+        self.assertEqual(suivi.debut, date(2026, 1, 1))
         self.corriger(sejour, sejour.debut, date(2026, 1, 12),
                       depart_sejour=True, prise_confirmee=(suivi.fin, suivi.revision_sociale))
         suivi.refresh_from_db()

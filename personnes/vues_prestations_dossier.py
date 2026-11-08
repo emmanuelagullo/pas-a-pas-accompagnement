@@ -15,7 +15,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 from . import admission, repas, dossier, preparation_repas
 from .models import Personne, Menage
-from .vues_admission import AdmissionGuideeForm, verifier_saisie_sejour
+from .vues_admission import AdmissionGuideeForm
 from .forms_repas import AccordForm, ServicesForm
 from .vues_dossiers import parametres
 
@@ -90,36 +90,19 @@ def nouveau(request, nature, pk, prestation):
     if request.method == 'POST' and request.headers.get('X-Verifier-Prestation') == '1':
         if a is None:
             raise Http404
-        if prestation == 'hebergement':
-            return verifier_saisie_sejour(request, form)
         from .validation_prestations import diagnostic
-        return diagnostic(form, a, request=request)
+        return diagnostic(form, a, request=request, proposer_nouvelle_prise=True)
+    from .validation_prestations import autoriser_enregistrement
     statut = 200
-    if request.method == 'POST' and not getattr(form,'preparation_seule',False) and form.is_valid() and a and (prestation != 'hebergement' or form.enregistrement_autorise(request.user)):
+    if request.method == 'POST' and not getattr(form,'preparation_seule',False) and form.is_valid() and a and autoriser_enregistrement(request, form, a, proposer_nouvelle_prise=True):
         d = preparation_repas.sans_preparation(form.cleaned_data)
         d.pop('accompagnement')
-        if prestation != 'hebergement':
-            from .validation_prestations import preparer_resolution
-            d['prise_confirmee'] = preparer_resolution(request, form, a)
+        d['prise_confirmee'] = form.prise_confirmee
+        nouvelle = getattr(form, 'nouvelle_prise_confirmee', False)
+        d['nouvelle_prise'] = nouvelle
         try:
-            if getattr(form, 'jeton_fin', None) and prestation != 'hebergement':
-                return render(request, 'dossiers/nouvelle_prestation.html', {
-                    **navigation, 'objet': objet, 'nature': nature, 'parametres_retour': params,
-                    'form': form, 'periode': a, 'prestation': prestation, 'retour': retour,
-                    'titre': 'Nouvelle période de repas',
-                })
             if prestation == 'hebergement':
-                nouvelle = bool(form.conflit_fin and request.POST.get('nouvelle_prise') and form.proposer_nouvelle_prise)
-                accord = admission.accueillir(request.user, a, modifier_fin=form.conflit_fin and not nouvelle, nouvelle_prise=nouvelle, **d)
-                if nouvelle:
-                    repere = {k: params[k] for k in ('q', 'mode', 'page', 'filtre', 'en_cours', 'retour_exploration') if k in params}
-                    cible = nature if nature == 'menage' or accord.accompagnement.beneficiaires.filter(pk=pk).exists() else 'menage'
-                    destination = dossier.pour_prise(
-                        request, accord.accompagnement, cible, pk if cible == nature else a.menage_id, repere,
-                    )['retour_dossier'] + '#hebergement'
-                    reponse = redirect(destination)
-                    reponse['X-Nouvelle-Prise'] = '1'
-                    return reponse
+                accord = admission.accueillir(request.user, a, **d)
                 sejours = accord.sejours.non_annules()
                 if nature == 'personne':
                     sejours = sejours.filter(beneficiaires=objet)
@@ -131,7 +114,8 @@ def nouveau(request, nature, pk, prestation):
                     params['prevision'] = str(accord.pk)
             elif prestation == 'services_repas':
                 accords = repas.accorder_services(request.user, a, **d)
-                params['repas'] = str(accords[0].pk)
+                accord = accords[0]
+                params['repas'] = str(accord.pk)
             else:
                 accord = repas.accorder(request.user, a, **d)
                 params['repas'] = str(accord.pk)
@@ -143,6 +127,15 @@ def nouveau(request, nature, pk, prestation):
             statut = 409
         else:
             messages.success(request, ('Arrivée enregistrée.' if d['arrivee_effectuee'] else 'Séjour prévu ; arrivée à confirmer.') if prestation == 'hebergement' else 'Repas accordés ; aucune distribution créée.')
+            if nouvelle:
+                repere = {k: params[k] for k in ('q', 'mode', 'page', 'filtre', 'en_cours', 'retour_exploration') if k in params}
+                cible = nature if nature == 'menage' or accord.accompagnement.beneficiaires.filter(pk=pk).exists() else 'menage'
+                destination = dossier.pour_prise(
+                    request, accord.accompagnement, cible, pk if cible == nature else a.menage_id, repere,
+                )['retour_dossier'] + ('#hebergement' if prestation == 'hebergement' else '#repas')
+                reponse = redirect(destination)
+                reponse['X-Nouvelle-Prise'] = '1'
+                return reponse
             return redirect(signer(request, a, nature, pk, params)['retour_dossier'])
     return render(request, 'dossiers/nouvelle_prestation.html', {**navigation, 'objet': objet, 'nature': nature,
         'parametres_retour': params, 'form': form, 'periode': a, 'unique': len(liste) == 1, 'prestation': prestation, 'retour': retour,

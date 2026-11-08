@@ -34,20 +34,24 @@ def modifier_fin_prise(acteur, a, debut, fin):
     )
 
 
-def peut_ouvrir_apres_interruption(acteur, prise, debut):
-    return bool(debut and prise and prise.fin and debut > prise.fin and acteur.has_perms([
+def peut_ouvrir_apres_interruption(acteur, prise, debut, fin=None):
+    return bool(debut and prise and ((prise.fin and debut > prise.fin) or (fin and fin < prise.debut)) and acteur.has_perms([
         'personnes.view_personne', 'personnes.view_menage',
         'personnes.view_accompagnement', 'personnes.add_accompagnement',
     ]))
 
 
-def ouvrir_apres_interruption(acteur, prise, beneficiaires, debut, fin):
+def ouvrir_apres_interruption(acteur, prise, beneficiaires, debut, fin, confirme, *, verrouille=False):
     from acteurs import portees
     from acteurs.contexte import perimetre
     from . import suivi
 
-    if not peut_ouvrir_apres_interruption(acteur, prise, debut):
-        raise ValidationError('Une nouvelle prise en charge est proposée après une interruption du suivi.')
+    if not verrouille:
+        prise = verrouiller(prise)
+    if (prise.fin, prise.revision_sociale - 1) != confirme:
+        raise ValidationError('La prise en charge a changé. Rechargez le formulaire avant de confirmer.')
+    if not peut_ouvrir_apres_interruption(acteur, prise, debut, fin):
+        raise ValidationError('Une nouvelle prise en charge est proposée lorsqu’une interruption sépare les deux périodes.')
     origine = portees.existante(prise)
     with perimetre(acteur, service=origine.service_id if origine else None):
         return suivi.ouvrir(acteur, prise.menage, beneficiaires, debut, fin)
@@ -55,7 +59,7 @@ def ouvrir_apres_interruption(acteur, prise, beneficiaires, debut, fin):
 
 @service_metier
 @serialiser('accompagnement')
-def accueillir(acteur, accompagnement, beneficiaires, debut, fin, admission, attendu, lieu=None, arrivee_effectuee=True, modifier_fin=False, nouvelle_prise=False):
+def accueillir(acteur, accompagnement, beneficiaires, debut, fin, admission, attendu, lieu=None, arrivee_effectuee=True, nouvelle_prise=False, prise_confirmee=None):
     h.droit(acteur, 'add_accordhebergement')
     if arrivee_effectuee:
         h.exiger(acteur, 'add_sejour')
@@ -72,11 +76,12 @@ def accueillir(acteur, accompagnement, beneficiaires, debut, fin, admission, att
         raise ValidationError('Le formulaire a expiré. Rechargez l’accompagnement.') from exc
     if precedent != etat(a, a.revision_sociale - 1):
         raise ValidationError('Cet accompagnement a changé. Rechargez le formulaire avant une nouvelle admission.')
-    if modifier_fin:
-        modifier_fin_prise(acteur, a, debut, fin)
+    if prise_confirmee:
+        from .validation_prestations import appliquer_resolution
+        a = appliquer_resolution(acteur, a, debut, fin, prise_confirmee, verrouille=True)
     beneficiaires = list(beneficiaires)
     if nouvelle_prise:
-        a = ouvrir_apres_interruption(acteur, a, beneficiaires, debut, fin)
+        a = ouvrir_apres_interruption(acteur, a, beneficiaires, debut, fin, nouvelle_prise, verrouille=True)
     accord = h.accorder(acteur, a, beneficiaires, debut, fin)
     if not arrivee_effectuee:
         return accord

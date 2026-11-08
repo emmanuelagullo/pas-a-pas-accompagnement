@@ -1,22 +1,30 @@
 {% with objet=form.objet_periode|default:"la prestation" %}
-{% if form.jeton_fin %}
-<p class="conflit-periode" role="status">{{ objet|capfirst }} doit se dérouler pendant la période de prise en charge. La prise en charge s’est terminée le {{ form.fin_prise_resolution|date:'d/m/Y' }}, alors que {{ objet }} commence le {{ form.cleaned_data.debut|date:'d/m/Y' }}{% if form.fin_confirmation %} et se termine le {{ form.fin_confirmation|date:'d/m/Y' }}{% else %}, sans date de fin{% endif %}.</p>
-{% endif %}
-{% if form.jeton_fin or form.proposer_nouvelle_prise %}
+{% if form.conflit_periode %}
+<p class="conflit-periode" role="status">
+  {{ objet|capfirst }} doit se dérouler pendant la prise en charge.
+  {% if form.debut_prise_resolution %}{{ objet|capfirst }} commence le {{ form.debut_demande|date:'d/m/Y' }}, avant le début de la prise en charge le {{ form.debut_prise_resolution|date:'d/m/Y' }}.{% endif %}
+  {% if form.fin_prise_resolution %}La prise en charge se termine le {{ form.fin_prise_resolution|date:'d/m/Y' }} (date exclue), alors que {{ objet }} commence le {{ form.debut_demande|date:'d/m/Y' }}{% if form.fin_confirmation %} et se termine le {{ form.fin_confirmation|date:'d/m/Y' }}{% else %}, sans date de fin{% endif %}.{% endif %}
+  {% if not form.jeton_fin and not form.jeton_nouvelle_prise %}Modifiez les dates pour les faire entrer dans la prise en charge.{% endif %}
+</p>
 <button type="submit" hidden data-prestation-soumission-implicite>Enregistrer</button>
 {% else %}
 <button type="submit">{% if libelle_validation %}{{ libelle_validation }}{% else %}Enregistrer{% if not form.edition_sejour %} le séjour{% endif %}{% endif %}</button>
 {% endif %}
 {% if form.jeton_fin %}
 <div class="choix-periode attention-parametrage">
-  <p id="effet-modification-prise">Pour enregistrer {{ objet }} avec ces dates dans cette prise en charge, {% if form.nouvelle_fin %}repoussez la fin de la prise en charge au {{ form.nouvelle_fin|date:'d/m/Y' }} (date exclue).{% else %}rouvrez la prise en charge. Elle n’aura plus de date de fin effective.{% endif %}</p>
-  <button class="bouton bouton-attention" type="submit" name="confirmation_fin" value="{{ form.jeton_fin }}" aria-describedby="effet-modification-prise">{% if form.nouvelle_fin %}Modifier la fin de la prise en charge{% else %}Rouvrir la prise en charge{% endif %} et enregistrer {{ objet }}</button>
+  <p id="effet-modification-prise">
+    {% if form.debut_prise_resolution %}La prise en charge commencera le {{ form.debut_demande|date:'d/m/Y' }} au lieu du {{ form.debut_prise_resolution|date:'d/m/Y' }}.{% endif %}
+    {% if form.fin_prise_resolution %}{% if form.nouvelle_fin %}La prise en charge se terminera le {{ form.nouvelle_fin|date:'d/m/Y' }} (date exclue).{% else %}La prise en charge sera rouverte sans date de fin effective.{% endif %}{% endif %}
+    {% if form.interruption %}La prise en charge couvrira aussi l’intervalle entre les deux périodes.{% endif %}
+    {{ objet|capfirst }} sera enregistré{% if objet != "le séjour" %}e{% endif %} avec les dates saisies.
+  </p>
+  <button class="bouton bouton-attention" type="submit" name="confirmation_fin" value="{{ form.jeton_fin }}" aria-describedby="effet-modification-prise">{% if form.debut_prise_resolution and form.fin_prise_resolution %}Modifier les dates de la prise en charge{% elif form.debut_prise_resolution %}Avancer le début de la prise en charge{% elif form.nouvelle_fin %}Modifier la fin de la prise en charge{% else %}Rouvrir la prise en charge{% endif %} et enregistrer {{ objet }}</button>
 </div>
 {% endif %}
-{% if form.proposer_nouvelle_prise %}
+{% if form.jeton_nouvelle_prise %}
 <div class="choix-periode">
-  <p id="effet-nouvelle-prise">La nouvelle prise en charge commencera le {{ form.cleaned_data.debut|date:'d/m/Y' }} et le séjour y sera enregistré. La prise en charge précédente restera terminée.</p>
-  <button class="secondaire" type="submit" name="nouvelle_prise" value="1" aria-describedby="effet-nouvelle-prise">Créer une prise en charge pour ce séjour</button>
+  <p id="effet-nouvelle-prise">La nouvelle prise en charge commencera le {{ form.debut_demande|date:'d/m/Y' }}{% if form.fin_nouvelle_prise %} et sa fin prévue sera le {{ form.fin_nouvelle_prise|date:'d/m/Y' }} (date exclue){% endif %}. Elle sera créée pour {{ objet }}. La prise en charge existante gardera ses dates.</p>
+  <button class="secondaire" type="submit" name="nouvelle_prise" value="{{ form.jeton_nouvelle_prise }}" aria-describedby="effet-nouvelle-prise">Créer une prise en charge pour {% if objet == "le séjour" %}ce séjour{% elif objet == "la période de repas" %}cette période de repas{% else %}cette prestation{% endif %}</button>
 </div>
 {% endif %}
 {% endwith %}

@@ -280,7 +280,7 @@ def page(request, nature, pk, prise_pk):
     verifiable = (
         match.view_name in ('dossiers:nouveau', 'dossiers:aide_accorder', 'dossiers:aide_corriger')
         or match.view_name == 'dossiers:collectif_action' and match.kwargs.get('action') in ('creation', 'correction')
-        or match.view_name == 'suivi:corriger_saisie' and match.kwargs.get('nature') in ('sejour', 'accordrepas')
+        or match.view_name == 'suivi:corriger_saisie' and match.kwargs.get('nature') in ('sejour', 'accordrepas', 'accordhebergement')
     )
     if verification and not verifiable:
         raise Http404

@@ -78,14 +78,13 @@ def accorder(request,pk,nature):
         f.fields['quantite'].required = True
         f.fields['source'].label = 'Source de la réalisation'
 
-    from .validation_prestations import diagnostic, preparer_resolution
+    from .validation_prestations import diagnostic, autoriser_enregistrement
     f.resolution_periode = True
     f.objet_periode = "l’aide"
 
     def confirmer():
         fin = f.cleaned_data['debut'] + timedelta(days=1) if simple else None
-        f.prise_confirmee = preparer_resolution(request, f, a, fin_par_defaut=fin)
-        return not getattr(f, 'jeton_fin', None)
+        return autoriser_enregistrement(request, f, a, fin_par_defaut=fin, proposer_nouvelle_prise=True)
 
     if request.method == 'POST' and request.headers.get('X-Verifier-Prestation') == '1':
         from django.forms import DateField
@@ -96,23 +95,34 @@ def accorder(request,pk,nature):
                 fin = DateField().clean(request.POST.get('debut')) + timedelta(days=1)
             except (ValidationError, OverflowError):
                 pass
-        return diagnostic(f, a, fin_par_defaut=fin, request=request)
+        return diagnostic(f, a, fin_par_defaut=fin, request=request, proposer_nouvelle_prise=True)
+
+    accord_cree = None
 
     @transaction.atomic
     def action(**d):
+        nonlocal accord_cree
         d.pop('motif', None)
         if simple:
             d.update(fin=d['debut'] + timedelta(days=1), financeur=None)
-        accord = s.accorder(request.user, a, prise_confirmee=f.prise_confirmee, **d)
+        accord = s.accorder(request.user, a, prise_confirmee=f.prise_confirmee, nouvelle_prise=getattr(f, 'nouvelle_prise_confirmee', False), **d)
         if simple:
             s.remettre(request.user, accord, d['beneficiaires'], d['debut'],
                        d['quantite'], d['source'], bd6.jeton(accord))
+        accord_cree = accord
         return accord
 
     titre = ('Enregistrer — ' if simple else 'Autoriser — ') + dict(m.TypeAide.NATURES)[nature]
-    return traiter(request,f,titre,action,lambda x:url_accord(x,q),a.menage,
+    reponse = traiter(request,f,titre,action,lambda x:url_accord(x,q),a.menage,
         avant_enregistrement=confirmer, catalogue_aides=reverse('dossiers:types_aides'),annuler=ctx.get('retour_dossier') or reverse('suivi:accompagnement',args=[a.pk]),
         explication='' if simple else 'Autorisation distincte de la remise. Quantité globale pour les personnes cochées. Si la liste est vide, définir d’abord le type dans le catalogue des aides.')
+    if accord_cree and accord_cree.accompagnement_id != a.pk and 300 <= reponse.status_code < 400:
+        prise = accord_cree.accompagnement
+        vue = ctx.get('dossier_valeurs', {}).get('vue', {})
+        repere = {k: vue[k] for k in ('q', 'mode', 'page', 'filtre', 'en_cours', 'retour_exploration') if k in vue}
+        reponse['Location'] = dossier.pour_prise(request, prise, 'menage', a.menage_id, repere)['retour_dossier']
+        reponse['X-Nouvelle-Prise'] = '1'
+    return reponse
 
 
 @never_cache
@@ -177,9 +187,8 @@ def action(request,pk,action,remise_pk=None):
         from .validation_prestations import diagnostic
         return diagnostic(f, a.accompagnement, request=request)
     def confirmer_correction():
-        from .validation_prestations import preparer_resolution
-        f.prise_confirmee = preparer_resolution(request, f, a.accompagnement)
-        return not getattr(f, 'jeton_fin', None)
+        from .validation_prestations import autoriser_enregistrement
+        return autoriser_enregistrement(request, f, a.accompagnement)
 
     f.resolution_periode = action == 'corriger'
     if p.get('retour')=='jour':url=ctx.get('retour_dossier') or url

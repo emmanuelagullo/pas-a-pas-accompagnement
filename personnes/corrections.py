@@ -214,18 +214,25 @@ def periode(acteur,objet,debut,fin,motif,attendu,source=None, *, depart_sejour=F
         from .accords import exiger_actif
         exiger_actif(objet)
     ancien=(objet.debut,objet.fin,getattr(objet,'source',''))
-    if prise_confirmee is not None and (nature == 'accordrepas' or depart_sejour and nature == 'sejour'):
-        from .admission import modifier_fin_prise
-        from .social import verrouiller
+    if prise_confirmee is not None and nature in ('accordrepas', 'accordhebergement', 'sejour'):
+        from .validation_prestations import appliquer_resolution
 
-        prise = verrouiller(suivi_de(objet))
-        if (prise.fin, prise.revision_sociale - 1) != prise_confirmee:
-            raise ValidationError('La prise en charge a changé. Rechargez le formulaire avant de confirmer.')
-        modifier_fin_prise(acteur, prise, debut, fin)
+        prise = appliquer_resolution(acteur, suivi_de(objet), debut, fin, prise_confirmee)
         if nature == "sejour":
             objet.accord.accompagnement = prise
         else:
             objet.accompagnement = prise
+    if nature == 'sejour' and prise_confirmee and debut < objet.accord.debut:
+        from .accords import exiger_actif
+
+        exiger(acteur, 'change_accordhebergement')
+        exiger_actif(objet.accord)
+        ancien_accord = (objet.accord.debut, objet.accord.fin, '')
+        objet.accord.debut = debut
+        objet.accord.revision += 1
+        objet.accord.full_clean()
+        objet.accord.save(update_fields=['debut', 'revision'])
+        enregistrer(acteur, objet.accord, ancien_accord, motif)
     modification_sejour = False
     if depart_sejour and nature == 'sejour':
         if objet.annule_le:

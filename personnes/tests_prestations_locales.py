@@ -1,4 +1,5 @@
 """NAV7 : même Form3, opérations bornées et droits métier inchangés."""
+import re
 from datetime import date
 from urllib.parse import urlencode
 from django.test import TestCase
@@ -102,7 +103,7 @@ class PrestationsLocalesTests(TestCase):
         url = self.url('nouveau:hebergement')
         apercu = self.client.post(url, donnees, headers={'X-Verifier-Prestation': '1'})
         commandes = apercu.json()['commandes']
-        self.assertIn('La prise en charge s’est terminée le 01/03/2026', commandes)
+        self.assertIn('La prise en charge se termine le 01/03/2026', commandes)
         self.assertIn('Créer une prise en charge pour ce séjour', commandes)
         self.assertIn('aria-describedby="effet-modification-prise"', commandes)
         self.assertIn('aria-describedby="effet-nouvelle-prise"', commandes)
@@ -111,7 +112,8 @@ class PrestationsLocalesTests(TestCase):
         self.assertContains(formulaire, 'data-prestation-verifier-a-ouverture')
 
         self.assertEqual(m.Accompagnement.objects.count(), 1)
-        page = self.client.post(url, {**donnees, 'nouvelle_prise': '1'}, follow=True)
+        jeton = re.search(r'name="nouvelle_prise" value="([^"]+)"', commandes)[1]
+        page = self.client.post(url, {**donnees, 'nouvelle_prise': jeton}, follow=True)
         self.assertEqual(page.status_code, 200)
         nouvelle = m.Accompagnement.objects.exclude(pk=self.a.pk).get()
         self.assertEqual(nouvelle.debut, date(2026, 4, 1))
@@ -119,7 +121,63 @@ class PrestationsLocalesTests(TestCase):
         self.assertTrue(m.AccordHebergement.objects.filter(accompagnement=nouvelle).exists())
         self.a.refresh_from_db()
         self.assertEqual(self.a.fin, date(2026, 3, 1))
-        self.assertEqual(self.client.post(url, {**donnees, 'nouvelle_prise': '1'}).status_code, 409)
+        self.client.post(url, {**donnees, 'nouvelle_prise': jeton})
+        self.assertEqual(m.Accompagnement.objects.count(), 2)
+
+    def test_sejour_anterieur_resolution_et_creation_distincte(self):
+        url = self.url('nouveau:hebergement')
+        donnees = precedent.Form2Tests.donnees(self)
+        donnees.pop('arrivee_effectuee')
+        donnees.update(debut='2025-12-25', fin='2025-12-29')
+        commandes = self.client.post(url, donnees, headers={'X-Verifier-Prestation': '1'}).json()['commandes']
+        self.assertIn('Avancer le début de la prise en charge et enregistrer le séjour', commandes)
+        self.assertIn('Créer une prise en charge pour ce séjour', commandes)
+        continu = self.client.post(url, {**donnees, 'fin': '2026-01-01'},
+                                   headers={'X-Verifier-Prestation': '1'}).json()['commandes']
+        self.assertNotIn('name="nouvelle_prise"', continu)
+        self.client.post(url, donnees)
+        self.assertEqual(m.Accompagnement.objects.count(), 1)
+        self.assertEqual(self.a.accords_hebergement.count(), 1)
+
+        jeton = re.search(r'name="confirmation_fin" value="([^"]+)"', commandes)[1]
+        response = self.client.post(url, {**donnees, 'confirmation_fin': jeton})
+        self.assertEqual(response.status_code, 302)
+        self.a.refresh_from_db()
+        self.assertEqual(self.a.debut, date(2025, 12, 25))
+        self.assertEqual(self.a.accords_hebergement.count(), 2)
+        self.assertEqual(m.Accompagnement.objects.count(), 1)
+        self.assertTrue(m.CorrectionPeriode.objects.filter(accompagnement=self.a, ancien_debut=date(2026, 1, 1)).exists())
+
+    def test_nouvelle_prise_pour_un_sejour_avant_interruption(self):
+        url = self.url('nouveau:hebergement')
+        donnees = precedent.Form2Tests.donnees(self)
+        donnees.pop('arrivee_effectuee')
+        donnees.update(debut='2025-12-25', fin='2025-12-29')
+        commandes = self.client.post(url, donnees, headers={'X-Verifier-Prestation': '1'}).json()['commandes']
+        jeton = re.search(r'name="nouvelle_prise" value="([^"]+)"', commandes)[1]
+        response = self.client.post(url, {**donnees, 'nouvelle_prise': jeton}, follow=True)
+        self.assertEqual(response.status_code, 200)
+        nouvelle = m.Accompagnement.objects.exclude(pk=self.a.pk).get()
+        self.assertEqual(nouvelle.debut, date(2025, 12, 25))
+        self.assertEqual(nouvelle.fin_prevue, date(2025, 12, 29))
+        self.assertTrue(nouvelle.accords_hebergement.exists())
+        self.a.refresh_from_db()
+        self.assertEqual(self.a.debut, date(2026, 1, 1))
+
+    def test_nouvelle_prise_pour_des_repas_avant_interruption(self):
+        url = self.url('nouveau:repas')
+        donnees = {
+            'accompagnement': str(self.a.pk), 'beneficiaires': [str(self.p.pk)],
+            'debut': '2025-12-25', 'fin': '2025-12-29', 'service': 'diner',
+        }
+        commandes = self.client.post(url, donnees, headers={'X-Verifier-Prestation': '1'}).json()['commandes']
+        self.assertIn('Créer une prise en charge pour cette période de repas', commandes)
+        jeton = re.search(r'name="nouvelle_prise" value="([^"]+)"', commandes)[1]
+        reponse = self.client.post(url, {**donnees, 'nouvelle_prise': jeton})
+        self.assertEqual(reponse.status_code, 302)
+        nouvelle = m.Accompagnement.objects.exclude(pk=self.a.pk).get()
+        self.assertTrue(nouvelle.accords_repas.exists())
+        self.client.post(url, {**donnees, 'nouvelle_prise': jeton})
         self.assertEqual(m.Accompagnement.objects.count(), 2)
 
     def test_creation_prevue_et_arrivee_dans_form3(self):

@@ -160,8 +160,8 @@ def renseigner(acteur,objet,attendu,debut,reference,identifies,complements,sourc
 def verifier_version(p,v):
     from .hebergement import verifier_periode
     a=p.accompagnement
-    from .validation_prestations import verifier_periode_prise
-    verifier_periode_prise(a, v.debut, v.fin_prevue, champ_fin='fin_prevue')
+    from .validation_prestations import borne_exclue, verifier_periode_prise
+    verifier_periode_prise(a, v.debut, borne_exclue(v.fin_prevue, p.nature == 'restauration'), champ_fin='fin_prevue')
     if v.fin_prevue and v.fin_prevue<v.debut or v.fin and v.fin<v.debut:raise ValidationError('La fin précède le début.')
     if v.fin and v.fin>timezone.localdate():raise ValidationError('Une fin effective ne peut pas être future.')
     if p.nature=='hebergement':
@@ -254,9 +254,10 @@ def creer(acteur,accompagnement,nature,comp,attendu,couverts,selection=None,refe
     verifier_jeton(accompagnement,attendu)
     if m.Menage.objects.filter(pk=accompagnement.menage_id,revision=accompagnement.menage.revision).update(revision=F('revision')+1)!=1:
         raise ValidationError('Le ménage a changé ; rechargez.')
+    from .validation_prestations import appliquer_resolution, borne_exclue
+    fin_periode = borne_exclue(valeurs.get('fin_prevue'), nature == 'restauration')
     if prise_confirmee:
-        from .validation_prestations import appliquer_resolution
-        accompagnement = appliquer_resolution(acteur, accompagnement, valeurs['debut'], valeurs.get('fin_prevue'), prise_confirmee)
+        accompagnement = appliquer_resolution(acteur, accompagnement, valeurs['debut'], fin_periode, prise_confirmee)
     cfg=profil(accompagnement)
     if nature not in dict(m.PrestationCollective.NATURES) or not cfg or cfg[nature]=='individuel':raise ValidationError('Cette famille utilise le parcours individuel.')
     if nature not in cfg.get('prestations',['hebergement','restauration']):raise PermissionDenied('Cette prestation n’est pas proposée par ce service.')
@@ -266,13 +267,11 @@ def creer(acteur,accompagnement,nature,comp,attendu,couverts,selection=None,refe
     if nouvelle_prise:
         from .admission import ouvrir_apres_interruption
 
-        if nature != 'hebergement':
-            raise ValidationError('Cette action est réservée aux nouveaux séjours.')
         debut = valeurs['debut']
         # La nouvelle prise conserve son groupe. La sélection de la prestation
         # reste traitée ci-dessous, comme pour une création ordinaire.
         accompagnement = ouvrir_apres_interruption(
-            acteur, accompagnement, list(accompagnement.beneficiaires.all()), debut, valeurs.get('fin_prevue'),
+            acteur, accompagnement, list(accompagnement.beneficiaires.all()), debut, fin_periode, nouvelle_prise,
         )
         if comp.accompagnement_id:
             suivi.exiger(acteur, 'add_compositioncollective')
@@ -361,8 +360,8 @@ def modifier(acteur,p,attendu,action,couverts=None,motif='',prise_confirmee=None
     if action=='depart' and ('fin' not in valeurs or set(valeurs)-{'fin','destination_sortie'} or v.fin):raise ValidationError('Renseignez un premier départ effectif.')
     d.update(valeurs)
     if prise_confirmee and action == 'correction':
-        from .validation_prestations import appliquer_resolution
-        p.accompagnement = appliquer_resolution(acteur, p.accompagnement, d['debut'], d['fin_prevue'], prise_confirmee)
+        from .validation_prestations import appliquer_resolution, borne_exclue
+        p.accompagnement = appliquer_resolution(acteur, p.accompagnement, d['debut'], borne_exclue(d['fin_prevue'], p.nature == 'restauration'), prise_confirmee)
     if d["destination_sortie"] and (p.nature != "hebergement" or not d["fin"]):
         raise ValidationError("La destination concerne un départ effectif d’hébergement.")
     borne_mouvements = d['fin']

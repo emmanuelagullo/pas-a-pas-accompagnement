@@ -81,7 +81,7 @@ def beneficiaires_valides(selection,parents):
 
 @service_metier
 @serialiser('accompagnement')
-def accorder(acteur,accompagnement,type_aide,beneficiaires,attendu,prise_confirmee=None,**valeurs):
+def accorder(acteur,accompagnement,type_aide,beneficiaires,attendu,prise_confirmee=None,nouvelle_prise=False,**valeurs):
     from .collectifs import profil
     configuration=profil(accompagnement)
     if configuration and type_aide.nature not in configuration.get('aides',[]):raise ValidationError('Cette famille d’aide n’est pas proposée dans ce service.')
@@ -92,14 +92,17 @@ def accorder(acteur,accompagnement,type_aide,beneficiaires,attendu,prise_confirm
     droit(acteur,'add_accordaide')
     bd6.reserver(accompagnement,attendu)
     if prise_confirmee:
-        if (accompagnement.fin, accompagnement.revision_sociale - 1) != prise_confirmee:
-            raise ValidationError('La prise en charge a changé. Rechargez le formulaire avant de confirmer.')
-        from .admission import modifier_fin_prise
-        modifier_fin_prise(acteur, accompagnement, valeurs['debut'], valeurs['fin'])
+        from .validation_prestations import appliquer_resolution
+        accompagnement = appliquer_resolution(
+            acteur, accompagnement, valeurs['debut'], valeurs['fin'], prise_confirmee, verrouille=True,
+        )
     if set(valeurs)!=set(CHAMPS):raise ValidationError('Précisez toutes les informations de l’accord.')
     type_aide.refresh_from_db()
     if not type_aide.actif:raise ValidationError('Ce type d’aide n’est plus proposé ; choisissez un type actif.')
     ids=beneficiaires_valides(beneficiaires,accompagnement.beneficiaires)
+    if nouvelle_prise:
+        from .admission import ouvrir_apres_interruption
+        accompagnement = ouvrir_apres_interruption(acteur, accompagnement, list(beneficiaires), valeurs['debut'], valeurs['fin'], nouvelle_prise, verrouille=True)
     source_valide(valeurs['source'])
     from .validation_prestations import verifier_periode_prise
     verifier_periode_prise(accompagnement, valeurs['debut'], valeurs['fin'])

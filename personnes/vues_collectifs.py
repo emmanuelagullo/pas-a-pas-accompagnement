@@ -99,7 +99,7 @@ def preparer(request,objet,action,pk=None,nature=None):
             elif action == "depart":
                 donnees["fin"] = date
             return c.modifier(acteur, p, attendu, action, motif=motif, **donnees)
-    return {'composition':action=='composition','resolution_periode':action in ('creation','correction'),'proposer_nouvelle_prise':action == 'creation' and nature == 'hebergement' and (comp.accompagnement_id is None or acteur.has_perm('personnes.add_compositioncollective')),'form':form,'titre':titre,'action_url':url,'retour':retour_page,'faire':faire}
+    return {'composition':action=='composition','resolution_periode':action in ('creation','correction'),'proposer_nouvelle_prise':action == 'creation' and (comp.accompagnement_id is None or acteur.has_perm('personnes.add_compositioncollective')),'form':form,'titre':titre,'action_url':url,'retour':retour_page,'faire':faire}
 
 @never_cache
 @login_required
@@ -114,7 +114,7 @@ def action(request,cible,pk,action):
         if action not in ('creation', 'correction'):
             raise Http404
         from .validation_prestations import diagnostic
-        return diagnostic(ctx['form'], objet, 'fin_prevue', request=request, proposer_nouvelle_prise=ctx['proposer_nouvelle_prise'])
+        return diagnostic(ctx['form'], objet, 'fin_prevue', request=request, proposer_nouvelle_prise=ctx['proposer_nouvelle_prise'], fin_incluse=ctx['form'].nature == 'restauration')
     if action=='consultation':
         if request.method!='GET':raise PermissionDenied
         return render(request,'collectifs/consultation.html',ctx)
@@ -130,19 +130,16 @@ def action(request,cible,pk,action):
     if request.method=='POST' and ctx['form'].is_valid():
         donnees = ctx['form'].cleaned_data.copy()
         if action in ('creation', 'correction'):
-            from .validation_prestations import preparer_resolution
-            donnees['prise_confirmee'] = preparer_resolution(
-                request, ctx['form'], objet, 'fin_prevue',
-                proposer_nouvelle_prise=ctx['proposer_nouvelle_prise'],
-            )
-            nouvelle = bool(getattr(ctx['form'], 'proposer_nouvelle_prise', False) and request.POST.get('nouvelle_prise'))
-            if request.POST.get('nouvelle_prise') and not nouvelle:
-                ctx['form'].add_error(None, 'La nouvelle prise en charge ne peut plus être créée avec ces dates.')
-                return render(request, 'collectifs/form.html', {'formctx': ctx}, status=409)
-            if nouvelle:
-                donnees['nouvelle_prise'] = True
-            if getattr(ctx['form'], 'jeton_fin', None):
+            from .validation_prestations import autoriser_enregistrement
+            if not autoriser_enregistrement(
+                request, ctx['form'], objet, champ_fin='fin_prevue',
+                proposer_nouvelle_prise=ctx['proposer_nouvelle_prise'], fin_incluse=ctx['form'].nature == 'restauration',
+            ):
                 return render(request, 'collectifs/form.html', {'formctx': ctx})
+            donnees['prise_confirmee'] = ctx['form'].prise_confirmee
+            nouvelle = getattr(ctx['form'], 'nouvelle_prise_confirmee', False)
+            if nouvelle:
+                donnees['nouvelle_prise'] = nouvelle
         try:resultat=ctx['faire'](**donnees)
         except (ValidationError,OperationalError) as e:
             if isinstance(e, ValidationError):
@@ -153,7 +150,7 @@ def action(request,cible,pk,action):
             statut = 409
         else:
             if action == 'creation' and nouvelle:
-                reponse = redirect(retour(resultat.accompagnement) + '#hebergement')
+                reponse = redirect(retour(resultat.accompagnement) + ('#hebergement' if resultat.nature == 'hebergement' else '#repas'))
                 reponse['X-Nouvelle-Prise'] = '1'
                 return reponse
             reponse=redirect(ctx['retour'])

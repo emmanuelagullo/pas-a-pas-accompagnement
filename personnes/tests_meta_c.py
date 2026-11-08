@@ -4,6 +4,7 @@ from decimal import Decimal as D
 from io import StringIO
 from unittest.mock import patch
 import csv
+import re
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.core.exceptions import ValidationError,PermissionDenied
@@ -107,6 +108,24 @@ class MetaCTests(TestCase):
         self.assertEqual(remise.quantite, D('2'))
         self.assertFalse(remise.usages.exists())
         self.assertEqual(m.AccordAide.objects.count(), 1)
+
+    def test_creer_une_aide_dans_une_prise_anterieure(self):
+        url = reverse('dossiers:aide_accorder', args=[self.a.pk, 'transport'])
+        donnees = {
+            'type_aide': str(self.type.pk), 'beneficiaires': [str(self.p.pk)],
+            'debut': '2025-12-25', 'fin': '2025-12-29', 'quantite': '5',
+            'devise': 'EUR', 'source': 'Décision fictive', 'attendu': bd6.jeton(self.a),
+        }
+        self.u.user_permissions.add(Permission.objects.get(codename='add_accompagnement'))
+        commandes = self.client.post(url, donnees, headers={'X-Verifier-Prestation': '1'}).json()['commandes']
+        jeton = re.search(r'name="nouvelle_prise" value="([^"]+)"', commandes)[1]
+        reponse = self.client.post(url, {**donnees, 'nouvelle_prise': jeton})
+        self.assertEqual(reponse.status_code, 302)
+        self.assertEqual(reponse['X-Nouvelle-Prise'], '1')
+        accord = m.AccordAide.objects.get()
+        self.assertNotEqual(accord.accompagnement_id, self.a.pk)
+        self.assertEqual(accord.accompagnement.debut, date(2025, 12, 25))
+        self.assertEqual(accord.accompagnement.fin_prevue, date(2025, 12, 29))
 
     def test_http_accord_remise_rapport_et_impression(self):
         url=reverse('dossiers:aide_accorder',args=[self.a.pk,'transport']);page=self.client.get(url);self.assertEqual(page.status_code,200)

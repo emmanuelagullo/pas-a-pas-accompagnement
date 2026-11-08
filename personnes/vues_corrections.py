@@ -2,6 +2,7 @@ from copy import deepcopy
 from . import textes_riches as tr
 from . import dossier
 from django import forms
+from django.core.exceptions import ValidationError
 from .champs_saisie import FormulaireMetier
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
@@ -96,28 +97,32 @@ def corriger(request,nature,pk):
             if nature == 'accordrepas':
                 for champ in ('beneficiaires', 'service', 'prestataire', 'jours_semaine'):
                     donnees.pop(champ, None)
-            prise_confirmee = (a.fin, a.revision_sociale) if simple and form.conflit_fin else getattr(form, "prise_confirmee", None)
+            prise_confirmee = getattr(form, "prise_confirmee", None)
             return c.periode(request.user, objet, depart_sejour=simple, prise_confirmee=prise_confirmee, **donnees)
-    if nature == 'accordrepas':
-        form.objet_periode = 'la période de repas'
+    periodes_prestations = {'sejour': 'le séjour', 'accordhebergement': 'le séjour', 'accordrepas': 'la période de repas'}
+    if nature in periodes_prestations:
+        form.objet_periode = periodes_prestations[nature]
+    if nature == 'sejour' and form.is_bound:
+        try:
+            debut_demande = date_champ('Début du séjour').clean(form.data.get('debut'))
+        except ValidationError:
+            pass
+        else:
+            form.ajustement_prise_interdit = debut_demande < objet.accord.debut and (
+                not request.user.has_perm('personnes.change_accordhebergement') or bool(objet.accord.annule_le)
+            )
     if request.method == 'POST' and request.headers.get('X-Verifier-Prestation') == '1':
-        if nature not in ('sejour', 'accordrepas'):
+        if nature not in periodes_prestations:
             raise Http404
-        if simple:
-            from .vues_admission import verifier_saisie_sejour
-            return verifier_saisie_sejour(request, form)
         from .validation_prestations import diagnostic
-        return diagnostic(form, a, request=request if nature == "accordrepas" else None)
+        return diagnostic(form, a, request=request)
     def avant_enregistrement():
-        if simple:
-            return form.enregistrement_autorise(request.user)
-        if nature == 'accordrepas':
-            from .validation_prestations import preparer_resolution
-            form.prise_confirmee = preparer_resolution(request, form, a)
-            return not getattr(form, 'jeton_fin', None)
+        if nature in periodes_prestations:
+            from .validation_prestations import autoriser_enregistrement
+            return autoriser_enregistrement(request, form, a)
         return True
 
-    form.resolution_periode = nature == 'accordrepas'
+    form.resolution_periode = nature in periodes_prestations
     return traiter_hebergement(request,form,'Modifier le séjour' if nature == 'sejour' else 'Corriger une saisie — '+objet._meta.verbose_name,action,c.menage_de(objet),accompagnement=a,retour=retour,
         avant_enregistrement=avant_enregistrement)
 

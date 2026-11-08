@@ -54,7 +54,7 @@ class CollectifsTests(Donnees,TestCase):
         version = c.modifier(self.u, prestation, c.jeton(prestation), 'correction',
                              fin_prevue=date(2026, 1, 18), prise_confirmee=confirme)
         self.a.refresh_from_db()
-        self.assertEqual(self.a.fin, version.fin_prevue)
+        self.assertEqual(self.a.fin, version.fin_prevue + timedelta(days=1))
 
     def test_volumes_et_couts_sans_distribution(self):
         p=self.restaurer();r=c.bilan(p.courante,date(2026,1,10),date(2026,1,14))

@@ -6,7 +6,6 @@ from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.cache import never_cache
 from django.core.exceptions import ValidationError
-from django.core import signing
 from django.db import OperationalError
 from django.contrib import messages
 from .models import Accompagnement, LieuHebergement, AccordHebergement, Personne
@@ -91,16 +90,9 @@ class AdmissionGuideeForm(AccordForm):
 
     def clean(self):
         donnees = super().clean()
-        a = self.accompagnement
-        self.conflit_fin = False
-        if a is not None:
-            debut, fin = donnees.get('debut'), donnees.get('fin')
-            if debut and debut < a.debut:
-                self.add_error('debut', 'Choisissez une date à partir du ' + a.debut.strftime('%d/%m/%Y') + ', début de la prise en charge.')
-            elif debut and fin and fin <= debut:
-                self.add_error('fin', 'La date de fin du séjour doit suivre sa date de début.')
-            elif debut and a.fin and not self.has_error('fin') and (debut >= a.fin or fin is None or fin > a.fin):
-                self.conflit_fin = True
+        debut, fin = donnees.get('debut'), donnees.get('fin')
+        if debut and fin and fin <= debut:
+            self.add_error('fin', 'La date de fin du séjour doit suivre sa date de début.')
         if self.edition_sejour:
             for nom in ('beneficiaires', 'lieu'):
                 if nom in self.fields and self.fields[nom].disabled:
@@ -111,47 +103,6 @@ class AdmissionGuideeForm(AccordForm):
         if donnees.get('arrivee_effectuee') and not donnees.get('admission'):
             self.add_error('admission', 'Indiquez la date de l’arrivée effectuée.')
         return donnees
-
-
-    def enregistrement_autorise(self, acteur):
-        self.proposer_nouvelle_prise = not self.edition_sejour and admission.peut_ouvrir_apres_interruption(
-            acteur, self.accompagnement, self.cleaned_data.get('debut'),
-        )
-        if self.data.get('nouvelle_prise'):
-            if not self.proposer_nouvelle_prise:
-                self.add_error(None, 'La nouvelle prise en charge ne peut plus être créée avec ces dates.')
-            return self.proposer_nouvelle_prise
-        if not self.conflit_fin:
-            return True
-        if not acteur.has_perm('personnes.change_accompagnement'):
-            date_fin = self.accompagnement.fin.strftime('%d/%m/%Y')
-            self.add_error('fin', f'La prise en charge s’est terminée le {date_fin}. Modifiez les dates du séjour ou demandez à une personne autorisée de modifier la prise en charge.')
-            return False
-        fin = self.cleaned_data.get('fin')
-        dates = [self.cleaned_data['attendu'], str(self.cleaned_data['debut']), str(fin),
-                 str(self.accompagnement.fin), self.accompagnement.revision_sociale]
-        try:
-            if signing.loads(self.data.get('confirmation_fin', ''), salt='sejour-fin-prise', max_age=3600) == dates:
-                return True
-        except signing.BadSignature:
-            pass
-        self.fin_prise_resolution = self.accompagnement.fin
-        self.fin_confirmation = fin
-        self.jeton_fin = signing.dumps(dates, salt='sejour-fin-prise')
-        self.nouvelle_fin = fin if fin and fin <= timezone.localdate() else None
-        return False
-
-
-def verifier_saisie_sejour(request, form):
-    from django.http import JsonResponse
-    from django.template.loader import render_to_string
-
-    if form.is_valid():
-        form.enregistrement_autorise(request.user)
-    return JsonResponse({
-        'commandes': render_to_string('dossiers/_prestation_validation.html', {'form': form}),
-        'erreurs': {nom: list(form.errors[nom]) for nom in ('debut', 'fin', 'admission', 'duree') if nom in form.errors},
-    })
 
 
 @never_cache
@@ -171,13 +122,14 @@ def accueillir(request, pk):
         acteur=request.user, simple=simple, accompagnement=a, beneficiaires=a.beneficiaires.all(), initial={'debut': debut, 'fin': fin if fin and fin > debut else None,
             'admission': debut, 'beneficiaires': list(a.beneficiaires.values_list('pk', flat=True)),
             'attendu': admission.jeton(a)})
+    from .validation_prestations import autoriser_enregistrement, diagnostic
     if request.method == 'POST' and request.headers.get('X-Verifier-Prestation') == '1':
-        return verifier_saisie_sejour(request, form)
+        return diagnostic(form, a, request=request, proposer_nouvelle_prise=True)
     statut = 200
-    if request.method == 'POST' and form.is_valid() and form.enregistrement_autorise(request.user):
+    if request.method == 'POST' and form.is_valid() and autoriser_enregistrement(request, form, a, proposer_nouvelle_prise=True):
         try:
-            nouvelle = bool(request.POST.get('nouvelle_prise') and form.proposer_nouvelle_prise) if form.conflit_fin else False
-            accord = admission.accueillir(request.user, a, modifier_fin=form.conflit_fin and not nouvelle, nouvelle_prise=nouvelle, **form.cleaned_data)
+            nouvelle = getattr(form, 'nouvelle_prise_confirmee', False)
+            accord = admission.accueillir(request.user, a, prise_confirmee=form.prise_confirmee, nouvelle_prise=nouvelle, **form.cleaned_data)
         except ValidationError as erreur:
             form.add_error(None, 'Aucun accord, séjour ou lieu d’affectation n’a été enregistré. ' + ' '.join(erreur.messages))
             statut = 409
