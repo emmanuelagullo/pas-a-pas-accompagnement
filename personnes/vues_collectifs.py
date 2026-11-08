@@ -93,12 +93,6 @@ def preparer(request,objet,action,pk=None,nature=None):
         if not p:raise ValidationError('Choisissez une prestation.')
         suivi.exiger(acteur,'change_prestationcollective','view_prestationcollective','view_versionprestationcollective','view_couvertcollectif')
         form=f.ActionForm(data,prestation=p,action=action)
-        if action == "depart" and p.nature == "hebergement":
-            from .vues_informations import champ_destination
-            champ = champ_destination(p.accompagnement)
-            if champ is not None:
-                form.fields["destination_sortie"] = champ
-
         def faire(attendu, date=None, motif="", **donnees):
             if action == "prolongation":
                 donnees["fin_prevue"] = date

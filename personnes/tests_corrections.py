@@ -45,6 +45,23 @@ class CorrectionsTests(TestCase):
         self.assertIsNone(sejour.fin)
         self.assertFalse(accord.operations.filter(action='Sortie effective').exists())
 
+    def test_fin_unique_borne_les_nuitees_sans_depart_effectif(self):
+        from unittest.mock import patch
+        from . import statistiques
+
+        accord = h.accorder(self.u, self.a, [self.p], date(2026, 1, 1), None)
+        sejour = h.admettre(self.u, accord, [self.p], date(2026, 1, 2))
+        fin = date(2026, 1, 10)
+        with patch('acteurs.profils_collectifs.fin_hebergement_unique', return_value=True), \
+                patch('personnes.fins_hebergement.fin_hebergement_unique', return_value=True):
+            self.corriger(sejour, sejour.debut, fin, depart_sejour=True)
+            bilan = statistiques.bilan(date(2026, 1, 2), date(2026, 1, 12))
+        sejour.refresh_from_db()
+        self.assertIsNone(sejour.fin)
+        self.assertEqual(bilan['nuitees_theoriques'], 8)
+        self.assertEqual(bilan['sorties'], 1)
+        self.assertFalse(accord.operations.filter(action='Sortie effective').exists())
+
     def test_corriger_le_lieu_et_les_beneficiaires_du_sejour(self):
         from .models import Personne
 

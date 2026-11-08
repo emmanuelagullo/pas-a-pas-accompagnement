@@ -180,7 +180,10 @@ def valeurs_version(v):return {k:getattr(v,k) for k in VERSION}
 
 def exiger_actuelle(p):
     v=p.courante
-    if not v or v.action=='annulation' or p.nature!='hebergement' or not v.arrivee or v.fin:
+    from .fins_hebergement import fin_collective
+
+    fin = fin_collective(v) if v else None
+    if not v or v.action=='annulation' or p.nature!='hebergement' or not v.arrivee or fin and fin <= timezone.localdate():
         raise ValidationError('Choisissez un hébergement arrivé, non terminé et non annulé.')
     return v
 
@@ -191,6 +194,10 @@ def mouvement(acteur,p,action,attendu,debut,fin=None,lieu=None):
     m.Menage.objects.filter(pk=p.accompagnement.menage_id).update(revision=F('revision')+1)
     p=m.PrestationCollective.objects.get(pk=p.pk);verifier_jeton(p,attendu);v=exiger_actuelle(p)
     if debut<v.arrivee or debut>timezone.localdate() or fin and (fin<=debut or fin>timezone.localdate()):raise ValidationError('Période effective de mouvement invalide.')
+    from .fins_hebergement import fin_collective
+    borne = fin_collective(v)
+    if borne and (debut >= borne or fin and fin > borne):
+        raise ValidationError('Le mouvement doit rester dans les dates du séjour.')
     if action not in ('lieu','absence'):raise ValidationError('Mouvement inconnu.')
     if action=='lieu':
         suivi.exiger(acteur,'view_lieuhebergement')
@@ -347,6 +354,10 @@ def modifier(acteur,p,attendu,action,couverts=None,motif='',prise_confirmee=None
         valeurs={}
     if action=='prolongation':
         if v.fin or set(valeurs)!={'fin_prevue'} or not v.fin_prevue or valeurs['fin_prevue']<=v.fin_prevue:raise ValidationError('La nouvelle fin prévue doit prolonger une période non terminée.')
+    if action == 'depart' and p.nature == 'hebergement':
+        from acteurs.profils_collectifs import fin_hebergement_unique
+        if fin_hebergement_unique(p.accompagnement):
+            raise ValidationError('Modifiez la date de fin dans le séjour.')
     if action=='depart' and ('fin' not in valeurs or set(valeurs)-{'fin','destination_sortie'} or v.fin):raise ValidationError('Renseignez un premier départ effectif.')
     d.update(valeurs)
     if prise_confirmee and action == 'correction':
@@ -354,8 +365,13 @@ def modifier(acteur,p,attendu,action,couverts=None,motif='',prise_confirmee=None
         p.accompagnement = appliquer_resolution(acteur, p.accompagnement, d['debut'], d['fin_prevue'], prise_confirmee)
     if d["destination_sortie"] and (p.nature != "hebergement" or not d["fin"]):
         raise ValidationError("La destination concerne un départ effectif d’hébergement.")
+    borne_mouvements = d['fin']
+    if p.nature == 'hebergement' and not borne_mouvements:
+        from acteurs.profils_collectifs import fin_hebergement_unique
+        if fin_hebergement_unique(p.accompagnement):
+            borne_mouvements = d['fin_prevue']
     for x in p.mouvements.filter(annule_le__isnull=True):
-        if d['arrivee'] and x.debut<d['arrivee'] or d['fin'] and (x.debut>=d['fin'] or x.fin and x.fin>d['fin']):
+        if d['arrivee'] and x.debut<d['arrivee'] or borne_mouvements and (x.debut>=borne_mouvements or x.fin and x.fin>borne_mouvements):
             raise ValidationError('La période exclurait un mouvement enregistré ; corrigez ce mouvement d’abord.')
         if d['fin'] and not v.fin and x.nature=='absence' and x.fin is None:
             avant={'fin':None};x.fin=d['fin'];x.save(update_fields=['fin'])
@@ -373,7 +389,8 @@ def bilan(v,debut,fin):
     jours=range((fin-debut).days)
     if v.prestation.nature=='hebergement':
         if not v.arrivee:return r
-        borne=v.fin or fin
+        from .fins_hebergement import fin_collective
+        borne=fin_collective(v) or fin
         r['nuits']=max(0,(min(fin,borne)-max(debut,v.arrivee)).days)
         r['personnes_nuitees_declarees']=r['nuits']*sum(effectifs(v.composition,v.composition.debut).values())
         if v.petits_dejeuners:

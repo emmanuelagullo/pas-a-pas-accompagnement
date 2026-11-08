@@ -253,7 +253,12 @@ def page(request, nature, pk, prise_pk):
         if genre == 'nouveau':
             if objet.startswith('commun_'):operation=reverse('dossiers:collectif_action',args=['prise',prise_pk,'creation'])+'?'+urlencode({'nature':objet[7:]})
             else:operation = reverse('dossiers:nouveau',args=[nature,pk,objet]) if objet in ('hebergement','repas','services_repas') else reverse('dossiers:aide_accorder',args=[prise_pk,objet])
-        else: operation = consultation(genre,objet)
+        else:
+            if genre == 'commun' and request.GET.get('imprimer') != '1':
+                from .prestations_presentation import operation_ouverture
+
+                operation = operation_ouverture(context, objet, cle)
+            operation = operation or consultation(genre, objet)
     match, query = autoriser_operation(context,cle,operation)
     if match.view_name == 'suivi:notes':
         aliases = {'accord_hebergement':'hebergement','accord_repas':'repas','accord_aide':'aide'}
@@ -322,6 +327,8 @@ def page(request, nature, pk, prise_pk):
                 autoriser_operation(context,cle,resultat['Location'])
             except Http404: pass
             else: return HttpResponseRedirect(adresse(context,cle,resultat['Location']))
+        if genre == 'commun' and match.kwargs.get('action') == 'correction':
+            return HttpResponseRedirect(adresse(context) + ('#hebergement' if objet.nature == 'hebergement' else '#repas'))
         if genre == 'sejour' and match.view_name == 'suivi:corriger_saisie':
             return HttpResponseRedirect(adresse(context) + '#hebergement')
         return HttpResponseRedirect(adresse(context,cle))
@@ -358,6 +365,8 @@ def page(request, nature, pk, prise_pk):
             elif genre == 'sejour' and match.view_name == 'suivi:corriger_saisie':
                 donnees['annuler_prestation_url'] = adresse(context) + '#hebergement'
                 donnees['activer_si_modifie'] = request.method == 'GET'
+            elif genre == 'commun':
+                donnees['annuler_prestation_url'] = adresse(context) + ('#hebergement' if objet.nature == 'hebergement' else '#repas')
             else:
                 donnees['annuler_prestation_url'] = adresse(context, cle)
 
@@ -375,6 +384,14 @@ def page(request, nature, pk, prise_pk):
             elif genre == 'hebergement':
                 donnees['sejours'] = [s for s in context['sejours_dossier'] if s.accord_id == objet.pk]
                 donnees['arrivee_prevue_disponible'] = any(a.pk==objet.pk for a in context['hebergements_prevus'])
+            from acteurs.profils_collectifs import fin_hebergement_unique
+            from .fins_hebergement import fin_collective, fin_sejour
+
+            donnees['fin_unique_hebergement'] = fin_hebergement_unique(context['prise'])
+            if genre == 'sejour':
+                donnees['fin_calendrier'] = fin_sejour(objet)
+            elif genre == 'commun':
+                donnees['fin_calendrier'] = fin_collective(donnees['version'])
             gabarit = 'dossiers/_prestation_groupe.html' if genre=='commun' else 'dossiers/_prestation_hebergement.html' if genre in ('sejour','hebergement') else 'dossiers/_prestation_repas.html' if genre == 'repas' else 'dossiers/_prestation_aide.html'
         elif match.view_name == 'suivi:cahier': gabarit = 'liaisons/panneau.html'
         else: gabarit = resultat.template_name

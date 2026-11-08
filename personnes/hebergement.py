@@ -43,7 +43,8 @@ def bornes(sejour, debut, fin):
         raise ValidationError("La fin effective ne peut pas être future.")
     accord = sejour.accord
     suivi = accord.accompagnement
-    for limite in (suivi.fin,):
+    from .fins_hebergement import fin_sejour
+    for limite in (suivi.fin, fin_sejour(sejour)):
         if limite and (debut >= limite or (fin is not None and fin > limite)):
             raise ValidationError("La période dépasse l’accompagnement.")
     if debut > timezone.localdate():

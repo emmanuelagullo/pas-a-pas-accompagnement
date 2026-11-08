@@ -66,12 +66,17 @@ class AdmissionGuideeForm(AccordForm):
         else:
             del self.fields['lieu']
 
+        from acteurs.profils_collectifs import fin_hebergement_unique
+        fin_unique = fin_hebergement_unique(accompagnement) if accompagnement else False
+        if fin_unique:
+            self.fields['fin'].label = 'Fin du séjour (exclue)'
+
         if self.edition_sejour:
             self.fields['beneficiaires'].disabled = bool(
                 sejour.origine_collective_id or hasattr(sejour, 'individualisation')
             )
             self.fields['fin'].label = 'Fin du séjour (exclue)'
-            if sejour.fin is None:
+            if sejour.fin is None and not fin_unique:
                 self.fields['fin'].help_text = 'Une date future fixe la fin prévue, sans enregistrer de départ.'
             if 'lieu' in self.fields:
                 affectations = list(sejour.affectations.order_by('debut', 'pk')[:2])

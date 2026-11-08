@@ -5,6 +5,7 @@ non une présence physique constatée. Les absences ne sont pas déduites.
 """
 from datetime import timedelta
 from django.db.models import Q, Sum
+from .fins_hebergement import fin_sejour
 from .models import Accompagnement, Sejour, RepasDistribue, Absence, AccordRepas, Affectation
 
 
@@ -19,7 +20,7 @@ def bilan(debut, fin):
     accompagnements = Accompagnement.objects.filter(chevauche(debut, fin))
     sejours = Sejour.objects.non_annules().filter(chevauche(debut, fin))
     # Les M2M peuvent produire des doublons : DISTINCT porte sur les identités.
-    personnes = sejours.values_list('beneficiaires__pk', flat=True).exclude(beneficiaires__isnull=True).distinct().count()
+    personnes = set()
     menages = accompagnements.values_list('menage_id', flat=True).distinct().count()
     from .continuite_hebergement import episodes
     logique=list(episodes())
@@ -28,15 +29,18 @@ def bilan(debut, fin):
     # Chaque séjour contribue séparément. Les séjours concomitants sont
     # comptés deux fois : ce n'est PAS un indicateur de nuits uniques/personne.
     nuitees = 0
-    for sejour in sejours.prefetch_related('beneficiaires').only('debut', 'fin'):
-        jours = (min(sejour.fin or fin, fin) - max(sejour.debut, debut)).days
-        nuitees += jours * sejour.beneficiaires.count()
+    for sejour in sejours.select_related('accord__accompagnement').prefetch_related('beneficiaires'):
+        jours = (min(fin_sejour(sejour) or fin, fin) - max(sejour.debut, debut)).days
+        if jours > 0:
+            beneficiaires = list(sejour.beneficiaires.all())
+            personnes.update(p.pk for p in beneficiaires)
+            nuitees += jours * len(beneficiaires)
     nuits_uniques, nuits_hors_absence = nuits_distinctes(debut, fin)
     distributions = RepasDistribue.objects.filter(date__gte=debut, date__lt=fin, annule_le__isnull=True)
     return {
         'menages_accompagnes': menages,
         'accompagnements': accompagnements.count(),
-        'personnes_avec_sejour': personnes,
+        'personnes_avec_sejour': len(personnes),
         'sejours': sum(s.debut<fin and (f is None or f>debut) for s,f in logique),
         'admissions': admissions,
         'sorties': sorties,
@@ -58,11 +62,11 @@ def nuits_distinctes(debut, fin):
     nuits = set()
     hors_absence = set()
     sejours = (Sejour.objects.non_annules().filter(chevauche(debut, fin))
-               .prefetch_related('beneficiaires', 'absences'))
+               .select_related('accord__accompagnement').prefetch_related('beneficiaires', 'absences'))
     for sejour in sejours:
         personnes = [p.pk for p in sejour.beneficiaires.all()]
         debut_effectif = max(debut, sejour.debut)
-        fin_effective = min(fin, sejour.fin or fin)
+        fin_effective = min(fin, fin_sejour(sejour) or fin)
         absences = [(max(a.debut, debut_effectif), min(a.fin or fin_effective, fin_effective))
                     for a in sejour.absences.all()]
         jour = debut_effectif
@@ -167,7 +171,7 @@ def exploration_affectations(debut, fin, *, lieu="", maximum_mois=24):
     if lieu and not str(lieu).isdigit():
         raise ValueError("Lieu inconnu")
     affectations = (Affectation.objects.filter(sejour__annule_le__isnull=True).filter(chevauche(debut, fin))
-                    .select_related('lieu', 'sejour')
+                    .select_related('lieu', 'sejour__accord__accompagnement')
                     .prefetch_related('sejour__beneficiaires')
                     .order_by('lieu__libelle', 'pk'))
     comptes = {}
@@ -178,7 +182,7 @@ def exploration_affectations(debut, fin, *, lieu="", maximum_mois=24):
         lieux[affectation.lieu_id] = affectation.lieu.libelle
         sejour = affectation.sejour
         debut_effectif = max(debut, affectation.debut, sejour.debut)
-        fin_effective = min(fin, affectation.fin or fin, sejour.fin or fin)
+        fin_effective = min(fin, affectation.fin or fin, fin_sejour(sejour) or fin)
         effectif = sejour.beneficiaires.count()
         jour = debut_effectif
         while jour < fin_effective:

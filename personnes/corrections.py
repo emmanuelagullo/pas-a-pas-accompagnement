@@ -218,8 +218,11 @@ def periode(acteur,objet,debut,fin,motif,attendu,source=None, *, depart_sejour=F
         if objet.annule_le:
             raise ValidationError('Ce séjour a été annulé.')
         modification_sejour = corriger_composition_et_lieu(acteur, objet, beneficiaires, lieu)
+    from acteurs.profils_collectifs import fin_hebergement_unique
+
     if depart_sejour and nature == 'sejour' and objet.fin is None and (
-        (fin is not None and fin > timezone.localdate())
+        fin_hebergement_unique(objet.accord.accompagnement)
+        or (fin is not None and fin > timezone.localdate())
         or (objet.accord.fin is not None and fin in (None, objet.accord.fin))
     ):
         from .accords import exiger_actif
@@ -232,6 +235,11 @@ def periode(acteur,objet,debut,fin,motif,attendu,source=None, *, depart_sejour=F
         verifier_periode(debut, fin)
         verifier_periode_prise(accord.accompagnement, debut, fin)
         if fin != accord.fin:
+            if fin and any(
+                periode.debut >= fin or (periode.fin is not None and periode.fin > fin)
+                for periode in (*objet.affectations.all(), *objet.absences.all())
+            ):
+                raise ValidationError('Des affectations ou absences dépassent cette fin de séjour.')
             exiger(acteur, 'change_accordhebergement')
             exiger_actif(accord)
             if accord.sejours.non_annules().exclude(pk=objet.pk).exists():

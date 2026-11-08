@@ -1,12 +1,12 @@
 {% load dossier acteurs %}
 <h4>{% if prestation_genre == 'sejour' %}Séjour du {{ prestation.debut|date:'d/m/Y' }}{% else %}Accord d’hébergement du {{ accord.debut|date:'d/m/Y' }}{% endif %}</h4>
-<p><strong>{% if prestation.annule_le %}Annulé{% elif prestation.fin %}Fin : {{ prestation.fin|date:'d/m/Y' }} (exclue){% else %}Sans fin enregistrée{% endif %}</strong></p>
+<p><strong>{% if prestation.annule_le %}Annulé{% elif fin_calendrier or prestation.fin %}Fin : {{ fin_calendrier|default:prestation.fin|date:'d/m/Y' }} (exclue){% else %}Sans fin enregistrée{% endif %}</strong></p>
 <p>Bénéficiaires : {% for p in prestation.beneficiaires.all %}{{ p }}{% if not forloop.last %} ; {% endif %}{% empty %}non renseignés{% endfor %}.</p>
 {% if prestation_genre == 'sejour' %}
-<p>Accord associé : {{ accord.debut|date:'d/m/Y' }} → {{ accord.fin|date:'d/m/Y'|default:'sans fin prévue' }} (fin exclue). Prolonger cet accord étend l’autorisation, pas la présence réalisée.</p>
+{% if not fin_unique_hebergement %}<p>Accord associé : {{ accord.debut|date:'d/m/Y' }} → {{ accord.fin|date:'d/m/Y'|default:'sans fin prévue' }} (fin exclue). Prolonger cet accord étend l’autorisation, pas la présence réalisée.</p>{% endif %}
 {% if accord.sejours.count > 1 %}<p class="helptext">Cet accord est partagé par plusieurs séjours. Les actions sur l’accord concernent tous ses bénéficiaires.</p>{% endif %}
 {% else %}<p>Cette autorisation ne prouve pas une arrivée ni une présence réalisée.</p>{% endif %}
-{% if prestation_genre == 'sejour' and accord.fin %}{% if prestation.fin and prestation.fin > accord.fin or not prestation.fin and aujourdhui >= accord.fin %}<p role="status">Ce séjour dépasse la fin de l’accord. Les faits enregistrés ne prolongent pas l’autorisation d’hébergement.</p>{% endif %}{% endif %}
+{% if prestation_genre == 'sejour' and accord.fin and not fin_unique_hebergement %}{% if prestation.fin and prestation.fin > accord.fin or not prestation.fin and aujourdhui >= accord.fin %}<p role="status">Ce séjour dépasse la fin de l’accord. Les faits enregistrés ne prolongent pas l’autorisation d’hébergement.</p>{% endif %}{% endif %}
 {% if prestation_genre != 'sejour' %}{% include 'suivi/_decisions_accord.html' with nature_accord='hebergement' %}{% endif %}
 {% if prestation_genre == 'hebergement' and arrivee_prevue_disponible and not accord.annule_le and perms.personnes.add_sejour %}<p><a href="{% dossier_url 'suivi:arrivee_prevue' accord.pk %}">Enregistrer l’arrivée</a></p>{% endif %}
 {% if prestation_genre == 'hebergement' and sejours %}<h5>Séjours de cet hébergement</h5><ul>{% for enfant in sejours %}<li>{% for p in enfant.beneficiaires.all %}{{ p }}{% if not forloop.last %} ; {% endif %}{% endfor %} · {{ enfant.debut|date:'d/m/Y' }} → {{ enfant.fin|date:'d/m/Y'|default:'en cours' }} · <a data-prestation-lien href="{% load prestations %}{% prestation_ouvrir 'sejour' enfant.pk %}">Ouvrir ce séjour</a></li>{% endfor %}</ul>{% endif %}

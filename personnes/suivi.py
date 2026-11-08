@@ -79,13 +79,15 @@ def clore(acteur, objet, fin):
     if accompagnement:
         from .models import RepasDistribue, Sejour, SituationSociale, EvenementSocial, BilanSocial
         from .models import PrestationCollective
+        from .fins_hebergement import fin_collective, fin_sejour
         # Garde d'intégrité sur les enfants du parent déjà autorisé : existence
         # seulement, jamais une lecture de contenu ni une ouverture de droits.
         if PrestationCollective._base_manager.filter(accompagnement=objet).exists():
             exiger(acteur,'view_prestationcollective','view_versionprestationcollective')
         for prestation in PrestationCollective.objects.filter(accompagnement=objet):
             version=prestation.courante
-            if version and version.action!='annulation' and (version.fin is None or version.fin>fin or prestation.nature=='restauration' and version.fin>=fin):
+            borne = fin_collective(version) if version else None
+            if version and version.action!='annulation' and (borne is None or borne>fin or prestation.nature=='restauration' and borne>=fin):
                 raise ValidationError('Terminez ou annulez les prestations collectives avant de clôturer la prise en charge ; la restauration doit finir avant la date exclue.')
         if objet.interventions.filter(annule_le__isnull=True).filter(models.Q(debut__gte=fin) | models.Q(fin__gt=fin)).exists():
             raise ValidationError('Des missions professionnelles datées seraient exclues de la prise en charge.')
@@ -93,7 +95,8 @@ def clore(acteur, objet, fin):
             or EvenementSocial.objects.filter(accompagnement=objet, date_effet__gte=fin).exists()
             or BilanSocial.objects.filter(accompagnement=objet, date_effet__gte=fin).exists()):
             raise ValidationError("Des informations sociales datées seraient exclues de l’accompagnement.")
-        if Sejour.objects.non_annules().filter(accord__accompagnement=objet).filter(models.Q(fin__isnull=True) | models.Q(fin__gt=fin)).exists():
+        sejours = Sejour.objects.non_annules().filter(accord__accompagnement=objet).select_related('accord__accompagnement')
+        if any(borne is None or borne > fin for borne in map(fin_sejour, sejours)):
             raise ValidationError("Clôturez d’abord les séjours au plus tard à la fin de l’accompagnement.")
         from .models import RemiseAide
         if RemiseAide.objects.filter(accord__accompagnement=objet,annule_le__isnull=True,date__gte=fin).exists():

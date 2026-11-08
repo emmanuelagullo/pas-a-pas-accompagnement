@@ -15,7 +15,7 @@ def completer(auteur,etablissement,professionnel):
     call_command('autoriser_collectif',auteur.username,stdout=StringIO())
     auteur=type(auteur).objects.get(pk=auteur.pk)
     jour=timezone.localdate();entree=jour-timedelta(days=14)
-    service=Service.objects.create(etablissement=etablissement,libelle='Les Amandiers',sous_titre='Accueil et hébergement des familles',profil_collectif={**defaut(), "parcours_simples": ["hebergement", "restauration"]},collecte_rubriques=profil_collecte('menage'))
+    service=Service.objects.create(etablissement=etablissement,libelle='Les Amandiers',sous_titre='Accueil et hébergement des familles',profil_collectif={**defaut(), "parcours_simples": ["hebergement", "restauration"], "fin_hebergement_unique": True},collecte_rubriques=profil_collecte('menage'))
     service.listes_saisie = {'motif_entree': ['Mise à l’abri', 'Accueil d’une famille']}
     service.save(update_fields=['listes_saisie'])
     AppartenanceProfessionnelle.objects.create(service=service,professionnel=professionnel,debut=entree)

@@ -15,7 +15,19 @@ def parcours_simple(prise, famille):
         service = service_objet(prise)
     except ValidationError:
         return False
-    return famille in service.profil_collectif.get('parcours_simples', ())
+    profil = service.profil_collectif
+    return famille in profil.get('parcours_simples', ()) or (
+        famille == 'hebergement' and profil.get('fin_hebergement_unique', False)
+    )
+
+
+def fin_hebergement_unique(prise):
+    from personnes.collectifs import service_objet
+
+    try:
+        return service_objet(prise).profil_collectif.get('fin_hebergement_unique', False)
+    except ValidationError:
+        return False
 
 
 def categories_defaut():
@@ -59,7 +71,9 @@ def defaut_individuel(*, collecte_configuree=False):
 
 
 def verifier(valeur):
-    if not isinstance(valeur,dict) or set(valeur)-set(defaut())-{'parcours_simples'} or set(defaut())-set(valeur)-{'aides','prestations'}:raise ValidationError('Profil collectif incomplet ou champ inconnu.')
+    if not isinstance(valeur,dict) or set(valeur)-set(defaut())-{'parcours_simples','fin_hebergement_unique'} or set(defaut())-set(valeur)-{'aides','prestations'}:raise ValidationError('Profil collectif incomplet ou champ inconnu.')
+    if type(valeur.get('fin_hebergement_unique', False)) is not bool:
+        raise ValidationError('Réglage de fin d’hébergement invalide.')
     simples = valeur.get('parcours_simples', [])
     if not isinstance(simples, list) or any(not isinstance(x, str) or x not in dict(FAMILLES) for x in simples):
         raise ValidationError('Famille de parcours simple inconnue.')

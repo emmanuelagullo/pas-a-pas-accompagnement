@@ -258,11 +258,16 @@ def resume_prestations(a, sejours, repas, jour, lieux=False):
     repas = [r for r in repas if r.accompagnement_id == a.pk and not r.annule_le]
     morceaux = []
     if sejours:
-        texte = f'Héberg. {nombre_jours(sejours, jour)} nuits'
-        if any(s.fin is None for s in sejours):
+        from types import SimpleNamespace
+        from .fins_hebergement import fin_sejour
+
+        bornes = [(s, fin_sejour(s)) for s in sejours]
+        periodes = [SimpleNamespace(debut=s.debut, fin=min(fin, jour) if fin and not s.fin else fin) for s, fin in bornes]
+        texte = f'Héberg. {nombre_jours(periodes, jour)} nuits'
+        if any(fin is None or fin > jour for _, fin in bornes):
             texte += ' à ce jour · ouvert'
         if lieux:
-            actuelles = [x for s in sejours if s.debut <= jour and (s.fin is None or s.fin > jour)
+            actuelles = [x for s, fin in bornes if s.debut <= jour and (fin is None or fin > jour)
                 for x in getattr(s, 'lieux_dossier', []) if x.debut <= jour and (x.fin is None or x.fin > jour)]
             connues = sorted([x for s in sejours for x in getattr(s, 'lieux_dossier', [])
                 if x.debut <= jour], key=lambda x: (x.debut, x.pk), reverse=True)

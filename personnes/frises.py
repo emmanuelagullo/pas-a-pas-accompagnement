@@ -184,8 +184,12 @@ def _charger(acteur, objets, nature, *, prise=None, navigations=None, retour_rec
                     {p.pk for p in h.frise_beneficiaires}, 1, bool(h.annule_le))
         ss = {s.pk: s for s in m.Sejour.objects.non_annules().filter(accord_id__in=hs).prefetch_related(Prefetch('beneficiaires', to_attr='frise_beneficiaires'))}
         ps = {s.pk: {p.pk for p in s.frise_beneficiaires} for s in ss.values()}
+        from types import SimpleNamespace
+        from .fins_hebergement import fin_sejour
         for s in ss.values():
-            ajouter(s, hs[s.accord_id].accompagnement_id, 'sejour', 'Continuation individuelle' if s.origine_collective_id else 'Séjour enregistré',
+            s.accord = hs[s.accord_id]
+            borne = SimpleNamespace(pk=s.pk, debut=s.debut, fin=fin_sejour(s))
+            ajouter(borne, hs[s.accord_id].accompagnement_id, 'sejour', 'Continuation individuelle' if s.origine_collective_id else 'Séjour enregistré',
                     reverse('suivi:accord_hebergement', args=[s.accord_id]) + '#sejour-' + str(s.pk), ps[s.pk], 0)
         if acteur.has_perms(['personnes.view_affectation', 'personnes.view_lieuhebergement']):
             xs = list(m.Affectation.objects.filter(sejour_id__in=ss))
@@ -220,7 +224,8 @@ def _charger(acteur, objets, nature, *, prise=None, navigations=None, retour_rec
             ajouter(x,p.accompagnement_id,'autorisation' if p.nature=='hebergement' else 'repas','Hébergement autorisé' if p.nature=='hebergement' else 'Repas accordés (quantités calculées)',url,personnes,1 if p.nature=='hebergement' else 2,annule)
             faits[-1]['modele']='prestationcollective';faits[-1]['prestation_collective_id']=str(p.pk)
             if p.nature=='hebergement' and v.arrivee:
-                x=SimpleNamespace(pk=p.pk,debut=v.arrivee,fin=v.fin)
+                from .fins_hebergement import fin_collective
+                x=SimpleNamespace(pk=p.pk,debut=v.arrivee,fin=fin_collective(v))
                 ajouter(x,p.accompagnement_id,'sejour','Hébergement — arrivée enregistrée',url,personnes,0,annule)
                 faits[-1]['modele']='prestationcollective';faits[-1]['prestation_collective_id']=str(p.pk)
             if acteur.has_perm('personnes.view_mouvementcollectif'):

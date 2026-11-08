@@ -80,13 +80,6 @@ def corriger(request,nature,pk):
                 ),
             )
             form.fields['motif'] = deepcopy(PeriodeForm.base_fields['motif'])
-            if objet.fin is None and request.user.has_perms((
-                'personnes.change_sejour', 'personnes.change_affectation', 'personnes.change_absence',
-            )):
-                from .vues_informations import champ_destination
-                destination = champ_destination(a)
-                if destination is not None:
-                    form.fields['destination_sortie'] = destination
         if nature == 'accordrepas':
             from .forms_repas import AccordForm
 

@@ -24,21 +24,6 @@ class SaisieSuggeree(forms.TextInput):
         return contexte
 
 
-def champ_destination(prise):
-    from acteurs.listes_saisie import DESTINATION_SORTIE, choix
-    from acteurs.portees import existante
-
-    origine = existante(prise)
-    if origine is None:
-        return None
-    service = origine.service
-    propositions = choix("destination_sortie", etablissement=service.etablissement, service=service)
-    if not propositions:
-        return None
-    return forms.CharField(label=DESTINATION_SORTIE, max_length=160, required=False,
-                           widget=SaisieSuggeree(propositions, "destination_sortie"))
-
-
 class InformationsForm(FormulaireModeleMetier):
     objectifs_courts = tr.ChampTexte(label='Objectifs à court terme', max_length=1000, required=False)
     objectifs_longs = tr.ChampTexte(label='Objectifs à plus long terme', max_length=1000, required=False)

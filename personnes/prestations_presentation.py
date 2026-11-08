@@ -99,9 +99,8 @@ def creation(context,famille):
     else:url=reverse('dossiers:nouveau',args=[context['nature'],context['objet'].pk,nature])+'?'+context.get('navigation_query','')
     return {'url':url,'cle':cle,'label':'Nouvelle période de repas' if nature=='repas' else 'Nouveau séjour'}
 
-def ouvrir_prestation(context, objet, cle):
+def operation_ouverture(context, objet, cle):
     from acteurs.profils_collectifs import parcours_simple
-    from . import prestation_navigation as nav
 
     utilisateur = context['request'].user
     genre = cle.split(':', 1)[0]
@@ -120,11 +119,17 @@ def ouvrir_prestation(context, objet, cle):
             operation = reverse('suivi:corriger_saisie', args=['accordrepas', objet.pk])
         elif genre.startswith('aide_') and utilisateur.has_perm('personnes.change_accordaide'):
             operation = reverse('dossiers:aide_corriger', args=[objet.pk])
-    return nav.adresse(context, cle, operation)
+    return operation
+
+
+def ouvrir_prestation(context, objet, cle):
+    from . import prestation_navigation as nav
+
+    return nav.adresse(context, cle, operation_ouverture(context, objet, cle))
 
 
 def ligne(context,objet,genre):
-    from acteurs.listes_saisie import DESTINATION_SORTIE
+    from .fins_hebergement import fin_collective, fin_sejour
     initialiser(context)
     from . import prestation_navigation as nav
     if isinstance(objet,m.PrestationCollective):genre='commun'
@@ -142,11 +147,13 @@ def ligne(context,objet,genre):
         if lieu:resume[0]+=' · '+lieu
         if famille=='restauration':titre=('Déjeuner / Dîner' if v.dejeuner and v.diner else 'Déjeuner' if v.dejeuner else 'Dîner')+' · '+titre
         resume.append(str(sum(nombres.values()))+' personnes déclarées')
-        if famille=='hebergement' and v.destination_sortie and v.action != 'annulation':
-            resume.append(DESTINATION_SORTIE + ' : ' + v.destination_sortie)
         if famille=='hebergement' and v.arrivee:
-            titre=date(v.arrivee)+' → '+(date(v.fin) or 'en cours')
-            if v.fin_prevue:resume.append('Fin prévue : '+date(v.fin_prevue))
+            fin = fin_collective(v)
+            titre=date(v.arrivee)+' → '+(date(fin) or 'en cours')
+            if fin and fin <= timezone.localdate() and v.action != 'annulation':
+                resume[0] = resume[0].replace('En cours', 'Terminée', 1)
+            if v.fin_prevue and fin != v.fin_prevue:
+                resume.append('Fin prévue : '+date(v.fin_prevue))
         if famille=='restauration' and v.action!='annulation' and (v.fin or v.fin_prevue):
             from django.core.exceptions import ValidationError
             try:
@@ -166,16 +173,15 @@ def ligne(context,objet,genre):
             titre=objet.get_service_display()+' · '+date(objet.debut)+' → '+(date(objet.fin) or 'sans fin prévue')
             resume=['Annulé' if objet.annule_le else 'À venir' if objet.debut>timezone.localdate() else 'Terminé' if objet.fin and objet.fin<=timezone.localdate() else 'Accord en cours']
         else:
-            titre=date(objet.debut)+' → '+(date(objet.fin) or 'en cours')
-            etat='Terminé' if objet.fin else 'À venir' if objet.debut>timezone.localdate() else 'Ouvert'
+            fin = fin_sejour(objet)
+            titre=date(objet.debut)+' → '+(date(fin) or 'en cours')
+            etat='Terminé' if fin and fin <= timezone.localdate() else 'À venir' if objet.debut>timezone.localdate() else 'Ouvert'
             if context.get('lecture_lieux'):
                 lieu=objet.lieu_ouvert.lieu if objet.lieu_ouvert else objet.lieux_dossier[0].lieu if objet.lieux_dossier else 'Lieu non renseigné'
                 etat+=' · '+str(lieu)
             resume=[etat]
-            if not objet.fin and objet.accord.fin:
+            if fin is None and objet.accord.fin:
                 resume.append('Fin d’hébergement prévue le ' + date(objet.accord.fin))
-            if objet.destination_sortie and not objet.annule_le:
-                resume.append(DESTINATION_SORTIE + ' : ' + objet.destination_sortie)
         if genre!='hebergement':resume.append(' ; '.join(str(p) for p in objet.beneficiaires.all()))
     if context.get('prise') and famille=='hebergement':
         params={**context['parametres_prestations'],'sejour':str(objet.pk),'prevision':''}
@@ -197,8 +203,12 @@ def actions(context,famille):
     if v.action!='annulation' and u.has_perm('personnes.change_prestationcollective'):
         if v.fin_prevue and not v.fin:principaux.append(lien('prolongation','Prolonger'))
         autres=[lien('annulation','Annuler la prestation')]
-        if famille=='hebergement' and v.arrivee and not v.fin and u.has_perms(('personnes.view_versionprestationcollective', 'personnes.view_couvertcollectif')):
-            principaux.append(lien('depart', 'Enregistrer le départ'))
+        from .fins_hebergement import fin_collective
+        fin = fin_collective(v)
+        if famille=='hebergement' and v.arrivee and (not fin or fin > timezone.localdate()) and u.has_perms(('personnes.view_versionprestationcollective', 'personnes.view_couvertcollectif')):
+            from acteurs.profils_collectifs import fin_hebergement_unique
+            if not fin_hebergement_unique(p.accompagnement):
+                principaux.append(lien('depart', 'Enregistrer le départ'))
             if u.has_perm('personnes.add_mouvementcollectif'):autres.extend([lien('lieu','Changer de lieu'),lien('absence','Enregistrer une absence')])
             if u.has_perm('personnes.change_mouvementcollectif'):autres.extend([lien('retour','Enregistrer le retour d’absence'),lien('annuler_mouvement','Annuler un mouvement')])
     return {'cle':cle,'resume':str(sum(c.effectifs(v.composition).values()))+' personnes déclarées','principaux':principaux,'autres':autres}
@@ -239,8 +249,11 @@ def actions_natives(context,famille):
         informations=['Période de suivi du '+date(accord.accompagnement.debut)+'. Un accord ne prouve pas une distribution.']
         if accord.annule_le:informations.append('Accord annulé : '+accord.motif_annulation)
     else:
-        if not objet.fin and principaux[0]['url'] == nav.adresse(context,cle) and autorise('change_sejour','change_affectation','change_absence'):principaux.append(lien('Enregistrer le départ','suivi:sortir',objet.pk))
-        if not objet.fin:
+        from acteurs.profils_collectifs import fin_hebergement_unique
+        if not objet.fin and not fin_hebergement_unique(accord.accompagnement) and principaux[0]['url'] == nav.adresse(context,cle) and autorise('change_sejour','change_affectation','change_absence'):principaux.append(lien('Enregistrer le départ','suivi:sortir',objet.pk))
+        from .fins_hebergement import fin_sejour
+        fin = fin_sejour(objet)
+        if not fin or fin > timezone.localdate():
             if context.get('lecture_lieux'):
                 if objet.lieu_ouvert and autorise('change_affectation','add_affectation'):autres.append(lien('Changer de lieu','suivi:changer_lieu',objet.lieu_ouvert.pk))
                 elif not objet.lieu_ouvert and autorise('add_affectation'):autres.append(lien('Affecter un lieu','suivi:affecter',objet.pk))

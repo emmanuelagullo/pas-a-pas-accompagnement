@@ -53,9 +53,12 @@ def individualiser(acteur,sejour,date,motif,attendu):
 
 def episodes():
     """Épisodes initiaux pour les compteurs historiques ; fragments pour les nuitées."""
+    from .fins_hebergement import fin_sejour
+
     for s in m.Sejour.objects.non_annules().filter(origine_collective__isnull=True).select_related('accord__accompagnement').prefetch_related('continuations__beneficiaires','beneficiaires'):
         enfants=list(s.continuations.all())
-        fin=(None if any(x.fin is None for x in enfants) else max(x.fin for x in enfants)) if enfants else s.fin
+        bornes = [fin_sejour(x) for x in enfants] if enfants else [fin_sejour(s)]
+        fin = None if None in bornes else max(bornes)
         yield s,fin
 
 

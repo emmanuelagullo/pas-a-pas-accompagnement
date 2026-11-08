@@ -111,11 +111,18 @@ class PrestationForm(FormulaireMetier):
             if acteur.has_perm('personnes.view_lieuhebergement'):self.fields['lieu'].queryset=m.LieuHebergement.objects.all()
             else:del self.fields['lieu']
             if not cfg['petits_dejeuners']:del self.fields['petits_dejeuners']
-            self.fields['fin_prevue'].label='Départ prévu — date exclue'
-            self.arrivee_simple = not v and 'hebergement' in cfg.get('parcours_simples', ())
+            from acteurs.profils_collectifs import fin_hebergement_unique
+            if fin_hebergement_unique(prise):
+                self.fields['fin_prevue'].label = 'Fin du séjour (exclue)'
+                if not v or v.fin is None:
+                    del self.fields['fin']
+            else:
+                self.fields['fin_prevue'].label = 'Départ prévu — date exclue'
+            self.arrivee_simple = not v and ('hebergement' in cfg.get('parcours_simples', ()) or fin_hebergement_unique(prise))
             if self.arrivee_simple:
                 self.fields['debut'].label = 'Date d’arrivée'
-                del self.fields['arrivee'], self.fields['fin']
+                del self.fields['arrivee']
+                self.fields.pop('fin', None)
         else:
             for k in ('arrivee','lieu','petits_dejeuners'):del self.fields[k]
             self.fields['fin_prevue'].label='Dernier jour prévu — repas de fin compris'
