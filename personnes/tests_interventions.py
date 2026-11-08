@@ -1,5 +1,6 @@
 from datetime import date
 from io import StringIO
+from urllib.parse import urlencode
 from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
@@ -33,6 +34,30 @@ class MissionsTests(Donnees, TestCase):
             organisme=None, source='Décision fictive', attendu=bd6.jeton(self.a))
         d.update(kwargs)
         return interventions.affecter(self.u, self.a, **d)
+
+    def test_missions_en_place_a_la_date_de_situation(self):
+        prise = reverse('dossiers:prise', args=['menage', self.m.pk, self.a.pk])
+        jour = '2026-01-05'
+        parametres = {'vue_sociale': 'date', 'date_sociale': jour}
+        page = self.client.get(prise, parametres)
+        self.assertContains(page, 'id="condition-missions"')
+        self.assertContains(page, 'data-condition-modifier>Renseigner</a>')
+        token = page.context['prise'].navigation['contexte_dossier']
+        query = {'date': jour, 'saisie_sociale': '1', 'contexte_dossier': token}
+        url = reverse('dossiers:intervention_nouvelle', args=[self.a.pk]) + '?' + urlencode(query)
+        fragment = self.client.get(url, headers={'X-Condition-Form': '1'})
+        self.assertContains(fragment, 'data-condition-form')
+        self.assertEqual(fragment.context['form'].initial['debut'], date.fromisoformat(jour))
+        response = self.client.post(url, {
+            'role': 'referent', 'intervenant': self.prof.pk, 'debut': jour,
+            'source': 'Source fictive', 'attendu': bd6.jeton(self.a),
+        }, headers={'X-Condition-Form': '1'})
+        self.assertEqual(response.json(), {'enregistre': True})
+        mission = self.a.interventions.get()
+        page = self.client.get(prise, parametres)
+        self.assertContains(page, reverse('dossiers:intervention_corriger', args=[self.a.pk, mission.pk]))
+        self.assertContains(page, 'data-condition-modifier>Ajouter</a>')
+        self.assertContains(page, '#historique-missions')
 
     def test_professionnel_distinct_des_comptes_personnes_et_contact_menage(self):
         from .models import Personne, ContactMenage
@@ -142,7 +167,6 @@ class MissionsTests(Donnees, TestCase):
         self.assertFalse(self.a.informations.exists())
 
     def test_http_affectation_retour_signe_et_csrf(self):
-        from urllib.parse import urlencode
         page = self.client.get(reverse('dossiers:prise', args=['menage', self.m.pk, self.a.pk]), {'q':'Fictif','sejour':self.s.pk})
         token = page.context['prise'].navigation['contexte_dossier']
         url = reverse('dossiers:intervention_nouvelle', args=[self.a.pk]) + '?' + urlencode({'contexte_dossier':token,'date':'2026-01-02'})

@@ -1,0 +1,21 @@
+<details data-condition-groupe class="condition-depliant" id="condition-missions" data-condition-repli="missions-prise-{{ prise.pk }}"><summary aria-labelledby="condition-missions-titre" aria-describedby="condition-missions-apercu"><h4 id="condition-missions-titre">Missions et partenaires</h4><span class="condition-apercu" id="condition-missions-apercu">{{ interventions_courantes|length }} mission{{ interventions_courantes|length|pluralize }} applicable{{ interventions_courantes|length|pluralize }} à cette date</span></summary>
+  {% url 'dossiers:intervention_nouvelle' prise.pk as nouvelle_mission %}
+  {% url 'dossiers:interventions' prise.pk as historique_missions %}
+  {% with date_mission=condition_jour|date:'Y-m-d' contexte=prise.navigation.contexte_dossier|urlencode %}
+    {% for mission in interventions_courantes %}
+      <div data-condition-lecture>
+        <p>{{ mission.get_role_display }} : {{ mission.nom_affiche }}</p>
+        {% if perms.personnes.add_affectationintervenant and perms.personnes.change_affectationintervenant %}
+          <p class="condition-actions"><a class="bouton" href="{% url 'dossiers:intervention_corriger' prise.pk mission.pk %}?contexte_dossier={{ contexte }}&amp;date={{ date_mission }}&amp;saisie_sociale=1" data-condition-modifier>Modifier</a></p>
+        {% endif %}
+      </div>
+    {% empty %}
+      <p data-condition-vide>Aucune mission applicable à cette date.</p>
+    {% endfor %}
+    {% if perms.personnes.add_affectationintervenant %}
+      <p data-condition-ajout><a class="bouton" href="{{ nouvelle_mission }}?contexte_dossier={{ contexte }}&amp;date={{ date_mission }}&amp;saisie_sociale=1" data-condition-modifier>{% if interventions_courantes %}Ajouter{% else %}Renseigner{% endif %}</a></p>
+    {% endif %}
+    <p><a class="bouton secondaire" href="{{ historique_missions }}?contexte_dossier={{ contexte }}&amp;date={{ date_mission }}#historique-missions">Historique</a></p>
+  {% endwith %}
+  <div data-condition-formulaire></div>
+</details>

@@ -60,6 +60,14 @@ def gerer(request, pk, action=None, affectation_pk=None):
             return traiter(request,form,'Annuler une affectation erronée',lambda **d:interventions.annuler(request.user,a,x,**d),
                 base,a.menage,explication='L’affectation et son journal restent consultables ; elle sera exclue des missions et exports courants. Terminer une mission réelle utilise une fin de mission.')
         initial = {champ: getattr(x, champ) for champ in ('role','intervenant','organisme','debut','fin','source')} if x else {'debut': timezone.localdate()}
+        saisie_sur_place = request.GET.get('saisie_sociale') == '1'
+        if saisie_sur_place and not x:
+            consultation = ConsultationForm({'date': params['date']})
+            if consultation.is_valid():
+                initial['debut'] = consultation.cleaned_data['date']
+        retour = navigation.get('retour_dossier') if saisie_sur_place else None
+        if retour:
+            base = retour.split('#', 1)[0] + '#condition-missions'
         initial['attendu'] = attendu
         form = AffectationForm(request.POST if request.method == 'POST' else None, initial=initial)
         form.fields['motif'].required = action == 'clore'
@@ -67,7 +75,7 @@ def gerer(request, pk, action=None, affectation_pk=None):
             for c in ('role','intervenant','organisme','debut','source'):
                 form.fields[c].disabled = True
             form.fields['fin'].required = True
-        return traiter(request, form, 'Terminer la mission' if action == 'clore' else 'Corriger une affectation' if x else 'Affecter un professionnel ou organisme',
+        return traiter(request, form, 'Terminer la mission' if action == 'clore' else 'Modifier la mission' if x else 'Renseigner une mission',
             lambda **d: interventions.affecter(request.user, a, correction=x.pk if x else None, cloture=action == 'clore', **d),
             base, a.menage, explication='Le rôle est limité à cette prise en charge. Plusieurs professionnels peuvent intervenir ; aucune mission précédente n’est terminée automatiquement. Le référent n’est ni l’auteur de saisie, ni le contact du ménage, ni un représentant légal.')
     jour = a.fin - timedelta(days=1) if a.fin else timezone.localdate()
