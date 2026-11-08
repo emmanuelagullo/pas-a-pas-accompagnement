@@ -29,7 +29,7 @@ class PrestationsUnifieesTests(Donnees,TestCase):
         self.assertNotContains(page,'prestations-communes')
         self.assertNotContains(page,'col_action=creation')
 
-    def test_consultation_correction_et_prolongation_sont_des_panneaux_nav(self):
+    def test_ouverture_en_edition_et_prolongation_sont_des_panneaux_nav(self):
         p=self.restaurer();self.client.force_login(self.u)
         page=self.client.get(self.url('commun:'+str(p.pk)))
         self.assertEqual(page.status_code,200)
@@ -39,7 +39,9 @@ class PrestationsUnifieesTests(Donnees,TestCase):
         self.assertNotIn('>Modifier</a>', rubrique.split('</section>', 1)[0])
         self.assertContains(page,'%2Fcorrection%2F%3Fpk%3D'+str(p.pk))
         self.assertContains(page,'id="condition-composition"',count=1)
-        self.assertContains(page,'>Refermer</a>',count=1)
+        self.assertContains(page,'data-prestation-form')
+        self.assertContains(page,'data-prestation-annuler>Annuler</a>',count=1)
+        self.assertNotContains(page,'>Refermer</a>')
         self.assertContains(page,'<h1 data-prise-entete="titre">Prise en charge',count=1)
         operation=reverse('dossiers:collectif_action',args=['prise',self.a.pk,'prolongation'])+'?'+urlencode({'pk':p.pk})
         page=self.client.get(self.url('commun:'+str(p.pk),operation))

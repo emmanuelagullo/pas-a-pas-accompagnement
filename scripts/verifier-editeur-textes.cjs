@@ -59,7 +59,10 @@ const serveur = http.createServer((req,res) => {
   await zone.fill('*pas de Markdown*');assert.equal(await zone.locator('em').count(),0);
   // Une liste ne doit pas englober les paragraphes voisins du curseur.
   await zone.fill('Premier');await zone.press('Enter');await page.keyboard.insertText('Deuxième');await zone.press('Enter');await page.keyboard.insertText('Troisième');
-  await zone.press('ArrowUp');await zone.press('Home');
+  await zone.evaluate(editeur => {
+    const paragraphe = editeur.querySelectorAll(':scope > p')[1];
+    getSelection().collapse(paragraphe, 0);
+  });
   await page.getByRole('button',{name:'Liste à puces',exact:true}).click();
   assert.equal(await zone.locator(':scope > ul > li').count(),1);
   assert.equal(await zone.locator(':scope > ul').innerText(),'Deuxième');
