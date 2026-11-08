@@ -121,7 +121,20 @@ def valider(objet, *, fin_prevue_sejour=None):
         incluse(objet.accord, objet.debut, point=True, libelle="La date d’arrivée du séjour", cadre="période d’hébergement prévue")
         from .validation_prestations import verifier_periode_prise
         verifier_periode_prise(objet.accord.accompagnement, objet.debut, objet.fin or fin_prevue_sejour)
-        for periode in list(objet.affectations.all())+list(objet.absences.all()):incluse(objet,periode.debut,periode.fin)
+        for periodes, libelle in (
+            (objet.affectations.all(), 'La période d’occupation du lieu'),
+            (objet.absences.all(), 'L’absence enregistrée'),
+        ):
+            for periode in periodes:
+                if periode.debut < objet.debut or objet.fin and (
+                    periode.debut >= objet.fin or periode.fin is None or periode.fin > objet.fin
+                ):
+                    periode_fin = f'au {periode.fin:%d/%m/%Y}' if periode.fin else 'sans date de fin'
+                    sejour_fin = f'au {objet.fin:%d/%m/%Y}' if objet.fin else 'sans date de fin'
+                    raise ValidationError(
+                        f'{libelle} du {periode.debut:%d/%m/%Y} {periode_fin} '
+                        f'dépasse les dates du séjour demandé, du {objet.debut:%d/%m/%Y} {sejour_fin}.'
+                    )
     elif nature in ('affectation','absence'):
         from .hebergement import bornes
         bornes(objet.sejour,objet.debut,objet.fin)
@@ -292,6 +305,17 @@ def periode(acteur,objet,debut,fin,motif,attendu,source=None, *, depart_sejour=F
             avant=(precedent.debut,precedent.fin,precedent.source)
             precedent.fin=debut;precedent.full_clean();precedent.save(update_fields=['fin'])
             enregistrer(acteur,precedent,avant,motif)
+    if nature == 'sejour' and depart_sejour and ancien[1] and fin and debut < fin < ancien[1]:
+        if fin_hebergement_unique(objet.accord.accompagnement):
+            affectations = list(objet.affectations.all()[:2])
+            if len(affectations) == 1:
+                affectation = affectations[0]
+                if (affectation.debut, affectation.fin) == ancien[:2] and debut <= affectation.debut < fin:
+                    droits(acteur, 'affectation')
+                    ancienne_affectation = (affectation.debut, affectation.fin, '')
+                    affectation.fin = fin
+                    affectation.save(update_fields=['fin'])
+                    enregistrer(acteur, affectation, ancienne_affectation, motif)
     valider(objet)
     if accord:
         objet.revision += 1

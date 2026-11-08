@@ -62,6 +62,30 @@ class CorrectionsTests(TestCase):
         self.assertEqual(bilan['sorties'], 1)
         self.assertFalse(accord.operations.filter(action='Sortie effective').exists())
 
+    def test_raccourcir_un_sejour_simple_ajuste_le_lieu_unique(self):
+        from unittest.mock import patch
+
+        debut = date(2026, 1, 2)
+        ancienne_fin = date(2026, 1, 10)
+        fin = date(2026, 1, 6)
+        accord = h.accorder(self.u, self.a, [self.p], debut, None)
+        sejour = h.admettre(self.u, accord, [self.p], debut)
+        lieu = h.creer_lieu(self.u, 'Logement fictif')
+        affectation = h.ajouter_periode(self.u, sejour, debut, None, lieu)
+        h.sortir(self.u, sejour, ancienne_fin)
+        sejour.refresh_from_db()
+
+        with patch('acteurs.profils_collectifs.fin_hebergement_unique', return_value=True):
+            self.corriger(sejour, debut, fin, depart_sejour=True)
+
+        sejour.refresh_from_db()
+        affectation.refresh_from_db()
+        self.assertEqual(sejour.fin, fin)
+        self.assertEqual(affectation.fin, fin)
+        self.assertTrue(CorrectionPeriode.objects.filter(
+            affectation=affectation, ancienne_fin=ancienne_fin, nouvelle_fin=fin,
+        ).exists())
+
     def test_corriger_le_lieu_et_les_beneficiaires_du_sejour(self):
         from .models import Personne
 
