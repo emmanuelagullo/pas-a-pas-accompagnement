@@ -5,7 +5,7 @@ from datetime import date, timedelta
 from django.utils import timezone
 
 from acteurs import services
-from acteurs.collecte import profil
+from acteurs.collecte import RUBRIQUES
 from acteurs.contexte import perimetre
 from acteurs.models import AppartenanceProfessionnelle, Service
 from acteurs.profils_collectifs import defaut_individuel
@@ -161,15 +161,25 @@ def creer_cas(auteur, cas, entree):
         suivi.clore(auteur, prise, sortie)
 
 
+def collecte_traverse():
+    """Rubriques du relevé AHI dans les écrans communs."""
+    regles = {code: {'portee': 'non', 'population': 'tous'} for code in RUBRIQUES}
+    for code in ('identite', 'complements'):
+        regles[code] = {'portee': 'personne', 'population': 'tous'}
+    for code in ('administration', 'logement', 'emploi', 'ressources'):
+        regles[code] = {'portee': 'personne', 'population': 'adultes'}
+    for code in ('relations', 'couvertures'):
+        regles[code] = {'portee': 'personne', 'population': 'reference'}
+    regles['coordonnees'] = {'portee': 'menage', 'population': 'tous'}
+    return regles
+
+
 def completer(auteur, etablissement, professionnel):
     entree = timezone.localdate() - timedelta(days=240)
-    regles = profil('adultes')
-    regles['coordonnees'] = {'portee': 'menage', 'population': 'tous'}
-    regles['couvertures']['population'] = 'reference'
     service = Service.objects.create(
         etablissement=etablissement, libelle='La Traverse',
         sous_titre='Hébergement et accompagnement vers le logement',
-        collecte_rubriques=regles,
+        collecte_rubriques=collecte_traverse(),
         profil_collectif={**defaut_individuel(collecte_configuree=True), 'prestations': ['hebergement'], 'parcours_simples': ['hebergement'], 'fin_hebergement_unique': True},
         listes_saisie={
             'destination_sortie': DESTINATIONS_TRAVERSE,
