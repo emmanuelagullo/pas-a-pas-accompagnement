@@ -569,3 +569,43 @@ avant d'accorder. Le bouton de proposition n'enregistre rien. Depuis les
 organismes, examiner un export JSON du paramétrage ; un import dans un autre
 espace fictif conserve les liens et tarifs mais ne transporte aucun dossier.
 Vérifier les homonymes avant toute confirmation de création.
+
+## Découvrir le service fictif « La Traverse »
+
+Dans le jeu neuf Render, se connecter avec **essai**, puis ouvrir **Découvrir
+Les Passerelles → Découvrir le service fictif « La Traverse »**. Chaque entrée
+mène à la recherche du ménage et reprend le texte libre de son dossier.
+
+| Ménage | Vérification avec les données du scénario |
+| --- | --- |
+| Morel | Maya est référente, Robin conjoint déclaré et Sam enfant logé. La situation d’emploi de Maya à l’entrée précède son passage en formation. |
+| Aubert | Trois personnes dans la composition et deux dans l’hébergement. Eli est membre du ménage et logé ailleurs. |
+| Benoît | Une personne seule, 12 jours de prise en charge et absence de couverture santé déclarée. |
+| Carrel | Camille a deux nationalités déclarées. Le décompte AHI devra compter Camille une seule fois dans le total. |
+| Delaunay | La situation de séjour de Noa est déclarée en texte. Celle de Lina reste inconnue. |
+| Fournier | Charlie est référente ou référent du ménage et la couverture AME est renseignée pour Charlie. |
+| Garnier | Deux ressources mensuelles totalisent 800 € pour Léa. Nils a 950 €. |
+| Hamel | Zoé déclare ne pas avoir de ressources. Émile a déclaré un salaire de montant inconnu. |
+| Joly | La durée est exactement de 15 jours et la destination est le logement social. |
+| Lenoir | La prise en charge a une date de fin prévue et reste ouverte. Elle ne compte pas parmi les sorties effectives. |
+
+Ces dossiers servent à préparer la fiche AHI du 8 avril 2026. Les classements
+administratifs, les droits ouverts, les catégories détaillées de sortie et
+la restitution AHI restent à compléter dans les lots suivants.
+
+### Grille de recette AHI pour les lots suivants
+
+| Lignes de la fiche | Source et population à la date de référence | Résultat à vérifier ou travail restant |
+| --- | --- | --- |
+| Dates du service, référent du ménage, conjoint, naissance | Prise en charge, composition et liens déclarés à l’entrée | Morel donne un référent et un conjoint. Benoît n’a pas de conjoint déclaré. |
+| Prénom, nom, naissance, âge et sexe des enfants logés | Composition à l’entrée et bénéficiaires effectifs de l’hébergement | Aubert donne un enfant logé sur deux. Calculer l’âge à l’entrée et lire le sexe déclaré quand il est renseigné. |
+| Référents sociaux, prescripteur, téléphone, courriel, adresse du logement et adresse de sortie | Missions, coordonnées du ménage et lieu d’hébergement. L’adresse de correspondance relève de la sortie. | Raccorder les missions et les coordonnées existantes. Vérifier où conserver l’adresse de correspondance. |
+| Nom, adresse, type et dispositif du logement | Lieu, affectation et informations de la prise | Le scénario renseigne un T1 en IML. Compléter les dispositifs de la fiche et restituer le lieu pertinent si plusieurs affectations existent. |
+| France, UE avec ou sans droits, hors UE, asile, titres de séjour et non renseigné | Nationalités et situation de séjour déclarées par adulte à l’entrée | Carrel et Delaunay fournissent les déclarations. Définir les codes, les sous-totaux et le traitement des nationalités multiples. |
+| Aucun droit, prestations sociales et familiales, AME, CMU/PUMA, autres couvertures, absence de couverture et non renseigné | Droits ouverts et couverture de la seule personne de référence | Fournier et Benoît illustrent AME et absence déclarée. Compléter les droits ouverts et leurs catégories. |
+| Motif résidentiel principal, totaux sans logement ou en habitat précaire, logement adapté, transition et sortie de l’ASE | Situation résidentielle de chaque adulte à l’entrée | Les séjours renseignent un motif de prise. Compléter les catégories et la saisie personnelle lorsque les adultes diffèrent. |
+| Violences conjugales et traite | Motifs secondaires déclarés à l’entrée et personnes concernées | Les deux codes existent au niveau de la prise. Vérifier le décompte par adulte. |
+| Emploi, recherche d’emploi, formation et sans activité | Situation socio-professionnelle par adulte à l’entrée | Morel conserve l’état d’entrée malgré une évolution ultérieure. Distinguer la recherche d’emploi de l’absence d’activité. |
+| Salaire, formation, chômage, indemnités journalières, RSA, AAH, allocations familiales, autres, absence et seuil de 800 € | Ressources individuelles datées à l’entrée | Garnier vérifie 800 € et 950 €. Hamel distingue absence déclarée et montant inconnu. Coder les natures et fixer les règles de comparaison. |
+| Moins de 15 jours, de 15 jours à 6 mois et plus de 6 mois | Dates effectives de la prise à la sortie | Benoît, Joly et Morel exercent les trois tranches. Lenoir reste hors des sorties. Fixer la convention exacte des six mois. |
+| Parc social et privé, logement durable adapté ou de transition, urgence ou insertion, autres sorties, asile, sans information et hors champ | Destination effective à la sortie, puis sous-catégories de la fiche | Joly fournit une sortie vers le logement social. Raccorder les sous-catégories, séparer les motifs de départ des destinations et vérifier les sorties distinctes au sein du ménage. |

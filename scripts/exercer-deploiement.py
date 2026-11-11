@@ -113,7 +113,7 @@ def exercer(mode, delai_demarrage=180, render=False):
             if mode == 'ephemere':
                 code += (
                     "from acteurs.models import ConfigurationAcces,Habilitation; "
-                    "assert Personne.objects.count()==39, 'Jeu public : 39 personnes attendues'; "
+                    "assert Personne.objects.count()==56, 'Jeu public : 56 personnes attendues'; "
                     "assert set(get_user_model().objects.values_list('username',flat=True))=={'essai','nadia','remi','camille','coordination'}; "
                     "assert not get_user_model().objects.filter(is_staff=True).exists(); "
                     "assert not get_user_model().objects.filter(is_superuser=True).exists(); "

@@ -75,7 +75,9 @@ def fiche_pdf(request, pk):
 @login_required
 @permission_required(("personnes.view_personne", "personnes.view_menage", "personnes.view_accompagnement"), raise_exception=True)
 def decouverte(request):
-    return render(request, "decouverte.html")
+    from .demonstration_traverse import CAS
+
+    return render(request, "decouverte.html", {'cas_traverse': CAS})
 
 
 @require_http_methods(["GET", "POST"])

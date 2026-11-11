@@ -7,7 +7,7 @@ from django.core.management.base import CommandError
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from .models import ConfigurationAcces, DossierService, Habilitation
-from personnes.models import Personne
+from personnes.models import CommentaireDossier, Personne, Sejour
 
 
 TEMPLATES_DEMO = deepcopy(settings.TEMPLATES)
@@ -28,7 +28,7 @@ class DemonstrationActeursTests(TestCase):
         page = self.client.get(reverse('accueil'))
         self.assertContains(page, 'class="choix-dossiers"')
         self.assertContains(page, 'Mon service')
-        self.assertEqual(Personne.objects.count(),39)
+        self.assertEqual(Personne.objects.count(),56)
         self.assertEqual(set(Habilitation.objects.values_list('service__libelle', 'compte__username', 'tache')), {
             ('Les Tisserands', 'essai', 'social'), ('Les Tisserands', 'nadia', 'social'),
             ('Les Tisserands', 'remi', 'accueil'), ('Les Tisserands', 'camille', 'gestion'),
@@ -38,7 +38,20 @@ class DemonstrationActeursTests(TestCase):
         self.assertContains(page, 'Noor')
         self.assertNotContains(page, 'Alex')
         self.assertContains(page, 'badge-attente')
-        self.assertContains(self.client.get('/decouverte/'), 'commencez le suivi')
+        guide = self.client.get(reverse('decouverte'))
+        self.assertContains(guide, 'commencez le suivi')
+        self.assertContains(guide, 'Découvrir le service fictif « La Traverse »')
+        from personnes.demonstration_traverse import CAS
+        self.assertEqual(len(CAS), 10)
+        for cas in CAS:
+            self.assertContains(guide, cas.libelle)
+            self.assertTrue(CommentaireDossier.objects.filter(menage__libelle=cas.libelle, texte=cas.description).exists())
+        sejour = Sejour.objects.get(accord__accompagnement__menage__libelle='Famille Aubert — La Traverse')
+        self.assertEqual(sejour.accord.accompagnement.beneficiaires.count(), 3)
+        self.assertEqual(set(sejour.beneficiaires.values_list('designation', flat=True)), {'Nora Aubert', 'Lou Aubert'})
+        ouvert = Sejour.objects.get(accord__accompagnement__menage__libelle='Famille Lenoir — La Traverse')
+        self.assertIsNone(ouvert.accord.accompagnement.fin)
+        self.assertIsNotNone(ouvert.accord.accompagnement.fin_prevue)
         self.client.force_login(get_user_model().objects.get(username='coordination'))
         self.assertEqual(self.client.get(reverse('accueil')).status_code, 302)
 
