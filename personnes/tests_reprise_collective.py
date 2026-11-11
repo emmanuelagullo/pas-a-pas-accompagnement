@@ -1,4 +1,5 @@
 """Contrats COL4b : sous-groupes, offres, calculs, historique et droits."""
+import re
 from datetime import date,timedelta
 from decimal import Decimal
 from django.contrib.auth.models import Permission
@@ -32,9 +33,11 @@ class RepriseCollectiveTests(CollectifsTests):
         url = reverse('dossiers:collectif_action', args=['prise', self.a.pk, 'creation']) + '?nature=hebergement'
         donnees = {'debut': '2026-01-10', 'fin_prevue': '2026-01-11', 'devise': 'EUR', 'attendu': c.jeton(self.a)}
         apercu = self.client.post(url, donnees, headers={'X-Verifier-Prestation': '1'})
-        self.assertIn('Créer une prise en charge pour ce séjour', apercu.json()['commandes'])
+        commandes = apercu.json()['commandes']
+        self.assertIn('Créer une prise en charge pour ce séjour', commandes)
+        confirmation = re.search(r'name="nouvelle_prise" value="([^"]+)"', commandes)[1]
         self.assertEqual(m.Accompagnement.objects.count(), 1)
-        page = self.client.post(url, {**donnees, 'nouvelle_prise': '1'})
+        page = self.client.post(url, {**donnees, 'nouvelle_prise': confirmation})
         self.assertEqual(page.status_code, 302, page.context['formctx']['form'].errors if page.context else '')
         prestation = m.PrestationCollective.objects.get()
         self.assertNotEqual(prestation.accompagnement_id, self.a.pk)
