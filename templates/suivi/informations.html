@@ -4,6 +4,8 @@
 <dt>Orientation à la sortie</dt><dd>{{ information.orientation_sortie|default:"Non renseignée" }}</dd>
 <dt>Motif de sortie</dt><dd>{{ information.motif_sortie|default:"Non renseigné" }}</dd>
 <dt>Destination à la sortie</dt><dd>{{ information.destination_sortie|default:"Non renseignée" }}</dd>
+{% if information.qualification_sortie %}<dt>Précision sur la sortie</dt><dd>{{ information.qualification_sortie }}</dd>{% endif %}
+{% if information.adresse_correspondance_sortie %}<dt>Adresse de correspondance à la sortie</dt><dd>{{ information.adresse_correspondance_sortie }}</dd>{% endif %}
 {% if information.dispositif_logement %}<dt>Dispositif de logement</dt><dd>{{ information.get_dispositif_logement_display }}</dd>{% endif %}
 {% if information.type_logement %}<dt>Type de logement fourni</dt><dd>{{ information.get_type_logement_display }}</dd>{% endif %}
 {% if information.situation_logement_entree %}<dt>Situation de logement à l’entrée</dt><dd>{{ information.get_situation_logement_entree_display }}</dd>{% endif %}

@@ -11,6 +11,10 @@ SITUATIONS_ENTREE = [
     ('hotel', 'Hôtel hors urgence'), ('insertion', 'Hébergement d’insertion'),
     ('tiers', 'Hébergé chez un tiers'), ('precaire', 'Autre habitat précaire ou inadapté'),
     ('transition', 'Logement de transition'), ('durable', 'Logement durable adapté'),
+    ('incarceration', 'Sortie d’incarcération'), ('hospitalisation', 'Sortie d’hospitalisation'),
+    ('asile', 'Sortie de CADA ou HUDA'), ('expulsion', 'Menacé d’expulsion'),
+    ('violences', 'Menacé de violences domestiques'), ('squat', 'Habitat non conventionnel ou squat'),
+    ('indigne', 'Habitat indigne ou insalubre'), ('ase', 'Sortie de l’aide sociale à l’enfance'),
     ('autre', 'Autre situation'),
 ]
 MOTIFS_SECONDAIRES = [

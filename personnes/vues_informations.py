@@ -58,12 +58,12 @@ def modifier(request, pk):
             initial[champ] = getattr(precedente, champ)
     initial['attendu'] = service.jeton(a, precedente)
     form = InformationsForm(request.POST if request.method == 'POST' else None, initial=initial)
-    from acteurs.listes_saisie import LISTES, choix
+    from acteurs.listes_saisie import choix
     from acteurs.portees import existante
     origine = existante(a)
     if origine:
         service_actuel = origine.service
-        for champ in LISTES:
+        for champ in ('motif_entree', 'motif_sortie', 'destination_sortie', 'qualification_sortie'):
             propositions = choix(champ, etablissement=service_actuel.etablissement, service=service_actuel)
             if propositions:
                 form.fields[champ].widget = SaisieSuggeree(propositions, champ)

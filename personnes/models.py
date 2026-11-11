@@ -410,8 +410,8 @@ class OperationHebergement(ModeleControle):
 class SituationSociale(Periode):
     DIMENSIONS = [("logement", "Logement"), ("emploi", "Emploi / formation"), ("ressources", "Ressources")]
     VALEURS = {
-        "logement": [("inconnu", "Non renseigné"), ("sans_solution", "Sans solution stable"), ("hebergement", "Hébergé"), ("logement_autonome", "Logement autonome"), ("autre", "Autre situation")],
-        "emploi": [("inconnu", "Non renseigné"), ("sans_emploi", "Sans emploi"), ("emploi", "En emploi"), ("formation", "En formation"), ("autre", "Autre situation")],
+        "logement": [("inconnu", "Non renseigné"), ("sans_solution", "Sans solution stable"), ("hebergement", "Hébergé"), ("logement_autonome", "Logement autonome"), ("autre", "Autre situation"), *((f"entree_{code}", libelle) for code, libelle in parcours_logement.SITUATIONS_ENTREE if code != "autre")],
+        "emploi": [("inconnu", "Non renseigné"), ("sans_emploi", "Sans emploi"), ("emploi", "En emploi"), ("formation", "En formation"), ("recherche", "En recherche d’emploi"), ("sans_activite", "Sans activité"), ("autre", "Autre situation")],
         "ressources": [("inconnu", "Non renseigné"), ("sans_ressources", "Sans ressources déclarées"), ("ressources_declarees", "Ressources déclarées"), ("autre", "Autre situation")],
     }
     accompagnement = models.ForeignKey(Accompagnement, on_delete=models.PROTECT, related_name="situations_sociales")
@@ -638,6 +638,8 @@ class InformationsAccompagnement(TraceSaisie):
     provenance = models.CharField('Provenance à l’entrée', max_length=160, blank=True)
     motif_entree = models.CharField('Motif d’entrée', max_length=160, blank=True)
     orientation_sortie = models.CharField('Orientation à la sortie', max_length=160, blank=True)
+    adresse_correspondance_sortie = models.CharField('Adresse de correspondance à la sortie', max_length=250, blank=True)
+    qualification_sortie = models.CharField('Précision sur la sortie', max_length=160, blank=True)
     motif_sortie = models.CharField('Motif de sortie', max_length=160, blank=True)
     destination_sortie = models.CharField(DESTINATION_SORTIE, max_length=160, blank=True)
     dispositif_logement = models.CharField('Dispositif de logement', max_length=24, blank=True, choices=parcours_logement.DISPOSITIFS)
@@ -1144,6 +1146,7 @@ class SituationAdministrative(PeriodeRetirable):
     numero_ss=models.CharField('Identifiant de sécurité sociale déclaré',max_length=40,blank=True)
     numero_caf=models.CharField('Identifiant allocataire déclaré',max_length=80,blank=True)
     qualification=models.CharField('Qualification déclarée',max_length=160,blank=True)
+    droits_ouverts=models.CharField('Droits sociaux ouverts',max_length=160,blank=True)
     droit_sejour=models.CharField('Situation de séjour déclarée',max_length=160,blank=True)
     echeance_sejour=models.DateField('Échéance prévue du droit de séjour',null=True,blank=True)
     sans_emploi_duree_declaree=models.CharField('Durée déclarée sans emploi (si connue)',max_length=160,blank=True)

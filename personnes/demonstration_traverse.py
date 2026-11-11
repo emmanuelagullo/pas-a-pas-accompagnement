@@ -64,7 +64,7 @@ CAS = (
     CasTraverse('Hamel', (('Zoé', 1993), ('Émile', 1990)),
         'Zoé déclare ne pas avoir de ressources. Le montant des ressources d’Émile est inconnu. Les deux situations doivent rester distinctes.'),
     CasTraverse('Joly', (('Ariane', 1986),),
-        'Sortie vers le logement social après exactement 15 jours. La qualification DALO et l’adresse de correspondance restent à compléter dans le parcours AHI.', 15),
+        'Sortie vers le logement social après exactement 15 jours. La prise en charge indique une sortie DALO et une adresse de correspondance fictive.', 15),
     CasTraverse('Lenoir', (('Jade', 1996),),
         'Prise en charge et hébergement toujours ouverts. La prise a une date de fin prévue. Ce dossier doit figurer à l’entrée et rester hors des sorties effectives.', None),
 )
@@ -88,7 +88,7 @@ def renseigner_cas(auteur, cas, prise, membres, entree):
             auteur, reference, membres[1], entree, None, 'couple', '',
             'Scénario fictif La Traverse', bd6.jeton(reference),
         )
-        social.renseigner(auteur, prise, reference, 'emploi', 'sans_emploi', entree, 'Scénario fictif La Traverse')
+        social.renseigner(auteur, prise, reference, 'emploi', 'recherche', entree, 'Scénario fictif La Traverse')
         social.renseigner(auteur, prise, membres[1], 'emploi', 'emploi', entree, 'Scénario fictif La Traverse')
         social.renseigner(auteur, prise, reference, 'emploi', 'formation', entree + timedelta(days=30), 'Scénario fictif La Traverse')
     elif cas.nom == 'Benoît':
@@ -101,7 +101,7 @@ def renseigner_cas(auteur, cas, prise, membres, entree):
                 nationalites=nationalites, apatridie_declaree=None,
             )
     elif cas.nom == 'Delaunay':
-        declaration = m.SituationAdministrative(droit_sejour='Demande d’asile en procédure normale')
+        declaration = m.SituationAdministrative(droit_sejour='Demande d’asile en procédure normale', droits_ouverts='Aucun droit ouvert')
         dossier_complet.administration(
             auteur, reference, entree, 'Scénario fictif La Traverse', bd6.jeton(reference),
             **{champ: getattr(declaration, champ) for champ in dossier_complet.ADMIN_CHAMPS},
@@ -144,6 +144,8 @@ def creer_cas(auteur, cas, entree):
     if sortie:
         hebergement.sortir(auteur, sejour, sortie)
         donnees.update(motif_sortie='Fin de prise en charge', destination_sortie=cas.destination)
+    if cas.nom == 'Joly':
+        donnees.update(qualification_sortie='DALO', adresse_correspondance_sortie='12 rue des Tilleuls, adresse fictive')
     informations_suivi.enregistrer(auteur, prise, informations_suivi.jeton(prise, None), '', **donnees)
     if sortie:
         suivi.clore(auteur, prise, sortie)
@@ -161,6 +163,21 @@ def completer(auteur, etablissement, professionnel):
         profil_collectif={**defaut_individuel(collecte_configuree=True), 'prestations': ['hebergement'], 'parcours_simples': ['hebergement'], 'fin_hebergement_unique': True},
         listes_saisie={
             'destination_sortie': DESTINATIONS_TRAVERSE,
+            'situation_sejour': [
+                'Nationalité française', 'Autre nationalité de l’UE, avec droits',
+                'Autre nationalité de l’UE, sans droits', 'Hors UE, autre situation',
+                'Demande d’asile en procédure normale', 'Demande d’asile en cours de procédure',
+                'Sans APS', 'Procédure Dublin', 'Procédure prioritaire', 'Titre de séjour',
+                'APS liée à la maladie', 'Carte vie privée et familiale', 'Carte de résident',
+                'Débouté du droit d’asile', 'Réfugié statutaire',
+            ],
+            'nature_ressource': [
+                'Salaire', 'Formation', 'Allocations chômage', 'Indemnités journalières',
+                'RSA', 'AAH', 'Allocations familiales', 'Autres ressources',
+            ],
+            'droits_ouverts': ['Aucun droit ouvert', 'Prestations sociales et familiales', 'Autres droits ouverts'],
+            'couverture_sociale': ['AME', 'CMU/PUMA', 'Autre couverture'],
+            'qualification_sortie': ['DALO', 'Syplo', 'MDES', 'Logement d’abord', 'Hors département'],
             'motif_sortie': [
                 'Fin de prise en charge', 'Départ volontaire', 'Exclusion du dispositif', 'Décès',
             ],

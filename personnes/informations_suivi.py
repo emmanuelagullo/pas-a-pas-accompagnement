@@ -11,6 +11,10 @@ CHAMPS = ('referent', 'provenance', 'motif_entree', 'orientation_sortie', 'motif
           'destination_sortie', 'objectifs_courts', 'objectifs_longs', 'animaux', 'activite')
 
 
+CHAMPS_FACULTATIFS = ('activite', 'adresse_correspondance_sortie', 'qualification_sortie')
+CHAMPS += CHAMPS_FACULTATIFS[1:]
+
+
 def jeton(accompagnement, information):
     return signing.dumps([str(accompagnement.pk), information.pk if information else None], salt='chrs25-informations')
 
@@ -31,7 +35,7 @@ def enregistrer(acteur, accompagnement, attendu, motif, **donnees):
     motif = motif.strip()
     if len(motif) > 240:
         raise ValidationError({'motif': '240 caractères au plus.'})
-    valeurs = {champ: (donnees.get(champ, getattr(derniere, champ, '')) if champ == 'activite' else donnees[champ]).strip() for champ in CHAMPS}
+    valeurs = {champ: (donnees.get(champ, getattr(derniere, champ, '')) if champ in CHAMPS_FACULTATIFS else donnees[champ]).strip() for champ in CHAMPS}
     for champ in ('objectifs_courts', 'objectifs_longs'):
         valeurs.update(tr.colonnes(champ, donnees[champ], max_length=1000))
     defauts = dict.fromkeys(parcours_logement.CHAMPS_CODES, '')

@@ -23,7 +23,7 @@ RUBRIQUES['besoins']=Rubrique(m.BesoinAccueil,m.RevisionBesoinAccueil,'Besoins p
 RUBRIQUES['antecedents']=Rubrique(m.AntecedentInstitutionnel,m.RevisionAntecedentInstitutionnel,'Antécédents institutionnels déclarés',('etat','libelle','frequentation','organisme','periode_declaree','date_entree','date_sortie','precision_dates'),'libelle','histoire')
 RUBRIQUES['territoires']=Rubrique(m.AncrageTerritorial,m.RevisionAncrageTerritorial,'Ancrage territorial déclaré',('etat','type_territoire','territoire','anciennete_declaree','depuis','precision_depuis'),'territoire','histoire')
 RUBRIQUES['evolutions']=Rubrique(m.EvolutionPersonnelleDeclaree,m.RevisionEvolutionPersonnelleDeclaree,'Évolutions personnelles déclarées',('etat','domaine','libelle'),'libelle','histoire')
-ADMIN_CHAMPS=('numero_ss','numero_caf','qualification','droit_sejour','echeance_sejour','sans_emploi_duree_declaree','sans_domicile_duree_declaree','sans_emploi_depuis','precision_sans_emploi','sans_domicile_depuis','precision_sans_domicile')
+ADMIN_CHAMPS=('numero_ss','numero_caf','qualification','droit_sejour','droits_ouverts','echeance_sejour','sans_emploi_duree_declaree','sans_domicile_duree_declaree','sans_emploi_depuis','precision_sans_emploi','sans_domicile_depuis','precision_sans_domicile')
 ADMIN_LECTURE=('personnes.view_personne','personnes.view_situationadministrative','personnes.view_revisionsituationadministrative')
 
 

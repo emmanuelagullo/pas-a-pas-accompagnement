@@ -16,11 +16,28 @@ from django.views.decorators.http import require_http_methods,require_safe
 from . import dossier_complet as service,bd6,suivi,models as m
 from . import presentation_dossier_complet as presentation
 from .forms_dossier_complet import FORMULAIRES,AdministrationForm
-from .champs_saisie import FormulaireMetier,valeurs_proposees
+from .champs_saisie import FormulaireMetier, PropositionInput, valeurs_proposees
 from .vues_bd6 import navigation_histoire,traiter
 from .vues_famille import ConsultationForm
 from .forms_hebergement import date_champ
 from .exports import cellule_csv
+
+
+def proposer_choix(form, objet, champs):
+    from acteurs.listes_saisie import choix
+    from acteurs.portees import existante
+
+    origine = existante(objet)
+    if origine is None:
+        return
+    service_actuel = origine.service
+    for champ, liste in champs.items():
+        propositions = choix(liste, etablissement=service_actuel.etablissement, service=service_actuel)
+        if propositions:
+            champ_formulaire = form.fields[champ]
+            champ_formulaire.widget = PropositionInput(
+                attrs=champ_formulaire.widget.attrs, propositions=propositions,
+            )
 
 
 def rubrique(code):
@@ -54,6 +71,7 @@ def administration(request,pk,action=None,fait_pk=None):
         if corrigee:suivi.exiger(request.user,'change_situationadministrative')
         initial,proposition=valeurs_proposees(request,faits,service.ADMIN_CHAMPS,corrigee);initial['attendu']=attendu
         f=AdministrationForm(request.POST if request.method=='POST' else None,initial=initial)
+        proposer_choix(f, corrigee or p, {'droit_sejour': 'situation_sejour', 'droits_ouverts': 'droits_ouverts'})
         if corrigee:f.fields['motif'].required=False
         return traiter(request,f,'Corriger une situation administrative' if corrigee else 'Renseigner la situation administrative',
             lambda **d:service.administration(request.user,p,correction=corrigee.pk if corrigee else None,**d),base,p,**proposition,
@@ -83,6 +101,8 @@ def modifier(request,pk,code,action,fait_pk=None):
     initial.update(attendu=attendu,debut=x.debut if x and action!='changer' else jour,fin=x.fin if x and action!='changer' else None,source=x.source if x and action!='changer' else '')
     if action=='absence':initial.update(etat='aucun')
     f=FORMULAIRES[code](request.POST if request.method=='POST' else None,initial=initial)
+    if code in ('ressources', 'couvertures') and action not in ('clore', 'absence'):
+        proposer_choix(f, x or p, {'libelle': 'nature_ressource' if code == 'ressources' else 'couverture_sociale'})
     if x and action in ('corriger','clore'):f.fields['motif'].required=action=='clore'
     if action=='clore':
         for c in (*r.champs,'debut','source'):f.fields[c].disabled=True
