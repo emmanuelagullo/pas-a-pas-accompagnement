@@ -607,5 +607,13 @@ la restitution AHI restent à compléter dans les lots suivants.
 | Violences conjugales et traite | Motifs secondaires déclarés à l’entrée et personnes concernées | Les deux codes existent au niveau de la prise. Vérifier le décompte par adulte. |
 | Emploi, recherche d’emploi, formation et sans activité | Situation socio-professionnelle par adulte à l’entrée | Morel conserve l’état d’entrée malgré une évolution ultérieure. Distinguer la recherche d’emploi de l’absence d’activité. |
 | Salaire, formation, chômage, indemnités journalières, RSA, AAH, allocations familiales, autres, absence et seuil de 800 € | Ressources individuelles datées à l’entrée | Garnier vérifie 800 € et 950 €. Hamel distingue absence déclarée et montant inconnu. Coder les natures et fixer les règles de comparaison. |
-| Moins de 15 jours, de 15 jours à 6 mois et plus de 6 mois | Dates effectives de la prise à la sortie | Benoît, Joly et Morel exercent les trois tranches. Lenoir reste hors des sorties. Fixer la convention exacte des six mois. |
+| Moins de 15 jours, de 15 jours à 6 mois et plus de 6 mois | Dates effectives de la prise à la sortie | Benoît, Joly et Morel exercent les trois tranches. Lenoir reste hors des sorties. La borne des six mois est calculée en mois calendaires et incluse dans la tranche intermédiaire. |
 | Parc social et privé, logement durable adapté ou de transition, urgence ou insertion, autres sorties, asile, sans information et hors champ | Destination effective à la sortie, puis sous-catégories de la fiche | Joly fournit une sortie vers le logement social. Raccorder les sous-catégories, séparer les motifs de départ des destinations et vérifier les sorties distinctes au sein du ménage. |
+
+
+Dans une prise de La Traverse, ouvrir **Fiche AHI** pour lire les faits
+disponibles à l’entrée et la sortie effective. Le bouton est activable dans
+les réglages de prestations du service et requiert les droits de lecture
+des rubriques utilisées. Les classifications de nationalité et de séjour,
+les droits ouverts, les situations résidentielles par adulte et les
+sous-catégories de sortie restent à compléter.

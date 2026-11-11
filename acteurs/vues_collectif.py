@@ -17,6 +17,7 @@ class ProfilForm(FormulaireMetier):
     prestations=forms.MultipleChoiceField(label='Prestations proposées',choices=[('hebergement','Hébergement'),('restauration','Repas')],required=False,widget=forms.CheckboxSelectMultiple)
     parcours_simples = forms.MultipleChoiceField(label="Prestations en parcours simple", choices=FAMILLES, required=False, widget=forms.CheckboxSelectMultiple)
     fin_hebergement_unique = forms.BooleanField(label="Une seule date de fin pour l’hébergement", required=False, help_text="Le séjour se termine à cette date sans confirmation de départ.")
+    fiche_ahi = forms.BooleanField(label="Proposer la fiche AHI dans les prises en charge", required=False)
     catalogue=forms.BooleanField(label='Limiter le choix aux offres sélectionnées',required=False,help_text='Cochez cette case pour choisir les offres proposées lors de la saisie.')
     offres=forms.ModelMultipleChoiceField(OffrePrestataire.objects.none(),label='Offres proposées à la saisie',required=False,widget=forms.CheckboxSelectMultiple)
     identification=forms.ChoiceField(label='Personnes à identifier',choices=IDENTIFICATIONS)
@@ -36,7 +37,7 @@ class ProfilForm(FormulaireMetier):
             self.fields['offres'].queryset = OffrePrestataire.objects.filter(
                 Q(actif=True) | Q(pk__in=self.initial['offres']))
             for nom in ('actif', 'prestations', 'aides', 'hebergement', 'restauration',
-                        'petits_dejeuners', 'catalogue', 'offres', 'parcours_simples', 'fin_hebergement_unique'):
+                        'petits_dejeuners', 'catalogue', 'offres', 'parcours_simples', 'fin_hebergement_unique', 'fiche_ahi'):
                 self.fields[nom].disabled = True
         elif volet == 'prestations':
             self.fields['identification'].disabled = True
@@ -62,7 +63,7 @@ class ProfilForm(FormulaireMetier):
         groupes=[('Réglages du service',['actif']),
                  ('Composition du ménage',['identification']),
                  ('Prestations proposées',['prestations','aides']),
-                 ('Suivi des prestations',['hebergement','restauration','petits_dejeuners','fin_hebergement_unique']),
+                 ('Suivi des prestations',['hebergement','restauration','petits_dejeuners','fin_hebergement_unique','fiche_ahi']),
                  ('Prestataires',['catalogue','offres'])]
         if self.volet == 'composition':
             groupes = groupes[1:2]

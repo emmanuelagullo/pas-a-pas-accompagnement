@@ -28,3 +28,21 @@ def resume(request, pk):
             'beneficiaires', 'affectations__lieu', 'absences') if lecture_sejours else [],
         'departs_logement': departs_logement.par_prise(request.user, [a.pk], timezone.localdate()).get(a.pk, ()),
         'lecture_repas': lecture_repas, 'lecture_sejours': lecture_sejours})
+
+
+@never_cache
+@require_safe
+@login_required
+def ahi(request, pk):
+    from django.http import Http404
+    from django.urls import reverse
+    from . import fiche_ahi
+
+    a = get_object_or_404(Accompagnement.objects.select_related('menage').prefetch_related('beneficiaires'), pk=pk)
+    if not fiche_ahi.disponible(request.user, a):
+        raise Http404
+    navigation = dossier.lire(request, a)
+    retour = navigation.get('retour_dossier') or reverse('dossiers:prise', args=['menage', a.menage_id, a.pk])
+    return render(request, 'suivi/fiche_ahi.html', {
+        'prise': a, 'retour': retour, **fiche_ahi.preparer(request.user, a),
+    })

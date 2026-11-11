@@ -157,7 +157,7 @@ def completer(auteur, etablissement, professionnel):
         etablissement=etablissement, libelle='La Traverse',
         sous_titre='Hébergement et accompagnement vers le logement',
         collecte_rubriques=regles,
-        profil_collectif={**defaut_individuel(collecte_configuree=True), 'prestations': ['hebergement'], 'parcours_simples': ['hebergement'], 'fin_hebergement_unique': True},
+        profil_collectif={**defaut_individuel(collecte_configuree=True), 'prestations': ['hebergement'], 'parcours_simples': ['hebergement'], 'fin_hebergement_unique': True, 'fiche_ahi': True},
         listes_saisie={'destination_sortie': DESTINATIONS_TRAVERSE},
     )
     AppartenanceProfessionnelle.objects.create(service=service, professionnel=professionnel, debut=entree)

@@ -71,9 +71,11 @@ def defaut_individuel(*, collecte_configuree=False):
 
 
 def verifier(valeur):
-    if not isinstance(valeur,dict) or set(valeur)-set(defaut())-{'parcours_simples','fin_hebergement_unique'} or set(defaut())-set(valeur)-{'aides','prestations'}:raise ValidationError('Profil collectif incomplet ou champ inconnu.')
+    if not isinstance(valeur,dict) or set(valeur)-set(defaut())-{'parcours_simples','fin_hebergement_unique','fiche_ahi'} or set(defaut())-set(valeur)-{'aides','prestations'}:raise ValidationError('Profil collectif incomplet ou champ inconnu.')
     if type(valeur.get('fin_hebergement_unique', False)) is not bool:
         raise ValidationError('Réglage de fin d’hébergement invalide.')
+    if type(valeur.get('fiche_ahi', False)) is not bool:
+        raise ValidationError('Le réglage de la fiche AHI doit être activé ou désactivé.')
     simples = valeur.get('parcours_simples', [])
     if not isinstance(simples, list) or any(not isinstance(x, str) or x not in dict(FAMILLES) for x in simples):
         raise ValidationError('Famille de parcours simple inconnue.')

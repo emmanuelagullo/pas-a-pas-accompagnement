@@ -19,6 +19,7 @@ urlpatterns = [
     path("accords/<str:nature>/<uuid:pk>/annuler/", vues_accords.decider, {"action": "annuler"}, name="annuler_accord"),
     path("accompagnements/<uuid:pk>/repas/services/", vues_repas.accorder_services, name="accorder_services_repas"),
     path("accompagnements/<uuid:pk>/accueillir/", vues_admission.accueillir, name="admission_guidee"),
+    path("accompagnements/<uuid:pk>/fiche-ahi/", vues_resume.ahi, name="fiche_ahi"),
     path("accompagnements/<uuid:pk>/resume/", vues_resume.resume, name="resume"),
     path("hebergement/<uuid:pk>/selection/", vues_hebergement_collectif.selection, name="selection_sejours"),
     path("accompagnements/<uuid:pk>/informations/", vues_informations.modifier, name="informations"),
