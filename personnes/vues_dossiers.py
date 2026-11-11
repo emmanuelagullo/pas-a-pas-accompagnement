@@ -364,7 +364,6 @@ def detail(request, nature, pk, prise_pk=None):
         from datetime import timedelta
         date_sociale -= timedelta(days=1)
     from . import interventions
-    from . import fiche_ahi
     lecture_interventions = request.user.has_perms(interventions.DROITS_LECTURE)
     interventions_courantes = interventions.presentation(request.user, prise, condition_jour) if prise and lecture_interventions else []
     from . import parcours
@@ -397,7 +396,7 @@ def detail(request, nature, pk, prise_pk=None):
         'lecture_chronologie': droits_suivi,
         'url_chronologie': chronologie.lien(nature, pk, {**params, 'chrono_prise': str(prise.pk) if prise else '', 'chrono_type': params.get('chrono_type') or ('' if prise else 'prise')}),
         'retour_chronologie': chronologie.lien(nature, pk, params) + '#chrono-' + params.get('chrono_ancre', '') if params.get('chrono_origine') else '',
-        'prestations_aides_visibles': aides_visibles, 'prise': prise, 'fiche_ahi_disponible': fiche_ahi.disponible(request.user, prise), 'demande_origine':demande_origine, 'missions_visibles': prise and lecture_interventions and (request.user.has_perm('personnes.add_affectationintervenant') or prise.interventions.exists()), 'interventions_courantes': interventions_courantes,
+        'prestations_aides_visibles': aides_visibles, 'prise': prise, 'demande_origine':demande_origine, 'missions_visibles': prise and lecture_interventions and (request.user.has_perm('personnes.add_affectationintervenant') or prise.interventions.exists()), 'interventions_courantes': interventions_courantes,
         'parametres_prestations': params, 'parametres_navigation': {k: v for k, v in params.items() if k not in ('prise', 'ecran', 'accompagnement', *dossier.CLES_SOCIALES)}, 'selection_prise': selection_prise, 'commentaires': commentaires, 'commentaire': commentaires[0] if commentaires else None,
         'url_trajectoire': reverse('dossiers:trajectoire', args=[nature, pk]) + '?' + urlencode({**{k:v for k,v in params.items() if k not in ('prise', 'ecran')}, **({'prise':str(prise.pk), 'retour_prise':str(prise.pk)} if prise else {})}),
         'date_sociale': date_sociale,

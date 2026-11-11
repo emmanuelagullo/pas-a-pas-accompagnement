@@ -16,6 +16,7 @@ from . import models as m, relations_personnelles, social, suivi
 # Choix du service fictif, proposés à la saisie sans présélection.
 DESTINATIONS_TRAVERSE = [
     'Logement social', 'Logement privé', 'Logement privé avec mandat de gestion',
+    'Autre logement ordinaire',
     'Pension de famille', 'Résidence accueil',
     'Intermédiation locative avec bail glissant',
     'Intermédiation locative avec mandat de gestion', 'Sous-location avec bail glissant',
@@ -146,23 +147,6 @@ def creer_cas(auteur, cas, entree):
     informations_suivi.enregistrer(auteur, prise, informations_suivi.jeton(prise, None), '', **donnees)
     if sortie:
         suivi.clore(auteur, prise, sortie)
-    releves = {
-        'Morel': {'adultes': {
-            str(membres[0].pk): {'logement': 'chu', 'activite': 'recherche'},
-        }},
-        'Benoît': {'couverture': 'aucune', 'reference': str(membres[0].pk)},
-        'Delaunay': {'adultes': {str(membres[0].pk): {'administration': 'asile_normale'}}},
-        'Fournier': {'couverture': 'ame', 'reference': str(membres[0].pk)},
-        'Garnier': {'adultes': {str(membres[0].pk): {'ressources': ['salaire', 'rsa']},
-                                str(membres[-1].pk): {'ressources': ['salaire']}}},
-        'Joly': {'sortie': 'social', 'qualifications': ['dalo'],
-                 'adresse_sortie': '8 rue des Exemples, 00000 Ville fictive'},
-    }
-    if cas.nom in releves:
-        informations_suivi.enregistrer(
-            auteur, prise, informations_suivi.jeton(prise, prise.informations.first()), '',
-            releve_ahi=releves[cas.nom], **donnees,
-        )
 
 
 def completer(auteur, etablissement, professionnel):
@@ -174,8 +158,13 @@ def completer(auteur, etablissement, professionnel):
         etablissement=etablissement, libelle='La Traverse',
         sous_titre='Hébergement et accompagnement vers le logement',
         collecte_rubriques=regles,
-        profil_collectif={**defaut_individuel(collecte_configuree=True), 'prestations': ['hebergement'], 'parcours_simples': ['hebergement'], 'fin_hebergement_unique': True, 'fiche_ahi': True},
-        listes_saisie={'destination_sortie': DESTINATIONS_TRAVERSE},
+        profil_collectif={**defaut_individuel(collecte_configuree=True), 'prestations': ['hebergement'], 'parcours_simples': ['hebergement'], 'fin_hebergement_unique': True},
+        listes_saisie={
+            'destination_sortie': DESTINATIONS_TRAVERSE,
+            'motif_sortie': [
+                'Fin de prise en charge', 'Départ volontaire', 'Exclusion du dispositif', 'Décès',
+            ],
+        },
     )
     AppartenanceProfessionnelle.objects.create(service=service, professionnel=professionnel, debut=entree)
     services.habiliter(auteur, auteur, service, 'social', entree, exporter=True)

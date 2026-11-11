@@ -36,13 +36,8 @@ def enregistrer(acteur, accompagnement, attendu, motif, **donnees):
         valeurs.update(tr.colonnes(champ, donnees[champ], max_length=1000))
     defauts = dict.fromkeys(parcours_logement.CHAMPS_CODES, '')
     defauts['motifs_secondaires'] = []
-    defauts['releve_ahi'] = {}
     for champ, defaut in defauts.items():
         valeurs[champ] = donnees.get(champ, getattr(derniere, champ, defaut))
-    if 'releve_ahi' in donnees:
-        from .fiche_ahi import valider_releve
-
-        valider_releve(acteur, a, valeurs['releve_ahi'])
     if valeurs == {
         champ: getattr(derniere, champ) if derniere else defauts.get(champ, None if champ.endswith('_document') else '')
         for champ in valeurs

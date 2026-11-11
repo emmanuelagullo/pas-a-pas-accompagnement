@@ -644,7 +644,6 @@ class InformationsAccompagnement(TraceSaisie):
     type_logement = models.CharField('Type de logement fourni', max_length=8, blank=True, choices=parcours_logement.TYPES_LOGEMENT)
     situation_logement_entree = models.CharField('Situation de logement à l’entrée — motif principal', max_length=24, blank=True, choices=parcours_logement.SITUATIONS_ENTREE)
     motifs_secondaires = models.JSONField('Motifs secondaires à l’entrée', default=list, blank=True)
-    releve_ahi = models.JSONField(default=dict, blank=True, editable=False)
     categorie_sortie = models.CharField('Catégorie de destination à la sortie', max_length=24, blank=True, choices=parcours_logement.DESTINATIONS)
     objectifs_courts = models.TextField('Objectifs à court terme', max_length=1000, blank=True)
     objectifs_courts_document = models.JSONField(null=True, blank=True, editable=False)
