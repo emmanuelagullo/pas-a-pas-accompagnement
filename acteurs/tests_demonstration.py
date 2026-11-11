@@ -65,6 +65,29 @@ class DemonstrationActeursTests(TestCase):
         fiche = self.client.get(reverse('suivi:fiche_ahi', args=[morel.accord.accompagnement_id]))
         self.assertContains(fiche, 'Sans emploi')
         self.assertNotContains(fiche, '>En formation<')
+        url_ahi = reverse('suivi:fiche_ahi', args=[morel.accord.accompagnement_id])
+        edition = self.client.get(url_ahi, {'modifier': '1'})
+        formulaire = edition.context['form']
+        adulte = formulaire.adultes[0][0]
+        donnees = {
+            'attendu': formulaire.initial['attendu'],
+            f'administration_{adulte.pk}': 'france',
+            f'logement_{adulte.pk}': 'chu',
+            f'motifs_{adulte.pk}': ['violences'],
+            'droits': 'prestations',
+            'sortie': 'social',
+            'qualifications': ['dalo'],
+            'adresse_sortie': 'Adresse fictive de correspondance',
+        }
+        sauvegarde = self.client.post(url_ahi, donnees)
+        self.assertEqual(sauvegarde.status_code, 302, sauvegarde.context["form"].errors if sauvegarde.context else "")
+        self.assertRedirects(sauvegarde, url_ahi)
+        fiche = self.client.get(url_ahi)
+        self.assertContains(fiche, 'Nationalité française')
+        self.assertContains(fiche, 'Adresse fictive de correspondance')
+        self.assertContains(fiche, 'DALO')
+        self.assertEqual(dict(fiche.context['comptes_ahi'][0][1])['Nationalité française'], 1)
+        self.assertContains(self.client.post(url_ahi, donnees), 'Ces informations ont changé.')
         self.client.force_login(get_user_model().objects.get(username='remi'))
         self.assertEqual(self.client.get(reverse('suivi:fiche_ahi', args=[morel.accord.accompagnement_id])).status_code, 404)
         self.client.force_login(get_user_model().objects.get(username='coordination'))

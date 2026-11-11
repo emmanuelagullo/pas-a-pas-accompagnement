@@ -1,11 +1,13 @@
 """Restitution nominative des faits déclarés, à l’entrée et à la sortie."""
 from calendar import monthrange
-from collections import defaultdict
+from collections import Counter, defaultdict
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db.models import Q
 from django.utils import timezone
 
 from acteurs.portees import existante
 from . import collectifs, complements_identite, dossier_complet, interventions, models as m, relations_personnelles
+from . import nomenclature_ahi as n
 
 DROITS = (
     *interventions.DROITS_LECTURE,
@@ -27,6 +29,77 @@ def disponible(acteur, prise):
         return False
     portee = existante(prise)
     return bool(portee and portee.service.profil_collectif.get('fiche_ahi'))
+
+
+def choix_valides(valeurs):
+    for cle, valeur in valeurs.items():
+        if cle in n.ADULTE:
+            if not isinstance(valeur, str) or valeur not in n.ADULTE[cle][1]:
+                return False
+        elif cle in n.CHOIX_MULTIPLES:
+            choix = n.CHOIX_MULTIPLES[cle][1]
+            if not isinstance(valeur, list) or any(not isinstance(code, str) or code not in choix for code in valeur):
+                return False
+            if len(set(valeur)) != len(valeur):
+                return False
+        else:
+            return False
+    return True
+
+
+def valider_releve(acteur, prise, releve):
+    if not disponible(acteur, prise):
+        raise PermissionDenied
+    if not isinstance(releve, dict) or set(releve) - {*n.MENAGE, 'adultes', 'adresse_logement', 'adresse_sortie', 'qualifications', 'reference'}:
+        raise ValidationError('Relevé AHI invalide.')
+    contexte = preparer(acteur, prise)
+    adultes = releve.get('adultes', {})
+    identifiants = {str(ligne['personne'].pk) for ligne in contexte['adultes']}
+    if not isinstance(adultes, dict) or set(adultes) - identifiants:
+        raise ValidationError('Le relevé doit concerner les adultes identifiés à l’entrée.')
+    for valeurs in adultes.values():
+        if not isinstance(valeurs, dict) or not choix_valides(valeurs):
+            raise ValidationError('Catégorie AHI inconnue.')
+    for cle, valeur in releve.items():
+        if cle in n.MENAGE and (not isinstance(valeur, str) or valeur not in n.MENAGE[cle][1]):
+            raise ValidationError('Catégorie AHI inconnue.')
+    if {'droits', 'couverture'} & releve.keys():
+        reference = contexte['reference']
+        if not reference or releve.get('reference') != str(reference.pk):
+            raise ValidationError('La personne de référence a changé. Rouvrez le relevé AHI.')
+    if not contexte['sortie'] and {'sortie', 'adresse_sortie', 'qualifications'} & releve.keys():
+        raise ValidationError('Renseignez d’abord la sortie effective.')
+    for cle in ('adresse_logement', 'adresse_sortie'):
+        adresse = releve.get(cle, '')
+        if not isinstance(adresse, str) or len(adresse) > 500:
+            raise ValidationError('Adresse AHI invalide.')
+    qualifications = releve.get('qualifications', [])
+    if not isinstance(qualifications, list) or any(
+        not isinstance(code, str) or code not in n.QUALIFICATIONS_SORTIE for code in qualifications
+    ):
+        raise ValidationError('Précisions de sortie AHI invalides.')
+
+
+def compter(adultes, releve):
+    groupes = []
+    for cle, (titre, choix) in n.ADULTE.items():
+        comptes = Counter(releve.get('adultes', {}).get(str(ligne['personne'].pk), {}).get(cle) for ligne in adultes)
+        lignes = [(libelle, comptes[code]) for code, libelle in choix.items() if comptes[code]]
+        if cle == 'logement':
+            lignes.extend((libelle, sum(comptes[code] for code in codes)) for libelle, codes in n.GROUPES_LOGEMENT.items())
+        elif cle == 'administration':
+            lignes.extend((
+                ('Total UE hors France', comptes['ue_droits'] + comptes['ue_sans_droits']),
+                ('Total hors UE', sum(comptes[code] for code in choix if code not in {'france', 'ue_droits', 'ue_sans_droits'})),
+            ))
+        groupes.append((titre, lignes + [('Non renseigné', comptes[None])]))
+    for cle, (titre, choix) in n.CHOIX_MULTIPLES.items():
+        comptes = Counter(
+            code for ligne in adultes
+            for code in releve.get('adultes', {}).get(str(ligne['personne'].pk), {}).get(cle, [])
+        )
+        groupes.append((titre, [(libelle, comptes[code]) for code, libelle in choix.items() if comptes[code]]))
+    return groupes
 
 
 def par_personne(faits):
@@ -91,7 +164,18 @@ def preparer(acteur, prise):
                             'ressources': faits, 'total': sum(x.montant for x in details) if comparables else None})
     couvertures = dossier_complet.a_date('couvertures', [reference], jour) if reference else []
     sortie = prise.fin if prise.fin and prise.fin <= timezone.localdate() else None
+    informations = prise.informations.first()
+    releve = informations.releve_ahi if informations else {}
+    meme_reference = reference and releve.get('reference') == str(reference.pk)
     return {
+        'releve': releve, 'comptes_ahi': compter(adultes, releve),
+        'droits_ahi': n.DROITS_SOCIAUX.get(releve.get('droits')) if meme_reference else None,
+        'couverture_ahi': n.COUVERTURE.get(releve.get('couverture')) if meme_reference else None,
+        'sortie_ahi': n.SORTIES.get(releve.get('sortie')),
+        'groupe_sortie_ahi': next((groupe for groupe, codes in n.GROUPES_SORTIES.items() if releve.get('sortie') in codes), ''),
+        'sans_ressources': sum(bool(x['ressources']) and all(f.etat == 'aucun' for f in x['ressources']) for x in adultes),
+        'avec_ressources': sum(any(f.etat == 'detail' for f in x['ressources']) for x in adultes),
+        'qualifications_ahi': [n.QUALIFICATIONS_SORTIE[code] for code in releve.get('qualifications', [])],
         'reference': reference, 'conjoints': conjoints, 'enfants': enfants, 'adultes': adultes,
         'ages_inconnus': ages_inconnus, 'couvertures': couvertures,
         'ressources_jusqua_800': sum(x['total'] is not None and x['total'] <= 800 for x in adultes),
@@ -99,7 +183,7 @@ def preparer(acteur, prise):
         'missions': interventions.presentation(acteur, prise, jour), 'lieux': lieux,
         'telephone': composition.telephone if composition else '',
         'courriel': composition.courriel if composition else '',
-        'informations': prise.informations.first(),
+        'informations': informations,
         'sortie': sortie, 'duree': (sortie - jour).days if sortie else None,
         'tranche_duree': tranche_duree(jour, sortie) if sortie else '',
     }

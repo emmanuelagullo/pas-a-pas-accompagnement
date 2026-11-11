@@ -4,7 +4,21 @@
 <nav aria-label="Fil d’Ariane"><a href="{{ retour }}">Retour à la prise en charge</a></nav>
 <h1>Fiche AHI — {{ prise.menage }}</h1>
 <p>Entrée le {{ prise.debut|date:"d/m/Y" }}{% if sortie %} · Sortie le {{ sortie|date:"d/m/Y" }} · {{ duree }} jours ({{ tranche_duree }}){% else %} · Aucune sortie effective{% endif %}.</p>
-<p>Restitution des données disponibles. Les catégories détaillées de la fiche AHI restent à compléter.</p>
+{% if form %}
+<form method="post">
+  {% csrf_token %}
+  {{ form.attendu }}{{ form.non_field_errors }}
+  {% for personne, champs in form.groupes %}
+  <fieldset><legend>{{ personne }}</legend>{% for champ in champs %}<p>{{ champ.as_field_group }}</p>{% endfor %}</fieldset>
+  {% endfor %}
+  {% if form.champs_menage %}
+  <fieldset><legend>Logement, personne de référence et sortie</legend>{% for champ in form.champs_menage %}<p>{{ champ.as_field_group }}</p>{% endfor %}</fieldset>
+  {% endif %}
+  <button type="submit">Enregistrer</button>
+</form>
+{% elif peut_modifier %}
+<p><a class="bouton secondaire" href="?{% if parametres %}{{ parametres }}&amp;{% endif %}modifier=1">Renseigner les catégories AHI</a></p>
+{% endif %}
 
 <h2>Ménage à l’entrée</h2>
 <dl>
@@ -25,6 +39,7 @@
   <dt>Missions à l’entrée</dt><dd>{% for mission in missions %}{{ mission.get_role_display }} · {{ mission.nom_affiche }}{% if not forloop.last %}, {% endif %}{% empty %}Non renseignées{% endfor %}</dd>
   <dt>Contact du ménage</dt><dd>{% if telephone or courriel %}{{ telephone }}{% if telephone and courriel %} · {% endif %}{{ courriel }}{% else %}Non renseigné{% endif %}</dd>
   <dt>Logement à l’entrée</dt><dd>{% for lieu in lieux %}{{ lieu }}{% if not forloop.last %}, {% endif %}{% empty %}Non renseigné{% endfor %}</dd>
+  <dt>Adresse du logement</dt><dd>{{ releve.adresse_logement|default:"Non renseignée" }}</dd>
   <dt>Type de logement</dt><dd>{{ informations.get_type_logement_display|default:"Non renseigné" }}</dd>
   <dt>Dispositif</dt><dd>{{ informations.get_dispositif_logement_display|default:"Non renseigné" }}</dd>
   <dt>Situation résidentielle déclarée pour la prise</dt><dd>{{ informations.get_situation_logement_entree_display|default:"Non renseignée" }}</dd>
@@ -42,13 +57,23 @@
     <td>{% if ligne.total is not None %}{{ ligne.total|floatformat:2 }} €{% else %}Non déterminé{% endif %}</td>
   </tr>{% endfor %}</tbody>
 </table>
+<p>Ressources déclarées : {{ avec_ressources }} avec ressources, {{ sans_ressources }} sans ressources.</p>
 <p>Totaux mensuels déclarés en euros : {{ ressources_jusqua_800 }} adulte{{ ressources_jusqua_800|pluralize }} à 800 € ou moins, {{ ressources_plus_de_800 }} au-dessus de 800 €.</p>
 
-<h2>Couverture sociale de la personne de référence</h2>
+{% for titre, lignes in comptes_ahi %}
+<h3>{{ titre }}</h3>
+{% if not lignes %}<p>Non renseigné.</p>{% endif %}
+<dl>{% for libelle, nombre in lignes %}<dt>{{ libelle }}</dt><dd>{{ nombre }}</dd>{% endfor %}</dl>
+{% endfor %}
+<h2>Droits de la personne de référence</h2>
+<p>{{ droits_ahi|default:"Droits ouverts non renseignés" }} · {{ couverture_ahi|default:"Couverture santé non classée" }}</p>
+<h3>Couverture sociale déclarée</h3>
 <ul>{% for fait in couvertures %}<li>{{ fait.libelle|default:fait.get_etat_display }}</li>{% empty %}<li>Non renseignée</li>{% endfor %}</ul>
 
 <h2>Sortie du service</h2>
 {% if sortie %}
 <p>Destination déclarée : {{ informations.destination_sortie|default:"Non renseignée" }}.</p>
+<p>Catégorie AHI : {% if groupe_sortie_ahi %}{{ groupe_sortie_ahi }} · {% endif %}{{ sortie_ahi|default:"Non renseignée" }}{% if qualifications_ahi %} · {{ qualifications_ahi|join:", " }}{% endif %}.</p>
+<p>Adresse de correspondance : {{ releve.adresse_sortie|default:"Non renseignée" }}.</p>
 {% else %}<p>Aucune sortie effective à restituer.</p>{% endif %}
 {% endblock %}

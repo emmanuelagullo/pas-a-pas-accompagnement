@@ -146,6 +146,23 @@ def creer_cas(auteur, cas, entree):
     informations_suivi.enregistrer(auteur, prise, informations_suivi.jeton(prise, None), '', **donnees)
     if sortie:
         suivi.clore(auteur, prise, sortie)
+    releves = {
+        'Morel': {'adultes': {
+            str(membres[0].pk): {'logement': 'chu', 'activite': 'recherche'},
+        }},
+        'Benoît': {'couverture': 'aucune', 'reference': str(membres[0].pk)},
+        'Delaunay': {'adultes': {str(membres[0].pk): {'administration': 'asile_normale'}}},
+        'Fournier': {'couverture': 'ame', 'reference': str(membres[0].pk)},
+        'Garnier': {'adultes': {str(membres[0].pk): {'ressources': ['salaire', 'rsa']},
+                                str(membres[-1].pk): {'ressources': ['salaire']}}},
+        'Joly': {'sortie': 'social', 'qualifications': ['dalo'],
+                 'adresse_sortie': '8 rue des Exemples, 00000 Ville fictive'},
+    }
+    if cas.nom in releves:
+        informations_suivi.enregistrer(
+            auteur, prise, informations_suivi.jeton(prise, prise.informations.first()), '',
+            releve_ahi=releves[cas.nom], **donnees,
+        )
 
 
 def completer(auteur, etablissement, professionnel):
