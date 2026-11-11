@@ -8,6 +8,8 @@ const root=process.env.PWA_BUNDLE?path.resolve(process.env.PWA_BUNDLE):path.reso
 let servedRoot=process.env.PWA_OLD_BUNDLE?path.resolve(process.env.PWA_OLD_BUNDLE):root;
 const types={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.json':'application/json','.webmanifest':'application/manifest+json','.css':'text/css','.wasm':'application/wasm','.svg':'image/svg+xml','.png':'image/png'};
 const base=process.env.PWA_BASE_PATH||'/chrs/';
+// Un démarrage à froid inclut Pyodide, les dépendances et les migrations SQLite.
+const delaiDemarrage = 240000;
 const tls=process.env.PWA_TEST_HTTPS==='oui';let certificat;
 let options={};
 if(tls){
@@ -60,9 +62,11 @@ const server=(tls?require('node:https'):http).createServer(options,(req,res)=>{
    await cliquerLienPwa(app.getByRole('button',{name:'Rechercher',exact:true}));
   }
   async function ouvrir(){
+   const debut = performance.now();
    await page.goto(url);
    try{
-    await page.frameLocator('#app').locator('h1').waitFor({timeout:120000});
+    await page.frameLocator('#app').locator('h1').waitFor({timeout:delaiDemarrage});
+    console.log('PWA : premier écran visible après', Math.round((performance.now() - debut) / 1000), 's');
    }catch(erreur){
     const iframe=page.locator('#app');
     const etat=await iframe.evaluate(element=>({

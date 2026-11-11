@@ -50,7 +50,9 @@ async function traiter(message){
     await charger();
     self.postMessage({kind:'progress',text:'Ouverture des données locales…'});
     const etat=await lireEtat();
+    self.postMessage({kind:'progress',text:'Préparation de la base locale…'});
     appel('initialize',location.origin,BASE,ESSAI,ESSAI&&!etat);
+    self.postMessage({kind:'progress',text:'Enregistrement de l’espace local…'});
     await conserver();initialise=true;return {ready:true};
   }
   if(message.kind==='export'){
