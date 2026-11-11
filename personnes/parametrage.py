@@ -20,7 +20,7 @@ MAX_ENTREES=500
 MAX_VERSIONS=2000
 FAMILLES=('organismes','professionnels','lieux','types_aide','tarifs')
 MODELES=dict(zip(FAMILLES,(m.Partenaire,m.Intervenant,m.LieuHebergement,m.TypeAide,m.TarifPrestation)))
-LIEU=('libelle','partenaire','organisme','parent','niveau')
+LIEU=('libelle','partenaire','organisme','parent','niveau','adresse')
 LECTURE=('view_partenaire','view_fichepartenaire','view_revisionfichepartenaire','view_intervenant','view_ficheintervenant','view_revisionficheintervenant','view_lieuhebergement','view_revisionlieu','view_typeaide','view_revisiontypeaide','view_tarifprestation','view_versiontarif','view_importparametrage')
 ECRITURE=('add_importparametrage','add_partenaire','add_fichepartenaire','add_intervenant','add_ficheintervenant','add_lieuhebergement','add_typeaide','add_tarifprestation','add_versiontarif')
 
@@ -135,7 +135,8 @@ def definition(k,v):
     if k=='professionnels':return nettoyer(m.FicheIntervenant,v,('debut','source',*intervenants.CHAMPS),('organisme',))
     if k=='tarifs':return nettoyer(m.VersionTarif,v,financements.TARIF,('prestataire',))
     if k=='types_aide':return nettoyer(m.TypeAide,v,aides.CATALOGUE)
-    d=nettoyer(m.LieuHebergement,v,LIEU,('organisme','parent'))
+    valeurs = {'adresse': '', **v} if isinstance(v, dict) else v
+    d=nettoyer(m.LieuHebergement,valeurs,LIEU,('organisme','parent'))
     if d['organisme'] and d['partenaire'].strip():raise ValidationError('Le lieu ne peut avoir deux opérateurs concurrents.')
     return d
 

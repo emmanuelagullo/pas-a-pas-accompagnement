@@ -31,7 +31,8 @@ def regles(objet=None):
     verifier(s.collecte_rubriques,s.profil_collectif.get('categories',categories_defaut()))
     return s.collecte_rubriques
 
-def rubrique(code):return 'ressources' if code=='ressources-globales' else code
+def rubrique(code):
+    return {'ressources-globales': 'ressources', 'motifs_logement': 'logement'}.get(code, code)
 
 def concerne(personne,regle,jour,objet=None):
     if regle['portee'] not in ('personne','deux'):return False

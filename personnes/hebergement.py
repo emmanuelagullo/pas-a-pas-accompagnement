@@ -106,18 +106,21 @@ def admettre(acteur, accord, beneficiaires, debut):
     return sejour
 
 
+LIEU_CHAMPS = ('libelle', 'parent', 'niveau', 'partenaire', 'organisme', 'adresse')
+
+
 @service_metier
 @transaction.atomic
-def creer_lieu(acteur, libelle, partenaire="", organisme=None, parent=None, niveau=""):
+def creer_lieu(acteur, libelle, partenaire="", organisme=None, parent=None, niveau="", adresse=""):
     droit(acteur, "add_lieuhebergement")
     exiger(acteur, "view_lieuhebergement")
     if organisme is not None:
         exiger(acteur, 'view_partenaire')
-    lieu = LieuHebergement(libelle=libelle, partenaire=partenaire, organisme=organisme, parent=parent, niveau=niveau, cree_par=acteur)
+    lieu = LieuHebergement(libelle=libelle, partenaire=partenaire, organisme=organisme, parent=parent, niveau=niveau, adresse=adresse, cree_par=acteur)
     lieu.full_clean(); lieu.save()
     from .models import RevisionLieu
     from .series_personnelles import valeur_journal
-    RevisionLieu.objects.create(lieu=lieu,action='ajout',avant=[],apres=[{c:valeur_journal(getattr(lieu,c)) for c in ('libelle','parent','niveau','partenaire','organisme')}],auteur=acteur)
+    RevisionLieu.objects.create(lieu=lieu,action='ajout',avant=[],apres=[{c:valeur_journal(getattr(lieu,c)) for c in LIEU_CHAMPS}],auteur=acteur)
     return lieu
 
 
@@ -230,7 +233,8 @@ def corriger_lieu(acteur,lieu,attendu,motif,**valeurs):
     from . import bd6
     from .models import RevisionLieu
     from .series_personnelles import valeur_journal
-    if set(valeurs)!=set(('libelle','parent','niveau','partenaire','organisme')):raise ValidationError('Précisez tous les champs du lieu.')
+    valeurs.setdefault('adresse', lieu.adresse)
+    if set(valeurs)!=set(LIEU_CHAMPS):raise ValidationError('Précisez tous les champs du lieu.')
     if valeurs['organisme']:exiger(acteur,'view_partenaire')
     motif=precision.valider(motif)
     with transaction.atomic():

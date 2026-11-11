@@ -3,7 +3,9 @@
 DISPOSITIFS = [
     ('iml', 'Intermédiation locative'), ('maison_relais', 'Maison relais'),
     ('residence_sociale', 'Résidence sociale'), ('chu_diffus', 'CHU diffus'),
-    ('stabilisation', 'Stabilisation en diffus'), ('autre', 'Autre dispositif'),
+    ('stabilisation', 'Stabilisation en diffus'), ('residence_accueil', 'Résidence accueil'),
+    ('sous_location_bg', 'Sous-location avec bail glissant'), ('seniors', 'Séniors'),
+    ('bail_abord', 'Bail d’abord'), ('htuasm', 'HTUASM'), ('autre', 'Autre dispositif'),
 ]
 TYPES_LOGEMENT = [('studio', 'Studio'), *((f't{n}', f'T{n}') for n in range(1, 6))]
 SITUATIONS_ENTREE = [

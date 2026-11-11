@@ -596,6 +596,13 @@ le séjour et les personnes hébergées. Le motif et la destination de sortie
 se renseignent à la fin de la prise en charge. Les choix proposés sont réglés
 dans **Paramétrage → La Traverse → Choix proposés à la saisie**.
 
+Pour vérifier les décomptes, ouvrez **Entrées et sorties des prises en charge**
+dans les rapports et cochez **Afficher les décomptes à l’entrée et à la sortie**.
+La situation personnelle est lue au jour d’entrée de chaque prise en charge.
+Les durées sont calculées à partir des prises en charge terminées et les six
+mois sont des mois civils. Un montant inconnu, non mensuel ou en devise
+étrangère est exclu de la comparaison à 800 €.
+
 ### Grille de vérification de la couverture
 
 | Lignes de la fiche | Source et population à la date de référence | Résultat à vérifier ou travail restant |

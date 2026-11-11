@@ -60,6 +60,22 @@ class DemonstrationActeursTests(TestCase):
         self.client.force_login(get_user_model().objects.get(username='coordination'))
         self.assertEqual(self.client.get(reverse('accueil')).status_code, 302)
 
+    def test_decomptes_traverse_a_entree_et_sortie(self):
+        from django.utils import timezone
+        from personnes.bilan_entrees_sorties import rapport
+        from personnes.models import InformationsAccompagnement
+
+        self.preparer()
+        versions = InformationsAccompagnement.objects.filter(
+            accompagnement__menage__libelle__endswith='— La Traverse',
+        ).select_related('accompagnement__menage')
+        resultat = {titre: dict(lignes) for titre, lignes in rapport(versions, timezone.localdate())}
+        self.assertEqual(resultat['Activité à l’entrée']['En recherche d’emploi'], 1)
+        self.assertNotIn('En formation', resultat['Activité à l’entrée'])
+        self.assertEqual(resultat['Ressources à l’entrée']['Ressources mensuelles ≤ 800 €'], 1)
+        self.assertEqual(resultat['Ressources à l’entrée']['Ressources mensuelles > 800 €'], 1)
+        self.assertEqual(resultat['Précision sur la sortie']['DALO'], 1)
+
     def test_refus_base_existante_sans_modification(self):
         self.preparer()
         avant = (Personne.objects.count(), DossierService.objects.count())

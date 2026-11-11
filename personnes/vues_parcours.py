@@ -279,6 +279,7 @@ class RapportParcoursForm(FormulaireMetier):
 @login_required
 @permission_required('personnes.view_personne',raise_exception=True)
 def rapport(request):
+    from . import bilan_entrees_sorties
     choix=[(c,r.titre) for c,r in s.RUBRIQUES.items() if request.user.has_perms(s.droits(c))]
     lecture_admissions=request.user.has_perms(['personnes.view_menage','personnes.view_accompagnement'])
     lecture_prises=request.user.has_perms(['personnes.view_menage','personnes.view_accompagnement','personnes.view_informationsaccompagnement'])
@@ -297,6 +298,10 @@ def rapport(request):
                                                 choices=[('', 'Toutes'), *definition.choices])
         champs=['activite','provenance','motif_entree','orientation_sortie','motif_sortie','destination_sortie','referent','animaux', *parcours_logement.CHAMPS_CODES]
         f.fields['etat'].choices=[('','Toutes'),('ouverte','Ouvertes'),('close','Closes')]
+        if request.user.has_perms(bilan_entrees_sorties.DROITS):
+            f.fields['bilan_entrees_sorties'] = forms.BooleanField(
+                label='Afficher les décomptes à l’entrée et à la sortie', required=False,
+            )
         inutiles|={'demandeur','admission','horizon','echeance_avant','organisme','professionnel'}
     else:
         r=s.RUBRIQUES[code];champs=list(r.champs)
@@ -315,6 +320,7 @@ def rapport(request):
         if c not in champs:inutiles.add(c)
     for c in inutiles:f.fields.pop(c,None)
     objets=[];lignes_rapport=[];delais=[];repartition=[]
+    bilan_entrees_sorties_lignes = []
     if f.is_valid():
         d=f.cleaned_data;jour=d['date']
         if code=='prises':
@@ -364,6 +370,8 @@ def rapport(request):
             etiquettes=dict(r.version._meta.get_field('etat').choices)
             repartition=[(etiquettes[x['etat']],x['nombre']) for x in qs.order_by().values('etat').annotate(nombre=Count('element_id',distinct=True))]
         objets=list(qs.order_by('pk'))
+        if code == 'prises' and d.get('bilan_entrees_sorties'):
+            bilan_entrees_sorties_lignes = bilan_entrees_sorties.rapport(objets, jour)
         from .departs_logement import par_prise
         departs = par_prise(request.user, [v.accompagnement_id for v in objets], jour) if code == 'prises' else {}
         modele=m.InformationsAccompagnement if code=='prises' else r.version
@@ -393,6 +401,7 @@ def rapport(request):
                            for _, destination in ligne['departs_logement'])
     params.pop('format',None);params.pop('page',None)
     return TemplateResponse(request,'dossiers/rapport_parcours.html',{'form':f,'code':code,'nombre':len(objets),'delais':delais,
+        'bilan_entrees_sorties': bilan_entrees_sorties_lignes,
         'destinations_logement': sorted(destinations.items(), key=lambda x: x[0].casefold()),
         'repartition':repartition,'moyenne_delai':sum(delais)/len(delais) if delais else None,'page_obj':Paginator(lignes_rapport,40).get_page(request.GET.get('page')),'query_rapport':params.urlencode()})
 

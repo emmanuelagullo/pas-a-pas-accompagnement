@@ -25,12 +25,11 @@ from .exports import cellule_csv
 
 def proposer_choix(form, objet, champs):
     from acteurs.listes_saisie import choix
-    from acteurs.portees import existante
+    from .collecte import service
 
-    origine = existante(objet)
-    if origine is None:
+    service_actuel = service(objet)
+    if service_actuel is None:
         return
-    service_actuel = origine.service
     for champ, liste in champs.items():
         propositions = choix(liste, etablissement=service_actuel.etablissement, service=service_actuel)
         if propositions:

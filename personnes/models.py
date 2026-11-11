@@ -345,6 +345,7 @@ class LieuHebergement(ModeleControle):
     libelle = models.CharField("Lieu / unité d’hébergement", max_length=160, validators=[RegexValidator(r"\S", "Indiquez un lieu.")])
     parent=models.ForeignKey('self',on_delete=models.PROTECT,null=True,blank=True,related_name='sous_lieux')
     niveau=models.CharField('Type de lieu',max_length=16,blank=True,choices=[('etablissement','Établissement'),('batiment','Bâtiment'),('logement','Logement'),('chambre','Chambre'),('place','Place')])
+    adresse = models.CharField('Adresse du lieu', max_length=250, blank=True)
     partenaire = models.CharField("Opérateur extérieur (facultatif)", max_length=160, blank=True)
     organisme = models.ForeignKey('Partenaire', on_delete=models.PROTECT, null=True, blank=True,
         related_name='lieux', verbose_name='Organisme du répertoire (facultatif)')
@@ -408,10 +409,15 @@ class OperationHebergement(ModeleControle):
 
 
 class SituationSociale(Periode):
-    DIMENSIONS = [("logement", "Logement"), ("emploi", "Emploi / formation"), ("ressources", "Ressources")]
+    DIMENSIONS = [("logement", "Logement"), ("emploi", "Emploi / formation"), ("ressources", "Ressources"), ("motifs_logement", "Motifs secondaires liés au logement")]
     VALEURS = {
         "logement": [("inconnu", "Non renseigné"), ("sans_solution", "Sans solution stable"), ("hebergement", "Hébergé"), ("logement_autonome", "Logement autonome"), ("autre", "Autre situation"), *((f"entree_{code}", libelle) for code, libelle in parcours_logement.SITUATIONS_ENTREE if code != "autre")],
         "emploi": [("inconnu", "Non renseigné"), ("sans_emploi", "Sans emploi"), ("emploi", "En emploi"), ("formation", "En formation"), ("recherche", "En recherche d’emploi"), ("sans_activite", "Sans activité"), ("autre", "Autre situation")],
+        "motifs_logement": [
+            ("inconnu", "Non renseigné"), ("aucun", "Aucun motif déclaré"),
+            ("violences", "Violences conjugales"), ("traite", "Traite des êtres humains"),
+            ("violences_et_traite", "Violences conjugales et traite des êtres humains"),
+        ],
         "ressources": [("inconnu", "Non renseigné"), ("sans_ressources", "Sans ressources déclarées"), ("ressources_declarees", "Ressources déclarées"), ("autre", "Autre situation")],
     }
     accompagnement = models.ForeignKey(Accompagnement, on_delete=models.PROTECT, related_name="situations_sociales")

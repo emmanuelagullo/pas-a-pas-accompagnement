@@ -10,7 +10,7 @@ from acteurs.contexte import perimetre
 from acteurs.models import AppartenanceProfessionnelle, Service
 from acteurs.profils_collectifs import defaut_individuel
 from . import bd6, collectifs, complements_identite, dossier_complet, hebergement, informations_suivi
-from . import models as m, relations_personnelles, social, suivi
+from . import models as m, relations_personnelles, suivi
 
 
 # Choix du service fictif, proposés à la saisie sans présélection.
@@ -81,6 +81,15 @@ def declarer(acteur, code, personne, jour, **valeurs):
     )
 
 
+def renseigner_nationalites(auteur, membres, entree):
+    for personne, nationalites in zip(membres, (['Française', 'Italienne'], ['Portugaise'])):
+        complements_identite.renseigner(
+            auteur, personne, entree, 'Scénario fictif La Traverse', bd6.jeton(personne),
+            sexe_declare='', naissance_lieu='', naissance_ville='', naissance_pays='',
+            nationalites=nationalites, apatridie_declaree=None,
+        )
+
+
 def renseigner_cas(auteur, cas, prise, membres, entree):
     reference = membres[0]
     if cas.nom == 'Morel':
@@ -88,18 +97,19 @@ def renseigner_cas(auteur, cas, prise, membres, entree):
             auteur, reference, membres[1], entree, None, 'couple', '',
             'Scénario fictif La Traverse', bd6.jeton(reference),
         )
-        social.renseigner(auteur, prise, reference, 'emploi', 'recherche', entree, 'Scénario fictif La Traverse')
-        social.renseigner(auteur, prise, membres[1], 'emploi', 'emploi', entree, 'Scénario fictif La Traverse')
-        social.renseigner(auteur, prise, reference, 'emploi', 'formation', entree + timedelta(days=30), 'Scénario fictif La Traverse')
+        for personne, valeur, jour in (
+            (reference, 'recherche', entree),
+            (membres[1], 'emploi', entree),
+            (reference, 'formation', entree + timedelta(days=30)),
+        ):
+            bd6.renseigner(auteur, personne, 'emploi', valeur, jour,
+                           'Scénario fictif La Traverse', bd6.jeton(personne))
+    elif cas.nom == 'Carrel':
+        renseigner_nationalites(auteur, membres, entree)
+        bd6.renseigner(auteur, reference, 'motifs_logement', 'aucun', entree,
+                       'Scénario fictif La Traverse', bd6.jeton(reference))
     elif cas.nom == 'Benoît':
         declarer(auteur, 'couvertures', reference, entree, etat='aucun')
-    elif cas.nom == 'Carrel':
-        for personne, nationalites in zip(membres, (['Française', 'Italienne'], ['Portugaise'])):
-            complements_identite.renseigner(
-                auteur, personne, entree, 'Scénario fictif La Traverse', bd6.jeton(personne),
-                sexe_declare='', naissance_lieu='', naissance_ville='', naissance_pays='',
-                nationalites=nationalites, apatridie_declaree=None,
-            )
     elif cas.nom == 'Delaunay':
         declaration = m.SituationAdministrative(droit_sejour='Demande d’asile en procédure normale', droits_ouverts='Aucun droit ouvert')
         dossier_complet.administration(
@@ -133,7 +143,7 @@ def creer_cas(auteur, cas, entree):
     collectifs.renseigner(auteur, prise, collectifs.jeton(prise), debut=entree, reference=membres[0],
                           identifies=membres, complements=[], actualiser=True)
     loges = [personne for (prenom, _), personne in zip(cas.membres, membres) if prenom not in cas.non_loges]
-    lieu = hebergement.creer_lieu(auteur, f'La Traverse — logement {cas.nom}', niveau='logement')
+    lieu = hebergement.creer_lieu(auteur, f'La Traverse — logement {cas.nom}', niveau='logement', adresse='8 rue des Passerelles, adresse fictive')
     accord = hebergement.accorder(auteur, prise, loges, entree, sortie)
     sejour = hebergement.admettre(auteur, accord, loges, entree)
     hebergement.ajouter_periode(auteur, sejour, entree, sortie, lieu=lieu)
