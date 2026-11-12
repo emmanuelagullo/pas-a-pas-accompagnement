@@ -12,14 +12,21 @@
     try { sessionStorage.setItem(cleContexte(), root.querySelector('[data-condition-contexte]').value); } catch (_) { /* stockage facultatif */ }
   }
   let modeOptions = 'situation';
+  let selecteurMode = root.querySelector('.condition-modes');
   const cleOptions = mode => ['pas-a-pas-options', root.dataset.conditionUtilisateur, root.dataset.conditionCle, mode].join('-');
   function actualiserOptions(mode = modeOptions) {
+    const precedent = root.querySelector(`[data-condition-options="${modeOptions}"]`);
+    const changement = mode !== modeOptions;
     modeOptions = mode;
     root.classList.add('condition-interactive');
     const detail = root.querySelector(`[data-condition-options="${mode}"]`);
     const button = root.querySelector('[data-condition-options-bouton]');
     if (!detail || !button) return;
     try { if (sessionStorage.getItem(cleOptions(mode)) === '1') detail.open = true; } catch (_) {}
+    if (!root.contains(selecteurMode)) selecteurMode = root.querySelector('.condition-modes') || selecteurMode;
+    const contenu = detail.querySelector('.condition-options-contenu');
+    if (selecteurMode.parentElement !== contenu) contenu.prepend(selecteurMode);
+    if (changement && precedent?.open) detail.open = true;
     button.hidden = false;
     button.setAttribute('aria-controls', detail.id);
     button.setAttribute('aria-expanded', String(detail.open));
