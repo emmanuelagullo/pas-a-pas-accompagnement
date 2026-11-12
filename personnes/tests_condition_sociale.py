@@ -41,7 +41,12 @@ class ConditionSocialeTests(TestCase):
             self.assertContains(page, 'id="documents-dossier"', count=1)
             self.assertNotContains(page, 'Documents joints')
             self.assertNotContains(page, '>Trajectoire d’accompagnement</a>')
-            self.assertContains(page, '<details class="condition-nav-details">', count=2)
+            self.assertContains(page, '<details class="condition-nav-details"><summary>Ménage</summary>')
+            self.assertContains(page, '<details class="condition-nav-details"><summary>Projet et parcours</summary>')
+            for personne in page.context['condition_personnes']:
+                self.assertContains(page, f'data-person-nav="{personne["ancre"]}"')
+                self.assertContains(page, f'href="#{personne["ancre"]}"')
+            self.assertContains(page, '<h3 id="condition-composition-titre">Composition</h3>')
             self.assertNotContains(page, '<details class="condition-nav-details" open')
             if url == self.url:
                 self.assertNotContains(page, 'id="appels-115"')
