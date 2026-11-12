@@ -745,3 +745,13 @@ sur place, le repli sans JavaScript et la coexistence de services différents.
 Pour les dates et durées des prestations, réévaluer après une courte pause de
 saisie avec la temporisation commune. Ignorer les réponses dépassées et garder
 la validation serveur lors de l’enregistrement, y compris sans JavaScript.
+
+
+### Navigation de la situation sociale
+
+Le sommaire reprend l’ordre et la hiérarchie de la page. Ménage et personnes
+appartiennent à Situation sociale et projet ; Prestations est une section
+distincte. Les noms restent visibles dans la présentation compacte.
+Les rubriques collectives et personnelles réutilisent les conventions de
+pliage, raccourci et saisie. Une rubrique activée reste accessible quand elle
+est vide. Vérifier les commandes de pliage par bloc et pour toute la section.

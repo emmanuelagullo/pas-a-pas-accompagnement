@@ -23,7 +23,7 @@ def profil_collectif(context):
     if not isinstance(objet,(m.Menage,m.Accompagnement)):return None
     return c.profil(objet)
 
-@register.inclusion_tag('collectifs/social.html',takes_context=True)
+@register.simple_tag(takes_context=True)
 def social_collectif(context):
     request=context['request'];objet=context.get('prise') or context.get('objet')
     if not isinstance(objet,(m.Menage,m.Accompagnement)):return {}
@@ -43,7 +43,22 @@ def social_collectif(context):
     nombres=c.effectifs(comp,jour) if comp else {}
     labels={x['code']:x['libelle'] for x in comp.categories} if comp else {}
     labels['inconnu']='Âge non précisé'
-    return {'cfg':cfg,'comp':comp,'effectifs':[(labels[k],n) for k,n in nombres.items()],
+    rubriques = []
+    for code, titre, champs in (
+        ('coordonnees', 'Coordonnées', ('telephone', 'courriel')),
+        ('logement', 'Logement', ('logement',)),
+        ('ressources', 'Ressources', ('revenu',)),
+        ('dettes', 'Dettes', ('dette',)),
+        ('projet', 'Projet du ménage', ('projet',)),
+    ):
+        if any(champ in cfg['rubriques'] for champ in champs):
+            rubriques.append({
+                'ancre': 'condition-menage-' + code, 'titre': titre,
+                'champs': [(m.CompositionCollective._meta.get_field(champ).verbose_name,
+                            getattr(comp, champ, None)) for champ in champs],
+                'renseignee': any(getattr(comp, champ, None) not in (None, '') for champ in champs),
+            })
+    return {'rubriques': rubriques, 'cfg':cfg,'comp':comp,'effectifs':[(labels[k],n) for k,n in nombres.items()],
         'formctx':formctx,'url':lien(request,'composition') if actif and request.user.has_perm('personnes.add_compositioncollective') else '',
         'histoires':m.CompositionCollective.objects.filter(menage=comp.menage,service=comp.service,accompagnement=comp.accompagnement).order_by('-debut','-pk') if comp else [],'request':request}
 
@@ -51,3 +66,10 @@ def social_collectif(context):
 def historique_collectif(context,nature):
     prise=context.get('prise')
     return bool(prise and context['request'].user.has_perm('personnes.view_prestationcollective') and prise.prestations_collectives.filter(nature=nature).exists())
+
+@register.simple_tag(takes_context=True)
+def repere_age(context, personne, collectif):
+    if not collectif.get('cfg') or not personne.date_naissance or personne.precision_naissance != 'exacte':
+        return ''
+    age = c.age_exact(personne.date_naissance, context.get('condition_jour') or timezone.localdate())
+    return 'Adulte' if age >= 18 else 'Mineur'

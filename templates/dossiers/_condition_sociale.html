@@ -20,9 +20,12 @@
 <div class="condition-repli-commandes" data-condition-repli-commandes role="group" aria-labelledby="condition-repli-portee" hidden><span id="condition-repli-portee">Composition, rubriques personnelles et projet :</span><button type="button" class="secondaire" data-condition-tout="ouvrir">Tout déplier</button><button type="button" class="secondaire" data-condition-tout="fermer">Tout replier</button></div>
 <p class="helptext">Ces repères indiquent la présence d’informations, pas la complétude du dossier. Chaque rubrique personnelle compte une fois par personne, selon les droits et la date de consultation. Une absence déclarée compte comme une information. L’identité principale reste actuelle.</p>
 <p class="condition-date"><strong>{% if condition_vue == 'entree' %}Situation à l’entrée{% elif condition_vue == 'today' %}Situation aujourd’hui{% else %}Situation consultée{% endif %} · {{ condition_jour|date:'d/m/Y' }}</strong></p>
+{% if nature == 'menage' %}<section id="condition-menage" data-condition-portee><h3>Ménage</h3>{% include 'dossiers/_condition_commandes_locales.html' %}{% endif %}
 {% if nature == 'menage' and not profil_service %}{% include 'dossiers/_condition_composition.html' %}{% endif %}
-{% social_collectif %}
-{% for personne in condition_personnes %}<article id="{{ personne.ancre }}" class="condition-personne"><div class="boite-entete"><h3>{{ personne.personne }}</h3>{% if personne.url_dossier %}<a href="{{ personne.url_dossier }}">Dossier individuel</a>{% endif %}</div>
+{% social_collectif as collectif %}{% if collectif.cfg %}{% include 'collectifs/social.html' with cfg=collectif.cfg comp=collectif.comp effectifs=collectif.effectifs url=collectif.url histoires=collectif.histoires formctx=collectif.formctx rubriques=collectif.rubriques %}{% endif %}
+{% if nature == 'menage' %}</section>{% endif %}
+{% for personne in condition_personnes %}<article id="{{ personne.ancre }}" class="condition-personne" data-condition-portee><div class="boite-entete"><h3>{% include 'dossiers/_condition_nom_personne.html' with personne=personne.personne %}</h3>{% if personne.url_dossier %}<a href="{{ personne.url_dossier }}">Dossier individuel</a>{% endif %}</div>
+{% include 'dossiers/_condition_commandes_locales.html' %}
 <p class="condition-reperes-personne" data-condition-reperes-personne>{% include 'dossiers/_condition_reperes_nombre.html' with reperes=personne.reperes %}</p>
 <nav class="condition-ancres" aria-label="Rubriques de {{ personne.personne }}">{% for g in personne.groupes %}<a href="#{{ g.ancre }}">{{ g.titre }}</a>{% endfor %}</nav>
 {% for g in personne.groupes %}<details open id="{{ g.ancre }}" class="condition-groupe condition-depliant" data-condition-groupe data-condition-repli="{{ g.ancre }}">

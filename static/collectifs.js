@@ -3,7 +3,7 @@
   if(window.PasCollectifInitialise)return;window.PasCollectifInitialise=true;
   const lire=(f,id)=>{try{return JSON.parse(f.querySelector('[data-collectif-json="'+id+'"]')?.value || '{}');}catch(_){return {};}};
   const formulaires=()=>document.querySelectorAll('#collectif-form form');
-  const compte=new WeakMap(),delais=new WeakMap();let socialOccupe=false,socialModifie=false;
+  const compte=new WeakMap(),delais=new WeakMap();let socialOccupe=false,socialModifie=false,rubriqueSociale=null;
   function bornes(f) {
     const midi=f.elements.dejeuner,soir=f.elements.diner;if(!midi || !soir)return;
     const disponibles=lire(f,'collectif-offres')[f.elements.offre?.value];
@@ -65,18 +65,25 @@
       const doc=new DOMParser().parseFromString(await r.text(),'text/html');
       if(doc.querySelector('[name=password]')){location.assign(r.url);return;}
       const frais=doc.querySelector('[data-composition-collective]'),ancien=document.querySelector('[data-composition-collective]');
-      if(frais && ancien){ancien.replaceWith(frais);frais.open=true;history.replaceState(history.state,'',r.url);}
+      if(frais && ancien){ancien.replaceWith(frais);history.replaceState(history.state,'',r.url);}
       else if(doc.querySelector('#collectif-form') && document.querySelector('#collectif-form'))document.querySelector('#collectif-form').replaceWith(doc.querySelector('#collectif-form'));
       else throw Error();
       socialModifie=options.method==='POST' && Boolean(document.querySelector('[data-collectif-form]'));initialiser();
       document.querySelector('#collectif-form .errorlist,#collectif-form input:not([type=hidden]),[data-composition-collective] summary')?.focus({preventScroll:true});
       document.dispatchEvent(new Event('navigation:actualise'));
+      const rubrique = rubriqueSociale && document.getElementById(rubriqueSociale);
+      const edition = frais?.querySelector('#collectif-form');
+      if (rubrique && edition) {
+        rubrique.open = true;
+        rubrique.append(edition);
+        edition.querySelector('[name=telephone], [name=courriel], input:not([type=hidden])')?.focus();
+      }
     } catch(_) {const out=document.querySelector('[data-composition-collective] [data-collectif-etat]');if(out)out.textContent='Impossible de mettre à jour la composition. Vérifiez les informations affichées avant de réessayer.';}
     finally{socialOccupe=false;}
   }
   document.addEventListener('click',e=>{
     const a=e.target.closest('[data-collectif-lien]');if(!a || !document.querySelector('[data-composition-collective]') || e.button!==0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey)return;
-    e.preventDefault();if(socialModifie && !confirm('Abandonner les modifications non enregistrées ?'))return;social(a.href);
+    e.preventDefault();if(socialModifie && !confirm('Abandonner les modifications non enregistrées ?'))return;rubriqueSociale=a.dataset.collectifRubrique || rubriqueSociale;social(a.href);
   });
   document.addEventListener('submit',e=>{const f=e.target.closest('[data-collectif-form]');if(!f || !document.querySelector('[data-composition-collective]'))return;e.preventDefault();social(f.action,{method:'POST',body:new FormData(f)});});
   document.addEventListener('condition:disponible',e=>{if(socialOccupe || document.querySelector('[data-collectif-form]'))e.preventDefault();});

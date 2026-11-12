@@ -1,0 +1,1 @@
+{% load collectifs %}{{ personne }}{% repere_age personne collectif as repere %}{% if repere %} · {{ repere }}{% endif %}{% if collectif.comp.reference_id == personne.pk %} · Référence du ménage{% endif %}

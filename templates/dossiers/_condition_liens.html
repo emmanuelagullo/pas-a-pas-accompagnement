@@ -3,10 +3,15 @@
   <li><a href="#documents-dossier">Documents</a></li>
   <li><a href="#condition-sociale">Situation sociale et projet</a>
     <ul data-navigation-situation>
-      <li><details class="condition-nav-details"><summary>{% if nature == 'menage' %}Composition du ménage{% else %}Informations personnelles{% endif %}</summary><ul>{% if nature == 'menage' %}<li><a href="#condition-composition">Voir la composition du ménage</a></li>{% endif %}{% for p in condition_personnes %}<li class="condition-person-nav{% if forloop.first %} is-current{% endif %}" data-person-nav="{{ p.ancre }}"><a href="#{{ p.ancre }}">{{ p.personne }}</a>
-        <ul class="condition-rubriques">{% for groupe in p.groupes %}<li><a href="#{{ groupe.ancre }}">{{ groupe.titre }}</a></li>{% endfor %}</ul>
+      {% load collectifs %}{% social_collectif as collectif %}
+      {% if nature == 'menage' %}<li><details class="condition-nav-details"><summary>Ménage</summary><ul>
+        <li><a href="#condition-composition">Composition</a></li>
+        {% for groupe in collectif.rubriques %}<li><a href="#{{ groupe.ancre }}">{{ groupe.titre }}</a></li>{% endfor %}
+      </ul></details></li>{% endif %}
+      {% for p in condition_personnes %}<li class="condition-person-nav{% if forloop.first %} is-current{% endif %}" data-person-nav="{{ p.ancre }}">
+        <details class="condition-nav-details"><summary>{% include 'dossiers/_condition_nom_personne.html' with personne=p.personne %}</summary>
+        <ul class="condition-rubriques"><li><a href="#{{ p.ancre }}">Vue d’ensemble</a></li>{% for groupe in p.groupes %}<li><a href="#{{ groupe.ancre }}">{{ groupe.titre }}</a></li>{% endfor %}</ul></details>
       </li>{% endfor %}
-      </ul></details></li>
       <li><details class="condition-nav-details"><summary>Projet et parcours</summary><ul><li><a href="#projet">Vue d’ensemble du projet</a></li>{% for groupe in condition_projets %}<li><a href="#{{ groupe.ancre }}">{{ groupe.titre }}</a></li>{% endfor %}{% if prise and perms.personnes.view_informationsaccompagnement %}<li><a href="#condition-informations-prise">Informations de cette prise en charge</a></li>{% endif %}{% if missions_visibles %}<li><a href="#condition-missions">Missions et partenaires</a></li>{% endif %}{% if not prise and perms.personnes.view_appel115 %}<li><a href="#appels-115">Appels au 115</a></li>{% endif %}</ul></details></li>
     </ul>
     <ul data-navigation-evolution hidden><li><a href="#evolution-situations">Situations aux deux dates</a></li><li><a href="#evolution-elements">Éléments datés</a></li></ul>

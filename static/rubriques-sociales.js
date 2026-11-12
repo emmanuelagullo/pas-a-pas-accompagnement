@@ -57,14 +57,15 @@
       if (detail.querySelector('[data-condition-form],.errorlist')) detail.open = true;
       initialises.add(detail);
     });
-    racine().querySelector('[data-condition-repli-commandes]').hidden = false;
+    racine().querySelectorAll('[data-condition-repli-commandes]').forEach(commandes => { commandes.hidden = false; });
   }
   document.addEventListener('click', event => {
     const bouton = event.target.closest('[data-condition-tout]');
     if (bouton) {
       const ouvrir = bouton.dataset.conditionTout === 'ouvrir';
       let conserve = false;
-      rubriques().forEach(detail => {
+      const portee = bouton.closest('[data-condition-portee]');
+      rubriques().filter(detail => !portee || portee.contains(detail)).forEach(detail => {
         if (!ouvrir && detail.querySelector('[data-condition-form]')) {
           conserve = true; detail.open = true;
         } else detail.open = ouvrir;
