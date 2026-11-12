@@ -320,7 +320,25 @@
 
 ## À venir
 
-Aucune modification annoncée depuis 0.3.0.
+Aucune modification annoncée depuis 0.4.0.
+
+## 0.4.0 — 2026-11-12
+
+Version de démonstration sur **données fictives**.
+
+- Navigation entre la recherche, le dossier et la prise en charge : sommaire,
+  frises facultatives, édition sur place et retour au contexte de recherche.
+- Prestations : formulaires communs, dates au format français avec calendrier,
+  et propositions de résolution lorsqu’une prestation dépasse la période
+  de la prise en charge.
+- Paramétrage par service : rubriques du ménage ou des personnes, populations
+  concernées, listes de suggestions et familles de prestations.
+- Statistiques : rapports composables, modèles personnels et liens vers les
+  dossiers et prises en charge.
+- La Traverse : dix ménages fictifs pour essayer le parcours d’hébergement
+  inspiré de la fiche AHI et les décomptes à l’entrée et à la sortie.
+  La collecte administrative reste réglée par rubrique entière et la
+  correspondance de tous les sous-totaux avec le document reste à vérifier.
 
 ## 0.3.0 — 2026-10-21
 
